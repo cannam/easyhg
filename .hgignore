@@ -1,0 +1,24 @@
+syntax: glob
+*.core
+*.o
+*~
+*.exe
+*.dll
+moc_*.cpp
+qrc_hgexplorer.cpp
+core
+hgexplorer
+debug/hgexplorer.exe
+Makefile
+Makefile.Debug
+Makefile.Release
+hgexplorer.pro.user
+object_script.hgexplorer.Debug
+object_script.hgexplorer.exe.Release
+object_script.hgexplorer.exe.Debug
+
+
+
+
+
+

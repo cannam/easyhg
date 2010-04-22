@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/add.png</file>
+        <file>images/commit.png</file>
+        <file>images/diff.png</file>
+        <file>images/folderdiff.png</file>
+        <file>images/exit.png</file>
+        <file>images/merge.png</file>
+        <file>images/pull.png</file>
+        <file>images/push.png</file>
+        <file>images/remove.png</file>
+        <file>images/settings.png</file>
+        <file>images/status.png</file>
+        <file>images/undo.png</file>
+        <file>images/update.png</file>
+        <file>images/incoming.png</file>
+        <file>images/chgsetdiff.png</file>
+    </qresource>
+</RCC>
