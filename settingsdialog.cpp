@@ -5,7 +5,6 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
-
 SettingsDialog::SettingsDialog(QWidget *parent): QDialog(parent)
 {
     QPushButton *okButton;
