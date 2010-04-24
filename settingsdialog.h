@@ -3,6 +3,7 @@
 
 #include "mainwindow.h"
 
+
 //** Copyright (C) Jari Korhonen, 2010 (under lgpl)
 
 #include <QDialog>
