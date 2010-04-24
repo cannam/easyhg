@@ -513,23 +513,47 @@ void MainWindow::settings()
     hgStat();
 }
 
-void MainWindow::presentLongStdoutToUser(QString stdo, int w, int h)
+#define STDOUT_NEEDS_BIG_WINDOW 512
+#define SMALL_WND_W     500
+#define SMALL_WND_H     300
+
+#define BIG_WND_W       1024
+#define BIG_WND_H       768
+
+
+void MainWindow::presentLongStdoutToUser(QString stdo)
 {
-    QDialog dlg;
-    dlg.setMinimumWidth(w);
-    dlg.setMinimumHeight(h);
+    if (!stdo.isEmpty())
+    {
+        QDialog dlg;
 
-    QVBoxLayout *box = new QVBoxLayout;
-    QListWidget *list = new QListWidget;
-    list-> addItems(stdo.split("\n"));
-    QPushButton *btn = new QPushButton(tr("Ok"));
-    connect(btn, SIGNAL(clicked()), &dlg, SLOT(accept()));
+        if (stdo.length() > STDOUT_NEEDS_BIG_WINDOW)
+        {
+            dlg.setMinimumWidth(BIG_WND_W);
+            dlg.setMinimumHeight(BIG_WND_H);
+        }
+        else
+        {
+            dlg.setMinimumWidth(SMALL_WND_W);
+            dlg.setMinimumHeight(SMALL_WND_H);
+        }
 
-    box -> addWidget(list);
-    box -> addWidget(btn);
-    dlg.setLayout(box);
+        QVBoxLayout *box = new QVBoxLayout;
+        QListWidget *list = new QListWidget;
+        list-> addItems(stdo.split("\n"));
+        QPushButton *btn = new QPushButton(tr("Ok"));
+        connect(btn, SIGNAL(clicked()), &dlg, SLOT(accept()));
 
-    dlg.exec();
+        box -> addWidget(list);
+        box -> addWidget(btn);
+        dlg.setLayout(box);
+
+        dlg.exec();
+    }
+    else
+    {
+        QMessageBox::information(this, tr("HgExplorer"), tr("Mercurial command did not return any output."));
+    }
 }
 
 
@@ -644,7 +668,7 @@ void MainWindow::timerEvent(QTimerEvent *)
                     case ACT_ANNOTATE:
                     case ACT_RESOLVE_LIST:
                     case ACT_RESOLVE_MARK:
-                        presentLongStdoutToUser(runner -> getStdOut(), 1024, 768);
+                        presentLongStdoutToUser(runner -> getStdOut());
                         shouldHgStat = true;
                         break;
 
@@ -840,6 +864,9 @@ void MainWindow::enableDisableActions()
     hgUpdateAct -> setEnabled(localRepoActionsEnabled);
     hgCommitAct -> setEnabled(localRepoActionsEnabled);
     hgMergeAct -> setEnabled(localRepoActionsEnabled);
+    hgResolveListAct -> setEnabled(localRepoActionsEnabled);
+    hgResolveMarkAct -> setEnabled(localRepoActionsEnabled);
+    hgAnnotateAct -> setEnabled(localRepoActionsEnabled);
 
     hgExp -> enableDisableOtherTabs();
 
@@ -881,11 +908,24 @@ void MainWindow::enableDisableActions()
                 hgRemoveAct -> setEnabled(false);
             }
 
+            hgResolveListAct -> setEnabled(true);
+
             if (hgExp -> localRepoHeadsList->count() == 1)
             {
                 hgMergeAct -> setEnabled(false);
             }
 
+            QString currentFile = hgExp -> getCurrentFileListLine();
+            if (!currentFile.isEmpty())
+            {
+                hgAnnotateAct -> setEnabled(true);
+                hgResolveMarkAct -> setEnabled(true);
+            }
+            else
+            {
+                hgAnnotateAct -> setEnabled(false);
+                hgResolveMarkAct -> setEnabled(false);
+            }
         }
     }
     else
