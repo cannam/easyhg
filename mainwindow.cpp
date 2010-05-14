@@ -181,10 +181,14 @@ void MainWindow::hgRemove()
 
         if (!currentFile.isEmpty())
         {
-            params << "remove" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
+            if (QMessageBox::Ok == QMessageBox::warning(this, "Remove file", "Really remove file " + currentFile.mid(2) + "?",
+                QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel))
+            {
+                params << "remove" << "--after" << "--force" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
 
-            runner -> startProc(getHgBinaryName(), workFolderPath, params);
-            runningAction = ACT_REMOVE;
+                runner -> startProc(getHgBinaryName(), workFolderPath, params);
+                runningAction = ACT_REMOVE;
+            }
         }
     }
 }
@@ -568,13 +572,30 @@ void MainWindow::presentLongStdoutToUser(QString stdo)
 }
 
 
-bool MainWindow::isSelectedLocallyDeleted(QListWidget *workList)
+bool MainWindow::isSelectedDeletable(QListWidget *workList)
 {
     QList<QListWidgetItem *> selList = workList -> selectedItems();
     if (selList.count() == 1)
     {
-        if (selList.at(0)->text().mid(0, 1) == "!")
+        QString tmp = selList.at(0)->text().mid(0, 1);
+        if (tmp == "A")
         {
+            //scheduled to be added, ok to remove (won't go to repo)
+            return true;
+        }
+        else if (tmp == "C")
+        {
+            //Tracked but unchanged, ok to remove
+            return true;
+        }
+        else if (tmp == "M")
+        {
+            //locally modified, ok to remove from repo
+            return true;
+        }
+        else if (tmp == "!")
+        {
+            //locally deleted, ok to remove from repo
             return true;
         }
     }
@@ -922,7 +943,7 @@ void MainWindow::enableDisableActions()
                 hgAddAct -> setEnabled(false);
             }
 
-            if (!isSelectedLocallyDeleted(hgExp -> workFolderFileList))
+            if (!isSelectedDeletable(hgExp -> workFolderFileList))
             {
                 hgRemoveAct -> setEnabled(false);
             }

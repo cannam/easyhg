@@ -146,7 +146,7 @@ private:
     void countAMRNModifications(QListWidget *workList, int& a, int& m, int& r, int& n);
     bool isSelectedModified(QListWidget *workList);
     bool isSelectedUntracked(QListWidget *workList);
-    bool isSelectedLocallyDeleted(QListWidget *workList);
+    bool isSelectedDeletable(QListWidget *workList);
 
 
     //Actions enabled flags
