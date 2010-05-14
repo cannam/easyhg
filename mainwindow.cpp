@@ -246,7 +246,18 @@ void MainWindow::hgAdd()
     {
         QStringList params;
 
-        params << "add";
+        QString currentFile = hgExp -> getCurrentFileListLine();
+
+        if (isSelectedUntracked(hgExp -> workFolderFileList))
+        {
+            //User wants to add one file
+            params << "add" << currentFile.mid(2);
+        }
+        else
+        {
+            //Add all untracked files
+            params << "add";
+        }
 
         runner -> startProc(getHgBinaryName(), workFolderPath, params);
         runningAction = ACT_ADD;
@@ -412,7 +423,7 @@ void MainWindow::hgRevert()
         QStringList params;
         QString currentFile = hgExp -> getCurrentFileListLine();
 
-        params << "revert" << currentFile.mid(2);
+        params << "revert" << "--no-backup" << currentFile.mid(2);
 
         runner -> startProc(getHgBinaryName(), workFolderPath, params);
         runningAction = ACT_REVERT;
@@ -598,7 +609,7 @@ bool MainWindow::isSelectedModified(QListWidget *workList)
     return false;
 }
 
-void MainWindow::countAMRModifications(QListWidget *workList, int& a, int& m, int& r)
+void MainWindow::countAMRNModifications(QListWidget *workList, int& a, int& m, int& r, int& n)
 {
     int itemCount = workList -> count();
     if (itemCount > 0)
@@ -606,6 +617,7 @@ void MainWindow::countAMRModifications(QListWidget *workList, int& a, int& m, in
         int A= 0;
         int M=0;
         int R=0;
+        int N=0;
         for (int i = 0; i < workList -> count(); i++)
         {
             QListWidgetItem *currItem = workList -> item(i);
@@ -623,17 +635,23 @@ void MainWindow::countAMRModifications(QListWidget *workList, int& a, int& m, in
             {
                 A++;
             }
+            else if (tmp == "?")
+            {
+                N++;
+            }
         }
 
         a = A;
         m = M;
         r = R;
+        n = N;
     }
     else
     {
         a = 0;
         m = 0;
         r = 0;
+        n = 0;
     }
 }
 
@@ -870,8 +888,8 @@ void MainWindow::enableDisableActions()
 
     hgExp -> enableDisableOtherTabs();
 
-    int a, m, r;
-    countAMRModifications(hgExp -> workFolderFileList, a, m, r);
+    int a, m, r, n;
+    countAMRNModifications(hgExp -> workFolderFileList, a, m, r, n);
 
     if (tabPage == WORKTAB)
     {
@@ -898,7 +916,8 @@ void MainWindow::enableDisableActions()
                 hgRevertAct -> setEnabled(false);
             }
 
-            if (!isSelectedUntracked(hgExp -> workFolderFileList))
+            //JK 14.5.2010: Fixed confusing add button. Now this is simple: If we have something to add (any non-tracked files), add is enabled.
+            if (n == 0)
             {
                 hgAddAct -> setEnabled(false);
             }
@@ -910,7 +929,7 @@ void MainWindow::enableDisableActions()
 
             hgResolveListAct -> setEnabled(true);
 
-            if (hgExp -> localRepoHeadsList->count() == 1)
+            if (hgExp -> localRepoHeadsList->count() < 2)
             {
                 hgMergeAct -> setEnabled(false);
             }
@@ -1005,7 +1024,7 @@ void MainWindow::createActions()
     hgRevertAct->setStatusTip(tr("Undo selected working folder file changes (return to local repository version)"));
 
     hgAddAct = new QAction(QIcon(":/images/add.png"), tr("Add files"), this);
-    hgAddAct -> setStatusTip(tr("Add working folder files to local repository (on next commit)"));
+    hgAddAct -> setStatusTip(tr("Add working folder files (selected one or all yet untracked) to local repository (on next commit)"));
 
     hgRemoveAct = new QAction(QIcon(":/images/remove.png"), tr("Remove file"), this);
     hgRemoveAct -> setStatusTip(tr("Remove selected working folder file from local repository (on next commit)"));

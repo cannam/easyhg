@@ -143,7 +143,7 @@ private:
     void splitChangeSets(QStringList *list, QString hgLogOutput);
     int getCommitComment(QString& comment);
     void presentLongStdoutToUser(QString stdo);
-    void countAMRModifications(QListWidget *workList, int& a, int& m, int& r);
+    void countAMRNModifications(QListWidget *workList, int& a, int& m, int& r, int& n);
     bool isSelectedModified(QListWidget *workList);
     bool isSelectedUntracked(QListWidget *workList);
     bool isSelectedLocallyDeleted(QListWidget *workList);
