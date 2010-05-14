@@ -70,7 +70,13 @@ void SettingsDialog::okClicked()
     mainWnd -> firstStart = false;
     mainWnd -> userInfo = userInfoLineEdit->text();
     mainWnd -> remoteRepoPath = remoteRepoLineEdit->text();
+
     mainWnd -> workFolderPath = workFolderLineEdit -> text();
+    if (!mainWnd -> workFolderPath.endsWith(QDir::separator()))
+    {
+        mainWnd -> workFolderPath += QDir::separator();
+    }
+
     mainWnd -> writeSettings();
     mainWnd -> enableDisableActions();
     mainWnd -> hgStat();
