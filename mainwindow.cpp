@@ -1106,7 +1106,7 @@ void MainWindow::createActions()
     hgUpdateAct->setStatusTip(tr("Update working folder from local repository"));
 
     hgCommitAct = new QAction(QIcon(":/images/commit.png"), tr("Commit / Save change(s)"), this);
-    hgCommitAct->setStatusTip(tr("Save (selected file or all changed files working folder (and all subfolders)) to local repository"));
+    hgCommitAct->setStatusTip(tr("Save (selected file or all changed files in working folder (and all subfolders)) to local repository"));
 
     hgMergeAct = new QAction(QIcon(":/images/merge.png"), tr("Merge"), this);
     hgMergeAct->setStatusTip(tr("Merge two local repository changesets to working folder"));
