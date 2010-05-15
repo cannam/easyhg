@@ -540,7 +540,7 @@ void MainWindow::hgServe()
         runner -> startProc(getHgBinaryName(), workFolderPath, params, false);
         runningAction = ACT_SERVE;
 
-        QMessageBox::information(this, "Serve", "Server running", QMessageBox::Close);
+        QMessageBox::information(this, "Serve", "Server running on port 8000", QMessageBox::Close);
         runner -> killProc();
     }
 }
