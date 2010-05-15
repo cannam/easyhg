@@ -77,6 +77,7 @@ enum HGACTIONS
     ACT_REVERT,
     ACT_MERGE,
     ACT_RESOLVE_LIST,
+    ACT_SERVE,
     ACT_RESOLVE_MARK
 };
 
@@ -129,6 +130,7 @@ private slots:
     void hgAnnotate();
     void hgResolveList();
     void hgResolveMark();
+    void hgServe();
 
 private:
     void hgHeads();
@@ -147,6 +149,7 @@ private:
     bool isSelectedModified(QListWidget *workList);
     bool isSelectedUntracked(QListWidget *workList);
     bool isSelectedDeletable(QListWidget *workList);
+    bool isSelectedCommitable(QListWidget *workList);
 
 
     //Actions enabled flags
@@ -176,6 +179,7 @@ private:
     QAction *hgAnnotateAct;
     QAction *hgResolveListAct;
     QAction *hgResolveMarkAct;
+    QAction *hgServeAct;
 
     //Menus
     QMenu   *fileMenu;

@@ -314,7 +314,18 @@ void MainWindow::hgCommit()
         {
             if (!comment.isEmpty())
             {
-                params << "commit" << "--message" << comment << "--user" << userInfo;
+                QString currentFile = hgExp -> getCurrentFileListLine();
+
+                if (isSelectedCommitable(hgExp -> workFolderFileList))
+                {
+                    //User wants to commit only one file
+                    params << "commit" << "--message" << comment << "--user" << userInfo << currentFile.mid(2);
+                }
+                else
+                {
+                    //Commit all changes
+                    params << "commit" << "--message" << comment << "--user" << userInfo;
+                }
 
                 runner -> startProc(getHgBinaryName(), workFolderPath, params);
                 runningAction = ACT_COMMIT;
@@ -518,6 +529,24 @@ void MainWindow::hgPush()
 }
 
 
+void MainWindow::hgServe()
+{
+    if (runningAction == ACT_NONE)
+    {
+        QStringList params;
+
+        params << "serve";
+
+        runner -> startProc(getHgBinaryName(), workFolderPath, params, false);
+        runningAction = ACT_SERVE;
+
+        QMessageBox::information(this, "Serve", "Server running", QMessageBox::Close);
+        runner -> killProc();
+    }
+}
+
+
+
 void MainWindow::settings()
 {
     SettingsDialog *settingsDlg = new SettingsDialog(this);
@@ -571,6 +600,26 @@ void MainWindow::presentLongStdoutToUser(QString stdo)
     }
 }
 
+
+bool MainWindow::isSelectedCommitable(QListWidget *workList)
+{
+    QList<QListWidgetItem *> selList = workList -> selectedItems();
+    if (selList.count() == 1)
+    {
+        QString tmp = selList.at(0)->text().mid(0, 1);
+        if (tmp == "A")
+        {
+            //scheduled to be added, ok to commit
+            return true;
+        }
+        else if (tmp == "M")
+        {
+            //locally modified, ok to commit
+            return true;
+        }
+    }
+    return false;
+}
 
 bool MainWindow::isSelectedDeletable(QListWidget *workList)
 {
@@ -758,6 +807,7 @@ void MainWindow::timerEvent(QTimerEvent *)
                     case ACT_FOLDERDIFF:
                     case ACT_CHGSETDIFF:
                     case ACT_REVERT:
+                    case ACT_SERVE:
                         shouldHgStat = true;
                         break;
 
@@ -840,6 +890,7 @@ void MainWindow::connectActions()
     connect(hgAnnotateAct, SIGNAL(triggered()), this, SLOT(hgAnnotate()));
     connect(hgResolveListAct, SIGNAL(triggered()), this, SLOT(hgResolveList()));
     connect(hgResolveMarkAct, SIGNAL(triggered()), this, SLOT(hgResolveMark()));
+    connect(hgServeAct, SIGNAL(triggered()), this, SLOT(hgServe()));
 }
 
 void MainWindow::tabChanged(int currTab)
@@ -906,6 +957,7 @@ void MainWindow::enableDisableActions()
     hgResolveListAct -> setEnabled(localRepoActionsEnabled);
     hgResolveMarkAct -> setEnabled(localRepoActionsEnabled);
     hgAnnotateAct -> setEnabled(localRepoActionsEnabled);
+    hgServeAct -> setEnabled(localRepoActionsEnabled);
 
     hgExp -> enableDisableOtherTabs();
 
@@ -1053,8 +1105,8 @@ void MainWindow::createActions()
     hgUpdateAct = new QAction(QIcon(":/images/update.png"), tr("Update working folder"), this);
     hgUpdateAct->setStatusTip(tr("Update working folder from local repository"));
 
-    hgCommitAct = new QAction(QIcon(":/images/commit.png"), tr("Commit / Save changes"), this);
-    hgCommitAct->setStatusTip(tr("Save all changes in working folder (and all subfolders) to local repository"));
+    hgCommitAct = new QAction(QIcon(":/images/commit.png"), tr("Commit / Save change(s)"), this);
+    hgCommitAct->setStatusTip(tr("Save (selected file or all changed files working folder (and all subfolders)) to local repository"));
 
     hgMergeAct = new QAction(QIcon(":/images/merge.png"), tr("Merge"), this);
     hgMergeAct->setStatusTip(tr("Merge two local repository changesets to working folder"));
@@ -1071,6 +1123,9 @@ void MainWindow::createActions()
 
     hgResolveMarkAct = new QAction(tr("Resolve (mark)"), this);
     hgResolveMarkAct -> setStatusTip(tr("Resolve (mark): Mark selected file status as resolved"));
+
+    hgServeAct = new QAction(tr("Serve (via http)"), this);
+    hgServeAct -> setStatusTip(tr("Serve local repository via http for workgroup access"));
 
     //Help actions
     aboutAct = new QAction(tr("About"), this);
@@ -1097,6 +1152,8 @@ void MainWindow::createMenus()
     advancedMenu -> addSeparator();
     advancedMenu -> addAction(hgResolveListAct);
     advancedMenu -> addAction(hgResolveMarkAct);
+    advancedMenu -> addSeparator();
+    advancedMenu -> addAction(hgServeAct);
 
     helpMenu = menuBar()->addMenu(tr("Help"));
     helpMenu->addAction(aboutAct);

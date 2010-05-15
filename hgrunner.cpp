@@ -82,7 +82,10 @@ void HgRunner::error(QProcess::ProcessError)
 {
     setProcExitInfo(proc -> exitCode(), proc -> exitStatus());
 
-    presentErrorToUser();
+    if (reportErrors)
+    {
+        presentErrorToUser();
+    }
 
     isRunning = false;
 }
