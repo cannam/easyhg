@@ -45,7 +45,7 @@ HgExpWidget::HgExpWidget(QWidget *parent, QString remoteRepo, QString workFolder
     grpWorkFolder = new QGroupBox(tr(WORKFOLDER_STR) + workFolderPath);
     workFolderLayout = new QHBoxLayout;
     workFolderFileList = new QListWidget;
-    workFolderFileList -> setSelectionMode(QAbstractItemView::SingleSelection);
+    workFolderFileList -> setSelectionMode(QAbstractItemView::ExtendedSelection);
     grpViewFileTypes = new QGroupBox;
     fileTypesLayout = new QVBoxLayout;
 

@@ -21,3 +21,5 @@ RESOURCES = hgexplorer.qrc
 win32 {
     RC_FILE = hgexplorer.rc
 }
+
+QT += network
