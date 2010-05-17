@@ -1188,7 +1188,7 @@ void MainWindow::createActions()
 
     //Workfolder actions
     hgStatAct = new QAction(QIcon(":/images/status.png"), tr("Refresh status"), this);
-    hgStatAct->setStatusTip(tr("Refresh (info of) status of workfolder files (A=Added, M=Mofified, R=Removed, C=Clean, !=Locally deleted, ?=Not tracked, I=Ignored)"));
+    hgStatAct->setStatusTip(tr("Refresh (info of) status of workfolder files"));
 
     hgFileDiffAct   = new QAction(QIcon(":/images/diff.png"), tr("View filediff"), this);
     hgFileDiffAct->setStatusTip(tr("Filediff: View differences between selected working folder file and local repository file"));
@@ -1212,7 +1212,7 @@ void MainWindow::createActions()
     hgUpdateAct->setStatusTip(tr("Update working folder from local repository"));
 
     hgCommitAct = new QAction(QIcon(":/images/commit.png"), tr("Commit / Save change(s)"), this);
-    hgCommitAct->setStatusTip(tr("Save selected file(s) or all changed files in working folder (and all subfolders)) to local repository"));
+    hgCommitAct->setStatusTip(tr("Save selected file(s) or all changed files in working folder (and all subfolders) to local repository"));
 
     hgMergeAct = new QAction(QIcon(":/images/merge.png"), tr("Merge"), this);
     hgMergeAct->setStatusTip(tr("Merge two local repository changesets to working folder"));
