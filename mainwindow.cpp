@@ -43,6 +43,8 @@
 #include <QtGui>
 #include <QStringList>
 #include <QDir>
+#include <QHostAddress>
+#include <QHostInfo>
 
 #include "mainwindow.h"
 #include "settingsdialog.h"
@@ -252,10 +254,18 @@ void MainWindow::hgAdd()
 
         QString currentFile = hgExp -> getCurrentFileListLine();
 
-        if (isSelectedUntracked(hgExp -> workFolderFileList))
+        if (areAllSelectedUntracked(hgExp -> workFolderFileList))
         {
-            //User wants to add one file
-            params << "add" << currentFile.mid(2);
+            //User wants to add selected file(s)
+            params << "add";
+
+            QList <QListWidgetItem *> selList = hgExp -> workFolderFileList -> selectedItems();
+
+            for (int i = 0; i < selList.size(); ++i)
+            {
+                QString tmp = selList.at(i)->text();
+                params.append(tmp.mid(2));
+            }
         }
         else
         {
@@ -316,10 +326,17 @@ void MainWindow::hgCommit()
             {
                 QString currentFile = hgExp -> getCurrentFileListLine();
 
-                if (isSelectedCommitable(hgExp -> workFolderFileList))
+                if (areAllSelectedCommitable(hgExp -> workFolderFileList))
                 {
-                    //User wants to commit only one file
-                    params << "commit" << "--message" << comment << "--user" << userInfo << currentFile.mid(2);
+                    //User wants to commit selected file(s)
+                    params << "commit" << "--message" << comment << "--user" << userInfo;
+
+                    QList <QListWidgetItem *> selList = hgExp -> workFolderFileList -> selectedItems();
+                    for (int i = 0; i < selList.size(); ++i)
+                    {
+                        QString tmp = selList.at(i)->text();
+                        params.append(tmp.mid(2));
+                    }
                 }
                 else
                 {
@@ -529,6 +546,25 @@ void MainWindow::hgPush()
 }
 
 
+QString MainWindow::findMyIps()
+{
+    QString ret;
+    QHostInfo info = QHostInfo::fromName(QHostInfo::localHostName());
+    QList <QHostAddress> ipList = info.addresses();
+
+    if (!ipList.isEmpty())
+    {
+        QHostAddress addr = ipList.at(0);
+        ret = addr.toString();
+    }
+    else
+    {
+        ret = "unknown";
+    }
+
+    return ret;
+}
+
 void MainWindow::hgServe()
 {
     if (runningAction == ACT_NONE)
@@ -540,7 +576,10 @@ void MainWindow::hgServe()
         runner -> startProc(getHgBinaryName(), workFolderPath, params, false);
         runningAction = ACT_SERVE;
 
-        QMessageBox::information(this, "Serve", "Server running on port 8000", QMessageBox::Close);
+        QString msg;
+
+        QTextStream(&msg) << "Server running on http://" << findMyIps() << ":8000/";
+        QMessageBox::information(this, "Serve", msg, QMessageBox::Close);
         runner -> killProc();
     }
 }
@@ -601,24 +640,30 @@ void MainWindow::presentLongStdoutToUser(QString stdo)
 }
 
 
-bool MainWindow::isSelectedCommitable(QListWidget *workList)
+bool MainWindow::areAllSelectedCommitable(QListWidget *workList)
 {
     QList<QListWidgetItem *> selList = workList -> selectedItems();
-    if (selList.count() == 1)
+    for (int i = 0; i < selList.size(); ++i)
     {
-        QString tmp = selList.at(0)->text().mid(0, 1);
+        QString tmp = selList.at(i) -> text().mid(0, 1);
         if (tmp == "A")
         {
             //scheduled to be added, ok to commit
-            return true;
         }
         else if (tmp == "M")
         {
             //locally modified, ok to commit
-            return true;
+        }
+        else if (tmp == "R")
+        {
+            //user wants to remove from repo, ok to commit
+        }
+        else
+        {
+            return false;
         }
     }
-    return false;
+    return true;
 }
 
 bool MainWindow::isSelectedDeletable(QListWidget *workList)
@@ -652,17 +697,19 @@ bool MainWindow::isSelectedDeletable(QListWidget *workList)
 }
 
 
-bool MainWindow::isSelectedUntracked(QListWidget *workList)
+bool MainWindow::areAllSelectedUntracked(QListWidget *workList)
 {
     QList<QListWidgetItem *> selList = workList -> selectedItems();
-    if (selList.count() == 1)
+    for (int i = 0; i < selList.size(); ++i)
     {
-        if (selList.at(0)->text().mid(0, 1) == "?")
+        QString tmp = selList.at(i) -> text();
+
+        if (tmp.mid(0,1) != "?")
         {
-            return true;
+            return false;
         }
     }
-    return false;
+    return true;
 }
 
 
@@ -679,7 +726,9 @@ bool MainWindow::isSelectedModified(QListWidget *workList)
     return false;
 }
 
-void MainWindow::countAMRNModifications(QListWidget *workList, int& a, int& m, int& r, int& n)
+void MainWindow::countModifications(QListWidget *workList, int& added, int& modified, int& removed, int& notTracked,
+                                    int& selected,
+                                    int& selectedAdded, int& selectedModified, int& selectedRemoved, int& selectedNotTracked)
 {
     int itemCount = workList -> count();
     if (itemCount > 0)
@@ -688,6 +737,12 @@ void MainWindow::countAMRNModifications(QListWidget *workList, int& a, int& m, i
         int M=0;
         int R=0;
         int N=0;
+        int S=0;
+        int SA=0;
+        int SM=0;
+        int SR=0;
+        int SN=0;
+
         for (int i = 0; i < workList -> count(); i++)
         {
             QListWidgetItem *currItem = workList -> item(i);
@@ -711,17 +766,53 @@ void MainWindow::countAMRNModifications(QListWidget *workList, int& a, int& m, i
             }
         }
 
-        a = A;
-        m = M;
-        r = R;
-        n = N;
+        added = A;
+        modified = M;
+        removed = R;
+        notTracked = N;
+
+        QList <QListWidgetItem *> selList = workList -> selectedItems();
+
+        S = selList.size();
+        for (int i = 0; i < selList.size(); ++i)
+        {
+            QString tmp = selList.at(i) -> text();
+
+            if (tmp.mid(0,1) == "A")
+            {
+                SA++;
+            }
+            else if (tmp.mid(0,1) == "M")
+            {
+                SM++;
+            }
+            else if (tmp.mid(0,1) == "R")
+            {
+                SR++;
+            }
+            else if (tmp.mid(0,1) == "?")
+            {
+                SN++;
+            }
+        }
+
+        selected = S;
+        selectedAdded = SA;
+        selectedModified = SM;
+        selectedRemoved = SR;
+        selectedNotTracked = SN;
     }
     else
     {
-        a = 0;
-        m = 0;
-        r = 0;
-        n = 0;
+        added = 0;
+        modified = 0;
+        removed = 0;
+        notTracked = 0;
+        selected = 0;
+        selectedAdded = 0;
+        selectedModified = 0;
+        selectedRemoved = 0;
+        selectedNotTracked = 0;
     }
 }
 
@@ -961,8 +1052,12 @@ void MainWindow::enableDisableActions()
 
     hgExp -> enableDisableOtherTabs();
 
-    int a, m, r, n;
-    countAMRNModifications(hgExp -> workFolderFileList, a, m, r, n);
+    int added, modified, removed, notTracked, selected, selectedAdded, selectedModified, selectedRemoved, selectedNotTracked;
+
+    countModifications(hgExp -> workFolderFileList,
+        added, modified, removed, notTracked,
+        selected,
+        selectedAdded, selectedModified, selectedRemoved, selectedNotTracked);
 
     if (tabPage == WORKTAB)
     {
@@ -972,13 +1067,24 @@ void MainWindow::enableDisableActions()
 
         if (localRepoActionsEnabled)
         {
-            if ((a == 0) && (m == 0) && (r == 0))
+            if ((added == 0) && (modified == 0) && (removed == 0))
             {
                 hgCommitAct -> setEnabled(false);
                 hgRevertAct -> setEnabled(false);
             }
+            else if (selected != 0)
+            {
+                if (selectedNotTracked != 0)
+                {
+                    hgCommitAct -> setEnabled(false);
+                }
+                else if ((selectedAdded == 0) && (selectedModified == 0) && (selectedRemoved == 0))
+                {
+                    hgCommitAct -> setEnabled(false);
+                }
+            }
 
-            if (m == 0)
+            if (modified == 0)
             {
                 hgFolderDiffAct -> setEnabled(false);
             }
@@ -990,7 +1096,7 @@ void MainWindow::enableDisableActions()
             }
 
             //JK 14.5.2010: Fixed confusing add button. Now this is simple: If we have something to add (any non-tracked files), add is enabled.
-            if (n == 0)
+            if (notTracked == 0)
             {
                 hgAddAct -> setEnabled(false);
             }
@@ -1034,7 +1140,7 @@ void MainWindow::enableDisableActions()
             hgChgSetDiffAct -> setEnabled(false);
         }
 
-        if ((a == 0) && (m == 0) && (r == 0))
+        if ((added == 0) && (modified == 0) && (removed == 0))
         {
             if (historySelList.count() == 1)
             {
@@ -1097,7 +1203,7 @@ void MainWindow::createActions()
     hgRevertAct->setStatusTip(tr("Undo selected working folder file changes (return to local repository version)"));
 
     hgAddAct = new QAction(QIcon(":/images/add.png"), tr("Add files"), this);
-    hgAddAct -> setStatusTip(tr("Add working folder files (selected one or all yet untracked) to local repository (on next commit)"));
+    hgAddAct -> setStatusTip(tr("Add working folder file(s) (selected or all yet untracked) to local repository (on next commit)"));
 
     hgRemoveAct = new QAction(QIcon(":/images/remove.png"), tr("Remove file"), this);
     hgRemoveAct -> setStatusTip(tr("Remove selected working folder file from local repository (on next commit)"));
@@ -1106,7 +1212,7 @@ void MainWindow::createActions()
     hgUpdateAct->setStatusTip(tr("Update working folder from local repository"));
 
     hgCommitAct = new QAction(QIcon(":/images/commit.png"), tr("Commit / Save change(s)"), this);
-    hgCommitAct->setStatusTip(tr("Save (selected file or all changed files in working folder (and all subfolders)) to local repository"));
+    hgCommitAct->setStatusTip(tr("Save selected file(s) or all changed files in working folder (and all subfolders)) to local repository"));
 
     hgMergeAct = new QAction(QIcon(":/images/merge.png"), tr("Merge"), this);
     hgMergeAct->setStatusTip(tr("Merge two local repository changesets to working folder"));
@@ -1225,6 +1331,7 @@ void MainWindow::readSettings()
     resize(size);
     move(pos);
 }
+
 
 void MainWindow::writeSettings()
 {

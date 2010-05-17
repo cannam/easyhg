@@ -145,11 +145,14 @@ private:
     void splitChangeSets(QStringList *list, QString hgLogOutput);
     int getCommitComment(QString& comment);
     void presentLongStdoutToUser(QString stdo);
-    void countAMRNModifications(QListWidget *workList, int& a, int& m, int& r, int& n);
+    void countModifications(QListWidget *workList, int& added, int& modified, int& removed, int& notTracked,
+        int& selected,
+        int& selectedAdded, int& selectedModified, int& selectedRemoved, int& selectedNotTracked);
     bool isSelectedModified(QListWidget *workList);
-    bool isSelectedUntracked(QListWidget *workList);
+    bool areAllSelectedUntracked(QListWidget *workList);
     bool isSelectedDeletable(QListWidget *workList);
-    bool isSelectedCommitable(QListWidget *workList);
+    bool areAllSelectedCommitable(QListWidget *workList);
+    QString findMyIps();
 
 
     //Actions enabled flags
