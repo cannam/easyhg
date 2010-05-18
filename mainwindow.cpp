@@ -546,20 +546,33 @@ void MainWindow::hgPush()
 }
 
 
-QString MainWindow::findMyIps()
+QString MainWindow::findMyIp(bool& isAddrIpV6)
 {
     QString ret;
     QHostInfo info = QHostInfo::fromName(QHostInfo::localHostName());
     QList <QHostAddress> ipList = info.addresses();
 
+
     if (!ipList.isEmpty())
     {
         QHostAddress addr = ipList.at(0);
+
+        if (QAbstractSocket::IPv6Protocol == addr.protocol())
+        {
+            isAddrIpV6 = true;
+        }
+        else
+        {
+            isAddrIpV6 = false;
+        }
+
         ret = addr.toString();
     }
     else
     {
-        ret = "unknown";
+        //This won't help your teammate much, but is funny ;-)
+        ret = "127.0.0.1";
+        isAddrIpV6 = false;
     }
 
     return ret;
@@ -570,15 +583,24 @@ void MainWindow::hgServe()
     if (runningAction == ACT_NONE)
     {
         QStringList params;
+        QString msg;
+        bool isIpv6;
 
-        params << "serve";
+        QString addr = findMyIp(isIpv6);
+        if (isIpv6)
+        {
+            QTextStream(&msg) << "Server running on http://[" << addr << "]:8000/";
+            params << "serve" << "--ipv6";
+        }
+        else
+        {
+            QTextStream(&msg) << "Server running on http://" << addr << ":8000/";
+            params << "serve";
+        }
 
         runner -> startProc(getHgBinaryName(), workFolderPath, params, false);
         runningAction = ACT_SERVE;
 
-        QString msg;
-
-        QTextStream(&msg) << "Server running on http://" << findMyIps() << ":8000/";
         QMessageBox::information(this, "Serve", msg, QMessageBox::Close);
         runner -> killProc();
     }
