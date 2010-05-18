@@ -6,7 +6,7 @@
 #include <QtCore>
 
 #define APPNAME                         "HgExplorer"
-#define APPVERSION                      "0.4.3"
+#define APPVERSION                      "0.4.4"
 #define MY_ICON_SIZE                    32
 #define REPOMENU_TITLE                  "Repository actions"
 #define WORKFOLDERMENU_TITLE            "Workfolder actions"
