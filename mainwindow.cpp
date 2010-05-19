@@ -43,6 +43,7 @@
 #include <QtGui>
 #include <QStringList>
 #include <QDir>
+#include <QNetworkInterface>
 #include <QHostAddress>
 #include <QHostInfo>
 
@@ -546,36 +547,31 @@ void MainWindow::hgPush()
 }
 
 
-QString MainWindow::findMyIp(bool& isAddrIpV6)
+QString MainWindow::findMyIp()
 {
-    QString ret;
-    QHostInfo info = QHostInfo::fromName(QHostInfo::localHostName());
-    QList <QHostAddress> ipList = info.addresses();
+    QString ipAddr;
+
+    QList <QHostAddress> ipList = QNetworkInterface::allAddresses();
 
 
     if (!ipList.isEmpty())
     {
-        QHostAddress addr = ipList.at(0);
-
-        if (QAbstractSocket::IPv6Protocol == addr.protocol())
+        for(int i = 0; i < ipList.size(); i++)
         {
-            isAddrIpV6 = true;
-        }
-        else
-        {
-            isAddrIpV6 = false;
-        }
+            QHostAddress addr = ipList.at(i);
 
-        ret = addr.toString();
-    }
-    else
-    {
-        //This won't help your teammate much, but is funny ;-)
-        ret = "127.0.0.1";
-        isAddrIpV6 = false;
+            if (QAbstractSocket::IPv4Protocol == addr.protocol())
+            {
+                if (addr != QHostAddress::LocalHost)
+                {
+                    return addr.toString();
+                }
+            }
+        }
     }
 
-    return ret;
+    //This won't help your teammate much but is funny ;-)
+    return "127.0.0.1";
 }
 
 void MainWindow::hgServe()
@@ -584,19 +580,10 @@ void MainWindow::hgServe()
     {
         QStringList params;
         QString msg;
-        bool isIpv6;
 
-        QString addr = findMyIp(isIpv6);
-        if (isIpv6)
-        {
-            QTextStream(&msg) << "Server running on http://[" << addr << "]:8000/";
-            params << "serve" << "--ipv6";
-        }
-        else
-        {
-            QTextStream(&msg) << "Server running on http://" << addr << ":8000/";
-            params << "serve";
-        }
+        QString addr = findMyIp();
+        QTextStream(&msg) << "Server running on http://" << addr << ":8000/";
+        params << "serve";
 
         runner -> startProc(getHgBinaryName(), workFolderPath, params, false);
         runningAction = ACT_SERVE;
