@@ -583,7 +583,7 @@ void MainWindow::hgServe()
 
         QString addr = findMyIp();
         QTextStream(&msg) << "Server running on http://" << addr << ":8000/";
-        params << "serve";
+        params << "serve" << "--address" << addr << "--port" << "8000";
 
         runner -> startProc(getHgBinaryName(), workFolderPath, params, false);
         runningAction = ACT_SERVE;
