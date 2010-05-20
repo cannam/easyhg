@@ -547,9 +547,35 @@ void MainWindow::hgPush()
 }
 
 
+
+void MainWindow::listAllUpAddresses()
+{
+    QList<QNetworkInterface> ifaces = QNetworkInterface::allInterfaces();
+
+    for (int i = 0; i < ifaces.count(); i++)
+    {
+        QNetworkInterface iface = ifaces.at(i);
+
+        QString msg;
+
+        QTextStream(&msg) <<  "name: " << iface.name() << endl << "mac: " << iface.hardwareAddress() << endl;
+        QMessageBox::information(this,  "interface", msg);
+
+        if (iface.flags().testFlag(QNetworkInterface::IsUp) && !iface.flags().testFlag(QNetworkInterface::IsLoopBack))
+        {
+            // this loop is important
+            for (int j=0; j<iface.addressEntries().count(); j++)
+            {
+                QMessageBox::information(this, iface.name(), iface.addressEntries().at(j).ip().toString());
+            }
+        }
+    }
+}
+
+
 QString MainWindow::findMyIp()
 {
-    QString ipAddr;
+    listAllUpAddresses();
 
     QList <QHostAddress> ipList = QNetworkInterface::allAddresses();
 
