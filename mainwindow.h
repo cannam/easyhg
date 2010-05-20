@@ -153,6 +153,7 @@ private:
     bool isSelectedDeletable(QListWidget *workList);
     bool areAllSelectedCommitable(QListWidget *workList);
     QString findMyIp();
+    void listAllUpAddresses();
 
 
     //Actions enabled flags
