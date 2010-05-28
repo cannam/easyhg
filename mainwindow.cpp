@@ -548,57 +548,34 @@ void MainWindow::hgPush()
 
 
 
-void MainWindow::listAllUpAddresses()
+QString MainWindow::listAllUpIpV4Addresses()
 {
+    QString ret;
     QList<QNetworkInterface> ifaces = QNetworkInterface::allInterfaces();
 
     for (int i = 0; i < ifaces.count(); i++)
     {
         QNetworkInterface iface = ifaces.at(i);
 
-        QString msg;
-
-        QTextStream(&msg) <<  "name: " << iface.name() << endl << "mac: " << iface.hardwareAddress() << endl;
-        QMessageBox::information(this,  "interface", msg);
-
         if (iface.flags().testFlag(QNetworkInterface::IsUp) && !iface.flags().testFlag(QNetworkInterface::IsLoopBack))
         {
-            // this loop is important
             for (int j=0; j<iface.addressEntries().count(); j++)
             {
-                QMessageBox::information(this, iface.name(), iface.addressEntries().at(j).ip().toString());
-            }
-        }
-    }
-}
-
-
-QString MainWindow::findMyIp()
-{
-    listAllUpAddresses();
-
-    QList <QHostAddress> ipList = QNetworkInterface::allAddresses();
-
-
-    if (!ipList.isEmpty())
-    {
-        for(int i = 0; i < ipList.size(); i++)
-        {
-            QHostAddress addr = ipList.at(i);
-
-            if (QAbstractSocket::IPv4Protocol == addr.protocol())
-            {
-                if (addr != QHostAddress::LocalHost)
+                QHostAddress tmp = iface.addressEntries().at(j).ip();
+                if (QAbstractSocket::IPv4Protocol == tmp.protocol())
                 {
-                    return addr.toString();
+                    if (!ret.isEmpty())
+                    {
+                        ret += " ";
+                    }
+                    ret += tmp.toString();
                 }
             }
         }
     }
-
-    //This won't help your teammate much but is funny ;-)
-    return "127.0.0.1";
+    return ret;
 }
+
 
 void MainWindow::hgServe()
 {
@@ -607,9 +584,9 @@ void MainWindow::hgServe()
         QStringList params;
         QString msg;
 
-        QString addr = findMyIp();
-        QTextStream(&msg) << "Server running on http://" << addr << ":8000/";
-        params << "serve" << "--address" << addr << "--port" << "8000";
+        QString addrs = listAllUpIpV4Addresses();
+        QTextStream(&msg) << "Server running on address(es) (" << addrs << "), port 8000";
+        params << "serve";
 
         runner -> startProc(getHgBinaryName(), workFolderPath, params, false);
         runningAction = ACT_SERVE;

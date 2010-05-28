@@ -152,8 +152,7 @@ private:
     bool areAllSelectedUntracked(QListWidget *workList);
     bool isSelectedDeletable(QListWidget *workList);
     bool areAllSelectedCommitable(QListWidget *workList);
-    QString findMyIp();
-    void listAllUpAddresses();
+    QString listAllUpIpV4Addresses();
 
 
     //Actions enabled flags
