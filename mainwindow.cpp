@@ -106,7 +106,9 @@ void MainWindow::about()
                         "(c) 2010 (lgpl), Jari Korhonen (jtkorhonen@gmail.com)<br><br>"
                         "-Needs Mercurial ;-) (thanks Matt Mackall, Bryan O'Sullivan and others !)<br>"
                         "-Uses excellent Nuvola icons (c) David Vignoni (Thanks, David !)<br>"
-                        "-Needs Qt4, mingw (in windows), python, kdiff3 (Thanks to all of you !)<br>"));
+                        "-Needs Qt4, mingw (in windows), python, kdiff3 (Thanks to all of you !)<br>"
+                        "-Windows standalone install uses hg / python / kdiff3 from TortoiseHg (BIG Thanks !)<br>"
+                        "-Windows standalone install uses InstallJammer setup tool (Thanks, great tool !)<br>"));
 }
 
 
