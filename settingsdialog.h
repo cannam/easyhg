@@ -3,12 +3,14 @@
 
 #include "mainwindow.h"
 
-
-//** Copyright (C) Jari Korhonen, 2010 (under lgpl)
+/****************************************************************************
+** Copyright (C) Jari Korhonen, 2010 (under lgpl)
+****************************************************************************/
 
 #include <QDialog>
 #include <QLabel>
 #include <QLineEdit>
+#include <QComboBox>
 #include <QPushButton>
 
 class SettingsDialog : public QDialog
@@ -29,12 +31,12 @@ private:
     QLineEdit   *userInfoLineEdit;
 
     QLabel      *remoteRepoLabel;
-    QLineEdit   *remoteRepoLineEdit;
+    QComboBox   *remoteRepoCombo;
     QPushButton *remoteRepoBrowseButton;
     QHBoxLayout *remoteRepoLayout;
 
     QLabel      *workFolderLabel;
-    QLineEdit   *workFolderLineEdit;
+    QComboBox   *workFolderCombo;
     QPushButton *workFolderBrowseButton;
     QHBoxLayout *workFolderLayout;
 
@@ -43,7 +45,8 @@ private:
 
     MainWindow  *mainWnd;
 
-    void browseDirAndSetLineEdit(QLineEdit *lineEdit);
+    void browseDirAndSetCombo(QComboBox *combo);
+    void insertPathToMruList(QString newPath, QString mruList[]);
 };
 
 

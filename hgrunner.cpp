@@ -1,4 +1,6 @@
-//** Copyright (C) Jari Korhonen, 2010 (under lgpl)
+/****************************************************************************
+** Copyright (C) Jari Korhonen, 2010 (under lgpl)
+****************************************************************************/
 
 #include "hgrunner.h"
 #include <QtCore>

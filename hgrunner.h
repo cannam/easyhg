@@ -1,7 +1,9 @@
 #ifndef HGRUNNER_H
 #define HGRUNNER_H
 
-//** Copyright (C) Jari Korhonen, 2010 (under lgpl)
+/****************************************************************************
+** Copyright (C) Jari Korhonen, 2010 (under lgpl)
+****************************************************************************/
 
 #include <QProgressBar>
 #include <QProcess>

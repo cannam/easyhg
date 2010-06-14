@@ -1,44 +1,6 @@
 /****************************************************************************
-**
-** Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies).
-** All rights reserved.
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** This file is part of the examples of the Qt Toolkit.
-**
-** $QT_BEGIN_LICENSE:LGPL$
-** Commercial Usage
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
-**
-** GNU Lesser General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 2.1 as published by the Free Software
-** Foundation and appearing in the file LICENSE.LGPL included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU Lesser General Public License version 2.1 requirements
-** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
-**
-** In addition, as a special exception, Nokia gives you certain additional
-** rights.  These rights are described in the Nokia Qt LGPL Exception
-** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3.0 as published by the Free Software
-** Foundation and appearing in the file LICENSE.GPL included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU General Public License version 3.0 requirements will be
-** met: http://www.gnu.org/copyleft/gpl.html.
-**
-** If you have questions regarding the use of this file, please contact
-** Nokia at qt-info@nokia.com.
-** $QT_END_LICENSE$
-**
-** Copyright (C) Jari Korhonen, 2010 (HgExplorer specific parts, under lgpl)
-*************************************************************************************/
+** Copyright (C) Jari Korhonen, 2010 (under lgpl)
+****************************************************************************/
 
 #include <QtGui>
 #include <QStringList>
@@ -1154,16 +1116,9 @@ void MainWindow::enableDisableActions()
             hgChgSetDiffAct -> setEnabled(false);
         }
 
-        if ((added == 0) && (modified == 0) && (removed == 0))
+        if (historySelList.count() == 1)
         {
-            if (historySelList.count() == 1)
-            {
-                hgUpdateToRevAct -> setEnabled(true);
-            }
-            else
-            {
-                hgUpdateToRevAct -> setEnabled(false);
-            }
+            hgUpdateToRevAct -> setEnabled(true);
         }
         else
         {
@@ -1328,11 +1283,22 @@ void MainWindow::readSettings()
 
     QSettings settings("hgexplorer", "hgexplorer");
 
-    remoteRepoPath = settings.value("remoterepopath", "").toString() ;
+    remoteRepoPath = settings.value("remoterepopath", "").toString();
     workFolderPath = settings.value("workfolderpath", "").toString();
     if (!workFolder.exists(workFolderPath))
     {
         workFolderPath = "";
+    }
+
+    for(int i = 0; i < NUM_PATHS_IN_MRU_LIST; i++)
+    {
+        QString tmp;
+
+        tmp.sprintf("remoterepomrupath%d", i);
+        remoteRepoMruList[i] = settings.value(tmp, "").toString();
+
+        tmp.sprintf("workfoldermru%d", i);
+        workFolderMruList[i] = settings.value(tmp, "").toString();
     }
 
     userInfo = settings.value("userinfo", "").toString();
@@ -1354,6 +1320,18 @@ void MainWindow::writeSettings()
     settings.setValue("size", size());
     settings.setValue("remoterepopath", remoteRepoPath);
     settings.setValue("workfolderpath", workFolderPath);
+
+    for(int i = 0; i < NUM_PATHS_IN_MRU_LIST; i++)
+    {
+        QString tmp;
+
+        tmp.sprintf("remoterepomrupath%d", i);
+        settings.setValue(tmp, remoteRepoMruList[i]);
+
+        tmp.sprintf("workfoldermru%d", i);
+        settings.setValue(tmp, workFolderMruList[i]);
+    }
+
     settings.setValue("userinfo", userInfo);
     settings.setValue("firststart", firstStart);
     settings.setValue("viewFileTypes", hgExp -> getFileTypesBits());

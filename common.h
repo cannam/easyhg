@@ -1,12 +1,14 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-//** Copyright (C) Jari Korhonen, 2010 (under lgpl)
+/****************************************************************************
+** Copyright (C) Jari Korhonen, 2010 (under lgpl)
+****************************************************************************/
 
 #include <QtCore>
 
 #define APPNAME                         "HgExplorer"
-#define APPVERSION                      "0.4.6"
+#define APPVERSION                      "0.4.7"
 #define MY_ICON_SIZE                    32
 #define REPOMENU_TITLE                  "Repository actions"
 #define WORKFOLDERMENU_TITLE            "Workfolder actions"
@@ -28,6 +30,7 @@
 
 #define DEFAULT_HG_STAT_BITS (HGSTAT_M_BIT | HGSTAT_A_BIT | HGSTAT_R_BIT | HGSTAT_D_BIT | HGSTAT_U_BIT)
 
+#define NUM_PATHS_IN_MRU_LIST           5
 
 
 extern QString getSystem();

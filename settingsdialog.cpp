@@ -1,4 +1,6 @@
-//** Copyright (C) Jari Korhonen, 2010 (under lgpl)
+/****************************************************************************
+** Copyright (C) Jari Korhonen, 2010 (under lgpl)
+****************************************************************************/
 
 #include "settingsdialog.h"
 
@@ -17,13 +19,25 @@ SettingsDialog::SettingsDialog(QWidget *parent): QDialog(parent)
     userInfoLabel -> setBuddy(userInfoLineEdit);
 
     remoteRepoLabel = new QLabel(tr("Remote repository path, e.g. http://192.168.1.10:8000/ or /home/mike/anotherrepo/ or c:\\anotherrepo\\"));
-    remoteRepoLineEdit = new QLineEdit(mainWnd->remoteRepoPath);
-    remoteRepoLabel -> setBuddy(remoteRepoLineEdit);
+    remoteRepoCombo = new QComboBox();
+    remoteRepoCombo -> insertItem(0, mainWnd->remoteRepoPath);
+    for(int i = 0; i < NUM_PATHS_IN_MRU_LIST; i++)
+    {
+        remoteRepoCombo -> insertItem(i + 1, mainWnd -> remoteRepoMruList[i]);
+    }
+    remoteRepoCombo -> setEditable(true);
+    remoteRepoLabel -> setBuddy(remoteRepoCombo);
     remoteRepoBrowseButton = new QPushButton(tr("Browse..."));
 
     workFolderLabel = new QLabel(tr("Local work folder path, e.g. /home/mike/work/ or c:\\mike\\work\\"));
-    workFolderLineEdit = new QLineEdit(mainWnd -> workFolderPath);
-    workFolderLabel -> setBuddy(workFolderLineEdit);
+    workFolderCombo = new QComboBox();
+    workFolderCombo -> insertItem(0, mainWnd -> workFolderPath);
+    for(int i = 0; i < NUM_PATHS_IN_MRU_LIST; i++)
+    {
+        workFolderCombo -> insertItem(i + 1, mainWnd -> workFolderMruList[i]);
+    }
+    workFolderCombo -> setEditable(true);
+    workFolderLabel -> setBuddy(workFolderCombo);
     workFolderBrowseButton = new QPushButton(tr("Browse..."));
 
     okButton = new QPushButton(tr("Ok"));
@@ -35,12 +49,12 @@ SettingsDialog::SettingsDialog(QWidget *parent): QDialog(parent)
     btnLayout -> addStretch();
 
     QHBoxLayout *workFolderLayout = new QHBoxLayout;
-    workFolderLayout -> addWidget(workFolderLineEdit);
-    workFolderLayout -> addWidget(workFolderBrowseButton);
+    workFolderLayout -> addWidget(workFolderCombo, 3);
+    workFolderLayout -> addWidget(workFolderBrowseButton, 1);
 
     QHBoxLayout *remoteRepoLayout = new QHBoxLayout;
-    remoteRepoLayout -> addWidget(remoteRepoLineEdit);
-    remoteRepoLayout -> addWidget(remoteRepoBrowseButton);
+    remoteRepoLayout -> addWidget(remoteRepoCombo, 3);
+    remoteRepoLayout -> addWidget(remoteRepoBrowseButton, 1);
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
 
@@ -67,14 +81,27 @@ SettingsDialog::SettingsDialog(QWidget *parent): QDialog(parent)
 
 void SettingsDialog::okClicked()
 {
+    QString tmp;
+    
     mainWnd -> firstStart = false;
     mainWnd -> userInfo = userInfoLineEdit->text();
-    mainWnd -> remoteRepoPath = remoteRepoLineEdit->text();
 
-    mainWnd -> workFolderPath = workFolderLineEdit -> text();
-    if (!mainWnd -> workFolderPath.endsWith(QDir::separator()))
+    if (mainWnd -> remoteRepoPath  != remoteRepoCombo-> currentText())
     {
-        mainWnd -> workFolderPath += QDir::separator();
+        insertPathToMruList(mainWnd -> remoteRepoPath, mainWnd -> remoteRepoMruList);
+        mainWnd -> remoteRepoPath = remoteRepoCombo-> currentText();
+    }
+
+    tmp = workFolderCombo -> currentText();
+    if (!tmp.endsWith(QDir::separator()))
+    {
+        tmp += QDir::separator();
+    }
+
+    if (mainWnd -> workFolderPath != tmp)
+    {
+        insertPathToMruList(mainWnd -> workFolderPath, mainWnd -> workFolderMruList);
+        mainWnd -> workFolderPath = tmp;
     }
 
     mainWnd -> writeSettings();
@@ -112,7 +139,38 @@ void SettingsDialog::cancelClicked()
 }
 
 
-void SettingsDialog::browseDirAndSetLineEdit(QLineEdit *lineEdit)
+void SettingsDialog::insertPathToMruList(QString path, QString mruList[])
+{
+    bool matchFound = false;
+
+    for(int i = 0; i < NUM_PATHS_IN_MRU_LIST; i++)
+    {
+        if (path == mruList[i])
+        {
+            matchFound = true;
+            break;
+        }
+    }
+
+    if (!matchFound)
+    {
+        for(int i = NUM_PATHS_IN_MRU_LIST - 2; i >= 0; i--)
+        {
+            if (i == 0)
+            {
+                mruList[1] = mruList[0];
+                mruList[0] = path;
+            }
+            else
+            {
+                mruList[i + 1] = mruList[i];
+            }
+        }
+    }
+}
+
+
+void SettingsDialog::browseDirAndSetCombo(QComboBox *combo)
 {
     QString dir;
     QString startDir;
@@ -132,17 +190,17 @@ void SettingsDialog::browseDirAndSetLineEdit(QLineEdit *lineEdit)
         startDir,
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
-    lineEdit->setText(dir + QDir::separator());
+    combo -> setItemText(0, dir + QDir::separator());
 }
 
 void SettingsDialog::browseWorkFolder()
 {
-    browseDirAndSetLineEdit(workFolderLineEdit);
+    browseDirAndSetCombo(workFolderCombo);
 }
 
 void SettingsDialog::browseRemoteRepo()
 {
-    browseDirAndSetLineEdit(remoteRepoLineEdit);
+    browseDirAndSetCombo(remoteRepoCombo);
 }
 
 
