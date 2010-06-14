@@ -1297,7 +1297,7 @@ void MainWindow::readSettings()
         tmp.sprintf("remoterepomrupath%d", i);
         remoteRepoMruList[i] = settings.value(tmp, "").toString();
 
-        tmp.sprintf("workfoldermru%d", i);
+        tmp.sprintf("workfoldermrupath%d", i);
         workFolderMruList[i] = settings.value(tmp, "").toString();
     }
 
@@ -1328,7 +1328,7 @@ void MainWindow::writeSettings()
         tmp.sprintf("remoterepomrupath%d", i);
         settings.setValue(tmp, remoteRepoMruList[i]);
 
-        tmp.sprintf("workfoldermru%d", i);
+        tmp.sprintf("workfoldermrupath%d", i);
         settings.setValue(tmp, workFolderMruList[i]);
     }
 
