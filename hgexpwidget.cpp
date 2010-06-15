@@ -3,6 +3,8 @@
 ****************************************************************************/
 
 #include <QtGui>
+#include <QtCore>
+#include <QClipboard>
 
 #include "hgexpwidget.h"
 #include "common.h"
@@ -42,6 +44,10 @@ HgExpWidget::HgExpWidget(QWidget *parent, QString remoteRepo, QString workFolder
     parentsLayout -> addWidget(parentsLabel);
     parentsLayout -> addWidget(localRepoHgParentsList);
     grpLocalRepo -> setLayout(parentsLayout);
+    copyCommentAct = new QAction("Copy comment", localRepoHgParentsList);
+    userListMenu = new QMenu(localRepoHgParentsList);
+    userListMenu -> addAction(copyCommentAct);
+    connect(copyCommentAct, SIGNAL(triggered()), this, SLOT(copyComment()));
 
     //Workfolder
     grpWorkFolder = new QGroupBox(tr(WORKFOLDER_STR) + workFolderPath);
@@ -105,6 +111,49 @@ HgExpWidget::HgExpWidget(QWidget *parent, QString remoteRepo, QString workFolder
     setTabEnabled(HEADSTAB, false);
     setTabEnabled(HISTORYTAB, false);
 }
+
+void HgExpWidget::contextMenuEvent(QContextMenuEvent * event)
+{
+    if (copyCommentAct -> isEnabled())
+    {
+        QPoint topL;
+        QPoint bottomR;
+
+        topL = localRepoHgParentsList->
+            mapToGlobal(QPoint(0, 0));
+        bottomR = localRepoHgParentsList->
+            mapToGlobal(QPoint(localRepoHgParentsList -> width(), localRepoHgParentsList -> height()));
+
+        if ((event -> globalPos().x() > topL.x()) && (event -> globalPos().x() < bottomR.x()))
+        {
+            if ((event -> globalPos().y() > topL.y()) && (event -> globalPos().y() < bottomR.y()))
+            {
+                userListMenu->exec(event -> globalPos());
+            }
+        }
+    }
+}
+
+void HgExpWidget::copyComment()
+{
+    if (localRepoHgParentsList -> count() >= 1)
+    {
+        QListWidgetItem *it =  localRepoHgParentsList -> item(0);
+        QString tmp = it -> text();
+        int ind = tmp.indexOf("summary:");
+        if (ind != -1)
+        {
+            QString comment;
+            ind += 11;   //jump over word "summary:"
+
+            comment = tmp.mid(ind);
+
+            QClipboard *clipboard = QApplication::clipboard();
+            clipboard->setText(comment);
+        }
+    }
+}
+
 
 
 QString HgExpWidget::getStatFlags()
@@ -353,9 +402,23 @@ void HgExpWidget::getUpdateToRevRevision(QString& rev)
 }
 
 
-
-void HgExpWidget::enableDisableOtherTabs()
+void HgExpWidget::enableDisableOtherTabs(int tabPage)
 {
+    static int oldTabPage = -1;
+
+    if  (tabPage != oldTabPage)
+    {
+        oldTabPage = tabPage;
+        if (tabPage == WORKTAB)
+        {
+            copyCommentAct -> setEnabled(true);
+        }
+        else
+        {
+            copyCommentAct -> setEnabled(false);
+        }
+    }
+
     //history list is only interesting when we have something in it ;-)
     if (localRepoHgLogList -> count() < 2)
     {

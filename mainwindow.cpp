@@ -963,6 +963,7 @@ void MainWindow::connectActions()
 void MainWindow::tabChanged(int currTab)
 {
     tabPage = currTab;
+
 }
 
 void MainWindow::enableDisableActions()
@@ -1026,7 +1027,7 @@ void MainWindow::enableDisableActions()
     hgAnnotateAct -> setEnabled(localRepoActionsEnabled);
     hgServeAct -> setEnabled(localRepoActionsEnabled);
 
-    hgExp -> enableDisableOtherTabs();
+    hgExp -> enableDisableOtherTabs(tabPage);
 
     int added, modified, removed, notTracked, selected, selectedAdded, selectedModified, selectedRemoved, selectedNotTracked;
 

@@ -7,6 +7,8 @@
 
 #include <QtGui>
 #include <QtCore>
+#include <QMenu>
+
 #include "common.h"
 
 #define NUM_STAT_FILE_TYPES 7
@@ -28,7 +30,7 @@ public:
     void getHistoryDiffRevisions(QString& revA, QString& revB);
     void getUpdateToRevRevision(QString& rev);
     void clearLists();
-    void enableDisableOtherTabs();
+    void enableDisableOtherTabs(int tabPage);
     QString getStatFlags(void);
     unsigned char getFileTypesBits();
 
@@ -39,6 +41,9 @@ public:
 
 signals:
     void workFolderViewTypesChanged();
+
+private slots:
+    void copyComment();
 
 private:
     QGroupBox   *grpRemoteRepo;
@@ -52,6 +57,8 @@ private:
     QVBoxLayout *parentsLayout;
     QListWidget *localRepoHgParentsList;
     QLabel      *parentsLabel;
+    QMenu       *userListMenu;
+    QAction     *copyCommentAct;
 
     QGroupBox   *grpWorkFolder;
     QHBoxLayout *workFolderLayout;
@@ -66,6 +73,7 @@ private:
     QString     findRev(QString itemText, QString& smallRev);
     QStringList splitChangeSets(QString chgSetsStr);
     int findLineStart(int nowIndex, QString chgSetsStr);
+    void contextMenuEvent (QContextMenuEvent * event);
 };
 
 #endif // HGEXPWIDGET_H
