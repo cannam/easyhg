@@ -36,6 +36,7 @@ MainWindow::MainWindow()
     readSettings();
 
     tabPage = 0;
+    justMerged = false;
     hgExp = new HgExpWidget((QWidget *) this, remoteRepoPath, workFolderPath, initialFileTypesBits);
     setCentralWidget(hgExp);
 
@@ -291,9 +292,9 @@ void MainWindow::hgCommit()
             {
                 QString currentFile = hgExp -> getCurrentFileListLine();
 
-                if (areAllSelectedCommitable(hgExp -> workFolderFileList))
+                if ((justMerged == false) && (areAllSelectedCommitable(hgExp -> workFolderFileList)))
                 {
-                    //User wants to commit selected file(s)
+                    //User wants to commit selected file(s) (and this is not merge commit, which would fail if we selected files)
                     params << "commit" << "--message" << comment << "--user" << userInfo;
 
                     QList <QListWidgetItem *> selList = hgExp -> workFolderFileList -> selectedItems();
@@ -426,6 +427,19 @@ void MainWindow::hgRevert()
         runningAction = ACT_REVERT;
     }
 }
+
+void MainWindow::hgRetryMerge()
+{
+    if (runningAction == ACT_NONE)
+    {
+        QStringList params;
+
+        params << "resolve" << "--all";
+        runner -> startProc(getHgBinaryName(), workFolderPath, params);
+        runningAction = ACT_RETRY_MERGE;
+    }
+}
+
 
 void MainWindow::hgMerge()
 {
@@ -886,6 +900,13 @@ void MainWindow::timerEvent(QTimerEvent *)
                     case ACT_MERGE:
                         QMessageBox::information(this, "merge", runner -> getStdOut());
                         shouldHgStat = true;
+                        justMerged = true;
+                        break;
+
+                    case ACT_RETRY_MERGE:
+                        QMessageBox::information(this, "retry merge", runner -> getStdOut());
+                        shouldHgStat = true;
+                        justMerged = true;
                         break;
 
                     default:
@@ -942,6 +963,7 @@ void MainWindow::connectActions()
     connect(hgUpdateAct, SIGNAL(triggered()), this, SLOT(hgUpdate()));
     connect(hgRevertAct, SIGNAL(triggered()), this, SLOT(hgRevert()));
     connect(hgMergeAct, SIGNAL(triggered()), this, SLOT(hgMerge()));
+    connect(hgRetryMergeAct, SIGNAL(triggered()), this, SLOT(hgRetryMerge()));
 
     connect(settingsAct, SIGNAL(triggered()), this, SLOT(settings()));
 
@@ -1022,6 +1044,7 @@ void MainWindow::enableDisableActions()
     hgUpdateAct -> setEnabled(localRepoActionsEnabled);
     hgCommitAct -> setEnabled(localRepoActionsEnabled);
     hgMergeAct -> setEnabled(localRepoActionsEnabled);
+    hgRetryMergeAct -> setEnabled(localRepoActionsEnabled);
     hgResolveListAct -> setEnabled(localRepoActionsEnabled);
     hgResolveMarkAct -> setEnabled(localRepoActionsEnabled);
     hgAnnotateAct -> setEnabled(localRepoActionsEnabled);
@@ -1088,6 +1111,7 @@ void MainWindow::enableDisableActions()
             if (hgExp -> localRepoHeadsList->count() < 2)
             {
                 hgMergeAct -> setEnabled(false);
+                hgRetryMergeAct -> setEnabled(false);
             }
 
             QString currentFile = hgExp -> getCurrentFileListLine();
@@ -1200,6 +1224,9 @@ void MainWindow::createActions()
     hgResolveMarkAct = new QAction(tr("Resolve (mark)"), this);
     hgResolveMarkAct -> setStatusTip(tr("Resolve (mark): Mark selected file status as resolved"));
 
+    hgRetryMergeAct = new QAction(tr("Retry merge"), this);
+    hgRetryMergeAct -> setStatusTip(tr("Retry merge after failed merge attempt."));
+
     hgServeAct = new QAction(tr("Serve (via http)"), this);
     hgServeAct -> setStatusTip(tr("Serve local repository via http for workgroup access"));
 
@@ -1226,6 +1253,7 @@ void MainWindow::createMenus()
     advancedMenu -> addSeparator();
     advancedMenu -> addAction(hgAnnotateAct);
     advancedMenu -> addSeparator();
+    advancedMenu -> addAction(hgRetryMergeAct);
     advancedMenu -> addAction(hgResolveListAct);
     advancedMenu -> addAction(hgResolveMarkAct);
     advancedMenu -> addSeparator();

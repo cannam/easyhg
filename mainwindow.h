@@ -40,7 +40,8 @@ enum HGACTIONS
     ACT_MERGE,
     ACT_RESOLVE_LIST,
     ACT_SERVE,
-    ACT_RESOLVE_MARK
+    ACT_RESOLVE_MARK,
+    ACT_RETRY_MERGE,
 };
 
 
@@ -85,6 +86,7 @@ private slots:
     void hgUpdate();
     void hgRevert();
     void hgMerge();
+    void hgRetryMerge();
     void settings();
     void hgCloneFromRemote();
     void hgInit();
@@ -130,6 +132,7 @@ private:
     QAction *settingsAct;
     QAction *exitAct;
 
+    //Repo actions
     QAction *hgIncomingAct;
     QAction *hgPushAct;
     QAction *hgPullAct;
@@ -143,6 +146,7 @@ private:
     QAction *hgUpdateAct;
     QAction *hgCommitAct;
     QAction *hgMergeAct;
+    QAction *hgRetryMergeAct;
     QAction *hgUpdateToRevAct;
     QAction *hgAnnotateAct;
     QAction *hgResolveListAct;
@@ -166,8 +170,9 @@ private:
     HGACTIONS   runningAction;
     HgRunner    *runner;
 
-    int         tabPage;
+    int             tabPage;
     unsigned char   initialFileTypesBits;
+    bool            justMerged;
 };
 
 #endif
