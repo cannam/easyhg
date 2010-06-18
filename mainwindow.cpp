@@ -8,6 +8,7 @@
 #include <QNetworkInterface>
 #include <QHostAddress>
 #include <QHostInfo>
+#include <QDesktopServices>
 
 #include "mainwindow.h"
 #include "settingsdialog.h"
@@ -244,18 +245,18 @@ void MainWindow::hgAdd()
     }
 }
 
-int MainWindow::getCommitComment(QString& comment)
+int MainWindow::getCommentOrTag(QString& commentOrTag, QString question, QString dlgTitle)
 {
     int ret;
 
     QDialog dlg(this);
 
-    QLabel *commentLabel = new QLabel(tr("Comment:"));
-    QLineEdit *commentEdit = new QLineEdit;
-    commentEdit -> setFixedWidth(400);
+    QLabel *commentLabel = new QLabel(question);
+    QLineEdit *commentOrTagEdit = new QLineEdit;
+    commentOrTagEdit -> setFixedWidth(400);
     QHBoxLayout *commentLayout = new QHBoxLayout;
     commentLayout -> addWidget(commentLabel);
-    commentLayout -> addWidget(commentEdit);
+    commentLayout -> addWidget(commentOrTagEdit);
 
     QPushButton *btnOk = new QPushButton(tr("Ok"));
     QPushButton *btnCancel = new QPushButton(tr("Cancel"));
@@ -269,13 +270,13 @@ int MainWindow::getCommitComment(QString& comment)
 
     dlg.setLayout(mainLayout);
 
-    dlg.setWindowTitle(tr("Save (commit)"));
+    dlg.setWindowTitle(dlgTitle);
 
     connect(btnOk, SIGNAL(clicked()), &dlg, SLOT(accept()));
     connect(btnCancel, SIGNAL(clicked()), &dlg, SLOT(reject()));
 
     ret = dlg.exec();
-    comment = commentEdit -> text();
+    commentOrTag = commentOrTagEdit -> text();
     return ret;
 }
 
@@ -286,12 +287,10 @@ void MainWindow::hgCommit()
         QStringList params;
         QString comment;
         
-        if (QDialog::Accepted == getCommitComment(comment))
+        if (QDialog::Accepted == getCommentOrTag(comment, tr("Comment:"), tr("Save (commit)")))
         {
             if (!comment.isEmpty())
             {
-                QString currentFile = hgExp -> getCurrentFileListLine();
-
                 if ((justMerged == false) && (areAllSelectedCommitable(hgExp -> workFolderFileList)))
                 {
                     //User wants to commit selected file(s) (and this is not merge commit, which would fail if we selected files)
@@ -316,6 +315,60 @@ void MainWindow::hgCommit()
         }
     }
 }
+
+QString MainWindow::filterTag(QString tag)
+{
+    for(int i = 0; i < tag.size(); i++)
+    {
+        if (tag[i].isLower() || tag[i].isUpper() || tag[i].isDigit() || (tag[i] == QChar('.')))
+        {
+            //ok
+        }
+        else
+        {
+            tag[i] = QChar('_');
+        }
+    }
+    return tag;
+}
+
+
+void MainWindow::hgTag()
+{
+    if (runningAction == ACT_NONE)
+    {
+        QStringList params;
+        QString tag;
+
+        if (QDialog::Accepted == getCommentOrTag(tag, tr("Tag:"), tr("Tag")))
+        {
+            if (!tag.isEmpty())
+            {
+                params << "tag" << "--user" << userInfo << filterTag(tag);
+
+                runner -> startProc(getHgBinaryName(), workFolderPath, params);
+                runningAction = ACT_TAG;
+            }
+        }
+    }
+}
+
+
+void MainWindow::hgIgnore()
+{
+    if (runningAction == ACT_NONE)
+    {
+        QString hgIgnorePath;
+
+        hgIgnorePath = "file:///";
+        hgIgnorePath += workFolderPath;
+        hgIgnorePath += ".hgignore";
+
+        QDesktopServices::openUrl(QUrl(hgIgnorePath, QUrl::TolerantMode));
+    }
+}
+
+
 
 void MainWindow::hgFileDiff()
 {
@@ -523,7 +576,6 @@ void MainWindow::hgPush()
         runningAction = ACT_PUSH;
     }
 }
-
 
 
 QString MainWindow::listAllUpIpV4Addresses()
@@ -889,6 +941,7 @@ void MainWindow::timerEvent(QTimerEvent *)
                     case ACT_CHGSETDIFF:
                     case ACT_REVERT:
                     case ACT_SERVE:
+                    case ACT_TAG:
                         shouldHgStat = true;
                         break;
 
@@ -964,6 +1017,8 @@ void MainWindow::connectActions()
     connect(hgRevertAct, SIGNAL(triggered()), this, SLOT(hgRevert()));
     connect(hgMergeAct, SIGNAL(triggered()), this, SLOT(hgMerge()));
     connect(hgRetryMergeAct, SIGNAL(triggered()), this, SLOT(hgRetryMerge()));
+    connect(hgTagAct, SIGNAL(triggered()), this, SLOT(hgTag()));
+    connect(hgIgnoreAct, SIGNAL(triggered()), this, SLOT(hgIgnore()));
 
     connect(settingsAct, SIGNAL(triggered()), this, SLOT(settings()));
 
@@ -1049,6 +1104,8 @@ void MainWindow::enableDisableActions()
     hgResolveMarkAct -> setEnabled(localRepoActionsEnabled);
     hgAnnotateAct -> setEnabled(localRepoActionsEnabled);
     hgServeAct -> setEnabled(localRepoActionsEnabled);
+    hgTagAct -> setEnabled(localRepoActionsEnabled);
+    hgIgnoreAct -> setEnabled(localRepoActionsEnabled);
 
     hgExp -> enableDisableOtherTabs(tabPage);
 
@@ -1112,6 +1169,11 @@ void MainWindow::enableDisableActions()
             {
                 hgMergeAct -> setEnabled(false);
                 hgRetryMergeAct -> setEnabled(false);
+            }
+
+            if (hgExp -> localRepoHeadsList->count() < 1)
+            {
+                hgTagAct -> setEnabled(false);
             }
 
             QString currentFile = hgExp -> getCurrentFileListLine();
@@ -1227,6 +1289,12 @@ void MainWindow::createActions()
     hgRetryMergeAct = new QAction(tr("Retry merge"), this);
     hgRetryMergeAct -> setStatusTip(tr("Retry merge after failed merge attempt."));
 
+    hgTagAct = new QAction(tr("Tag revision"), this);
+    hgTagAct -> setStatusTip(tr("Give decsriptive name (tag) to current workfolder parent revision."));
+
+    hgIgnoreAct = new QAction(tr("Edit .hgignore"), this);
+    hgIgnoreAct -> setStatusTip(tr("Edit .hgignore file (file contains names of files that should be ignored by mercurial)"));
+
     hgServeAct = new QAction(tr("Serve (via http)"), this);
     hgServeAct -> setStatusTip(tr("Serve local repository via http for workgroup access"));
 
@@ -1256,6 +1324,10 @@ void MainWindow::createMenus()
     advancedMenu -> addAction(hgRetryMergeAct);
     advancedMenu -> addAction(hgResolveListAct);
     advancedMenu -> addAction(hgResolveMarkAct);
+    advancedMenu -> addSeparator();
+    advancedMenu -> addAction(hgTagAct);
+    advancedMenu -> addSeparator();
+    advancedMenu -> addAction(hgIgnoreAct);
     advancedMenu -> addSeparator();
     advancedMenu -> addAction(hgServeAct);
 
@@ -1297,7 +1369,6 @@ void MainWindow::createToolBars()
     workFolderToolBar->addAction(hgAddAct);
     workFolderToolBar->addAction(hgRemoveAct);
     workFolderToolBar -> setMovable(false);
-
 }
 
 

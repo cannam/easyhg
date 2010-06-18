@@ -42,6 +42,7 @@ enum HGACTIONS
     ACT_SERVE,
     ACT_RESOLVE_MARK,
     ACT_RETRY_MERGE,
+    ACT_TAG,
 };
 
 
@@ -97,7 +98,9 @@ private slots:
     void hgAnnotate();
     void hgResolveList();
     void hgResolveMark();
+    void hgTag();
     void hgServe();
+    void hgIgnore();
 
 private:
     void hgHeads();
@@ -110,7 +113,7 @@ private:
     void createStatusBar();
     void readSettings();
     void splitChangeSets(QStringList *list, QString hgLogOutput);
-    int getCommitComment(QString& comment);
+    int getCommentOrTag(QString& commentOrTag, QString question, QString dlgTitle);
     void presentLongStdoutToUser(QString stdo);
     void countModifications(QListWidget *workList, int& added, int& modified, int& removed, int& notTracked,
         int& selected,
@@ -120,7 +123,7 @@ private:
     bool isSelectedDeletable(QListWidget *workList);
     bool areAllSelectedCommitable(QListWidget *workList);
     QString listAllUpIpV4Addresses();
-
+    QString filterTag(QString tag);
 
     //Actions enabled flags
     bool remoteRepoActionsEnabled;
@@ -151,6 +154,8 @@ private:
     QAction *hgAnnotateAct;
     QAction *hgResolveListAct;
     QAction *hgResolveMarkAct;
+    QAction *hgTagAct;
+    QAction *hgIgnoreAct;
     QAction *hgServeAct;
 
     //Menus
