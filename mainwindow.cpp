@@ -907,12 +907,12 @@ void MainWindow::timerEvent(QTimerEvent *)
                         break;
 
                     case ACT_PULL:
-                        QMessageBox::information(this, "pull", runner -> getStdOut());
+                        QMessageBox::information(this, "Pull", runner -> getStdOut());
                         shouldHgStat = true;
                         break;
 
                     case ACT_PUSH:
-                        QMessageBox::information(this, "push", runner -> getStdOut());
+                        QMessageBox::information(this, "Push", runner -> getStdOut());
                         shouldHgStat = true;
                         break;
 
@@ -922,7 +922,7 @@ void MainWindow::timerEvent(QTimerEvent *)
                         break;
 
                     case ACT_CLONEFROMREMOTE:
-                        QMessageBox::information(this, "clone", runner -> getStdOut());
+                        QMessageBox::information(this, "Clone", runner -> getStdOut());
                         enableDisableActions();
                         shouldHgStat = true;
                         break;
@@ -960,18 +960,18 @@ void MainWindow::timerEvent(QTimerEvent *)
                         break;
 
                     case ACT_UPDATE:
-                        QMessageBox::information(this, "update", runner -> getStdOut());
+                        QMessageBox::information(this, tr("Update"), runner -> getStdOut());
                         shouldHgStat = true;
                         break;
 
                     case ACT_MERGE:
-                        QMessageBox::information(this, "merge", runner -> getStdOut());
+                        QMessageBox::information(this, tr("Merge"), runner -> getStdOut());
                         shouldHgStat = true;
                         justMerged = true;
                         break;
 
                     case ACT_RETRY_MERGE:
-                        QMessageBox::information(this, "retry merge", runner -> getStdOut());
+                        QMessageBox::information(this, "Merge retry", runner -> getStdOut());
                         shouldHgStat = true;
                         justMerged = true;
                         break;
@@ -980,6 +980,7 @@ void MainWindow::timerEvent(QTimerEvent *)
                         break;
                 }
             }
+
 
             //Typical sequence goes stat -> heads -> parents -> log
             if (runningAction == ACT_STAT)
@@ -996,6 +997,20 @@ void MainWindow::timerEvent(QTimerEvent *)
             {
                 runningAction = ACT_NONE;
                 hgLog();
+            }
+            else if ((runningAction == ACT_MERGE) && (exitCode != 0))
+            {
+                //If we had a failed merge, offer to retry
+                if (QMessageBox::Ok == QMessageBox::information(this, tr("Retry merge ?"), tr("Merge attempt failed. retry ?"), QMessageBox::Ok | QMessageBox::Cancel))
+                {
+                    runningAction = ACT_NONE;
+                    hgRetryMerge();
+                }
+                else
+                {
+                    runningAction = ACT_NONE;
+                    hgStat();
+                }
             }
             else
             {
