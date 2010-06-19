@@ -971,7 +971,7 @@ void MainWindow::timerEvent(QTimerEvent *)
                         break;
 
                     case ACT_RETRY_MERGE:
-                        QMessageBox::information(this, "Merge retry", runner -> getStdOut());
+                        QMessageBox::information(this, tr("Merge retry"), tr("Merge retry successful."));
                         shouldHgStat = true;
                         justMerged = true;
                         break;
