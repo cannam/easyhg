@@ -359,12 +359,25 @@ void MainWindow::hgIgnore()
     if (runningAction == ACT_NONE)
     {
         QString hgIgnorePath;
+        QStringList params;
+        QString editorName;
 
-        hgIgnorePath = "file:///";
-        hgIgnorePath += workFolderPath;
+        hgIgnorePath = workFolderPath;
         hgIgnorePath += ".hgignore";
 
-        QDesktopServices::openUrl(QUrl(hgIgnorePath, QUrl::TolerantMode));
+        params << hgIgnorePath;
+
+        if ((getSystem() == "Linux"))
+        {
+            editorName = "gedit";
+        }
+        else
+        {
+            editorName = """C:\\Program Files\\Windows NT\\Accessories\\wordpad.exe""";
+        }
+
+        runner -> startProc(editorName, workFolderPath, params);
+        runningAction = ACT_HG_IGNORE;
     }
 }
 
@@ -942,6 +955,7 @@ void MainWindow::timerEvent(QTimerEvent *)
                     case ACT_REVERT:
                     case ACT_SERVE:
                     case ACT_TAG:
+                    case ACT_HG_IGNORE:
                         shouldHgStat = true;
                         break;
 

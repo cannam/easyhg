@@ -8,7 +8,7 @@
 #include <QtCore>
 
 #define APPNAME                         "HgExplorer"
-#define APPVERSION                      "0.5.2"
+#define APPVERSION                      "0.5.3"
 #define MY_ICON_SIZE                    32
 #define REPOMENU_TITLE                  "Repository actions"
 #define WORKFOLDERMENU_TITLE            "Workfolder actions"
@@ -35,7 +35,6 @@
 
 extern QString getSystem();
 extern QString getHgBinaryName();
-extern QString getDiffMergeDefaultPath();
 extern QString getHgDirName();
 
 #endif 	//COMMON_H

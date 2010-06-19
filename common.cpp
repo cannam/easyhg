@@ -30,14 +30,6 @@ QString getHgBinaryName()
         return QString("hg");
 }
 
-QString getDiffMergeDefaultPath()
-{
-    if (getSystem() == "Windows")
-        return QString("c:\\program files\\sourcegear\\diffmerge\\diffmerge.exe");
-    else
-        return QString("/usr/bin/diffmerge");
-}
-
 
 QString getHgDirName()
 {

@@ -43,6 +43,7 @@ enum HGACTIONS
     ACT_RESOLVE_MARK,
     ACT_RETRY_MERGE,
     ACT_TAG,
+    ACT_HG_IGNORE,
 };
 
 
