@@ -119,7 +119,7 @@ void MainWindow::hgLog()
     if (runningAction == ACT_NONE)
     {
         QStringList params;
-        params << "glog" << "--verbose";
+        params << "glog";
 
         runner -> startProc(getHgBinaryName(), workFolderPath, params);
         runningAction = ACT_LOG;
