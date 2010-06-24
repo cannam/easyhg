@@ -153,7 +153,7 @@ void MainWindow::hgRemove()
             if (QMessageBox::Ok == QMessageBox::warning(this, "Remove file", "Really remove file " + currentFile.mid(2) + "?",
                 QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel))
             {
-                params << "remove" << "--after" << "--force" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
+                params << "remove" << "--after" << "--force" << "--" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
 
                 runner -> startProc(getHgBinaryName(), workFolderPath, params);
                 runningAction = ACT_REMOVE;
@@ -171,7 +171,7 @@ void MainWindow::hgAnnotate()
 
         if (!currentFile.isEmpty())
         {
-            params << "annotate" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
+            params << "annotate" << "--" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
 
             runner -> startProc(getHgBinaryName(), workFolderPath, params);
             runningAction = ACT_ANNOTATE;
@@ -189,7 +189,7 @@ void MainWindow::hgResolveMark()
 
         if (!currentFile.isEmpty())
         {
-            params << "resolve" << "--mark" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
+            params << "resolve" << "--mark" << "--" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
 
             runner -> startProc(getHgBinaryName(), workFolderPath, params);
             runningAction = ACT_RESOLVE_MARK;
@@ -394,7 +394,7 @@ void MainWindow::hgFileDiff()
         if (!currentFile.isEmpty())
         {
             //Diff parent file against working folder file
-            params << "kdiff3" << currentFile.mid(2);
+            params << "kdiff3" << "--" << currentFile.mid(2);
             runner -> startProc(getHgBinaryName(), workFolderPath, params, false);
             runningAction = ACT_FILEDIFF;
         }
@@ -487,7 +487,7 @@ void MainWindow::hgRevert()
         QStringList params;
         QString currentFile = hgExp -> getCurrentFileListLine();
 
-        params << "revert" << "--no-backup" << currentFile.mid(2);
+        params << "revert" << "--no-backup" << "--" << currentFile.mid(2);
 
         runner -> startProc(getHgBinaryName(), workFolderPath, params);
         runningAction = ACT_REVERT;
