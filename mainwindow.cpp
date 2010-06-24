@@ -224,7 +224,7 @@ void MainWindow::hgAdd()
         if (areAllSelectedUntracked(hgExp -> workFolderFileList))
         {
             //User wants to add selected file(s)
-            params << "add";
+            params << "add" << "--";
 
             QList <QListWidgetItem *> selList = hgExp -> workFolderFileList -> selectedItems();
 
@@ -294,7 +294,7 @@ void MainWindow::hgCommit()
                 if ((justMerged == false) && (areAllSelectedCommitable(hgExp -> workFolderFileList)))
                 {
                     //User wants to commit selected file(s) (and this is not merge commit, which would fail if we selected files)
-                    params << "commit" << "--message" << comment << "--user" << userInfo;
+                    params << "commit" << "--message" << comment << "--user" << userInfo << "--";
 
                     QList <QListWidgetItem *> selList = hgExp -> workFolderFileList -> selectedItems();
                     for (int i = 0; i < selList.size(); ++i)
