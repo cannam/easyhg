@@ -119,7 +119,9 @@ void MainWindow::hgLog()
     if (runningAction == ACT_NONE)
     {
         QStringList params;
-        params << "glog";
+        params << "log";
+        params << "--template";
+        params << "id: {rev}:{node|short}\\nauthor: {author}\\nbranch: {branches}\\ndate: {date|isodate}\\nage: {date|age}\\nparents: {parents}\\ncomment: {desc|json}\\n\\n";
 
         runner -> startProc(getHgBinaryName(), workFolderPath, params);
         runningAction = ACT_LOG;
@@ -1370,7 +1372,7 @@ void MainWindow::createToolBars()
     fileToolBar = addToolBar(tr("File"));
     fileToolBar -> setIconSize(QSize(MY_ICON_SIZE, MY_ICON_SIZE));
     fileToolBar -> addAction(settingsAct);
-    fileToolBar -> addAction(exitAct);
+    fileToolBar -> addAction(hgStatAct);
     fileToolBar -> addSeparator();
     fileToolBar -> addAction(hgChgSetDiffAct);
     fileToolBar -> setMovable(false);
@@ -1385,7 +1387,6 @@ void MainWindow::createToolBars()
     workFolderToolBar = addToolBar(tr(WORKFOLDERMENU_TITLE));
     addToolBar(Qt::LeftToolBarArea, workFolderToolBar);
     workFolderToolBar -> setIconSize(QSize(MY_ICON_SIZE, MY_ICON_SIZE));
-    workFolderToolBar->addAction(hgStatAct);
     workFolderToolBar->addSeparator();
     workFolderToolBar->addAction(hgFileDiffAct);
     workFolderToolBar->addAction(hgFolderDiffAct);

@@ -6,6 +6,7 @@
 #include <QtCore>
 #include <QtGui>
 
+#include <iostream>
 #include <unistd.h>
 
 HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
@@ -40,6 +41,7 @@ void HgRunner::setProcExitInfo(int procExitCode, QProcess::ExitStatus procExitSt
     exitStatus = procExitStatus;
     stdOut = proc -> readAllStandardOutput();
     stdErr = proc -> readAllStandardError();
+    std::cerr << "stdout was " << stdOut.toStdString() << std::endl;
 }
 
 void HgRunner::presentErrorToUser()
@@ -148,6 +150,10 @@ void HgRunner::startProc(QString hgExePathAndName, QString workingDir, QStringLi
 
     lastHgCommand = hgExePathAndName;
     lastParams = params.join(" ");
+
+    std::cerr << "HgRunner: starting: " << hgExePathAndName.toStdString();
+    foreach (QString param, params) std::cerr << param.toStdString() << " ";
+    std::cerr << std::endl;
 
     proc -> start(hgExePathAndName, params);
 

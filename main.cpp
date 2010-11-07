@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     app.setApplicationName(APPNAME);
-
+/*
     #ifdef Q_WS_X11
     app.setStyle(new QCleanlooksStyle);
     #endif
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     #ifdef Q_WS_WIN
     app.setStyle(new QWindowsXPStyle);
     #endif
-
+*/
     MainWindow mainWin;
     mainWin.show();
     return app.exec();

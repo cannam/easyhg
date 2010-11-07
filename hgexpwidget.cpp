@@ -8,6 +8,9 @@
 
 #include "hgexpwidget.h"
 #include "common.h"
+#include "logparser.h"
+#include "changeset.h"
+#include "changesetitem.h"
 
 #define REMOTE_REPO_STR  "Remote repository: "
 #define LOCAL_REPO_STR   "Local repository: "
@@ -83,6 +86,11 @@ HgExpWidget::HgExpWidget(QWidget *parent, QString remoteRepo, QString workFolder
     mainLayout -> addWidget(grpLocalRepo, 8);
     mainLayout -> addWidget(grpWorkFolder, 12);
     addTab(workPageWidget, tr("Work"));
+
+    // History graph page
+    historyGraphPageWidget = new QGraphicsView;
+    addTab(historyGraphPageWidget, tr("History (graph)"));
+
 
     //History page
     //History page
@@ -232,7 +240,20 @@ void HgExpWidget::updateLocalRepoHgLogList(QString hgLogList)
     localRepoHgLogList -> clear();
     localRepoHgLogList -> addItems(splitChangeSets(hgLogList));
 
+    //!!!
+    QGraphicsView *gv = static_cast<QGraphicsView *>(historyGraphPageWidget);
+    gv->scene()->deleteLater();
+    QGraphicsScene *scene = new QGraphicsScene();
+    Changesets csets = parseChangeSets(hgLogList);
+    foreach (Changeset *cs, csets) {
+        ChangesetItem *item = new ChangesetItem(cs);
+        item->setX(0);
+        item->setY(cs->number() * 100);
+        scene->addItem(item);
+    }
+    gv->setScene(scene);
 }
+
 
 
 int HgExpWidget::findLineStart(int nowIndex, QString str)
@@ -256,6 +277,8 @@ int HgExpWidget::findLineStart(int nowIndex, QString str)
 
 QStringList HgExpWidget::splitChangeSets(QString chgSetsStr)
 {
+    return LogParser(chgSetsStr).split();
+    /*
     int currChgSet;
     int currChgSetLineStart;
 
@@ -293,6 +316,21 @@ QStringList HgExpWidget::splitChangeSets(QString chgSetsStr)
     }
 
     return tmp;
+    */
+}
+
+Changesets HgExpWidget::parseChangeSets(QString changeSetsStr)
+{
+    Changesets csets;
+    LogList log = LogParser(changeSetsStr).parse();
+    foreach (LogEntry e, log) {
+        Changeset *cs = new Changeset();
+        foreach (QString key, e.keys()) {
+            cs->setProperty(key.toLocal8Bit().data(), e.value(key));
+        }
+        csets.push_back(cs);
+    }
+    return csets;
 }
 
 QString HgExpWidget::getCurrentFileListLine()

@@ -9,6 +9,7 @@
 #include <QtCore>
 #include <QMenu>
 
+#include "changeset.h"
 #include "common.h"
 
 #define NUM_STAT_FILE_TYPES 7
@@ -48,6 +49,7 @@ private slots:
 private:
     QGroupBox   *grpRemoteRepo;
     QWidget     *workPageWidget;
+    QWidget     *historyGraphPageWidget;
     QWidget     *historyPageWidget;
     QWidget     *headsPageWidget;
 
@@ -72,6 +74,8 @@ private:
 
     QString     findRev(QString itemText, QString& smallRev);
     QStringList splitChangeSets(QString chgSetsStr);
+    Changesets  parseChangeSets(QString changeSetsStr);
+
     int findLineStart(int nowIndex, QString chgSetsStr);
     void contextMenuEvent (QContextMenuEvent * event);
 };
