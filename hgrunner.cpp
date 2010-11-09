@@ -151,7 +151,7 @@ void HgRunner::startProc(QString hgExePathAndName, QString workingDir, QStringLi
     lastHgCommand = hgExePathAndName;
     lastParams = params.join(" ");
 
-    std::cerr << "HgRunner: starting: " << hgExePathAndName.toStdString();
+    std::cerr << "HgRunner: starting: " << hgExePathAndName.toStdString() << " ";
     foreach (QString param, params) std::cerr << param.toStdString() << " ";
     std::cerr << std::endl;
 

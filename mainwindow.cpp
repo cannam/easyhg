@@ -121,7 +121,7 @@ void MainWindow::hgLog()
         QStringList params;
         params << "log";
         params << "--template";
-        params << "id: {rev}:{node|short}\\nauthor: {author}\\nbranch: {branches}\\ndate: {date|isodate}\\nage: {date|age}\\nparents: {parents}\\ncomment: {desc|json}\\n\\n";
+        params << "id: {rev}:{node|short}\\nauthor: {author}\\nbranch: {branches}\\ntag: {tag}\\ndate: {date|isodate}\\nage: {date|age}\\nparents: {parents}\\ncomment: {desc|json}\\n\\n";
 
         runner -> startProc(getHgBinaryName(), workFolderPath, params);
         runningAction = ACT_LOG;

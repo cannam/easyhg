@@ -1,3 +1,6 @@
+
+CONFIG += debug
+
 TEMPLATE = app
 TARGET = hgexplorer
 unix {
@@ -7,6 +10,7 @@ unix {
 HEADERS = mainwindow.h \
     hgexpwidget.h \
     common.h \
+    grapher.h \
     hgrunner.h \
     settingsdialog.h \
     changeset.h \
@@ -16,6 +20,7 @@ SOURCES = main.cpp \
     mainwindow.cpp \
     hgexpwidget.cpp \
     hgrunner.cpp \
+    grapher.cpp \
     settingsdialog.cpp \
     common.cpp \
     changeset.cpp \

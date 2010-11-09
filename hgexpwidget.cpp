@@ -11,6 +11,9 @@
 #include "logparser.h"
 #include "changeset.h"
 #include "changesetitem.h"
+#include "grapher.h"
+
+#include <iostream>
 
 #define REMOTE_REPO_STR  "Remote repository: "
 #define LOCAL_REPO_STR   "Local repository: "
@@ -245,12 +248,51 @@ void HgExpWidget::updateLocalRepoHgLogList(QString hgLogList)
     gv->scene()->deleteLater();
     QGraphicsScene *scene = new QGraphicsScene();
     Changesets csets = parseChangeSets(hgLogList);
+    if (csets.empty()) return;
+    ChangesetItemMap csetItemMap;
     foreach (Changeset *cs, csets) {
         ChangesetItem *item = new ChangesetItem(cs);
         item->setX(0);
-        item->setY(cs->number() * 100);
+        item->setY(0);
+	csetItemMap[cs] = item;
         scene->addItem(item);
     }
+    try {
+	Grapher().layout(csets, csetItemMap);
+    } catch (std::string s) {
+	std::cerr << "Internal error: Layout failed: " << s << std::endl;
+    }
+/*
+    QMap<QString, Changeset *> idCsetMap;
+    foreach (Changeset *cs, csets) {
+	if (cs->id() == "") {
+	    throw std::string("Changeset has no ID");
+	}
+	if (idCsetMap.contains(cs->id())) {
+	    throw std::string("Changeset ID is already in map");
+	}
+	idCsetMap[cs->id()] = cs;
+    }
+    typedef QSet<int> ColumnSet;
+    typedef QMap<int, ColumnSet> GridAlloc;
+    typedef QMap<Changeset *, ChangesetItem *> ChangesetItemMap;
+    ChangesetItemMap csetItemMap;
+    foreach (Changeset *cs, csets) {
+        ChangesetItem *item = new ChangesetItem(cs);
+        item->setX(0);
+        item->setY(-cs->number() * 100);
+	csetItemMap[cs] = item;
+        scene->addItem(item);
+    }
+    QSet<Changeset *> handled;
+    for (int i = csets.size() - 1; i >= 0; --i) {
+	Changeset *cs = csets[i];
+	if (handled.contains(cs)) continue;
+	
+	
+	handled.insert(cs);
+    }
+*/
     gv->setScene(scene);
 }
 
@@ -326,9 +368,23 @@ Changesets HgExpWidget::parseChangeSets(QString changeSetsStr)
     foreach (LogEntry e, log) {
         Changeset *cs = new Changeset();
         foreach (QString key, e.keys()) {
-            cs->setProperty(key.toLocal8Bit().data(), e.value(key));
+	    if (key == "parents") {
+		QStringList parents = e.value(key).split
+		    (" ", QString::SkipEmptyParts);
+		cs->setParents(parents);
+	    } else {
+		cs->setProperty(key.toLocal8Bit().data(), e.value(key));
+	    }
         }
         csets.push_back(cs);
+    }
+    for (int i = 0; i+1 < csets.size(); ++i) {
+	Changeset *cs = csets[i];
+	if (cs->parents().empty()) {
+	    QStringList list;
+	    list.push_back(csets[i+1]->id());
+	    cs->setParents(list);
+	}
     }
     return csets;
 }
