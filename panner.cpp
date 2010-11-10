@@ -37,7 +37,8 @@ Panner::Panner() :
 //    setViewport(new QGLWidget());
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setOptimizationFlags(QGraphicsView::DontSavePainterState);
+    setOptimizationFlags(QGraphicsView::DontSavePainterState |
+                         QGraphicsView::IndirectPainting);
     setMouseTracking(true);
     setInteractive(false);
 }
@@ -131,6 +132,8 @@ Panner::drawItems(QPainter *painter, int numItems,
                   const QStyleOptionGraphicsItem options[])
 {
     if (m_cache.size() != viewport()->size()) {
+
+    std::cerr << "Panner: recreating cache" << std::endl;
 
         QGraphicsScene *s = scene();
         if (!s) return;

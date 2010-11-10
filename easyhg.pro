@@ -2,7 +2,7 @@
 CONFIG += debug
 
 TEMPLATE = app
-TARGET = hgexplorer
+TARGET = easyhg
 unix {
     DESTDIR = .
 }
