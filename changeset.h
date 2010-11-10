@@ -17,6 +17,7 @@ class Changeset : public QObject
     Q_PROPERTY(QString date READ date WRITE setDate NOTIFY dateChanged STORED true);
     Q_PROPERTY(QString age READ age WRITE setAge NOTIFY ageChanged STORED true);
     Q_PROPERTY(QStringList parents READ parents WRITE setParents NOTIFY parentsChanged STORED true);
+    Q_PROPERTY(QStringList children READ children WRITE setChildren NOTIFY childrenChanged STORED true);
     Q_PROPERTY(QString comment READ comment WRITE setComment NOTIFY commentChanged STORED true);
 
 public:
@@ -29,6 +30,7 @@ public:
     QString date() const { return m_date; }
     QString age() const { return m_age; }
     QStringList parents() const { return m_parents; }
+    QStringList children() const { return m_children; }
     QString comment() const { return m_comment; }
 
     int number() const {
@@ -48,6 +50,7 @@ signals:
     void dateChanged(QString date);
     void ageChanged(QString age);
     void parentsChanged(QStringList parents);
+    void childrenChanged(QStringList children);
     void commentChanged(QString comment);
 
 public slots:
@@ -58,6 +61,8 @@ public slots:
     void setDate(QString date) { m_date = date; emit dateChanged(date); }
     void setAge(QString age) { m_age = age; emit ageChanged(age); }
     void setParents(QStringList parents) { m_parents = parents; emit parentsChanged(parents); }
+    void setChildren(QStringList children) { m_children = children; emit childrenChanged(m_children); }
+    void addChild(QString child) { m_children.push_back(child); emit childrenChanged(m_children); }
     void setComment(QString comment) { m_comment = comment; emit commentChanged(comment); }
 
 private:
@@ -68,6 +73,7 @@ private:
     QString m_date;
     QString m_age;
     QStringList m_parents;
+    QStringList m_children;
     QString m_comment;
 };
 

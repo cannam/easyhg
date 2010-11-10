@@ -99,9 +99,16 @@ Grapher::layoutCol(QString id)
 	}
     }
 
+    // Parent may have layed out child in the recursive call
+    if (m_handled.contains(id)) {
+	std::cerr << "Looks like we've dealt with " << id.toStdString() << std::endl;
+	return;
+    }
+
     int col = 0;
     int row = item->row();
     QString branch = cs->branch();
+
     int nparents = cs->parents().size();
     QString parentId;
     int parentsOnSameBranch = 0;
@@ -156,6 +163,30 @@ Grapher::layoutCol(QString id)
     m_alloc[row].insert(col);
     item->setColumn(col);
     m_handled.insert(id);
+
+    int nchildren = cs->children().size();
+    if (nchildren > 1) {
+	// Normally the children will lay out themselves.  We just
+	// want to handle the case where exactly two children have the
+	// same branch as us, because we can handle that neatly
+	QList<QString> special;
+	foreach (QString childId, cs->children()) {
+	    if (!m_changesets.contains(childId)) continue;
+	    Changeset *child = m_changesets[childId];
+	    if (child->branch() == branch &&
+		child->parents().size() == 1) {
+		special.push_back(childId);
+	    }
+	}
+	if (special.size() == 2) {
+	    m_items[special[0]]->setColumn
+		(findAvailableColumn(item->row() - 1, col - 1, true));
+	    m_items[special[1]]->setColumn
+		(findAvailableColumn(item->row() - 1, col + 1, true));
+	    m_handled.insert(special[0]);
+	    m_handled.insert(special[1]);
+	}
+    }
 }
 
 bool
@@ -205,10 +236,10 @@ Grapher::allocateBranchHomes(Changesets csets)
 		}
 	    }
 	}
-	int home = 2;
+	int home = 3;
 	while (taken.contains(home)) {
 	    if (home > 0) home = -home;
-	    else home = -(home-2);
+	    else home = -(home-3);
 	}
 	m_branchHomes[branch] = home;
     }
@@ -251,7 +282,9 @@ Grapher::layout(Changesets csets)
 	QString id = cs->id();
 	ChangesetItem *item = m_items[id];
 	foreach (QString parentId, cs->parents()) {
-	    if (!m_items.contains(parentId)) continue;
+	    if (!m_changesets.contains(parentId)) continue;
+	    Changeset *parent = m_changesets[parentId];
+	    parent->addChild(id);
 	    ConnectionItem *conn = new ConnectionItem();
 	    conn->setChild(item);
 	    conn->setParent(m_items[parentId]);
@@ -274,20 +307,5 @@ Grapher::layout(Changesets csets)
     for (int i = csets.size() - 1; i >= 0; --i) {
 	layoutCol(csets[i]->id());
     }
-/*
-    foreach (Changeset *cs, csets) {
-	QString id = cs->id();
-	if (!m_items.contains(id)) continue;
-	ChangesetItem *me = m_items[id];
-	foreach (QString parentId, cs->parents()) {
-	    if (!m_items.contains(parentId)) continue;
-	    ChangesetItem *parent = m_items[parentId];
-	    QGraphicsLineItem *line = new QGraphicsLineItem;
-	    line->setLine(me->x() + 25, me->y() + 50,
-			  parent->x() + 25, parent->y());
-	    m_scene->addItem(line);
-	}
-    }
-*/
 }
 
