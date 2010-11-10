@@ -165,6 +165,22 @@ Grapher::layoutCol(QString id)
     m_handled.insert(id);
 
     int nchildren = cs->children().size();
+
+    // look for merging children and make sure nobody
+    // is going to overwrite their "merge lines"
+    foreach (QString childId, cs->children()) {
+        if (!m_changesets.contains(childId)) continue;
+        Changeset *child = m_changesets[childId];
+        if (child->parents().size() > 1) {
+            int childRow = m_items[childId]->row();
+            std::cerr << "I'm at " << row << ", child with >1 parents is at " << childRow << std::endl;
+            for (int r = row; r >= childRow; --r) {
+                std::cerr << "setting row " << r << ", col " << col << std::endl;
+                m_alloc[r].insert(col);
+            }
+        }
+    }
+
     if (nchildren > 1) {
 	// Normally the children will lay out themselves.  We just
 	// want to handle the case where exactly two children have the
