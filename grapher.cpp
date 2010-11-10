@@ -1,87 +1,189 @@
 
 #include "grapher.h"
 
-#include <QSet>
-#include <QMap>
+#include <QGraphicsScene>
 
 #include <iostream>
 
-typedef QSet<int> ColumnSet;
-typedef QMap<int, ColumnSet> GridAlloc;
-typedef QMap<QString, Changeset *> IdChangesetMap;
-typedef QSet<Changeset *> ChangesetSet;
-
-ChangesetItem *
-layout(Changeset *cs,
-       IdChangesetMap idCsetMap,
-       ChangesetItemMap items,
-       GridAlloc &alloc,
-       ChangesetSet &handled)
+int
+Grapher::findAvailableColumn(int row, int parent, bool preferParentCol)
 {
-    if (!cs) {
-	throw std::string("Null Changeset");
+    int col = parent;
+    if (preferParentCol) {
+	if (!m_alloc[row].contains(col)) {
+	    return col;
+	}
     }
-    if (!items.contains(cs)) {
-	throw std::string("Changeset not in item map");
+    while (col > 0) {
+	if (!m_alloc[row].contains(--col)) return col;
     }
-    ChangesetItem *item = items[cs];
-    if (handled.contains(cs)) {
-	return item;
+    while (col < 0) {
+	if (!m_alloc[row].contains(++col)) return col;
     }
+    col = parent;
+    int sign = (col < 0 ? -1 : 1);
+    while (1) {
+	col += sign;
+	if (!m_alloc[row].contains(col)) return col;
+    }
+}
+
+void
+Grapher::layoutRow(QString id)
+{
+    if (m_handled.contains(id)) {
+	return;
+    }
+    if (!m_idCsetMap.contains(id)) {
+	throw LayoutException(QString("Changeset %1 not in ID map").arg(id));
+    }
+    if (!m_items.contains(id)) {
+	throw LayoutException(QString("Changeset %1 not in item map").arg(id));
+    }
+    Changeset *cs = m_idCsetMap[id];
+    ChangesetItem *item = m_items[id];
+    std::cerr << "Looking at " << id.toStdString() << std::endl;
+
     int row = 0;
-    int col = 0;
-    if (!cs->parents().empty()) {
+    int nparents = cs->parents().size();
+
+    if (nparents > 0) {
 	bool haveRow = false;
 	foreach (QString parentId, cs->parents()) {
-	    if (parentId == "") continue; //!!!
-	    std::cerr << "recursing to parent \"" << parentId.toStdString() << "\" of \"" << cs->id().toStdString() << "\"" << std::endl;
-	    ChangesetItem *parentItem =
-		layout(idCsetMap[parentId],
-		       idCsetMap,
-		       items,
-		       alloc,
-		       handled);
+
+	    if (!m_idCsetMap.contains(parentId)) continue;
+	    if (!m_items.contains(parentId)) continue;
+
+	    if (!m_handled.contains(parentId)) {
+		layoutRow(parentId);
+	    }
+
+	    ChangesetItem *parentItem = m_items[parentId];
 	    if (!haveRow || parentItem->row() < row) {
 		row = parentItem->row();
 		haveRow = true;
 	    }
-	    col += parentItem->column();
 	}
-	col /= cs->parents().size();
 	row = row - 1;
-	while (alloc[row].contains(col)) {
-	    if (col > 0) col = -col;
-	    else col = -col + 1;
-	}
-	alloc[row].insert(col);
-    }	
-    item->setColumn(col);
+    }
+
+    std::cerr << "putting " << cs->id().toStdString() << " at row " << row 
+	      << std::endl;
+
     item->setRow(row);
-    item->setX(col * 100);
     item->setY(row * 100);
-    handled.insert(cs);
-    return item;
+    m_handled.insert(id);
 }
 
 void
-Grapher::layout(Changesets csets, ChangesetItemMap items)
+Grapher::layoutCol(QString id)
 {
-    IdChangesetMap idCsetMap;
-    foreach (Changeset *cs, csets) {
-	std::cerr << cs->id().toStdString() << std::endl;
-	if (cs->id() == "") {
-	    throw std::string("Changeset has no ID");
+    if (m_handled.contains(id)) {
+	std::cerr << "Already looked at " << id.toStdString() << std::endl;
+	return;
+    }
+    if (!m_idCsetMap.contains(id)) {
+	throw LayoutException(QString("Changeset %1 not in ID map").arg(id));
+    }
+    if (!m_items.contains(id)) {
+	throw LayoutException(QString("Changeset %1 not in item map").arg(id));
+    }
+    Changeset *cs = m_idCsetMap[id];
+    ChangesetItem *item = m_items[id];
+    std::cerr << "Looking at " << id.toStdString() << std::endl;
+
+    int col = 0;
+    int nparents = cs->parents().size();
+
+    if (nparents > 0) {
+	bool preferParentCol = true;
+	foreach (QString parentId, cs->parents()) {
+
+	    if (!m_idCsetMap.contains(parentId)) continue;
+	    if (!m_items.contains(parentId)) continue;
+
+	    if (nparents == 1) {
+		// when introducing a new branch, aim _not_ to
+		// position child on the same column as parent
+		Changeset *parent = m_idCsetMap[parentId];
+		if (parent->branch() != cs->branch()) {
+		    preferParentCol = false;
+		}
+	    }		
+
+	    if (!m_handled.contains(parentId)) {
+		layoutCol(parentId);
+	    }
+
+	    ChangesetItem *parentItem = m_items[parentId];
+	    col += parentItem->column();
 	}
-	if (idCsetMap.contains(cs->id())) {
-	    throw std::string("Changeset ID is already in map");
-	}
-	idCsetMap[cs->id()] = cs;
+
+	col /= cs->parents().size();
+	col = findAvailableColumn(item->row(), col, preferParentCol);
+	m_alloc[item->row()].insert(col);
     }
 
-    GridAlloc alloc;
-    ChangesetSet handled;
+    std::cerr << "putting " << cs->id().toStdString() << " at col " << col << std::endl;
+
+    item->setColumn(col);
+    item->setX(col * 100);
+    m_handled.insert(id);
+}
+
+void
+Grapher::layout(Changesets csets)
+{
+    m_idCsetMap.clear();
+    m_items.clear();
+    m_alloc.clear();
+
     foreach (Changeset *cs, csets) {
-	::layout(cs, idCsetMap, items, alloc, handled);
+
+	QString id = cs->id();
+	std::cerr << id.toStdString() << std::endl;
+
+	if (id == "") {
+	    throw LayoutException("Changeset has no ID");
+	}
+	if (m_idCsetMap.contains(id)) {
+	    throw LayoutException(QString("Duplicate changeset ID %1").arg(id));
+	}
+
+	m_idCsetMap[id] = cs;
+
+        ChangesetItem *item = new ChangesetItem(cs);
+        item->setX(0);
+        item->setY(0);
+	m_items[id] = item;
+        m_scene->addItem(item);
+    }
+
+    // Layout in reverse order, i.e. forward chronological order.
+    // This ensures that parents will normally be laid out before
+    // their children -- though we can recurse from layout() if we
+    // find any weird exceptions
+    m_handled.clear();
+    for (int i = csets.size() - 1; i >= 0; --i) {
+	layoutRow(csets[i]->id());
+    }
+    m_handled.clear();
+    for (int i = csets.size() - 1; i >= 0; --i) {
+	layoutCol(csets[i]->id());
+    }
+
+    foreach (Changeset *cs, csets) {
+	QString id = cs->id();
+	if (!m_items.contains(id)) continue;
+	ChangesetItem *me = m_items[id];
+	foreach (QString parentId, cs->parents()) {
+	    if (!m_items.contains(parentId)) continue;
+	    ChangesetItem *parent = m_items[parentId];
+	    QGraphicsLineItem *line = new QGraphicsLineItem;
+	    line->setLine(me->x() + 25, me->y() + 50,
+			  parent->x() + 25, parent->y());
+	    m_scene->addItem(line);
+	}
     }
 }
 

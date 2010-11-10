@@ -12,6 +12,8 @@
 #include "changeset.h"
 #include "changesetitem.h"
 #include "grapher.h"
+#include "panner.h"
+#include "panned.h"
 
 #include <iostream>
 
@@ -91,7 +93,17 @@ HgExpWidget::HgExpWidget(QWidget *parent, QString remoteRepo, QString workFolder
     addTab(workPageWidget, tr("Work"));
 
     // History graph page
-    historyGraphPageWidget = new QGraphicsView;
+    historyGraphPageWidget = new QWidget;
+    Panned *panned = new Panned;
+    Panner *panner = new Panner;
+    historyGraphWidget = panned;
+    historyGraphPanner = panner;
+    QGridLayout *layout = new QGridLayout;
+    layout->addWidget(historyGraphWidget, 0, 0);
+    layout->addWidget(historyGraphPanner, 0, 1);
+    panner->setMaximumWidth(80);
+    panner->connectToPanned(panned);
+    historyGraphPageWidget->setLayout(layout);
     addTab(historyGraphPageWidget, tr("History (graph)"));
 
 
@@ -244,56 +256,20 @@ void HgExpWidget::updateLocalRepoHgLogList(QString hgLogList)
     localRepoHgLogList -> addItems(splitChangeSets(hgLogList));
 
     //!!!
-    QGraphicsView *gv = static_cast<QGraphicsView *>(historyGraphPageWidget);
-    gv->scene()->deleteLater();
+    Panned *panned = static_cast<Panned *>(historyGraphWidget);
+    Panner *panner = static_cast<Panner *>(historyGraphPanner);
     QGraphicsScene *scene = new QGraphicsScene();
     Changesets csets = parseChangeSets(hgLogList);
     if (csets.empty()) return;
-    ChangesetItemMap csetItemMap;
-    foreach (Changeset *cs, csets) {
-        ChangesetItem *item = new ChangesetItem(cs);
-        item->setX(0);
-        item->setY(0);
-	csetItemMap[cs] = item;
-        scene->addItem(item);
-    }
     try {
-	Grapher().layout(csets, csetItemMap);
+	Grapher(scene).layout(csets);
     } catch (std::string s) {
 	std::cerr << "Internal error: Layout failed: " << s << std::endl;
     }
-/*
-    QMap<QString, Changeset *> idCsetMap;
-    foreach (Changeset *cs, csets) {
-	if (cs->id() == "") {
-	    throw std::string("Changeset has no ID");
-	}
-	if (idCsetMap.contains(cs->id())) {
-	    throw std::string("Changeset ID is already in map");
-	}
-	idCsetMap[cs->id()] = cs;
-    }
-    typedef QSet<int> ColumnSet;
-    typedef QMap<int, ColumnSet> GridAlloc;
-    typedef QMap<Changeset *, ChangesetItem *> ChangesetItemMap;
-    ChangesetItemMap csetItemMap;
-    foreach (Changeset *cs, csets) {
-        ChangesetItem *item = new ChangesetItem(cs);
-        item->setX(0);
-        item->setY(-cs->number() * 100);
-	csetItemMap[cs] = item;
-        scene->addItem(item);
-    }
-    QSet<Changeset *> handled;
-    for (int i = csets.size() - 1; i >= 0; --i) {
-	Changeset *cs = csets[i];
-	if (handled.contains(cs)) continue;
-	
-	
-	handled.insert(cs);
-    }
-*/
-    gv->setScene(scene);
+    panned->scene()->deleteLater();
+    panned->setScene(scene);
+    panner->scene()->deleteLater();
+    panner->setScene(scene);
 }
 
 

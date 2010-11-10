@@ -15,7 +15,9 @@ HEADERS = mainwindow.h \
     settingsdialog.h \
     changeset.h \
     changesetitem.h \
-    logparser.h
+    logparser.h \
+    panner.h \
+    panned.h
 SOURCES = main.cpp \
     mainwindow.cpp \
     hgexpwidget.cpp \
@@ -25,7 +27,9 @@ SOURCES = main.cpp \
     common.cpp \
     changeset.cpp \
     changesetitem.cpp \
-    logparser.cpp
+    logparser.cpp \
+    panner.cpp \
+    panned.cpp
 
 # ! [0]
 RESOURCES = hgexplorer.qrc

@@ -13,6 +13,11 @@ HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
 {
     proc = new QProcess(this);
 
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("LANG", "en_US.utf8");
+    env.insert("LC_ALL", "en_US.utf8");
+    proc->setProcessEnvironment(env);
+
     setTextVisible(false);
     setVisible(false);
     isRunning = false;
@@ -39,8 +44,8 @@ void HgRunner::setProcExitInfo(int procExitCode, QProcess::ExitStatus procExitSt
 {
     exitCode = procExitCode;
     exitStatus = procExitStatus;
-    stdOut = proc -> readAllStandardOutput();
-    stdErr = proc -> readAllStandardError();
+    stdOut = QString::fromUtf8(proc -> readAllStandardOutput());
+    stdErr = QString::fromUtf8(proc -> readAllStandardError());
     std::cerr << "stdout was " << stdOut.toStdString() << std::endl;
 }
 

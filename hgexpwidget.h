@@ -50,6 +50,8 @@ private:
     QGroupBox   *grpRemoteRepo;
     QWidget     *workPageWidget;
     QWidget     *historyGraphPageWidget;
+    QWidget     *historyGraphWidget;
+    QWidget     *historyGraphPanner;
     QWidget     *historyPageWidget;
     QWidget     *headsPageWidget;
 
