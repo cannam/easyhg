@@ -6,6 +6,7 @@
 
 #include <QSet>
 #include <QMap>
+#include <QPair>
 
 #include <exception>
 
@@ -28,14 +29,10 @@ public:
     };
 
 private:
-    void layoutRow(QString id);
-    void layoutCol(QString id);
-    int findAvailableColumn(int row, int parent, bool preferParentCol);
-
     QGraphicsScene *m_scene;
 
     typedef QMap<QString, Changeset *> IdChangesetMap;
-    IdChangesetMap m_idCsetMap;
+    IdChangesetMap m_changesets;
 
     typedef QMap<QString, ChangesetItem *> IdItemMap;
     IdItemMap m_items;
@@ -44,8 +41,21 @@ private:
     typedef QMap<int, ColumnSet> GridAlloc;
     GridAlloc m_alloc;
 
+    typedef QPair<int, int> Range;
+    typedef QMap<QString, Range> BranchRangeMap;
+    BranchRangeMap m_branchRanges;
+
+    typedef QMap<QString, int> BranchColumnMap;
+    BranchColumnMap m_branchHomes;
+
     typedef QSet<QString> IdSet;
     IdSet m_handled;
+
+    void layoutRow(QString id);
+    void layoutCol(QString id);
+    void allocateBranchHomes(Changesets csets);
+    bool rangesConflict(const Range &r1, const Range &r2);
+    int findAvailableColumn(int row, int parent, bool preferParentCol);
 };
 
 #endif 

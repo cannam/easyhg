@@ -18,11 +18,14 @@
 #include "panned.h"
 
 #include <QScrollBar>
+#include <QGLWidget>
 
 #include <iostream>
 
 Panned::Panned()
 {
+//    setViewport(new QGLWidget(QGLFormat(QGL::SampleBuffers)));
+    setRenderHints(QPainter::Antialiasing);
 }
 
 void

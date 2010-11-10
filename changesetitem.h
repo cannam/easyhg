@@ -15,8 +15,8 @@ public:
 
     int column() const { return m_column; }
     int row() const { return m_row; }
-    void setColumn(int c) { m_column = c; }
-    void setRow(int r) { m_row = r; }
+    void setColumn(int c) { m_column = c; setX(c * 100); }
+    void setRow(int r) { m_row = r; setY(r * 100); }
 
 private:
     Changeset *m_changeset;

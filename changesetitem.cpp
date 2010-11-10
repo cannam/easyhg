@@ -6,7 +6,6 @@
 QRectF
 ChangesetItem::boundingRect() const
 {
-    int n = m_changeset->number();
     return QRectF(0, 0, 250, 50);
 }
 

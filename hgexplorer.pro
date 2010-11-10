@@ -17,7 +17,8 @@ HEADERS = mainwindow.h \
     changesetitem.h \
     logparser.h \
     panner.h \
-    panned.h
+    panned.h \
+    connectionitem.h
 SOURCES = main.cpp \
     mainwindow.cpp \
     hgexpwidget.cpp \
@@ -29,7 +30,8 @@ SOURCES = main.cpp \
     changesetitem.cpp \
     logparser.cpp \
     panner.cpp \
-    panned.cpp
+    panned.cpp \
+    connectionitem.cpp
 
 # ! [0]
 RESOURCES = hgexplorer.qrc
@@ -37,4 +39,4 @@ win32 {
     RC_FILE = hgexplorer.rc
 }
 
-QT += network
+QT += network opengl

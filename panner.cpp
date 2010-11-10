@@ -21,6 +21,7 @@
 #include <QPolygon>
 #include <QMouseEvent>
 #include <QColor>
+#include <QGLWidget>
 
 #include <iostream>
 
@@ -33,6 +34,7 @@ public:
 Panner::Panner() :
     m_clicked(false)
 {
+//    setViewport(new QGLWidget());
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setOptimizationFlags(QGraphicsView::DontSavePainterState);
