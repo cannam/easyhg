@@ -51,6 +51,9 @@ private:
     typedef QSet<QString> IdSet;
     IdSet m_handled;
 
+    typedef QMap<int, QString> RowDateMap;
+    RowDateMap m_rowDates;
+
     void layoutRow(QString id);
     void layoutCol(QString id);
     void allocateBranchHomes(Changesets csets);

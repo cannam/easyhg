@@ -164,27 +164,33 @@ Grapher::layoutCol(QString id)
     item->setColumn(col);
     m_handled.insert(id);
 
+    // Normally the children will lay out themselves, but we can do
+    // a better job in some special cases:
+
     int nchildren = cs->children().size();
 
     // look for merging children and make sure nobody
-    // is going to overwrite their "merge lines"
+    // is going to overwrite their "merge lines" if they extend further
+    // than a single step
+
     foreach (QString childId, cs->children()) {
         if (!m_changesets.contains(childId)) continue;
         Changeset *child = m_changesets[childId];
         if (child->parents().size() > 1) {
             int childRow = m_items[childId]->row();
             std::cerr << "I'm at " << row << ", child with >1 parents is at " << childRow << std::endl;
-            for (int r = row; r >= childRow; --r) {
+            for (int r = row; r > childRow; --r) {
                 std::cerr << "setting row " << r << ", col " << col << std::endl;
                 m_alloc[r].insert(col);
             }
         }
     }
 
+    // look for the case where exactly two children have the same
+    // branch as us: split them to a little either side of our position
+
     if (nchildren > 1) {
-	// Normally the children will lay out themselves.  We just
-	// want to handle the case where exactly two children have the
-	// same branch as us, because we can handle that neatly
+
 	QList<QString> special;
 	foreach (QString childId, cs->children()) {
 	    if (!m_changesets.contains(childId)) continue;
@@ -312,6 +318,11 @@ Grapher::layout(Changesets csets)
     // This ensures that parents will normally be laid out before
     // their children -- though we can recurse from layout() if we
     // find any weird exceptions
+
+    //!!! changesets are not in any chronological order, necessarily:
+    // we need to sort by datetime() [or, better, numerical date]
+    // and then use m_rowDateMap
+
     m_handled.clear();
     for (int i = csets.size() - 1; i >= 0; --i) {
 	layoutRow(csets[i]->id());
