@@ -3,8 +3,12 @@
 ****************************************************************************/
 
 #include "hgrunner.h"
-#include <QtCore>
-#include <QtGui>
+
+#include <QPushButton>
+#include <QListWidget>
+#include <QDialog>
+#include <QLabel>
+#include <QVBoxLayout>
 
 #include <iostream>
 #include <unistd.h>

@@ -2,10 +2,6 @@
 ** Copyright (C) Jari Korhonen, 2010 (under lgpl)
 ****************************************************************************/
 
-#include <QtGui>
-#include <QtCore>
-#include <QClipboard>
-
 #include "hgexpwidget.h"
 #include "common.h"
 #include "logparser.h"
@@ -14,6 +10,10 @@
 #include "grapher.h"
 #include "panner.h"
 #include "panned.h"
+
+#include <QClipboard>
+#include <QContextMenuEvent>
+#include <QApplication>
 
 #include <iostream>
 

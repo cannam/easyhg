@@ -5,7 +5,7 @@
 ** Copyright (C) Jari Korhonen, 2010 (under lgpl)
 ****************************************************************************/
 
-#include <QtCore>
+#include <QString>
 
 #define APPNAME                         "HgExplorer"
 #define APPVERSION                      "0.7.2"

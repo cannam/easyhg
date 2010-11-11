@@ -18,7 +18,8 @@ HEADERS = mainwindow.h \
     logparser.h \
     panner.h \
     panned.h \
-    connectionitem.h
+    connectionitem.h \
+    textabbrev.h
 SOURCES = main.cpp \
     mainwindow.cpp \
     hgexpwidget.cpp \
@@ -31,7 +32,8 @@ SOURCES = main.cpp \
     logparser.cpp \
     panner.cpp \
     panned.cpp \
-    connectionitem.cpp
+    connectionitem.cpp \
+    textabbrev.cpp
 
 # ! [0]
 RESOURCES = hgexplorer.qrc

@@ -5,11 +5,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-
 #include "hgexpwidget.h"
 #include "hgrunner.h"
 #include "common.h"
+
+#include <QMainWindow>
+#include <QListWidget>
 
 QT_BEGIN_NAMESPACE
 class QAction;

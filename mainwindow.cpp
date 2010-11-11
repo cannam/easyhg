@@ -2,16 +2,21 @@
 ** Copyright (C) Jari Korhonen, 2010 (under lgpl)
 ****************************************************************************/
 
-#include <QtGui>
+#include "mainwindow.h"
+#include "settingsdialog.h"
+
 #include <QStringList>
 #include <QDir>
 #include <QNetworkInterface>
 #include <QHostAddress>
 #include <QHostInfo>
 #include <QDesktopServices>
-
-#include "mainwindow.h"
-#include "settingsdialog.h"
+#include <QStatusBar>
+#include <QMessageBox>
+#include <QMenuBar>
+#include <QApplication>
+#include <QToolBar>
+#include <QSettings>
 
 
 MainWindow::MainWindow()

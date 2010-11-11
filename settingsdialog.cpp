@@ -6,6 +6,9 @@
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QDir>
+#include <QMessageBox>
+#include <QFileDialog>
 
 SettingsDialog::SettingsDialog(QWidget *parent): QDialog(parent)
 {

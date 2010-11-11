@@ -5,12 +5,15 @@
 ** Copyright (C) Jari Korhonen, 2010 (under lgpl)
 ****************************************************************************/
 
-#include <QtGui>
-#include <QtCore>
-#include <QMenu>
-
 #include "changeset.h"
 #include "common.h"
+
+#include <QMenu>
+#include <QListWidget>
+#include <QGroupBox>
+#include <QVBoxLayout>
+#include <QCheckBox>
+#include <QLabel>
 
 #define NUM_STAT_FILE_TYPES 7
 
