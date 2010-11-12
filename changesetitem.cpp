@@ -6,7 +6,7 @@
 #include <QPainter>
 
 ChangesetItem::ChangesetItem(Changeset *cs) :
-    m_changeset(cs), m_column(0), m_row(0)
+    m_changeset(cs), m_column(0), m_row(0), m_wide(false)
 {
     m_font = QFont();
     m_font.setPixelSize(11);
@@ -17,7 +17,9 @@ ChangesetItem::ChangesetItem(Changeset *cs) :
 QRectF
 ChangesetItem::boundingRect() const
 {
-    return QRectF(-24, -30, 97, 79);
+    int w = 100;
+    if (m_wide) w = 180;
+    return QRectF(-((w-50)/2 - 1), -30, w - 3, 79);
 }
 
 void
@@ -49,8 +51,12 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     paint->setFont(f);
     QFontMetrics fm(f);
     int fh = fm.height();
-    
-    QRectF r(-24, 0, 97, 49);
+
+    int width = 100;
+    if (m_wide) width = 180;
+    int x0 = -((width - 50) / 2 - 1);
+
+    QRectF r(x0, 0, width - 3, 49);
     paint->drawRect(r);
 
     if (scale < 0.1) {
@@ -62,19 +68,20 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
 	f.setBold(true);
 	paint->setFont(f);
 	QString branch = m_changeset->branch();
-	int wid = 97;
+	int wid = width - 3;
 	branch = TextAbbrev::abbreviate(branch, QFontMetrics(f), wid);
-	paint->drawText(-24, -fh + fm.ascent() - 4, branch);
+	paint->drawText(x0, -fh + fm.ascent() - 4, branch);
 	f.setBold(false);
     }
 
-    paint->fillRect(QRectF(-23.5, 0.5, 96, fh - 0.5), QBrush(userColour));
+    paint->fillRect(QRectF(x0 + 0.5, 0.5, width - 4, fh - 0.5),
+		    QBrush(userColour));
 
     paint->setPen(QPen(Qt::white));
 
-    int wid = 95;
+    int wid = width - 5;
     QString person = TextAbbrev::abbreviate(m_changeset->authorName(), fm, wid);
-    paint->drawText(-21, fm.ascent(), person);
+    paint->drawText(x0 + 3, fm.ascent(), person);
 
     paint->setPen(QPen(Qt::black));
 
@@ -90,13 +97,13 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     comment = comment.replace("\\\"", "\"");
     comment = comment.split('\n')[0];
 
-    wid = 95;
+    wid = width - 5;
     comment = TextAbbrev::abbreviate(comment, fm, wid, TextAbbrev::ElideEnd,
 				     "...", 2);
 
     QStringList lines = comment.split('\n');
     for (int i = 0; i < lines.size(); ++i) {
-	paint->drawText(-21, i * fh + fh + fm.ascent(), lines[i].trimmed());
+	paint->drawText(x0 + 3, i * fh + fh + fm.ascent(), lines[i].trimmed());
     }
 
     paint->restore();

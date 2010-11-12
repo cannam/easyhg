@@ -186,8 +186,9 @@ Grapher::layoutCol(QString id)
         if (!m_changesets.contains(childId)) continue;
         Changeset *child = m_changesets[childId];
 	int childRow = m_items[childId]->row();
-        if (child->parents().size() > 1 || child->branch() == cs->branch()) {
-            for (int r = row; r > childRow; --r) {
+        if (child->parents().size() > 1 ||
+	    child->branch() == cs->branch()) {
+            for (int r = row-1; r > childRow; --r) {
                 m_alloc[r].insert(col);
             }
 	}	    
@@ -211,9 +212,8 @@ Grapher::layoutCol(QString id)
 	    for (int i = 0; i < 2; ++i) {
 		int off = i * 2 - 1; // 0 -> -1, 1 -> 1
 		ChangesetItem *it = m_items[special[i]];
-		m_alloc[it->row()].insert(col); // avoid our column
 		it->setColumn(findAvailableColumn(it->row(), col + off, true));
-		for (int r = row; r >= it->row(); --r) {
+		for (int r = row-1; r >= it->row(); --r) {
 		    m_alloc[r].insert(it->column());
 		}
 		m_handled.insert(special[i]);
@@ -382,6 +382,14 @@ Grapher::layout(Changesets csets)
 	    }
 	}
 	layoutCol(cs->id());
+    }
+
+    foreach (Changeset *cs, csets) {
+	ChangesetItem *item = m_items[cs->id()];
+	if (!m_alloc[item->row()].contains(item->column()-1) &&
+	    !m_alloc[item->row()].contains(item->column()+1)) {
+	    item->setWide(true);
+	}
     }
 
     // we know that 0 is an upper bound on row, and that mincol must
