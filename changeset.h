@@ -14,7 +14,8 @@ class Changeset : public QObject
     Q_PROPERTY(QString author READ author WRITE setAuthor NOTIFY authorChanged STORED true);
     Q_PROPERTY(QString branch READ branch WRITE setBranch NOTIFY branchChanged STORED true);
     Q_PROPERTY(QString tag READ tag WRITE setTag NOTIFY tagChanged STORED true);
-    Q_PROPERTY(QString datetime READ datetime WRITE setdatetime NOTIFY datetimeChanged STORED true);
+    Q_PROPERTY(QString datetime READ datetime WRITE setDatetime NOTIFY datetimeChanged STORED true);
+    Q_PROPERTY(qulonglong timestamp READ timestamp WRITE setTimestamp NOTIFY timestampChanged STORED true);
     Q_PROPERTY(QString age READ age WRITE setAge NOTIFY ageChanged STORED true);
     Q_PROPERTY(QStringList parents READ parents WRITE setParents NOTIFY parentsChanged STORED true);
     Q_PROPERTY(QStringList children READ children WRITE setChildren NOTIFY childrenChanged STORED true);
@@ -28,6 +29,7 @@ public:
     QString branch() const { return m_branch; }
     QString tag() const { return m_tag; }
     QString datetime() const { return m_datetime; }
+    qulonglong timestamp() const { return m_timestamp; }
     QString age() const { return m_age; }
     QStringList parents() const { return m_parents; }
     QStringList children() const { return m_children; }
@@ -52,6 +54,7 @@ signals:
     void branchChanged(QString branch);
     void tagChanged(QString tag);
     void datetimeChanged(QString datetime);
+    void timestampChanged(qulonglong timestamp);
     void ageChanged(QString age);
     void parentsChanged(QStringList parents);
     void childrenChanged(QStringList children);
@@ -62,7 +65,8 @@ public slots:
     void setAuthor(QString author) { m_author = author; emit authorChanged(author); }
     void setBranch(QString branch) { m_branch = branch; emit branchChanged(branch); }
     void setTag(QString tag) { m_tag = tag; emit tagChanged(tag); }
-    void setdatetime(QString datetime) { m_datetime = datetime; emit datetimeChanged(datetime); }
+    void setDatetime(QString datetime) { m_datetime = datetime; emit datetimeChanged(datetime); }
+    void setTimestamp(qulonglong timestamp) { m_timestamp = timestamp; emit timestampChanged(timestamp); }
     void setAge(QString age) { m_age = age; emit ageChanged(age); }
     void setParents(QStringList parents) { m_parents = parents; emit parentsChanged(parents); }
     void setChildren(QStringList children) { m_children = children; emit childrenChanged(m_children); }
@@ -75,6 +79,7 @@ private:
     QString m_branch;
     QString m_tag;
     QString m_datetime;
+    qulonglong m_timestamp;
     QString m_age;
     QStringList m_parents;
     QStringList m_children;

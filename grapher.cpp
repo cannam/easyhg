@@ -68,6 +68,28 @@ Grapher::layoutRow(QString id)
 	row = row - 1;
     }
 
+    // row is now an upper bound on our eventual row (because we want
+    // to be above all parents).  But we also want to ensure we are
+    // above all nodes that have earlier dates (to the nearest day).
+    // m_rowDates maps each row to a date: use that.
+
+    QString date = cs->date();
+
+    // n.b. this relies on the fact that the date component of an ISO
+    // date/time sorts correctly in a dictionary sort
+    while (m_rowDates.contains(row) && m_rowDates[row] < date) {
+	--row;
+    }
+
+    // We have already laid out all nodes that have earlier timestamps
+    // than this one, so we know (among other things) that we can
+    // safely fill in this row has having this date, if it isn't in
+    // the map yet (it cannot have an earlier date)
+
+    if (!m_rowDates.contains(row)) {
+	m_rowDates[row] = date;
+    }
+
     std::cerr << "putting " << cs->id().toStdString() << " at row " << row 
 	      << std::endl;
 
@@ -178,9 +200,7 @@ Grapher::layoutCol(QString id)
         Changeset *child = m_changesets[childId];
         if (child->parents().size() > 1) {
             int childRow = m_items[childId]->row();
-            std::cerr << "I'm at " << row << ", child with >1 parents is at " << childRow << std::endl;
             for (int r = row; r > childRow; --r) {
-                std::cerr << "setting row " << r << ", col " << col << std::endl;
                 m_alloc[r].insert(col);
             }
         }
@@ -201,12 +221,13 @@ Grapher::layoutCol(QString id)
 	    }
 	}
 	if (special.size() == 2) {
-	    m_items[special[0]]->setColumn
-		(findAvailableColumn(item->row() - 1, col - 1, true));
-	    m_items[special[1]]->setColumn
-		(findAvailableColumn(item->row() - 1, col + 1, true));
-	    m_handled.insert(special[0]);
-	    m_handled.insert(special[1]);
+	    for (int i = 0; i < 2; ++i) {
+		int off = i * 2 - 1; // 0 -> -1, 1 -> 1
+		ChangesetItem *it = m_items[special[i]];
+		it->setColumn(findAvailableColumn(it->row(), col + off, true));
+		m_alloc[it->row()].insert(it->column());
+		m_handled.insert(special[i]);
+	    }
 	}
     }
 }
@@ -271,6 +292,12 @@ Grapher::allocateBranchHomes(Changesets csets)
     }
 }
 
+static bool
+compareChangesetsByDate(Changeset *const &a, Changeset *const &b)
+{
+    return a->timestamp() < b->timestamp();
+}
+
 void
 Grapher::layout(Changesets csets)
 {
@@ -314,14 +341,14 @@ Grapher::layout(Changesets csets)
 	}
     }
 
-    // Layout in reverse order, i.e. forward chronological order.
-    // This ensures that parents will normally be laid out before
-    // their children -- though we can recurse from layout() if we
-    // find any weird exceptions
+    // We need to lay out the changesets in forward chronological
+    // order.  We have no guarantees about the order in which
+    // changesets appear in the list -- in a simple repository they
+    // will generally be reverse chronological, but that's far from
+    // guaranteed.  So, sort explicitly using the date comparator
+    // above
 
-    //!!! changesets are not in any chronological order, necessarily:
-    // we need to sort by datetime() [or, better, numerical date]
-    // and then use m_rowDateMap
+    qStableSort(csets.begin(), csets.end(), compareChangesetsByDate);
 
     m_handled.clear();
     for (int i = csets.size() - 1; i >= 0; --i) {

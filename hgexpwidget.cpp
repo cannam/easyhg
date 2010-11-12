@@ -348,6 +348,8 @@ Changesets HgExpWidget::parseChangeSets(QString changeSetsStr)
 		QStringList parents = e.value(key).split
 		    (" ", QString::SkipEmptyParts);
 		cs->setParents(parents);
+	    } else if (key == "timestamp") {
+		cs->setTimestamp(e.value(key).split(" ")[0].toULongLong());
 	    } else {
 		cs->setProperty(key.toLocal8Bit().data(), e.value(key));
 	    }
