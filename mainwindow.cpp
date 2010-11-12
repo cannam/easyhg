@@ -2,8 +2,6 @@
 ** Copyright (C) Jari Korhonen, 2010 (under lgpl)
 ****************************************************************************/
 
-#include "mainwindow.h"
-#include "settingsdialog.h"
 
 #include <QStringList>
 #include <QDir>
@@ -17,6 +15,10 @@
 #include <QApplication>
 #include <QToolBar>
 #include <QSettings>
+
+#include "mainwindow.h"
+#include "settingsdialog.h"
+#include "colourset.h"
 
 
 MainWindow::MainWindow()
@@ -1445,6 +1447,12 @@ void MainWindow::readSettings()
     initialFileTypesBits = (unsigned char) settings.value("viewFileTypes", QVariant(DEFAULT_HG_STAT_BITS)).toInt();
     resize(size);
     move(pos);
+
+    ColourSet *cs = ColourSet::instance();
+    cs->clearDefaultNames();
+    cs->addDefaultName("");
+    cs->addDefaultName("default");
+    cs->addDefaultName(userInfo);
 }
 
 

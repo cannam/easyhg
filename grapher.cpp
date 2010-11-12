@@ -1,6 +1,7 @@
 
 #include "grapher.h"
 #include "connectionitem.h"
+#include "dateitem.h"
 
 #include <QGraphicsScene>
 
@@ -43,7 +44,7 @@ Grapher::layoutRow(QString id)
     }
     Changeset *cs = m_changesets[id];
     ChangesetItem *item = m_items[id];
-    std::cerr << "Looking at " << id.toStdString() << std::endl;
+    std::cerr << "layoutRow: Looking at " << id.toStdString() << std::endl;
 
     int row = 0;
     int nparents = cs->parents().size();
@@ -73,11 +74,8 @@ Grapher::layoutRow(QString id)
     // above all nodes that have earlier dates (to the nearest day).
     // m_rowDates maps each row to a date: use that.
 
-    QString date = cs->date();
-
-    // n.b. this relies on the fact that the date component of an ISO
-    // date/time sorts correctly in a dictionary sort
-    while (m_rowDates.contains(row) && m_rowDates[row] < date) {
+    QString date = cs->age();
+    while (m_rowDates.contains(row) && m_rowDates[row] != date) {
 	--row;
     }
 
@@ -110,22 +108,11 @@ Grapher::layoutCol(QString id)
     if (!m_items.contains(id)) {
 	throw LayoutException(QString("Changeset %1 not in item map").arg(id));
     }
+
     Changeset *cs = m_changesets[id];
+    std::cerr << "layoutCol: Looking at " << id.toStdString() << std::endl;
+
     ChangesetItem *item = m_items[id];
-    std::cerr << "Looking at " << id.toStdString() << std::endl;
-
-    foreach (QString parentId, cs->parents()) {
-	if (!m_changesets.contains(parentId)) continue;
-	if (!m_handled.contains(parentId)) {
-	    layoutCol(parentId);
-	}
-    }
-
-    // Parent may have layed out child in the recursive call
-    if (m_handled.contains(id)) {
-	std::cerr << "Looks like we've dealt with " << id.toStdString() << std::endl;
-	return;
-    }
 
     int col = 0;
     int row = item->row();
@@ -191,19 +178,19 @@ Grapher::layoutCol(QString id)
 
     int nchildren = cs->children().size();
 
-    // look for merging children and make sure nobody
-    // is going to overwrite their "merge lines" if they extend further
-    // than a single step
+    // look for merging children and children distant from us but in a
+    // straight line, and make sure nobody is going to overwrite their
+    // connection lines
 
     foreach (QString childId, cs->children()) {
         if (!m_changesets.contains(childId)) continue;
         Changeset *child = m_changesets[childId];
-        if (child->parents().size() > 1) {
-            int childRow = m_items[childId]->row();
+	int childRow = m_items[childId]->row();
+        if (child->parents().size() > 1 || child->branch() == cs->branch()) {
             for (int r = row; r > childRow; --r) {
                 m_alloc[r].insert(col);
             }
-        }
+	}	    
     }
 
     // look for the case where exactly two children have the same
@@ -224,8 +211,11 @@ Grapher::layoutCol(QString id)
 	    for (int i = 0; i < 2; ++i) {
 		int off = i * 2 - 1; // 0 -> -1, 1 -> 1
 		ChangesetItem *it = m_items[special[i]];
+		m_alloc[it->row()].insert(col); // avoid our column
 		it->setColumn(findAvailableColumn(it->row(), col + off, true));
-		m_alloc[it->row()].insert(it->column());
+		for (int r = row; r >= it->row(); --r) {
+		    m_alloc[r].insert(it->column());
+		}
 		m_handled.insert(special[i]);
 	    }
 	}
@@ -279,10 +269,21 @@ Grapher::allocateBranchHomes(Changesets csets)
 		}
 	    }
 	}
-	int home = 3;
+	int home = 2;
 	while (taken.contains(home)) {
-	    if (home > 0) home = -home;
-	    else home = -(home-3);
+	    if (home > 0) {
+		if (home % 2 == 1) {
+		    home = -home;
+		} else {
+		    home = home + 1;
+		}
+	    } else {
+		if ((-home) % 2 == 1) {
+		    home = home + 1;
+		} else {
+		    home = -(home-2);
+		}
+	    }
 	}
 	m_branchHomes[branch] = home;
     }
@@ -298,6 +299,13 @@ compareChangesetsByDate(Changeset *const &a, Changeset *const &b)
     return a->timestamp() < b->timestamp();
 }
 
+ChangesetItem *
+Grapher::getItemFor(Changeset *cs)
+{
+    if (!cs || !m_items.contains(cs->id())) return 0;
+    return m_items[cs->id()];
+}
+
 void
 Grapher::layout(Changesets csets)
 {
@@ -305,6 +313,8 @@ Grapher::layout(Changesets csets)
     m_items.clear();
     m_alloc.clear();
     m_branchHomes.clear();
+
+    if (csets.empty()) return;
 
     foreach (Changeset *cs, csets) {
 
@@ -330,11 +340,13 @@ Grapher::layout(Changesets csets)
     foreach (Changeset *cs, csets) {
 	QString id = cs->id();
 	ChangesetItem *item = m_items[id];
+	bool merge = (cs->parents().size() > 1);
 	foreach (QString parentId, cs->parents()) {
 	    if (!m_changesets.contains(parentId)) continue;
 	    Changeset *parent = m_changesets[parentId];
 	    parent->addChild(id);
 	    ConnectionItem *conn = new ConnectionItem();
+	    if (merge) conn->setConnectionType(ConnectionItem::Merge);
 	    conn->setChild(item);
 	    conn->setParent(m_items[parentId]);
 	    m_scene->addItem(conn);
@@ -350,16 +362,80 @@ Grapher::layout(Changesets csets)
 
     qStableSort(csets.begin(), csets.end(), compareChangesetsByDate);
 
+    foreach (Changeset *cs, csets) {
+	std::cerr << "id " << cs->id().toStdString() << ", ts " << cs->timestamp() << ", date " << cs->datetime().toStdString() << std::endl;
+    }
+
     m_handled.clear();
-    for (int i = csets.size() - 1; i >= 0; --i) {
-	layoutRow(csets[i]->id());
+    foreach (Changeset *cs, csets) {
+	layoutRow(cs->id());
     }
 
     allocateBranchHomes(csets);
 
     m_handled.clear();
-    for (int i = csets.size() - 1; i >= 0; --i) {
-	layoutCol(csets[i]->id());
+    foreach (Changeset *cs, csets) {
+	foreach (QString parentId, cs->parents()) {
+	    if (!m_handled.contains(parentId) &&
+		m_changesets.contains(parentId)) {
+		layoutCol(parentId);
+	    }
+	}
+	layoutCol(cs->id());
+    }
+
+    // we know that 0 is an upper bound on row, and that mincol must
+    // be <= 0 and maxcol >= 0, so these initial values are good
+    int minrow = 0, maxrow = 0;
+    int mincol = 0, maxcol = 0;
+
+    foreach (int r, m_alloc.keys()) {
+	if (r < minrow) minrow = r;
+	if (r > maxrow) maxrow = r;
+	ColumnSet &c = m_alloc[r];
+	foreach (int i, c) {
+	    if (i < mincol) mincol = i;
+	    if (i > maxcol) maxcol = i;
+	}
+    }
+
+    QString prevDate;
+    int changeRow = 0;
+
+    bool even = false;
+    int n = 0;
+
+    for (int row = minrow; row <= maxrow; ++row) {
+	
+	QString date = m_rowDates[row];
+	n++;
+
+	if (date != prevDate) {
+	    if (prevDate != "") {
+		DateItem *item = new DateItem();
+		item->setDateString(prevDate);
+		item->setCols(mincol, maxcol - mincol + 1);
+		item->setRows(changeRow, n);
+		item->setEven(even);
+		item->setZValue(-1);
+		m_scene->addItem(item);
+		even = !even;
+	    }
+	    prevDate = date;
+	    changeRow = row;
+	    n = 0;
+	}
+    }
+    
+    if (n > 0) {
+	DateItem *item = new DateItem();
+	item->setDateString(prevDate);
+	item->setCols(mincol, maxcol - mincol + 1);
+	item->setRows(changeRow, n+1);
+	item->setEven(even);
+	item->setZValue(-1);
+	m_scene->addItem(item);
+	even = !even;
     }
 }
 

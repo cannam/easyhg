@@ -41,6 +41,9 @@ public slots:
     void slotSetPannedRect(QRectF);
     void slotEmulateWheelEvent(QWheelEvent *ev);
 
+    void zoomIn();
+    void zoomOut();
+
 protected:
     QRectF m_pannedRect;
 

@@ -57,7 +57,8 @@ public:
                               const QFontMetrics &metrics,
                               int &maxWidth,
                               Policy policy = ElideEnd,
-                              QString ellipsis = "");
+                              QString ellipsis = "",
+                              int wrapLines = 1);
     
     /**
      * Abbreviate all of the given texts to the given maximum length,

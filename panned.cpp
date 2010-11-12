@@ -19,6 +19,7 @@
 
 #include <QScrollBar>
 #include <QGLWidget>
+#include <QWheelEvent>
 
 #include <iostream>
 
@@ -66,6 +67,22 @@ Panned::drawForeground(QPainter *paint, const QRectF &)
 }
 
 void
+Panned::zoomIn()
+{
+    QMatrix m = matrix();
+    m.scale(1.0 / 1.1, 1.0 / 1.1);
+    setMatrix(m);
+}
+
+void
+Panned::zoomOut()
+{
+    QMatrix m = matrix();
+    m.scale(1.1, 1.1);
+    setMatrix(m);
+}
+
+void
 Panned::slotSetPannedRect(QRectF pr)
 {
     centerOn(pr.center());
@@ -76,8 +93,23 @@ Panned::slotSetPannedRect(QRectF pr)
 void
 Panned::wheelEvent(QWheelEvent *ev)
 {
-    emit wheelEventReceived(ev);
-    QGraphicsView::wheelEvent(ev);
+    if (ev->modifiers() & Qt::ControlModifier) {
+        int d = ev->delta();
+        if (d > 0) {
+            while (d > 0) {
+                zoomOut();
+                d -= 120;
+            }
+        } else {
+            while (d < 0) {
+                zoomIn();
+                d += 120;
+            }
+        }
+    } else {
+        emit wheelEventReceived(ev);
+        QGraphicsView::wheelEvent(ev);
+    }
 }
 
 void

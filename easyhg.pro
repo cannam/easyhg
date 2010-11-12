@@ -19,7 +19,9 @@ HEADERS = mainwindow.h \
     panner.h \
     panned.h \
     connectionitem.h \
-    textabbrev.h
+    textabbrev.h \
+    dateitem.h \
+    colourset.h
 SOURCES = main.cpp \
     mainwindow.cpp \
     hgexpwidget.cpp \
@@ -33,7 +35,9 @@ SOURCES = main.cpp \
     panner.cpp \
     panned.cpp \
     connectionitem.cpp \
-    textabbrev.cpp
+    textabbrev.cpp \
+    dateitem.cpp \
+    colourset.cpp
 
 # ! [0]
 RESOURCES = hgexplorer.qrc

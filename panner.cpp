@@ -39,6 +39,7 @@ Panner::Panner() :
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setOptimizationFlags(QGraphicsView::DontSavePainterState |
                          QGraphicsView::IndirectPainting);
+    setRenderHints(QPainter::Antialiasing);
     setMouseTracking(true);
     setInteractive(false);
 }
@@ -65,6 +66,12 @@ Panner::connectToPanned(Panned *p)
 
     connect(this, SIGNAL(pannedRectChanged(QRectF)),
             p, SLOT(slotSetPannedRect(QRectF)));
+
+    connect(this, SIGNAL(zoomIn()),
+            p, SLOT(zoomIn()));
+
+    connect(this, SIGNAL(zoomOut()),
+            p, SLOT(zoomOut()));
 }
 
 void
@@ -210,10 +217,17 @@ Panner::mouseReleaseEvent(QMouseEvent *e)
 void
 Panner::wheelEvent(QWheelEvent *e)
 {
-    if (e->delta() > 0) {
-        emit zoomOut();
+    int d = e->delta();
+    if (d > 0) {
+        while (d > 0) {
+            emit zoomOut();
+            d -= 120;
+        }
     } else {
-        emit zoomIn();
+        while (d < 0) {
+            emit zoomIn();
+            d += 120;
+        }
     }
 }
 

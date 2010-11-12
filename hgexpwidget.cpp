@@ -261,8 +261,9 @@ void HgExpWidget::updateLocalRepoHgLogList(QString hgLogList)
     QGraphicsScene *scene = new QGraphicsScene();
     Changesets csets = parseChangeSets(hgLogList);
     if (csets.empty()) return;
+    Grapher g(scene);
     try {
-	Grapher(scene).layout(csets);
+	g.layout(csets);
     } catch (std::string s) {
 	std::cerr << "Internal error: Layout failed: " << s << std::endl;
     }
@@ -270,6 +271,8 @@ void HgExpWidget::updateLocalRepoHgLogList(QString hgLogList)
     panned->setScene(scene);
     panner->scene()->deleteLater();
     panner->setScene(scene);
+    ChangesetItem *tipItem = g.getItemFor(csets[0]);
+    if (tipItem) tipItem->ensureVisible();
 }
 
 

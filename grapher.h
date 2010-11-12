@@ -17,6 +17,8 @@ public:
 
     void layout(Changesets csets);
 
+    ChangesetItem *getItemFor(Changeset *cs);
+
     class LayoutException : public std::exception {
     public:
 	LayoutException(QString message) throw() : m_message(message) { }

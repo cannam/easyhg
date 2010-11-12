@@ -3,6 +3,8 @@
 #include "connectionitem.h"
 
 #include "changesetitem.h"
+#include "changeset.h"
+#include "colourset.h"
 
 #include <QPainter>
 
@@ -10,12 +12,13 @@ QRectF
 ConnectionItem::boundingRect() const
 {
     if (!m_parent || !m_child) return QRectF();
-    float scale = 100;
+    float xscale = 100;
+    float yscale = 90;
     float size = 50;
-    return QRectF(scale * m_child->column() + size/2 - 2,
-		  scale * m_child->row() + size - 2,
-		  scale * m_parent->column() - scale * m_child->column() + 4,
-		  scale * m_parent->row() - scale * m_child->row() - size + 4)
+    return QRectF(xscale * m_child->column() + size/2 - 2,
+		  yscale * m_child->row() + size - 2,
+		  xscale * m_parent->column() - xscale * m_child->column() + 4,
+		  yscale * m_parent->row() - yscale * m_child->row() - size + 4)
 	.normalized();
 }
 
@@ -23,26 +26,58 @@ void
 ConnectionItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget *)
 {
     QPainterPath p;
-    float scale = 100;
+
+    paint->save();
+
+    ColourSet *colourSet = ColourSet::instance();
+    QColor branchColour = colourSet->getColourFor(m_child->getChangeset()->branch());
+    paint->setPen(QPen(branchColour, 2));
+
+    float xscale = 100;
+
+    float yscale = 90;
     float size = 50;
-    p.moveTo(scale * m_child->column() + size/2,
-	     scale * m_child->row() + size);
-    if (m_parent->column() == m_child->column()) {
-	p.lineTo(scale * m_parent->column() + size/2,
-		 scale * m_parent->row());
-    } else {
-	p.cubicTo(scale * m_child->column() + size/2,
-		  scale * m_child->row() + size + size,
-		  scale * m_parent->column() + size/2,
-		  scale * m_child->row() + size,
-		  scale * m_parent->column() + size/2,
-		  scale * m_child->row() + scale);
-	if (abs(m_parent->row() - m_child->row()) > 1) {
-	    p.lineTo(scale * m_parent->column() + size/2,
-		     scale * m_parent->row());
+    float ygap = yscale - size;
+
+    int c_col = m_child->column(), c_row = m_child->row();
+    int p_col = m_parent->column(), p_row = m_parent->row();
+
+    float c_x = xscale * c_col + size/2;
+    float p_x = xscale * p_col + size/2;
+
+    p.moveTo(c_x, yscale * c_row + size);
+
+    if (p_col == c_col) {
+
+	p.lineTo(p_x, yscale * p_row);
+
+    } else if (m_type == Split || m_type == Normal) {
+
+	// place the bulk of the line on the child (i.e. branch) row
+
+	if (abs(p_row - c_row) > 1) {
+	    p.lineTo(c_x, yscale * p_row - ygap);
+	}
+
+	p.cubicTo(c_x, yscale * p_row,
+		  p_x, yscale * p_row - ygap,
+		  p_x, yscale * p_row);
+
+    } else if (m_type == Merge) {
+
+	// place bulk of the line on the parent row
+
+	p.cubicTo(c_x, yscale * c_row + size + ygap,
+		  p_x, yscale * c_row + size,
+		  p_x, yscale * c_row + size + ygap);
+
+	if (abs(p_row - c_row) > 1) {
+	    p.lineTo(p_x, yscale * p_row);
 	}
     }
+
     paint->drawPath(p);
+    paint->restore();
 }
 
 

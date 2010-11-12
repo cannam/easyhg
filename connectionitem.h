@@ -10,10 +10,19 @@ class ChangesetItem;
 class ConnectionItem : public QGraphicsItem
 {
 public:
-    ConnectionItem() : m_parent(0), m_child(0) { }
+    enum Type {
+	Normal,
+	Split,
+	Merge
+    };
+
+    ConnectionItem() : m_type(Normal), m_parent(0), m_child(0) { }
 
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter *, const QStyleOptionGraphicsItem *, QWidget *);
+
+    Type connectionType() const { return m_type; }
+    void setConnectionType(Type t) { m_type = t; }
 
     //!!! deletion signals from parent/child
 
@@ -24,6 +33,7 @@ public:
     void setChild(ChangesetItem *c) { m_child = c; }
 
 private:
+    Type m_type;
     ChangesetItem *m_parent;
     ChangesetItem *m_child;
 };

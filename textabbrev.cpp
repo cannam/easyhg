@@ -86,7 +86,7 @@ TextAbbrev::abbreviate(QString text, int maxLength, Policy policy, bool fuzzy,
 QString
 TextAbbrev::abbreviate(QString text,
                        const QFontMetrics &metrics, int &maxWidth,
-                       Policy policy, QString ellipsis)
+                       Policy policy, QString ellipsis, int wrapLines)
 {
     if (ellipsis == "") ellipsis = getDefaultEllipsis();
 
@@ -100,21 +100,62 @@ TextAbbrev::abbreviate(QString text,
     int truncated = text.length();
     QString original = text;
 
-    while (tw > maxWidth && truncated > 1) {
+    if (wrapLines < 2) {
 
-        truncated--;
+        while (tw > maxWidth && truncated > 1) {
 
-        if (truncated > ellipsis.length()) {
-            text = abbreviateTo(original, truncated, policy, ellipsis);
-        } else {
-            break;
+            truncated--;
+            
+            if (truncated > ellipsis.length()) {
+                text = abbreviateTo(original, truncated, policy, ellipsis);
+            } else {
+                break;
+            }
+            
+            tw = metrics.width(text);
+        }
+        
+        maxWidth = tw;
+        return text;
+
+    } else {
+        
+        QStringList words = text.split(' ', QString::SkipEmptyParts);
+        text = "";
+
+        tw = 0;
+        int i = 0;
+        QString good = "";
+        int lastUsed = 0;
+        while (tw < maxWidth && i < words.size()) {
+            if (text != "") text += " ";
+            text += words[i++];
+            tw = metrics.width(text);
+            if (tw < maxWidth) {
+                good = text;
+                lastUsed = i;
+            }
+        }
+            
+        if (tw < maxWidth) {
+            maxWidth = tw;
+            return text;
         }
 
-        tw = metrics.width(text);
-    }
+        text = good;
 
-    maxWidth = tw;
-    return text;
+        QString remainder;
+        while (lastUsed < words.size()) {
+            if (remainder != "") remainder += " ";
+            remainder += words[lastUsed++];
+        }
+        remainder = abbreviate(remainder, metrics, maxWidth,
+                               policy, ellipsis, wrapLines - 1);
+
+        maxWidth = std::max(maxWidth, tw);
+        text = text + '\n' + remainder;
+        return text;
+    }
 }
 
 QStringList
