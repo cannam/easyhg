@@ -31,7 +31,14 @@ ConnectionItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget
 
     ColourSet *colourSet = ColourSet::instance();
     QColor branchColour = colourSet->getColourFor(m_child->getChangeset()->branch());
-    paint->setPen(QPen(branchColour, 2));
+
+    QTransform t = paint->worldTransform();
+    float scale = std::min(t.m11(), t.m22());
+    if (scale < 0.1) {
+	paint->setPen(QPen(branchColour, 0));
+    } else {
+	paint->setPen(QPen(branchColour, 2));
+    }
 
     float xscale = 100;
 

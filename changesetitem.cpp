@@ -24,23 +24,26 @@ void
 ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
                      QWidget *w)
 {
-    QTransform t = paint->worldTransform();
-
     paint->save();
     
     ColourSet *colourSet = ColourSet::instance();
     QColor branchColour = colourSet->getColourFor(m_changeset->branch());
     QColor userColour = colourSet->getColourFor(m_changeset->author());
 
-    paint->setPen(QPen(branchColour, 2));
-    
     QFont f(m_font);
 
+    QTransform t = paint->worldTransform();
     float scale = std::min(t.m11(), t.m22());
     if (scale > 1.0) {
 	int ps = int((f.pixelSize() / scale) + 0.5);
 	if (ps < 8) ps = 8;
 	f.setPixelSize(ps);
+    }
+
+    if (scale < 0.1) {
+	paint->setPen(QPen(branchColour, 0));
+    } else {
+	paint->setPen(QPen(branchColour, 2));
     }
 	
     paint->setFont(f);
@@ -58,7 +61,10 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     if (m_changeset->children().empty()) {
 	f.setBold(true);
 	paint->setFont(f);
-	paint->drawText(-24, -fh + fm.ascent() - 4, m_changeset->branch());
+	QString branch = m_changeset->branch();
+	int wid = 97;
+	branch = TextAbbrev::abbreviate(branch, QFontMetrics(f), wid);
+	paint->drawText(-24, -fh + fm.ascent() - 4, branch);
 	f.setBold(false);
     }
 
