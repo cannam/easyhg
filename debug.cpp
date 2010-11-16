@@ -37,7 +37,7 @@ getEasyHgDebug()
     mutex.lock();
     if (!debug) {
         prefix = new char[20];
-        sprintf(prefix, "[%lu]", (unsigned long)getpid());
+        sprintf(prefix, "[%lu]", (unsigned long)QCoreApplication::applicationPid());
         logFile = new QFile(QDir::homePath() + "/.easyhg.log");
         if (logFile->open(QIODevice::WriteOnly | QIODevice::Append)) {
             QDebug(QtDebugMsg) << (const char *)prefix

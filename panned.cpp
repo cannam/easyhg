@@ -32,10 +32,10 @@ Panned::Panned()
 void
 Panned::resizeEvent(QResizeEvent *ev)
 {
-    QPointF near = mapToScene(0, 0);
-    QPointF far = mapToScene(width(), height());
-    QSizeF sz(far.x()-near.x(), far.y()-near.y());
-    QRectF pr(near, sz);
+    QPointF nearpt = mapToScene(0, 0);
+    QPointF farpt = mapToScene(width(), height());
+    QSizeF sz(farpt.x()-nearpt.x(), farpt.y()-nearpt.y());
+    QRectF pr(nearpt, sz);
 
     if (pr != m_pannedRect) {
         m_pannedRect = pr;
@@ -54,10 +54,10 @@ Panned::paintEvent(QPaintEvent *e)
 void
 Panned::drawForeground(QPainter *paint, const QRectF &)
 {
-    QPointF near = mapToScene(0, 0);
-    QPointF far = mapToScene(width(), height());
-    QSizeF sz(far.x()-near.x(), far.y()-near.y());
-    QRectF pr(near, sz);
+    QPointF nearpt = mapToScene(0, 0);
+    QPointF farpt = mapToScene(width(), height());
+    QSizeF sz(farpt.x()-nearpt.x(), farpt.y()-nearpt.y());
+    QRectF pr(nearpt, sz);
 
     if (pr != m_pannedRect) {
         if (pr.x() != m_pannedRect.x()) emit pannedContentsScrolled();
