@@ -20,8 +20,8 @@
 
 #include <QString>
 
-#define APPNAME                         "HgExplorer"
-#define APPVERSION                      "0.7.2"
+#define APPNAME                         "EasyMercurial"
+#define APPVERSION                      "0.8"
 #define MY_ICON_SIZE                    32
 #define REPOMENU_TITLE                  "Repository actions"
 #define WORKFOLDERMENU_TITLE            "Workfolder actions"
