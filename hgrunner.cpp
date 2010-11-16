@@ -1,8 +1,22 @@
-/****************************************************************************
-** Copyright (C) Jari Korhonen, 2010 (under lgpl)
-****************************************************************************/
+/* -*- c-basic-offset: 4 indent-tabs-mode: nil -*-  vi:set ts=8 sts=4 sw=4: */
+
+/*
+    EasyMercurial
+
+    Based on HgExplorer by Jari Korhonen
+    Copyright (c) 2010 Jari Korhonen
+    Copyright (c) 2010 Chris Cannam
+    Copyright (c) 2010 Queen Mary, University of London
+    
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License as
+    published by the Free Software Foundation; either version 2 of the
+    License, or (at your option) any later version.  See the file
+    COPYING included with this distribution for more information.
+*/
 
 #include "hgrunner.h"
+#include "debug.h"
 
 #include <QPushButton>
 #include <QListWidget>
@@ -160,9 +174,9 @@ void HgRunner::startProc(QString hgExePathAndName, QString workingDir, QStringLi
     lastHgCommand = hgExePathAndName;
     lastParams = params.join(" ");
 
-    std::cerr << "HgRunner: starting: " << hgExePathAndName.toStdString() << " ";
-    foreach (QString param, params) std::cerr << param.toStdString() << " ";
-    std::cerr << std::endl;
+    QString cmdline = hgExePathAndName;
+    foreach (QString param, params) cmdline += " " + param;
+    DEBUG << "HgRunner: starting: " << cmdline;
 
     proc -> start(hgExePathAndName, params);
 

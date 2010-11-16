@@ -21,7 +21,8 @@ HEADERS = mainwindow.h \
     connectionitem.h \
     textabbrev.h \
     dateitem.h \
-    colourset.h
+    colourset.h \
+    debug.h
 SOURCES = main.cpp \
     mainwindow.cpp \
     hgexpwidget.cpp \
@@ -37,7 +38,8 @@ SOURCES = main.cpp \
     connectionitem.cpp \
     textabbrev.cpp \
     dateitem.cpp \
-    colourset.cpp
+    colourset.cpp \
+    debug.cpp
 
 # ! [0]
 RESOURCES = hgexplorer.qrc

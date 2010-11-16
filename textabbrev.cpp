@@ -1,10 +1,12 @@
 /* -*- c-basic-offset: 4 indent-tabs-mode: nil -*-  vi:set ts=8 sts=4 sw=4: */
 
 /*
-    Sonic Visualiser
-    An audio file viewer and annotation editor.
-    Centre for Digital Music, Queen Mary, University of London.
-    This file copyright 2006-2007 Chris Cannam and QMUL.
+    EasyMercurial
+
+    Based on HgExplorer by Jari Korhonen
+    Copyright (c) 2010 Jari Korhonen
+    Copyright (c) 2010 Chris Cannam
+    Copyright (c) 2010 Queen Mary, University of London
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
