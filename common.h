@@ -30,8 +30,8 @@
 #define REQUIRED_CHGSET_DIFF_COUNT      2
 
 #define WORKTAB                         0
-#define HISTORYTAB                      1
-#define HEADSTAB                        2
+#define HISTORYTAB                      2
+#define HEADSTAB                        3
 
 #define HGSTAT_M_BIT    1U
 #define HGSTAT_A_BIT    2U

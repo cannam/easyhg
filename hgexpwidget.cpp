@@ -103,7 +103,7 @@ HgExpWidget::HgExpWidget(QWidget *parent, QString remoteRepo, QString workFolder
     mainLayout -> addWidget(grpRemoteRepo, 1);
     mainLayout -> addWidget(grpLocalRepo, 8);
     mainLayout -> addWidget(grpWorkFolder, 12);
-    addTab(workPageWidget, tr("Work"));
+    addTab(workPageWidget, tr("My work"));
 
     // History graph page
     historyGraphPageWidget = new QWidget;
@@ -117,7 +117,7 @@ HgExpWidget::HgExpWidget(QWidget *parent, QString remoteRepo, QString workFolder
     panner->setMaximumWidth(80);
     panner->connectToPanned(panned);
     historyGraphPageWidget->setLayout(layout);
-    addTab(historyGraphPageWidget, tr("History (graph)"));
+    addTab(historyGraphPageWidget, tr("History"));
 
 
     //History page
@@ -130,7 +130,7 @@ HgExpWidget::HgExpWidget(QWidget *parent, QString remoteRepo, QString workFolder
 
     historyLayout = new QVBoxLayout(historyPageWidget);
     historyLayout->addWidget(localRepoHgLogList);
-    addTab(historyPageWidget, tr("History (log)"));
+//!!!    addTab(historyPageWidget, tr("History (log)"));
 
     //Heads page
     //Heads page
@@ -141,11 +141,11 @@ HgExpWidget::HgExpWidget(QWidget *parent, QString remoteRepo, QString workFolder
 
     headsLayout = new QVBoxLayout(headsPageWidget);
     headsLayout->addWidget(localRepoHeadsList);
-    addTab(headsPageWidget, tr("Heads"));
+//!!!    addTab(headsPageWidget, tr("Heads"));
 
     //Initially, only work page is active
-    setTabEnabled(HEADSTAB, false);
-    setTabEnabled(HISTORYTAB, false);
+//!!!    setTabEnabled(HEADSTAB, false);
+//!!!    setTabEnabled(HISTORYTAB, false);
 }
 
 void HgExpWidget::contextMenuEvent(QContextMenuEvent * event)

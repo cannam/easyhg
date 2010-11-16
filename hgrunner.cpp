@@ -64,7 +64,11 @@ void HgRunner::setProcExitInfo(int procExitCode, QProcess::ExitStatus procExitSt
     exitStatus = procExitStatus;
     stdOut = QString::fromUtf8(proc -> readAllStandardOutput());
     stdErr = QString::fromUtf8(proc -> readAllStandardError());
-    std::cerr << "stdout was " << stdOut.toStdString() << std::endl;
+
+    DEBUG << "setProcExitInfo: received " << stdOut.split("\n").size() << " lines of stdout";
+    DEBUG << "setProcExitInfo: received " << stdErr.split("\n").size() << " lines of stderr";
+
+//    std::cerr << "stdout was " << stdOut.toStdString() << std::endl;
 }
 
 void HgRunner::presentErrorToUser()
