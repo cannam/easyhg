@@ -25,8 +25,8 @@
 
 Panned::Panned()
 {
-//    setViewport(new QGLWidget(QGLFormat(QGL::SampleBuffers)));
-    setRenderHints(QPainter::Antialiasing);
+    setRenderHints(QPainter::Antialiasing |
+                   QPainter::TextAntialiasing);
 }
 
 void

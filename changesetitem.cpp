@@ -56,22 +56,13 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     if (m_wide) width = 180;
     int x0 = -((width - 50) / 2 - 1);
 
-    QRectF r(x0, 0, width - 3, 49);
+    int height = 49;
+    QRectF r(x0, 0, width - 3, height);
     paint->drawRect(r);
 
     if (scale < 0.1) {
 	paint->restore();
 	return;
-    }
-
-    if (m_changeset->children().empty()) {
-	f.setBold(true);
-	paint->setFont(f);
-	QString branch = m_changeset->branch();
-	int wid = width - 3;
-	branch = TextAbbrev::abbreviate(branch, QFontMetrics(f), wid);
-	paint->drawText(x0, -fh + fm.ascent() - 4, branch);
-	f.setBold(false);
     }
 
     paint->fillRect(QRectF(x0 + 0.5, 0.5, width - 4, fh - 0.5),
@@ -85,7 +76,18 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
 
     paint->setPen(QPen(Qt::black));
 
-    f.setItalic(true);
+    if (m_changeset->children().empty()) {
+	// write branch name
+	f.setBold(true);
+	paint->setFont(f);
+	QString branch = m_changeset->branch();
+	int wid = width - 3;
+	branch = TextAbbrev::abbreviate(branch, QFontMetrics(f), wid);
+	paint->drawText(x0, -fh + fm.ascent() - 4, branch);
+	f.setBold(false);
+    }
+
+//    f.setItalic(true);
     fm = QFontMetrics(f);
     fh = fm.height();
     paint->setFont(f);
@@ -98,8 +100,10 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     comment = comment.split('\n')[0];
 
     wid = width - 5;
+    int nlines = (height / fh) - 1;
+    if (nlines < 1) nlines = 1;
     comment = TextAbbrev::abbreviate(comment, fm, wid, TextAbbrev::ElideEnd,
-				     "...", 2);
+				     "...", nlines);
 
     QStringList lines = comment.split('\n');
     for (int i = 0; i < lines.size(); ++i) {
