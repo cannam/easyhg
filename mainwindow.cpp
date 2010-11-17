@@ -71,7 +71,6 @@ MainWindow::MainWindow()
 
     if (firstStart) {
         startupDialog();
-        firstStart = false;
     }
 
     ColourSet *cs = ColourSet::instance();
@@ -691,7 +690,7 @@ void MainWindow::hgServe()
 void MainWindow::startupDialog()
 {
     StartupDialog *dlg = new StartupDialog(this);
-    dlg->exec();
+    if (dlg->exec()) firstStart = false;
 }
     
 
