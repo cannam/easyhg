@@ -20,12 +20,18 @@
 
 #include <QDialog>
 #include <QString>
+#include <QPushButton>
+#include <QMap>
+#include <QLabel>
+#include <QLineEdit>
+#include <QGridLayout>
+#include <QStackedWidget>
 
 class MultiChoiceDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit MultiChoiceDialog(QWidget *parent = 0);
+    explicit MultiChoiceDialog(QString title, QString heading, QWidget *parent = 0);
 
     enum ArgType {
         NoArg,
@@ -42,7 +48,23 @@ public:
 
 signals:
 
-public slots:
+private slots:
+
+
+private:
+    void updateArgWidgets(); // when choice changes
+
+    QMap<QString, QString> m_texts;
+    QMap<QString, QString> m_descriptions;
+
+    QString m_currentChoice;
+    QMap<QString, QPushButton *> m_choiceButtons;
+
+    QGridLayout *m_choiceLayout;
+    QLabel *m_descriptionLabel;
+    QLabel *m_argLabel;
+    QLineEdit *m_argEdit;
+    QPushButton *m_browseButton;
 
 };
 

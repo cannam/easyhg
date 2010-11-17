@@ -17,7 +17,40 @@
 
 #include "multichoicedialog.h"
 
-MultiChoiceDialog::MultiChoiceDialog(QWidget *parent) :
+#include <QDialogButtonBox>
+
+MultiChoiceDialog::MultiChoiceDialog(QString title, QString heading, QWidget *parent) :
     QDialog(parent)
 {
+    setModal(true);
+    setWindowTitle(title);
+
+    QGridLayout *outer = new QGridLayout;
+    setLayout(outer);
+
+    outer->addWidget(new QLabel(heading), 0, 0, 1, 3);
+
+    QWidget *innerWidget = new QWidget;
+    outer->addWidget(innerWidget, 1, 0, 1, 2);
+    m_choiceLayout = new QGridLayout;
+    innerWidget->setLayout(m_choiceLayout);
+
+    m_descriptionLabel = new QLabel;
+    outer->addWidget(m_descriptionLabel, 2, 0, 1, 3);
+
+    m_argLabel = new QLabel();
+    outer->addWidget(m_argLabel, 3, 0);
+
+    m_argEdit = new QLineEdit();
+    outer->addWidget(m_argEdit, 3, 1);
+
+    m_browseButton = new QPushButton(tr("Browse..."));
+    outer->addWidget(m_browseButton, 3, 2);
+
+    QDialogButtonBox *bbox = new QDialogButtonBox(QDialogButtonBox::Ok |
+                                                  QDialogButtonBox::Cancel);
+    connect(bbox, SIGNAL(accepted()), this, SLOT(accept()));
+    connect(bbox, SIGNAL(rejected()), this, SLOT(reject()));
+    outer->addWidget(bbox, 4, 0, 1, 3);
 }
+
