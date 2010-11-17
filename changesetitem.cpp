@@ -110,11 +110,10 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     paint->setFont(f);
 
     QString comment = m_changeset->comment().trimmed();
-    comment = comment.replace("\\n", "\n");
+    comment = comment.replace("\\n", " ");
     comment = comment.replace(QRegExp("^\"\\s*\\**\\s*"), "");
     comment = comment.replace(QRegExp("\"$"), "");
     comment = comment.replace("\\\"", "\"");
-    comment = comment.split('\n')[0];
 
     wid = width - 5;
     int nlines = (height / fh) - 1;
