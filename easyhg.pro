@@ -41,6 +41,10 @@ SOURCES = main.cpp \
     colourset.cpp \
     debug.cpp
 
+macx-* {
+SOURCES += common_osx.mm
+}
+
 # ! [0]
 RESOURCES = hgexplorer.qrc
 win32 {

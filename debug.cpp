@@ -24,6 +24,7 @@
 #include <QFile>
 #include <QDir>
 #include <QCoreApplication>
+#include <QDateTime>
 
 #include <cstdio>
 
@@ -53,6 +54,8 @@ getEasyHgDebug()
             delete logFile;
             logFile = 0;
         }
+        *debug << endl << (const char *)prefix << "Log started at "
+               << QDateTime::currentDateTime().toString();
     }
     mutex.unlock();
 

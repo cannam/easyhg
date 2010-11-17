@@ -85,11 +85,12 @@ public:
 
 protected:
     void closeEvent(QCloseEvent *event);
-    void timerEvent(QTimerEvent *event);
 
 public slots:
     void hgStat();
     void tabChanged(int currTab);
+    void commandCompleted();
+    void commandFailed();
 
 private slots:
     void about();
@@ -186,7 +187,6 @@ private:
     QToolBar *repoToolBar;
     QToolBar *workFolderToolBar;
 
-    int         timerId;
     HGACTIONS   runningAction;
     HgRunner    *runner;
 

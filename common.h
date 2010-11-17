@@ -43,10 +43,12 @@
 
 #define NUM_PATHS_IN_MRU_LIST           5
 
+extern QString findExecutable(QString name);
 
 extern QString getSystem();
-extern QString getHgBinaryName();
 extern QString getHgDirName();
+
+extern QString getUserRealName();
 
 #endif 	//COMMON_H
 

@@ -27,37 +27,47 @@ class HgRunner : public QProgressBar
 {
     Q_OBJECT
 
-    public:
-        HgRunner(QWidget * parent = 0);
-        ~HgRunner();
+public:
+    HgRunner(QWidget * parent = 0);
+    ~HgRunner();
 
-        void startProc(QString hgExePathAndName, QString workingDir, QStringList params, bool reportErrors = true);
-        bool isProcRunning();
-        void killProc();
-        int  getExitCode();
-        void hideProgBar();
-        QString getStdOut();
+    void startHgCommand(QString workingDir, QStringList params);
+    void startCommand(QString command, QString workingDir, QStringList params);
 
-    private:
-        void setProcExitInfo(int procExitCode, QProcess::ExitStatus procExitStatus);
-        QString getLastCommandLine();
-        void presentErrorToUser();
+    bool isCommandRunning();
+    void killCurrentCommand();
 
-        bool                    reportErrors;
-        bool                    isRunning;
-        QProcess                *proc;
-        QString                 stdOut;
-        QString                 stdErr;
-        int                     exitCode;
-        QProcess::ExitStatus    exitStatus;
-        QString                 lastHgCommand;
-        QString                 lastParams;
+    int getExitCode();
+    QProcess::ExitStatus getExitStatus();
 
+    void hideProgBar();
 
-    private slots:
-        void started();
-        void error(QProcess::ProcessError error);
-        void finished(int procExitCode, QProcess::ExitStatus procExitStatus);
+    QString getStdOut();
+    
+signals:
+    void commandCompleted();
+    void commandFailed();
+
+private:
+    void saveOutput();
+    void setProcExitInfo(int procExitCode, QProcess::ExitStatus procExitStatus);
+    QString getLastCommandLine();
+    void presentErrorToUser();
+    QString getHgBinaryName();
+    
+    bool                    reportErrors;
+    bool                    isRunning;
+    QProcess                *proc;
+    QString                 stdOut;
+    QString                 stdErr;
+    int                     exitCode;
+    QProcess::ExitStatus    exitStatus;
+    QString                 lastHgCommand;
+    QString                 lastParams;
+
+private slots:
+    void started();
+    void finished(int procExitCode, QProcess::ExitStatus procExitStatus);
 };
 
 #endif // HGRUNNER_H

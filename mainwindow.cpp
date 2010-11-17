@@ -32,6 +32,7 @@
 #include "mainwindow.h"
 #include "settingsdialog.h"
 #include "colourset.h"
+#include "debug.h"
 
 
 MainWindow::MainWindow()
@@ -43,8 +44,11 @@ MainWindow::MainWindow()
     createToolBars();
     createStatusBar();
 
-    timerId = startTimer(200);
     runner = new HgRunner(this);
+    connect(runner, SIGNAL(commandCompleted()),
+            this, SLOT(commandCompleted()));
+    connect(runner, SIGNAL(commandFailed()),
+            this, SLOT(commandFailed()));
     runningAction = ACT_NONE;
     statusBar()->addPermanentWidget(runner);
 
@@ -69,6 +73,8 @@ MainWindow::MainWindow()
         QMessageBox::information(this, tr("First start todo"), tr("Going to \"Settings\" first."));
         settings();
     }
+
+    DEBUG << "User's real name is " << getUserRealName() << endl;
 
     hgStat();
 }
@@ -114,7 +120,7 @@ void MainWindow::hgStat()
             }
 
 
-            runner -> startProc(getHgBinaryName(), workFolderPath, params);
+            runner -> startHgCommand(workFolderPath, params);
             runningAction = ACT_STAT;
         }
     }
@@ -128,7 +134,7 @@ void MainWindow::hgHeads()
         params << "heads";
 
         //on empty repos, "hg heads" will fail, don't care of that.
-        runner -> startProc(getHgBinaryName(), workFolderPath, params, false);
+        runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_HEADS;
     }
 }
@@ -142,7 +148,7 @@ void MainWindow::hgLog()
         params << "--template";
         params << "id: {rev}:{node|short}\\nauthor: {author}\\nbranch: {branches}\\ntag: {tag}\\ndatetime: {date|isodate}\\ntimestamp: {date|hgdate}\\nage: {date|age}\\nparents: {parents}\\ncomment: {desc|json}\\n\\n";
 
-        runner -> startProc(getHgBinaryName(), workFolderPath, params);
+        runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_LOG;
     }
 }
@@ -155,7 +161,7 @@ void MainWindow::hgParents()
         QStringList params;
         params << "parents";
 
-        runner -> startProc(getHgBinaryName(), workFolderPath, params);
+        runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_PARENTS;
     }
 }
@@ -176,7 +182,7 @@ void MainWindow::hgRemove()
             {
                 params << "remove" << "--after" << "--force" << "--" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
 
-                runner -> startProc(getHgBinaryName(), workFolderPath, params);
+                runner -> startHgCommand(workFolderPath, params);
                 runningAction = ACT_REMOVE;
             }
         }
@@ -194,7 +200,7 @@ void MainWindow::hgAnnotate()
         {
             params << "annotate" << "--" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
 
-            runner -> startProc(getHgBinaryName(), workFolderPath, params);
+            runner -> startHgCommand(workFolderPath, params);
             runningAction = ACT_ANNOTATE;
         }
     }
@@ -212,7 +218,7 @@ void MainWindow::hgResolveMark()
         {
             params << "resolve" << "--mark" << "--" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
 
-            runner -> startProc(getHgBinaryName(), workFolderPath, params);
+            runner -> startHgCommand(workFolderPath, params);
             runningAction = ACT_RESOLVE_MARK;
         }
     }
@@ -227,7 +233,7 @@ void MainWindow::hgResolveList()
         QStringList params;
 
         params << "resolve" << "--list";
-        runner -> startProc(getHgBinaryName(), workFolderPath, params);
+        runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_RESOLVE_LIST;
     }
 }
@@ -261,7 +267,7 @@ void MainWindow::hgAdd()
             params << "add";
         }
 
-        runner -> startProc(getHgBinaryName(), workFolderPath, params);
+        runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_ADD;
     }
 }
@@ -330,7 +336,7 @@ void MainWindow::hgCommit()
                     params << "commit" << "--message" << comment << "--user" << userInfo;
                 }
 
-                runner -> startProc(getHgBinaryName(), workFolderPath, params);
+                runner -> startHgCommand(workFolderPath, params);
                 runningAction = ACT_COMMIT;
             }
         }
@@ -367,7 +373,7 @@ void MainWindow::hgTag()
             {
                 params << "tag" << "--user" << userInfo << filterTag(tag);
 
-                runner -> startProc(getHgBinaryName(), workFolderPath, params);
+                runner -> startHgCommand(workFolderPath, params);
                 runningAction = ACT_TAG;
             }
         }
@@ -397,7 +403,7 @@ void MainWindow::hgIgnore()
             editorName = """C:\\Program Files\\Windows NT\\Accessories\\wordpad.exe""";
         }
 
-        runner -> startProc(editorName, workFolderPath, params);
+        runner -> startCommand(editorName, workFolderPath, params);
         runningAction = ACT_HG_IGNORE;
     }
 }
@@ -416,7 +422,7 @@ void MainWindow::hgFileDiff()
         {
             //Diff parent file against working folder file
             params << "kdiff3" << "--" << currentFile.mid(2);
-            runner -> startProc(getHgBinaryName(), workFolderPath, params, false);
+            runner -> startHgCommand(workFolderPath, params);
             runningAction = ACT_FILEDIFF;
         }
     }
@@ -431,7 +437,7 @@ void MainWindow::hgFolderDiff()
 
         //Diff parent against working folder (folder diff)
         params << "kdiff3";
-        runner -> startProc(getHgBinaryName(), workFolderPath, params, false);
+        runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_FOLDERDIFF;
     }
 }
@@ -452,7 +458,7 @@ void MainWindow::hgChgSetDiff()
         if ((!revA.isEmpty()) && (!revB.isEmpty()))
         {
             params << "kdiff3" << "--rev" << revA << "--rev" << revB;
-            runner -> startProc(getHgBinaryName(), workFolderPath, params, false);
+            runner -> startHgCommand(workFolderPath, params);
             runningAction = ACT_CHGSETDIFF;
         }
         else
@@ -474,7 +480,7 @@ void MainWindow::hgUpdate()
         params << "update";
 
 
-        runner -> startProc(getHgBinaryName(), workFolderPath, params);
+        runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_UPDATE;
     }
 }
@@ -494,7 +500,7 @@ void MainWindow::hgUpdateToRev()
 
         params << "update" << "--rev" << rev << "--clean";
 
-        runner -> startProc(getHgBinaryName(), workFolderPath, params);
+        runner -> startHgCommand(workFolderPath, params);
 
         runningAction = ACT_UPDATE;
     }
@@ -510,7 +516,7 @@ void MainWindow::hgRevert()
 
         params << "revert" << "--no-backup" << "--" << currentFile.mid(2);
 
-        runner -> startProc(getHgBinaryName(), workFolderPath, params);
+        runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_REVERT;
     }
 }
@@ -522,7 +528,7 @@ void MainWindow::hgRetryMerge()
         QStringList params;
 
         params << "resolve" << "--all";
-        runner -> startProc(getHgBinaryName(), workFolderPath, params);
+        runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_RETRY_MERGE;
     }
 }
@@ -536,7 +542,7 @@ void MainWindow::hgMerge()
 
         params << "merge";
 
-        runner -> startProc(getHgBinaryName(), workFolderPath, params);
+        runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_MERGE;
     }
 }
@@ -550,7 +556,7 @@ void MainWindow::hgCloneFromRemote()
 
         params << "clone" << remoteRepoPath << workFolderPath;
 
-        runner -> startProc(getHgBinaryName(), workFolderPath, params);
+        runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_CLONEFROMREMOTE;
     }
 }
@@ -564,7 +570,7 @@ void MainWindow::hgInit()
 
         params << "init";
 
-        runner -> startProc(getHgBinaryName(), workFolderPath, params);
+        runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_INIT;
     }
 }
@@ -578,7 +584,7 @@ void MainWindow::hgIncoming()
 
         params << "incoming" << "--newest-first" << remoteRepoPath;
 
-        runner -> startProc(getHgBinaryName(), workFolderPath, params, false);
+        runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_INCOMING;
     }
 }
@@ -592,7 +598,7 @@ void MainWindow::hgPull()
 
         params << "pull" << remoteRepoPath;
 
-        runner -> startProc(getHgBinaryName(), workFolderPath, params);
+        runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_PULL;
     }
 }
@@ -606,7 +612,7 @@ void MainWindow::hgPush()
 
         params << "push" << remoteRepoPath;
 
-        runner -> startProc(getHgBinaryName(), workFolderPath, params);
+        runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_PUSH;
     }
 }
@@ -652,11 +658,11 @@ void MainWindow::hgServe()
         QTextStream(&msg) << "Server running on address(es) (" << addrs << "), port 8000";
         params << "serve";
 
-        runner -> startProc(getHgBinaryName(), workFolderPath, params, false);
+        runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_SERVE;
 
         QMessageBox::information(this, "Serve", msg, QMessageBox::Close);
-        runner -> killProc();
+        runner -> killCurrentCommand();
     }
 }
 
@@ -893,14 +899,19 @@ void MainWindow::countModifications(QListWidget *workList, int& added, int& modi
 }
 
 
-void MainWindow::timerEvent(QTimerEvent *)
+void MainWindow::commandFailed()
+{
+    DEBUG << "MainWindow::commandFailed" << endl;
+}
+
+void MainWindow::commandCompleted()
 {
     bool shouldHgStat = false;
 
     if (runningAction != ACT_NONE)
     {
         //We are running some hg command...
-        if (runner -> isProcRunning() == false)
+        if (runner -> isCommandRunning() == false)
         {
             //Running has just ended.
             int exitCode = runner -> getExitCode();

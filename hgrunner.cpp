@@ -16,6 +16,7 @@
 */
 
 #include "hgrunner.h"
+#include "common.h"
 #include "debug.h"
 
 #include <QPushButton>
@@ -23,6 +24,7 @@
 #include <QDialog>
 #include <QLabel>
 #include <QVBoxLayout>
+#include <QSettings>
 
 #include <iostream>
 #include <unistd.h>
@@ -44,8 +46,10 @@ HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
     stdErr.clear();
 
     connect(proc, SIGNAL(started()), this, SLOT(started()));
-    connect(proc, SIGNAL(error(QProcess::ProcessError)), this, SLOT(error(QProcess::ProcessError)));
-    connect(proc, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finished(int, QProcess::ExitStatus)));
+    connect(proc, SIGNAL(finished(int, QProcess::ExitStatus)),
+            this, SLOT(finished(int, QProcess::ExitStatus)));
+
+    reportErrors = false;
 }
 
 HgRunner::~HgRunner()
@@ -53,71 +57,35 @@ HgRunner::~HgRunner()
     delete proc;
 }
 
+QString HgRunner::getHgBinaryName()
+{
+    QSettings settings;
+    QString hg = settings.value("hgbinary", "hg").toString();
+    if (hg == "") hg = "hg";
+    hg = findExecutable(hg);
+    settings.setValue("hgbinary", hg);
+    return hg;
+}
+
 void HgRunner::started()
 {
     proc -> closeWriteChannel();
+}
+
+void HgRunner::saveOutput()
+{
+    stdOut = QString::fromUtf8(proc -> readAllStandardOutput());
+    stdErr = QString::fromUtf8(proc -> readAllStandardError());
 }
 
 void HgRunner::setProcExitInfo(int procExitCode, QProcess::ExitStatus procExitStatus)
 {
     exitCode = procExitCode;
     exitStatus = procExitStatus;
-    stdOut = QString::fromUtf8(proc -> readAllStandardOutput());
-    stdErr = QString::fromUtf8(proc -> readAllStandardError());
 
     DEBUG << "setProcExitInfo: " << stdOut.split("\n").size() << " line(s) of stdout, " << stdErr.split("\n").size() << " line(s) of stderr";
 
 //    std::cerr << "stdout was " << stdOut.toStdString() << std::endl;
-}
-
-void HgRunner::presentErrorToUser()
-{
-    QPushButton *okButton;
-    QListWidget *stdoL;
-    QListWidget *stdeL;
-    QString tmp;
-
-    QDialog *dlg = new QDialog(this);
-    dlg -> setMinimumWidth(800);
-    QVBoxLayout layout;
-
-    dlg -> setWindowTitle(tr("Mercurial error / warning"));
-
-    tmp.sprintf("%s: %d, %s: %d", "Exitcode", exitCode, "Exit status", exitStatus);
-    layout.addWidget(new QLabel(getLastCommandLine()));
-    layout.addWidget(new QLabel(tmp));
-    layout.addWidget(new QLabel(tr("Standard out:")));
-    stdoL = new QListWidget();
-    stdoL -> addItems(stdOut.split("\n"));
-    layout.addWidget(stdoL);
-
-    layout.addWidget(new QLabel(tr("Standard error:")));
-    stdeL = new QListWidget();
-    stdeL -> addItems(stdErr.split("\n"));
-    layout.addWidget(stdeL);
-
-    okButton = new QPushButton("Ok");
-    layout.addWidget(okButton);
-
-    connect(okButton, SIGNAL(clicked()), dlg, SLOT(accept()));
-    dlg -> setLayout(&layout);
-
-    dlg -> setModal(true);
-    dlg -> exec();
-}
-
-
-
-void HgRunner::error(QProcess::ProcessError)
-{
-    setProcExitInfo(proc -> exitCode(), proc -> exitStatus());
-
-    if (reportErrors)
-    {
-        presentErrorToUser();
-    }
-
-    isRunning = false;
 }
 
 QString HgRunner::getLastCommandLine()
@@ -128,39 +96,34 @@ QString HgRunner::getLastCommandLine()
 void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
 {
     setProcExitInfo(procExitCode, procExitStatus);
-
-    if (reportErrors)
-    {
-        if ((exitCode == 0) && (exitStatus == QProcess::NormalExit))
-        {
-            //All ok
-        }
-        else
-        {
-            presentErrorToUser();
-        }
-    }
-
     isRunning = false;
+
+    if (procExitCode == 0 || procExitStatus == QProcess::NormalExit) {
+        emit commandCompleted();
+    } else {
+        emit commandFailed();
+    }
 }
 
-bool HgRunner::isProcRunning()
+bool HgRunner::isCommandRunning()
 {
     return isRunning;
 }
 
-void HgRunner::killProc()
+void HgRunner::killCurrentCommand()
 {
-    if (isProcRunning())
-    {
+    if (isCommandRunning()) {
         proc -> kill();
     }
 }
 
-
-void HgRunner::startProc(QString hgExePathAndName, QString workingDir, QStringList params, bool reportErrors)
+void HgRunner::startHgCommand(QString workingDir, QStringList params)
 {
-    this -> reportErrors = reportErrors;
+    startCommand(getHgBinaryName(), workingDir, params);
+}
+
+void HgRunner::startCommand(QString command, QString workingDir, QStringList params)
+{
     isRunning = true;
     setRange(0, 0);
     setVisible(true);
@@ -174,15 +137,14 @@ void HgRunner::startProc(QString hgExePathAndName, QString workingDir, QStringLi
         proc -> setWorkingDirectory(workingDir);
     }
 
-    lastHgCommand = hgExePathAndName;
+    lastHgCommand = command;
     lastParams = params.join(" ");
 
-    QString cmdline = hgExePathAndName;
+    QString cmdline = command;
     foreach (QString param, params) cmdline += " " + param;
     DEBUG << "HgRunner: starting: " << cmdline;
 
-    proc -> start(hgExePathAndName, params);
-
+    proc -> start(command, params);
 }
 
 int HgRunner::getExitCode()
