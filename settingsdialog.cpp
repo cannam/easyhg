@@ -31,7 +31,7 @@ SettingsDialog::SettingsDialog(QWidget *parent): QDialog(parent)
     mainWnd = (MainWindow *) parent;
 
     userInfoLabel = new QLabel(tr("User info for commits, e.g. John Smith <john.smith@mail.com>"));
-    userInfoLineEdit = new QLineEdit(mainWnd->userInfo);
+    userInfoLineEdit = new QLineEdit("");//!!!mainWnd->userInfo);
     userInfoLabel -> setBuddy(userInfoLineEdit);
 
     remoteRepoLabel = new QLabel(tr("Remote repository path, e.g. http://192.168.1.10:8000/ or /home/mike/anotherrepo/ or c:\\anotherrepo\\"));
@@ -101,8 +101,8 @@ void SettingsDialog::okClicked()
 {
     QString tmp;
     
-    mainWnd -> firstStart = false;
-    mainWnd -> userInfo = userInfoLineEdit->text();
+//!!!    mainWnd -> firstStart = false;
+//!!!    mainWnd -> userInfo = userInfoLineEdit->text();
 
     if (mainWnd -> remoteRepoPath  != remoteRepoCombo-> currentText())
     {

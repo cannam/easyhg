@@ -31,6 +31,7 @@
 
 #include "mainwindow.h"
 #include "settingsdialog.h"
+#include "startupdialog.h"
 #include "colourset.h"
 #include "debug.h"
 
@@ -68,13 +69,15 @@ MainWindow::MainWindow()
     connectActions();
     enableDisableActions();
 
-    if (firstStart)
-    {
-        QMessageBox::information(this, tr("First start todo"), tr("Going to \"Settings\" first."));
-        settings();
+    if (firstStart) {
+        startupDialog();
+        firstStart = false;
     }
 
-    DEBUG << "User's real name is " << getUserRealName() << endl;
+    ColourSet *cs = ColourSet::instance();
+    cs->clearDefaultNames();
+    cs->addDefaultName("");
+    cs->addDefaultName(getUserInfo());
 
     hgStat();
 }
@@ -85,6 +88,24 @@ void MainWindow::closeEvent(QCloseEvent *)
     writeSettings();
 }
 
+
+QString MainWindow::getUserInfo() const
+{
+    QSettings settings;
+    settings.beginGroup("User Information");
+    QString name = settings.value("name", getUserRealName()).toString();
+    QString email = settings.value("email", "").toString();
+
+    QString identifier;
+
+    if (email != "") {
+	identifier = QString("%1 <%2>").arg(name).arg(email);
+    } else {
+	identifier = name;
+    }
+
+    return identifier;
+}
 
 void MainWindow::about()
 {
@@ -321,7 +342,7 @@ void MainWindow::hgCommit()
                 if ((justMerged == false) && (areAllSelectedCommitable(hgExp -> workFolderFileList)))
                 {
                     //User wants to commit selected file(s) (and this is not merge commit, which would fail if we selected files)
-                    params << "commit" << "--message" << comment << "--user" << userInfo << "--";
+                    params << "commit" << "--message" << comment << "--user" << getUserInfo() << "--";
 
                     QList <QListWidgetItem *> selList = hgExp -> workFolderFileList -> selectedItems();
                     for (int i = 0; i < selList.size(); ++i)
@@ -333,7 +354,7 @@ void MainWindow::hgCommit()
                 else
                 {
                     //Commit all changes
-                    params << "commit" << "--message" << comment << "--user" << userInfo;
+                    params << "commit" << "--message" << comment << "--user" << getUserInfo();
                 }
 
                 runner -> startHgCommand(workFolderPath, params);
@@ -371,7 +392,7 @@ void MainWindow::hgTag()
         {
             if (!tag.isEmpty())
             {
-                params << "tag" << "--user" << userInfo << filterTag(tag);
+                params << "tag" << "--user" << getUserInfo() << filterTag(tag);
 
                 runner -> startHgCommand(workFolderPath, params);
                 runningAction = ACT_TAG;
@@ -667,6 +688,12 @@ void MainWindow::hgServe()
 }
 
 
+void MainWindow::startupDialog()
+{
+    StartupDialog *dlg = new StartupDialog(this);
+    dlg->exec();
+}
+    
 
 void MainWindow::settings()
 {
@@ -1454,8 +1481,6 @@ void MainWindow::readSettings()
         workFolderPath = "";
     }
 
-    userInfo = settings.value("userinfo", "").toString();
-
     QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
     QSize size = settings.value("size", QSize(400, 400)).toSize();
     firstStart = settings.value("firststart", QVariant(true)).toBool();
@@ -1463,12 +1488,6 @@ void MainWindow::readSettings()
     initialFileTypesBits = (unsigned char) settings.value("viewFileTypes", QVariant(DEFAULT_HG_STAT_BITS)).toInt();
     resize(size);
     move(pos);
-
-    ColourSet *cs = ColourSet::instance();
-    cs->clearDefaultNames();
-    cs->addDefaultName("");
-    cs->addDefaultName("default");
-    cs->addDefaultName(userInfo);
 }
 
 
@@ -1479,7 +1498,6 @@ void MainWindow::writeSettings()
     settings.setValue("size", size());
     settings.setValue("remoterepopath", remoteRepoPath);
     settings.setValue("workfolderpath", workFolderPath);
-    settings.setValue("userinfo", userInfo);
     settings.setValue("firststart", firstStart);
     settings.setValue("viewFileTypes", hgExp -> getFileTypesBits());
 }

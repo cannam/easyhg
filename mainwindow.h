@@ -76,10 +76,6 @@ public:
     QString remoteRepoPath;
     QString workFolderPath;
 
-    //User info for commits
-    QString userInfo;
-    bool        firstStart;
-
 protected:
     void closeEvent(QCloseEvent *event);
 
@@ -91,6 +87,9 @@ public slots:
 
 private slots:
     void about();
+    void settings();
+    void startupDialog();
+
     void hgRemove();
     void hgAdd();
     void hgCommit();
@@ -101,7 +100,6 @@ private slots:
     void hgRevert();
     void hgMerge();
     void hgRetryMerge();
-    void settings();
     void hgCloneFromRemote();
     void hgInit();
     void hgIncoming();
@@ -137,6 +135,10 @@ private:
     bool areAllSelectedCommitable(QListWidget *workList);
     QString listAllUpIpV4Addresses();
     QString filterTag(QString tag);
+
+    QString getUserInfo() const;
+
+    bool firstStart;
 
     //Actions enabled flags
     bool remoteRepoActionsEnabled;

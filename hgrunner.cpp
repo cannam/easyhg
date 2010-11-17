@@ -76,16 +76,16 @@ void HgRunner::saveOutput()
 {
     stdOut = QString::fromUtf8(proc -> readAllStandardOutput());
     stdErr = QString::fromUtf8(proc -> readAllStandardError());
+
+    DEBUG << "saveOutput: " << stdOut.split("\n").size() << " line(s) of stdout, " << stdErr.split("\n").size() << " line(s) of stderr" << endl;
+
+//    std::cerr << "stdout was " << stdOut.toStdString() << std::endl;
 }
 
 void HgRunner::setProcExitInfo(int procExitCode, QProcess::ExitStatus procExitStatus)
 {
     exitCode = procExitCode;
     exitStatus = procExitStatus;
-
-    DEBUG << "setProcExitInfo: " << stdOut.split("\n").size() << " line(s) of stdout, " << stdErr.split("\n").size() << " line(s) of stderr";
-
-//    std::cerr << "stdout was " << stdOut.toStdString() << std::endl;
 }
 
 QString HgRunner::getLastCommandLine()
@@ -96,6 +96,7 @@ QString HgRunner::getLastCommandLine()
 void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
 {
     setProcExitInfo(procExitCode, procExitStatus);
+    saveOutput();
     isRunning = false;
 
     if (procExitCode == 0 || procExitStatus == QProcess::NormalExit) {
@@ -142,7 +143,8 @@ void HgRunner::startCommand(QString command, QString workingDir, QStringList par
 
     QString cmdline = command;
     foreach (QString param, params) cmdline += " " + param;
-    DEBUG << "HgRunner: starting: " << cmdline;
+    DEBUG << "HgRunner: starting: " << cmdline << " with cwd "
+          << workingDir << endl;
 
     proc -> start(command, params);
 }
