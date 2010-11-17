@@ -1454,17 +1454,6 @@ void MainWindow::readSettings()
         workFolderPath = "";
     }
 
-    for(int i = 0; i < NUM_PATHS_IN_MRU_LIST; i++)
-    {
-        QString tmp;
-
-        tmp.sprintf("remoterepomrupath%d", i);
-        remoteRepoMruList[i] = settings.value(tmp, "").toString();
-
-        tmp.sprintf("workfoldermrupath%d", i);
-        workFolderMruList[i] = settings.value(tmp, "").toString();
-    }
-
     userInfo = settings.value("userinfo", "").toString();
 
     QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
@@ -1490,18 +1479,6 @@ void MainWindow::writeSettings()
     settings.setValue("size", size());
     settings.setValue("remoterepopath", remoteRepoPath);
     settings.setValue("workfolderpath", workFolderPath);
-
-    for(int i = 0; i < NUM_PATHS_IN_MRU_LIST; i++)
-    {
-        QString tmp;
-
-        tmp.sprintf("remoterepomrupath%d", i);
-        settings.setValue(tmp, remoteRepoMruList[i]);
-
-        tmp.sprintf("workfoldermrupath%d", i);
-        settings.setValue(tmp, workFolderMruList[i]);
-    }
-
     settings.setValue("userinfo", userInfo);
     settings.setValue("firststart", firstStart);
     settings.setValue("viewFileTypes", hgExp -> getFileTypesBits());

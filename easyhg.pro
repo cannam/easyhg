@@ -22,7 +22,8 @@ HEADERS = mainwindow.h \
     textabbrev.h \
     dateitem.h \
     colourset.h \
-    debug.h
+    debug.h \
+    recentfiles.h
 SOURCES = main.cpp \
     mainwindow.cpp \
     hgexpwidget.cpp \
@@ -39,7 +40,8 @@ SOURCES = main.cpp \
     textabbrev.cpp \
     dateitem.cpp \
     colourset.cpp \
-    debug.cpp
+    debug.cpp \
+    recentfiles.cpp
 
 macx-* {
 SOURCES += common_osx.mm

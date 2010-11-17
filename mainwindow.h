@@ -76,9 +76,6 @@ public:
     QString remoteRepoPath;
     QString workFolderPath;
 
-    QString remoteRepoMruList[NUM_PATHS_IN_MRU_LIST];
-    QString workFolderMruList[NUM_PATHS_IN_MRU_LIST];
-
     //User info for commits
     QString userInfo;
     bool        firstStart;

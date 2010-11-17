@@ -59,7 +59,6 @@ private:
     MainWindow  *mainWnd;
 
     void browseDirAndSetCombo(QComboBox *combo);
-    void insertPathToMruList(QString newPath, QString mruList[]);
 };
 
 

@@ -41,8 +41,6 @@
 
 #define DEFAULT_HG_STAT_BITS (HGSTAT_M_BIT | HGSTAT_A_BIT | HGSTAT_R_BIT | HGSTAT_D_BIT | HGSTAT_U_BIT)
 
-#define NUM_PATHS_IN_MRU_LIST           5
-
 extern QString findExecutable(QString name);
 
 extern QString getSystem();

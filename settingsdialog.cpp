@@ -37,10 +37,11 @@ SettingsDialog::SettingsDialog(QWidget *parent): QDialog(parent)
     remoteRepoLabel = new QLabel(tr("Remote repository path, e.g. http://192.168.1.10:8000/ or /home/mike/anotherrepo/ or c:\\anotherrepo\\"));
     remoteRepoCombo = new QComboBox();
     remoteRepoCombo -> insertItem(0, mainWnd->remoteRepoPath);
-    for(int i = 0; i < NUM_PATHS_IN_MRU_LIST; i++)
+/*!!!    for(int i = 0; i < NUM_PATHS_IN_MRU_LIST; i++)
     {
         remoteRepoCombo -> insertItem(i + 1, mainWnd -> remoteRepoMruList[i]);
     }
+*/
     remoteRepoCombo -> setEditable(true);
     remoteRepoLabel -> setBuddy(remoteRepoCombo);
     remoteRepoBrowseButton = new QPushButton(tr("Browse..."));
@@ -48,10 +49,11 @@ SettingsDialog::SettingsDialog(QWidget *parent): QDialog(parent)
     workFolderLabel = new QLabel(tr("Local work folder path, e.g. /home/mike/work/ or c:\\mike\\work\\"));
     workFolderCombo = new QComboBox();
     workFolderCombo -> insertItem(0, mainWnd -> workFolderPath);
-    for(int i = 0; i < NUM_PATHS_IN_MRU_LIST; i++)
+/*!!!    for(int i = 0; i < NUM_PATHS_IN_MRU_LIST; i++)
     {
         workFolderCombo -> insertItem(i + 1, mainWnd -> workFolderMruList[i]);
     }
+*/
     workFolderCombo -> setEditable(true);
     workFolderLabel -> setBuddy(workFolderCombo);
     workFolderBrowseButton = new QPushButton(tr("Browse..."));
@@ -104,7 +106,7 @@ void SettingsDialog::okClicked()
 
     if (mainWnd -> remoteRepoPath  != remoteRepoCombo-> currentText())
     {
-        insertPathToMruList(mainWnd -> remoteRepoPath, mainWnd -> remoteRepoMruList);
+//!!!        insertPathToMruList(mainWnd -> remoteRepoPath, mainWnd -> remoteRepoMruList);
         mainWnd -> remoteRepoPath = remoteRepoCombo-> currentText();
     }
 
@@ -116,7 +118,7 @@ void SettingsDialog::okClicked()
 
     if (mainWnd -> workFolderPath != tmp)
     {
-        insertPathToMruList(mainWnd -> workFolderPath, mainWnd -> workFolderMruList);
+//!!!        insertPathToMruList(mainWnd -> workFolderPath, mainWnd -> workFolderMruList);
         mainWnd -> workFolderPath = tmp;
     }
 
@@ -153,38 +155,6 @@ void SettingsDialog::cancelClicked()
 {
     close();
 }
-
-
-void SettingsDialog::insertPathToMruList(QString path, QString mruList[])
-{
-    bool matchFound = false;
-
-    for(int i = 0; i < NUM_PATHS_IN_MRU_LIST; i++)
-    {
-        if (path == mruList[i])
-        {
-            matchFound = true;
-            break;
-        }
-    }
-
-    if (!matchFound)
-    {
-        for(int i = NUM_PATHS_IN_MRU_LIST - 2; i >= 0; i--)
-        {
-            if (i == 0)
-            {
-                mruList[1] = mruList[0];
-                mruList[0] = path;
-            }
-            else
-            {
-                mruList[i + 1] = mruList[i];
-            }
-        }
-    }
-}
-
 
 void SettingsDialog::browseDirAndSetCombo(QComboBox *combo)
 {
