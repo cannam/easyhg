@@ -24,7 +24,9 @@ HEADERS = mainwindow.h \
     colourset.h \
     debug.h \
     recentfiles.h \
-    startupdialog.h
+    startupdialog.h \
+    repositorydialog.h \
+    multichoicedialog.h
 SOURCES = main.cpp \
     mainwindow.cpp \
     hgexpwidget.cpp \
@@ -43,7 +45,9 @@ SOURCES = main.cpp \
     colourset.cpp \
     debug.cpp \
     recentfiles.cpp \
-    startupdialog.cpp
+    startupdialog.cpp \
+    repositorydialog.cpp \
+    multichoicedialog.cpp
 
 macx-* {
 SOURCES += common_osx.mm
