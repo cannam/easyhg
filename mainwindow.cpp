@@ -26,6 +26,7 @@
 #include <QMenuBar>
 #include <QApplication>
 #include <QToolBar>
+#include <QToolButton>
 #include <QSettings>
 
 #include "mainwindow.h"
@@ -47,8 +48,7 @@ MainWindow::MainWindow()
     runningAction = ACT_NONE;
     statusBar()->addPermanentWidget(runner);
 
-    wndTitle.sprintf("%s %s", APPNAME, APPVERSION);
-    setWindowTitle(wndTitle);
+    setWindowTitle(tr("EasyMercurial"));
 
     remoteRepoPath = "";
     workFolderPath = "";
@@ -1283,20 +1283,20 @@ void MainWindow::createActions()
     exitAct -> setIconVisibleInMenu(true);
 
     //Repository actions
-    hgIncomingAct = new QAction(QIcon(":/images/incoming.png"), tr("View incoming changesets"), this);
+    hgStatAct = new QAction(QIcon(":/images/status.png"), tr("Refresh"), this);
+    hgStatAct->setStatusTip(tr("Refresh (info of) status of workfolder files"));
+
+    hgIncomingAct = new QAction(QIcon(":/images/incoming.png"), tr("Preview"), this);
     hgIncomingAct -> setStatusTip(tr("View info of changesets incoming to us from remote repository (on pull operation)"));
 
-    hgPullAct = new QAction(QIcon(":/images/pull.png"), tr("Pull from remote"), this);
+    hgPullAct = new QAction(QIcon(":/images/pull.png"), tr("Pull"), this);
     hgPullAct -> setStatusTip(tr("Pull changesets from remote repository to local repository"));
 
-    hgPushAct = new QAction(QIcon(":/images/push.png"), tr("Push to remote"), this);
+    hgPushAct = new QAction(QIcon(":/images/push.png"), tr("Push"), this);
     hgPushAct->setStatusTip(tr("Push local changesets to remote repository"));
 
     //Workfolder actions
-    hgStatAct = new QAction(QIcon(":/images/status.png"), tr("Refresh status"), this);
-    hgStatAct->setStatusTip(tr("Refresh (info of) status of workfolder files"));
-
-    hgFileDiffAct   = new QAction(QIcon(":/images/diff.png"), tr("View filediff"), this);
+    hgFileDiffAct   = new QAction(QIcon(":/images/diff.png"), tr("Diff"), this);
     hgFileDiffAct->setStatusTip(tr("Filediff: View differences between selected working folder file and local repository file"));
 
     hgFolderDiffAct   = new QAction(QIcon(":/images/folderdiff.png"), tr("View folderdiff"), this);
@@ -1305,19 +1305,19 @@ void MainWindow::createActions()
     hgChgSetDiffAct   = new QAction(QIcon(":/images/chgsetdiff.png"), tr("View changesetdiff"), this);
     hgChgSetDiffAct->setStatusTip(tr("Change set diff: View differences between all files of 2 repository changesets"));
 
-    hgRevertAct = new QAction(QIcon(":/images/undo.png"), tr("Undo changes"), this);
+    hgRevertAct = new QAction(QIcon(":/images/undo.png"), tr("Revert"), this);
     hgRevertAct->setStatusTip(tr("Undo selected working folder file changes (return to local repository version)"));
 
-    hgAddAct = new QAction(QIcon(":/images/add.png"), tr("Add files"), this);
+    hgAddAct = new QAction(QIcon(":/images/add.png"), tr("Add"), this);
     hgAddAct -> setStatusTip(tr("Add working folder file(s) (selected or all yet untracked) to local repository (on next commit)"));
 
-    hgRemoveAct = new QAction(QIcon(":/images/remove.png"), tr("Remove file"), this);
+    hgRemoveAct = new QAction(QIcon(":/images/remove.png"), tr("Remove"), this);
     hgRemoveAct -> setStatusTip(tr("Remove selected working folder file from local repository (on next commit)"));
 
-    hgUpdateAct = new QAction(QIcon(":/images/update.png"), tr("Update working folder"), this);
+    hgUpdateAct = new QAction(QIcon(":/images/update.png"), tr("Update"), this);
     hgUpdateAct->setStatusTip(tr("Update working folder from local repository"));
 
-    hgCommitAct = new QAction(QIcon(":/images/commit.png"), tr("Commit / Save change(s)"), this);
+    hgCommitAct = new QAction(QIcon(":/images/commit.png"), tr("Commit"), this);
     hgCommitAct->setStatusTip(tr("Save selected file(s) or all changed files in working folder (and all subfolders) to local repository"));
 
     hgMergeAct = new QAction(QIcon(":/images/merge.png"), tr("Merge"), this);
@@ -1393,7 +1393,7 @@ void MainWindow::createToolBars()
     fileToolBar -> addAction(settingsAct);
     fileToolBar -> addAction(hgStatAct);
     fileToolBar -> addSeparator();
-    fileToolBar -> addAction(hgChgSetDiffAct);
+//    fileToolBar -> addAction(hgChgSetDiffAct);
     fileToolBar -> setMovable(false);
 
     repoToolBar = addToolBar(tr(REPOMENU_TITLE));
@@ -1406,9 +1406,9 @@ void MainWindow::createToolBars()
     workFolderToolBar = addToolBar(tr(WORKFOLDERMENU_TITLE));
     addToolBar(Qt::LeftToolBarArea, workFolderToolBar);
     workFolderToolBar -> setIconSize(QSize(MY_ICON_SIZE, MY_ICON_SIZE));
-    workFolderToolBar->addSeparator();
+//    workFolderToolBar->addSeparator();
     workFolderToolBar->addAction(hgFileDiffAct);
-    workFolderToolBar->addAction(hgFolderDiffAct);
+//    workFolderToolBar->addAction(hgFolderDiffAct);
     workFolderToolBar->addSeparator();
     workFolderToolBar->addAction(hgRevertAct);
     workFolderToolBar->addAction(hgUpdateAct);
@@ -1418,6 +1418,10 @@ void MainWindow::createToolBars()
     workFolderToolBar->addAction(hgAddAct);
     workFolderToolBar->addAction(hgRemoveAct);
     workFolderToolBar -> setMovable(false);
+
+    foreach (QToolButton *tb, findChildren<QToolButton *>()) {
+        tb->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    }
 }
 
 
@@ -1430,7 +1434,7 @@ void MainWindow::readSettings()
 {
     QDir workFolder;
 
-    QSettings settings("hgexplorer", "hgexplorer");
+    QSettings settings;
 
     remoteRepoPath = settings.value("remoterepopath", "").toString();
     workFolderPath = settings.value("workfolderpath", "").toString();
@@ -1470,7 +1474,7 @@ void MainWindow::readSettings()
 
 void MainWindow::writeSettings()
 {
-    QSettings settings("hgexplorer", "hgexplorer");
+    QSettings settings;
     settings.setValue("pos", pos());
     settings.setValue("size", size());
     settings.setValue("remoterepopath", remoteRepoPath);
