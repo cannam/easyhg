@@ -36,7 +36,7 @@ StartupDialog::StartupDialog(QWidget *parent) :
     QGridLayout *layout = new QGridLayout;
     int row = 0;
 
-    layout->addWidget(new QLabel(tr("<qt><big><bold>Welcome to EasyMercurial!</qt></bold></big><br>How would you like to be identified in commit messages?")),
+    layout->addWidget(new QLabel(tr("<qt><big>Welcome to EasyMercurial!</qt></big><br>How would you like to be identified in commit messages?")),
 		      row++, 0, 1, 2);
 
     layout->addWidget(new QLabel(tr("Name:")), row, 0);

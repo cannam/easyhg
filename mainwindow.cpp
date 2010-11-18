@@ -79,6 +79,10 @@ MainWindow::MainWindow()
     cs->addDefaultName("");
     cs->addDefaultName(getUserInfo());
 
+    if (workFolderPath == "") {
+        open();
+    }
+
     hgStat();
 }
 
@@ -699,13 +703,13 @@ void MainWindow::open()
 {
     MultiChoiceDialog *d = new MultiChoiceDialog
         (tr("Open Repository"),
-         tr("What would you like to open?"),
+         tr("<qt><big>What would you like to open?</big></qt>"),
          this);
 
     d->addChoice("remote",
                  tr("<qt><center><img src=\":images/browser-64.png\"><br>Remote repository</center></qt>"),
-                 tr("Open an existing remote repository, by cloning a Mercurial repository URL into a local folder."),
-                 MultiChoiceDialog::UrlArg);
+                 tr("Open a remote Mercurial repository, by cloning from its URL into a local folder."),
+                 MultiChoiceDialog::UrlToDirectoryArg);
 
     d->addChoice("local",
                  tr("<qt><center><img src=\":images/hglogo-64.png\"><br>Local repository</center></qt>"),
@@ -726,7 +730,8 @@ void MainWindow::open()
     
         if (choice == "local") {
             workFolderPath = arg;
-        } else {
+        } else if (choice == "remote") {
+            DEBUG << "clone " << arg << " to " << d->getAdditionalArgument().trimmed() << endl;
             //!!!
         }
         
@@ -1029,6 +1034,7 @@ void MainWindow::commandCompleted()
                     case ACT_CLONEFROMREMOTE:
                         MultiChoiceDialog::addRecentArgument("local", workFolderPath);
                         MultiChoiceDialog::addRecentArgument("remote", remoteRepoPath);
+                        MultiChoiceDialog::addRecentArgument("remote", workFolderPath, true);
                         QMessageBox::information(this, "Clone", runner -> getStdOut());
                         enableDisableActions();
                         shouldHgStat = true;
