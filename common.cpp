@@ -95,7 +95,8 @@ QString getUserRealName()
 
     return QString::fromUcs2(info);
 }
-#elif Q_OS_MAC
+#else
+#ifdef Q_OS_MAC
 // Nothing here: definition is in common_osx.mm
 #else
 QString getUserRealName()
@@ -112,5 +113,6 @@ QString getUserRealName()
     if (s != "") s = s.split(',')[0];
     return s;
 }
+#endif
 #endif
 

@@ -55,7 +55,8 @@ SOURCES = main.cpp \
     selectablelabel.cpp
 
 macx-* {
-SOURCES += common_osx.mm
+    SOURCES += common_osx.mm
+    QMAKE_LFLAGS += -framework Foundation
 }
 
 # ! [0]
