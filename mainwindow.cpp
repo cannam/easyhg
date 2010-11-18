@@ -128,26 +128,23 @@ void MainWindow::about()
 
 void MainWindow::hgStat()
 {
-    if (hgStatAct -> isEnabled())
+    if (runningAction == ACT_NONE)
     {
-        if (runningAction == ACT_NONE)
+        QStringList params;
+        
+        QString statFlags = hgExp -> getStatFlags();
+        if (statFlags.isEmpty())
         {
-            QStringList params;
-
-            QString statFlags = hgExp -> getStatFlags();
-            if (statFlags.isEmpty())
-            {
-                params << "stat";
-            }
-            else
-            {
-                params << "stat" << "-" + statFlags;
-            }
-
-
-            runner -> startHgCommand(workFolderPath, params);
-            runningAction = ACT_STAT;
+            params << "stat";
         }
+        else
+        {
+            params << "stat" << "-" + statFlags;
+        }
+        
+        
+        runner -> startHgCommand(workFolderPath, params);
+        runningAction = ACT_STAT;
     }
 }
 
@@ -729,9 +726,14 @@ void MainWindow::open()
         QString arg = d->getArgument().trimmed();
     
         if (choice == "local") {
+            DEBUG << "open " << arg << endl;
             workFolderPath = arg;
+            remoteRepoPath = "";
         } else if (choice == "remote") {
             DEBUG << "clone " << arg << " to " << d->getAdditionalArgument().trimmed() << endl;
+            //!!! check that work folder does not exist, append to it if it does
+        } else if (choice == "init") {
+            DEBUG << "init " << arg << endl;
             //!!!
         }
         
@@ -1226,12 +1228,12 @@ void MainWindow::enableDisableActions()
     hgIncomingAct -> setEnabled(remoteRepoActionsEnabled && remoteRepoActionsEnabled);
     hgPullAct -> setEnabled(remoteRepoActionsEnabled && remoteRepoActionsEnabled);
     hgPushAct -> setEnabled(remoteRepoActionsEnabled && remoteRepoActionsEnabled);
-
+/*
     if (tabPage != WORKTAB)
     {
         localRepoActionsEnabled = false;
     }
-
+*/
     hgInitAct -> setEnabled((localRepoExist == false) && (workFolderExist==true));
     hgStatAct -> setEnabled(localRepoActionsEnabled);
     hgFileDiffAct -> setEnabled(localRepoActionsEnabled);
