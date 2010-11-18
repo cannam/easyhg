@@ -15,5 +15,12 @@
         <file>images/update.png</file>
         <file>images/incoming.png</file>
         <file>images/chgsetdiff.png</file>
+        <file>images/browser.png</file>
+        <file>images/browser-64.png</file>
+        <file>images/hglogo.png</file>
+        <file>images/hglogo-64.png</file>
+        <file>images/hdd_unmount.png</file>
+        <file>images/hdd_unmount-64.png</file>
+        <file>images/fileopen.png</file>
     </qresource>
 </RCC>

@@ -7,6 +7,9 @@ unix {
     DESTDIR = .
 }
 
+OBJECTS_DIR = o
+MOC_DIR = o
+
 HEADERS = mainwindow.h \
     hgexpwidget.h \
     common.h \
@@ -26,7 +29,8 @@ HEADERS = mainwindow.h \
     recentfiles.h \
     startupdialog.h \
     repositorydialog.h \
-    multichoicedialog.h
+    multichoicedialog.h \
+    selectablelabel.h
 SOURCES = main.cpp \
     mainwindow.cpp \
     hgexpwidget.cpp \
@@ -47,16 +51,17 @@ SOURCES = main.cpp \
     recentfiles.cpp \
     startupdialog.cpp \
     repositorydialog.cpp \
-    multichoicedialog.cpp
+    multichoicedialog.cpp \
+    selectablelabel.cpp
 
 macx-* {
 SOURCES += common_osx.mm
 }
 
 # ! [0]
-RESOURCES = hgexplorer.qrc
+RESOURCES = easyhg.qrc
 win32 {
-    RC_FILE = hgexplorer.rc
+    RC_FILE = easyhg.rc
 }
 
 QT += network opengl

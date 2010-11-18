@@ -88,6 +88,7 @@ public slots:
 private slots:
     void about();
     void settings();
+    void open();
     void startupDialog();
 
     void hgRemove();
@@ -147,6 +148,7 @@ private:
     //File menu actions
     QAction *hgInitAct;
     QAction *hgCloneFromRemoteAct;
+    QAction *openAct;
     QAction *settingsAct;
     QAction *exitAct;
 

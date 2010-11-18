@@ -31,6 +31,7 @@
 
 #include "mainwindow.h"
 #include "settingsdialog.h"
+#include "multichoicedialog.h"
 #include "startupdialog.h"
 #include "colourset.h"
 #include "debug.h"
@@ -694,14 +695,59 @@ void MainWindow::startupDialog()
 }
     
 
+void MainWindow::open()
+{
+    MultiChoiceDialog *d = new MultiChoiceDialog
+        (tr("Open Repository"),
+         tr("What would you like to open?"),
+         this);
+
+    d->addChoice("remote",
+                 tr("<qt><center><img src=\":images/browser-64.png\"><br>Remote repository</center></qt>"),
+                 tr("Open an existing remote repository, by cloning a Mercurial repository URL into a local folder."),
+                 MultiChoiceDialog::UrlArg);
+
+    d->addChoice("local",
+                 tr("<qt><center><img src=\":images/hglogo-64.png\"><br>Local repository</center></qt>"),
+                 tr("Open an existing local Mercurial repository."),
+                 MultiChoiceDialog::DirectoryArg);
+
+    d->addChoice("init",
+                 tr("<qt><center><img src=\":images/hdd_unmount-64.png\"><br>File folder</center></qt>"),
+                 tr("Open a local folder, by creating a Mercurial repository in it."),
+                 MultiChoiceDialog::DirectoryArg);
+    
+    d->setCurrentChoice("local");
+
+    if (d->exec() == QDialog::Accepted) {
+
+        QString choice = d->getCurrentChoice();
+        QString arg = d->getArgument().trimmed();
+    
+        if (choice == "local") {
+            workFolderPath = arg;
+        } else {
+            //!!!
+        }
+        
+        hgExp->clearLists();
+        enableDisableActions();
+        hgStat();
+    }
+
+    delete d;
+}
+
 void MainWindow::settings()
 {
+/*!!!
     SettingsDialog *settingsDlg = new SettingsDialog(this);
     settingsDlg->setModal(true);
     settingsDlg->exec();
     hgExp -> clearLists();
     enableDisableActions();
     hgStat();
+*/
 }
 
 #define STDOUT_NEEDS_BIG_WINDOW 512
@@ -951,9 +997,8 @@ void MainWindow::commandCompleted()
                 switch(runningAction)
                 {
                     case ACT_STAT:
-                        {
-                            hgExp -> updateWorkFolderFileList(runner -> getStdOut());
-                        }
+                        MultiChoiceDialog::addRecentArgument("local", workFolderPath);
+                        hgExp -> updateWorkFolderFileList(runner -> getStdOut());
                         break;
 
                     case ACT_INCOMING:
@@ -975,11 +1020,15 @@ void MainWindow::commandCompleted()
                         break;
 
                     case ACT_INIT:
+                        MultiChoiceDialog::addRecentArgument("init", workFolderPath);
+                        MultiChoiceDialog::addRecentArgument("local", workFolderPath);
                         enableDisableActions();
                         shouldHgStat = true;
                         break;
 
                     case ACT_CLONEFROMREMOTE:
+                        MultiChoiceDialog::addRecentArgument("local", workFolderPath);
+                        MultiChoiceDialog::addRecentArgument("remote", remoteRepoPath);
                         QMessageBox::information(this, "Clone", runner -> getStdOut());
                         enableDisableActions();
                         shouldHgStat = true;
@@ -1108,6 +1157,7 @@ void MainWindow::connectActions()
     connect(hgIgnoreAct, SIGNAL(triggered()), this, SLOT(hgIgnore()));
 
     connect(settingsAct, SIGNAL(triggered()), this, SLOT(settings()));
+    connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
 
     connect(hgInitAct, SIGNAL(triggered()), this, SLOT(hgInit()));
     connect(hgCloneFromRemoteAct, SIGNAL(triggered()), this, SLOT(hgCloneFromRemote()));
@@ -1310,6 +1360,10 @@ void MainWindow::createActions()
     hgCloneFromRemoteAct = new QAction(tr("Clone from remote"), this);
     hgCloneFromRemoteAct->setStatusTip(tr("Clone from remote repository into local repository in selected folder"));
 
+    openAct = new QAction(QIcon(":/images/fileopen.png"), tr("Open..."), this);
+    openAct -> setStatusTip(tr("Open repository"));
+    openAct -> setIconVisibleInMenu(true);
+
     settingsAct = new QAction(QIcon(":/images/settings.png"), tr("Settings..."), this);
     settingsAct -> setStatusTip(tr("View and change application settings"));
     settingsAct -> setIconVisibleInMenu(true);
@@ -1399,6 +1453,7 @@ void MainWindow::createMenus()
     fileMenu -> addAction(hgInitAct);
     fileMenu -> addAction(hgCloneFromRemoteAct);
     fileMenu -> addSeparator();
+    fileMenu -> addAction(openAct);
     fileMenu -> addAction(settingsAct);
     fileMenu -> addSeparator();
     fileMenu -> addAction(exitAct);
@@ -1427,7 +1482,7 @@ void MainWindow::createToolBars()
 {
     fileToolBar = addToolBar(tr("File"));
     fileToolBar -> setIconSize(QSize(MY_ICON_SIZE, MY_ICON_SIZE));
-    fileToolBar -> addAction(settingsAct);
+    fileToolBar -> addAction(openAct);
     fileToolBar -> addAction(hgStatAct);
     fileToolBar -> addSeparator();
 //    fileToolBar -> addAction(hgChgSetDiffAct);
@@ -1466,6 +1521,9 @@ void MainWindow::createStatusBar()
 {
     statusBar()->showMessage(tr("Ready"));
 }
+
+
+//!!! review these:
 
 void MainWindow::readSettings()
 {
