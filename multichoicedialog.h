@@ -44,7 +44,7 @@ public:
         FileArg,
         DirectoryArg,
         UrlArg,
-        FileOrUrlArg
+        UrlToDirectoryArg
     };
 
     void addChoice(QString identifier, QString text,
@@ -53,11 +53,14 @@ public:
     void setCurrentChoice(QString);
     QString getCurrentChoice();
     QString getArgument();
+    QString getAdditionalArgument();
 
-    static void addRecentArgument(QString identifier, QString name);
+    static void addRecentArgument(QString identifier, QString name,
+                                  bool additionalArgument = false);
 
 private slots:
     void choiceChanged();
+    void urlChanged(const QString &);
     void browse();
 
 private:
@@ -71,9 +74,11 @@ private:
 
     QHBoxLayout *m_choiceLayout;
     QLabel *m_descriptionLabel;
-    QLabel *m_argLabel;
-    QComboBox *m_argEdit;
+    QLabel *m_fileLabel;
+    QComboBox *m_fileCombo;
     QAbstractButton *m_browseButton;
+    QLabel *m_urlLabel;
+    QComboBox *m_urlCombo;
 };
 
 #endif // MULTICHOICEDIALOG_H

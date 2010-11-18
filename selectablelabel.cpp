@@ -27,8 +27,6 @@ SelectableLabel::SelectableLabel(QWidget *p) :
     m_selected(false)
 {
     setTextFormat(Qt::RichText);
-//    setLineWidth(2);
-//    setFixedWidth(480);
     setupStyle();
     setOpenExternalLinks(true);
 }
@@ -70,20 +68,12 @@ SelectableLabel::setupStyle()
 
     if (m_selected) {
         setStyleSheet
-            (QString("QLabel:hover { background: %1; color: %3; } "
-                     "QLabel:!hover { background: %2; color: %3 } "
-                     "QLabel { padding: 7px }")
-             .arg(palette.highlight().color().name())
-             .arg(palette.highlight().color().name())
-             .arg(palette.text().color().name()));
+            (QString("QLabel { background: %1; border: 1px solid %2; padding: 7px } ")
+             .arg(palette.light().color().name())
+             .arg(palette.dark().color().name()));
     } else {
         setStyleSheet
-            (QString("QLabel:hover { background: %1; color: %3; } "
-                     "QLabel:!hover { background: %2; color: %3 } "
-                     "QLabel { padding: 7px }")
-             .arg(palette.button().color().name())
-             .arg(palette.light().color().name())
-             .arg(palette.text().color().name()));
+            (QString("QLabel { border: 0; padding: 7px } "));
     }
 }    
 

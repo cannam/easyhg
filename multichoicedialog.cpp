@@ -27,6 +27,7 @@
 #include <QFont>
 #include <QDir>
 #include <QFileDialog>
+#include <QUrl>
 
 MultiChoiceDialog::MultiChoiceDialog(QString title, QString heading, QWidget *parent) :
     QDialog(parent)
@@ -51,23 +52,32 @@ MultiChoiceDialog::MultiChoiceDialog(QString title, QString heading, QWidget *pa
     f.setPointSize(f.pointSize() * 0.9);
     m_descriptionLabel->setFont(f);
 
-    m_argLabel = new QLabel();
-    outer->addWidget(m_argLabel, 3, 0);
+    m_urlLabel = new QLabel(tr("URL:"));
+    outer->addWidget(m_urlLabel, 3, 0);
 
-    m_argEdit = new QComboBox();
-    m_argEdit->setEditable(true);
-    outer->addWidget(m_argEdit, 3, 1);
+    m_urlCombo = new QComboBox();
+    m_urlCombo->setEditable(true);
+    connect(m_urlCombo, SIGNAL(editTextChanged(const QString &)),
+            this, SLOT(urlChanged(const QString &)));
+    outer->addWidget(m_urlCombo, 3, 1, 1, 2);
+
+    m_fileLabel = new QLabel(tr("File:"));
+    outer->addWidget(m_fileLabel, 4, 0);
+
+    m_fileCombo = new QComboBox();
+    m_fileCombo->setEditable(true);
+    outer->addWidget(m_fileCombo, 4, 1);
     outer->setColumnStretch(1, 20);
 
     m_browseButton = new QPushButton(tr("Browse..."));
-    outer->addWidget(m_browseButton, 3, 2);
+    outer->addWidget(m_browseButton, 4, 2);
     connect(m_browseButton, SIGNAL(clicked()), this, SLOT(browse()));
 
     QDialogButtonBox *bbox = new QDialogButtonBox(QDialogButtonBox::Ok |
                                                   QDialogButtonBox::Cancel);
     connect(bbox, SIGNAL(accepted()), this, SLOT(accept()));
     connect(bbox, SIGNAL(rejected()), this, SLOT(reject()));
-    outer->addWidget(bbox, 4, 0, 1, 3);
+    outer->addWidget(bbox, 5, 0, 1, 3);
     
     setMinimumWidth(480);
 }
@@ -88,13 +98,33 @@ MultiChoiceDialog::setCurrentChoice(QString c)
 QString
 MultiChoiceDialog::getArgument()
 {
-    return m_argEdit->currentText();
+    if (m_argTypes[m_currentChoice] == UrlArg ||
+        m_argTypes[m_currentChoice] == UrlToDirectoryArg) {
+        return m_urlCombo->currentText();
+    } else {
+        return m_fileCombo->currentText();
+    }
+}
+
+QString
+MultiChoiceDialog::getAdditionalArgument()
+{
+    if (m_argTypes[m_currentChoice] == UrlToDirectoryArg) {
+        return m_fileCombo->currentText();
+    } else {
+        return "";
+    }
 }
 
 void
-MultiChoiceDialog::addRecentArgument(QString id, QString arg)
+MultiChoiceDialog::addRecentArgument(QString id, QString arg,
+                                     bool additionalArgument)
 {
-    RecentFiles(QString("Recent-%1").arg(id)).addFile(arg);
+    if (additionalArgument) {
+        RecentFiles(QString("Recent-%1-add").arg(id)).addFile(arg);
+    } else {
+        RecentFiles(QString("Recent-%1").arg(id)).addFile(arg);
+    }
 }
 
 void
@@ -142,13 +172,14 @@ MultiChoiceDialog::browse()
 
     QString path = origin;
 
-    if (m_argTypes[m_currentChoice] == DirectoryArg) {
+    if (m_argTypes[m_currentChoice] == DirectoryArg ||
+        m_argTypes[m_currentChoice] == UrlToDirectoryArg) {
 
         path = QFileDialog::getExistingDirectory
             (this, tr("Open Directory"), origin,
              QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
         if (path != QString()) {
-            m_argEdit->lineEdit()->setText(path + QDir::separator());
+            m_fileCombo->lineEdit()->setText(path + QDir::separator());
         }
 
     } else {
@@ -156,9 +187,31 @@ MultiChoiceDialog::browse()
         path = QFileDialog::getOpenFileName
             (this, tr("Open File"), origin);
         if (path != QString()) {
-            m_argEdit->lineEdit()->setText(path);
+            m_fileCombo->lineEdit()->setText(path);
         }
     }
+}
+
+void
+MultiChoiceDialog::urlChanged(const QString &s)
+{
+    if (m_argTypes[m_currentChoice] != UrlToDirectoryArg) {
+        return;
+    }
+    QDir dirPath(m_fileCombo->currentText());
+    if (!dirPath.exists()) {
+        if (!dirPath.cdUp()) return;
+    }
+    QString url = m_urlCombo->currentText();
+    if (QRegExp("^\\w+://").indexIn(url) < 0) {
+        return;
+    }
+    QString urlDirName = url;
+    urlDirName.replace(QRegExp("^.*//.*/"), "");
+    if (urlDirName == "" || urlDirName == url) {
+        return;
+    }
+    m_fileCombo->lineEdit()->setText(dirPath.filePath(urlDirName));
 }
 
 void
@@ -194,47 +247,52 @@ MultiChoiceDialog::choiceChanged()
 
     m_descriptionLabel->setText(m_descriptions[id]);
 
+    m_fileLabel->hide();
+    m_fileCombo->hide();
+    m_browseButton->hide();
+    m_urlLabel->hide();
+    m_urlCombo->hide();
+
+    QSharedPointer<RecentFiles> rf = m_recentFiles[id];
+    m_fileCombo->clear();
+    m_urlCombo->clear();
+
     switch (m_argTypes[id]) {
         
     case NoArg:
-        m_argLabel->hide();
-        m_argEdit->hide();
-        m_browseButton->hide();
         break;
 
     case FileArg:
-        m_argLabel->setText(tr("File:"));
-        m_argLabel->show();
-        m_argEdit->show();
+        m_fileLabel->setText(tr("File:"));
+        m_fileLabel->show();
+        m_fileCombo->show();
+        m_fileCombo->addItems(rf->getRecent());
         m_browseButton->show();
         break;
 
     case DirectoryArg:
-        m_argLabel->setText(tr("Folder:"));
-        m_argLabel->show();
-        m_argEdit->show();
+        m_fileLabel->setText(tr("Folder:"));
+        m_fileLabel->show();
+        m_fileCombo->show();
+        m_fileCombo->addItems(rf->getRecent());
         m_browseButton->show();
         break;
 
     case UrlArg:
-        m_argLabel->setText(tr("URL:"));
-        m_argLabel->show();
-        m_argEdit->show();
-        m_browseButton->hide();
+        m_urlLabel->show();
+        m_urlCombo->show();
         break;
 
-    case FileOrUrlArg:
-        m_argLabel->setText(tr("File or URL:"));
-        m_argLabel->show();
-        m_argEdit->show();
+    case UrlToDirectoryArg:
+        m_urlLabel->show();
+        m_urlCombo->show();
+        m_urlCombo->addItems(rf->getRecent());
+        m_fileLabel->setText(tr("Folder:"));
+        m_fileLabel->show();
+        m_fileCombo->show();
+        m_fileCombo->lineEdit()->setText(QDir::homePath());
         m_browseButton->show();
         break;
-    }
-
-    if (m_argTypes[id] != NoArg) {
-        QSharedPointer<RecentFiles> rf = m_recentFiles[id];
-        m_argEdit->clear();
-        m_argEdit->addItems(rf->getRecent());
     }
 
     adjustSize();
