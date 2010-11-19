@@ -22,6 +22,7 @@
 #include <QProcess>
 #include <QByteArray>
 #include <QRect>
+#include <QFile>
 
 class HgRunner : public QProgressBar
 {
@@ -54,6 +55,11 @@ private:
     QString getLastCommandLine();
     void presentErrorToUser();
     QString getHgBinaryName();
+
+    int ptyMasterFd;
+    int ptySlaveFd;
+    QString ptySlaveFilename;
+    QFile *procInput;
     
     bool                    reportErrors;
     bool                    isRunning;
@@ -68,6 +74,8 @@ private:
 private slots:
     void started();
     void finished(int procExitCode, QProcess::ExitStatus procExitStatus);
+    void stdOutReady();
+    void stdErrReady();
 };
 
 #endif // HGRUNNER_H

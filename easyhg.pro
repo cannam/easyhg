@@ -58,8 +58,10 @@ SOURCES = main.cpp \
 
 macx-* {
     SOURCES += common_osx.mm
-    QMAKE_LFLAGS += -framework Foundation
+    LIBS += -framework Foundation
 }
+
+LIBS += -lutil
 
 # ! [0]
 RESOURCES = easyhg.qrc

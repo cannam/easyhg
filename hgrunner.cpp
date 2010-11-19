@@ -25,9 +25,13 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QSettings>
+#include <QInputDialog>
 
 #include <iostream>
 #include <unistd.h>
+#include <pty.h>
+#include <errno.h>
+#include <stdio.h>
 
 HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
 {
@@ -45,15 +49,37 @@ HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
     stdOut.clear();
     stdErr.clear();
 
+    procInput = 0;
+    char name[1024];
+    if (openpty(&ptyMasterFd, &ptySlaveFd, name, NULL, NULL)) {
+        perror("openpty failed");
+    } else {
+        DEBUG << "openpty succeeded: master " << ptyMasterFd
+                << " slave " << ptySlaveFd << " filename " << name << endl;
+        procInput = new QFile;
+        procInput->open(ptyMasterFd, QFile::WriteOnly);
+        ptySlaveFilename = name;
+        proc->setStandardInputFile(ptySlaveFilename);
+        ::close(ptySlaveFd);
+    }
+
     connect(proc, SIGNAL(started()), this, SLOT(started()));
     connect(proc, SIGNAL(finished(int, QProcess::ExitStatus)),
             this, SLOT(finished(int, QProcess::ExitStatus)));
+    connect(proc, SIGNAL(readyReadStandardOutput()),
+            this, SLOT(stdOutReady()));
+    connect(proc, SIGNAL(readyReadStandardError()),
+            this, SLOT(stdErrReady()));
 
     reportErrors = false;
 }
 
 HgRunner::~HgRunner()
 {
+    if (ptySlaveFilename != "") {
+        ::close(ptyMasterFd);
+//        ::close(ptySlaveFd);
+    }
     delete proc;
 }
 
@@ -69,13 +95,21 @@ QString HgRunner::getHgBinaryName()
 
 void HgRunner::started()
 {
+    /*
+    if (procInput) procInput->write("blah\n");
+    if (procInput) procInput->write("blah\n");
+    if (procInput) {
+        procInput->close();
+//        ::close(ptyMasterFd);
+    }
     proc -> closeWriteChannel();
+    */
 }
 
 void HgRunner::saveOutput()
 {
-    stdOut = QString::fromUtf8(proc -> readAllStandardOutput());
-    stdErr = QString::fromUtf8(proc -> readAllStandardError());
+    stdOut += QString::fromUtf8(proc -> readAllStandardOutput());
+    stdErr += QString::fromUtf8(proc -> readAllStandardError());
 
     DEBUG << "saveOutput: " << stdOut.split("\n").size() << " line(s) of stdout, " << stdErr.split("\n").size() << " line(s) of stderr" << endl;
 
@@ -91,6 +125,37 @@ void HgRunner::setProcExitInfo(int procExitCode, QProcess::ExitStatus procExitSt
 QString HgRunner::getLastCommandLine()
 {
     return QString("Command line: " + lastHgCommand + " " + lastParams);
+}
+
+void HgRunner::stdOutReady()
+{
+    DEBUG << "stdOutReady" << endl;
+    QString chunk = QString::fromUtf8(proc->readAllStandardOutput());
+    DEBUG << "stdout was " << chunk << endl;
+    stdOut += chunk;
+}
+
+void HgRunner::stdErrReady()
+{
+    DEBUG << "stdErrReady" << endl;
+    QString chunk = QString::fromUtf8(proc->readAllStandardError());
+    DEBUG << "stderr was " << chunk << endl;
+    stdErr += chunk;
+    if (procInput) {
+        if (chunk.toLower().trimmed() == "password:") {
+            bool ok = false;
+            QString pwd = QInputDialog::getText
+                (qobject_cast<QWidget *>(parent()),
+                 tr("Enter password"), tr("Password (but for what user name and repository??"),
+                 QLineEdit::Password, QString(), &ok);
+            if (ok) {
+                procInput->write(QString("%1\n").arg(pwd).toUtf8());
+                procInput->flush();
+            } else {
+                //!!! do what? close the terminal?
+            }
+        }
+    }
 }
 
 void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
