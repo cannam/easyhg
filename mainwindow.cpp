@@ -35,6 +35,7 @@
 #include "startupdialog.h"
 #include "colourset.h"
 #include "debug.h"
+#include "logparser.h"
 
 
 MainWindow::MainWindow()
@@ -83,7 +84,7 @@ MainWindow::MainWindow()
         open();
     }
 
-    hgStat();
+    hgPaths();
 }
 
 
@@ -145,6 +146,17 @@ void MainWindow::hgStat()
         
         runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_STAT;
+    }
+}
+
+void MainWindow::hgPaths()
+{
+    if (runningAction == ACT_NONE)
+    {
+        QStringList params;
+        params << "paths";
+        runner -> startHgCommand(workFolderPath, params);
+        runningAction = ACT_PATHS;
     }
 }
 
@@ -739,7 +751,7 @@ void MainWindow::open()
         
         hgExp->clearLists();
         enableDisableActions();
-        hgStat();
+        hgPaths();
     }
 
     delete d;
@@ -981,6 +993,10 @@ void MainWindow::countModifications(QListWidget *workList, int& added, int& modi
 void MainWindow::commandFailed()
 {
     DEBUG << "MainWindow::commandFailed" << endl;
+    runningAction = ACT_NONE;
+    runner -> hideProgBar();
+
+    //!!! N.B hg incoming returns failure even if successful, if there were no changes
 }
 
 void MainWindow::commandCompleted()
@@ -1003,8 +1019,24 @@ void MainWindow::commandCompleted()
                 //Successful running.
                 switch(runningAction)
                 {
-                    case ACT_STAT:
+                    case ACT_PATHS:
+                    {
+                        QString stdout = runner->getStdOut();
+                        DEBUG << "stdout is " << stdout << endl;
+                        LogParser lp(stdout, "=");
+                        LogList ll = lp.parse();
+                        DEBUG << ll.size() << " results" << endl;
+                        if (!ll.empty()) {
+                            remoteRepoPath = lp.parse()[0]["default"].trimmed();
+                            DEBUG << "Set remote path to " << remoteRepoPath << endl;
+                        }
                         MultiChoiceDialog::addRecentArgument("local", workFolderPath);
+                        MultiChoiceDialog::addRecentArgument("remote", remoteRepoPath);
+                        enableDisableActions();
+                        break;
+                    }
+
+                    case ACT_STAT:
                         hgExp -> updateWorkFolderFileList(runner -> getStdOut());
                         break;
 
@@ -1097,8 +1129,13 @@ void MainWindow::commandCompleted()
             }
 
 
-            //Typical sequence goes stat -> heads -> parents -> log
-            if (runningAction == ACT_STAT)
+            //Typical sequence goes paths -> stat -> heads -> parents -> log
+            if (runningAction == ACT_PATHS)
+            {
+                runningAction = ACT_NONE;
+                hgStat();
+            }
+            else if (runningAction == ACT_STAT)
             {
                 runningAction = ACT_NONE;
                 hgHeads();
@@ -1132,7 +1169,7 @@ void MainWindow::commandCompleted()
                 runningAction = ACT_NONE;
                 if (shouldHgStat)
                 {
-                    hgStat();
+                    hgPaths();
                 }
             }
         }
@@ -1149,8 +1186,8 @@ void MainWindow::connectActions()
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
-    connect(hgStatAct, SIGNAL(triggered()), this, SLOT(hgStat()));
-    connect(hgExp, SIGNAL(workFolderViewTypesChanged()), this, SLOT(hgStat()));
+    connect(hgStatAct, SIGNAL(triggered()), this, SLOT(hgPaths()));
+    connect(hgExp, SIGNAL(workFolderViewTypesChanged()), this, SLOT(hgPaths()));
     connect(hgRemoveAct, SIGNAL(triggered()), this, SLOT(hgRemove()));
     connect(hgAddAct, SIGNAL(triggered()), this, SLOT(hgAdd()));
     connect(hgCommitAct, SIGNAL(triggered()), this, SLOT(hgCommit()));

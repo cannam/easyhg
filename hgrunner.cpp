@@ -99,9 +99,11 @@ void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
     saveOutput();
     isRunning = false;
 
-    if (procExitCode == 0 || procExitStatus == QProcess::NormalExit) {
+    if (procExitCode == 0 && procExitStatus == QProcess::NormalExit) {
+        DEBUG << "HgRunner::finished: Command completed successfully: stderr says: " << stdErr << endl;
         emit commandCompleted();
     } else {
+        DEBUG << "HgRunner::finished: Command failed: stderr says: " << stdErr << endl;
         emit commandFailed();
     }
 }

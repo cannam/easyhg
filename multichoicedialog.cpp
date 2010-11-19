@@ -52,20 +52,24 @@ MultiChoiceDialog::MultiChoiceDialog(QString title, QString heading, QWidget *pa
     f.setPointSize(f.pointSize() * 0.9);
     m_descriptionLabel->setFont(f);
 
-    m_urlLabel = new QLabel(tr("URL:"));
+    m_urlLabel = new QLabel(tr("&URL:"));
     outer->addWidget(m_urlLabel, 3, 0);
 
     m_urlCombo = new QComboBox();
     m_urlCombo->setEditable(true);
+    m_urlLabel->setBuddy(m_urlCombo);
     connect(m_urlCombo, SIGNAL(editTextChanged(const QString &)),
             this, SLOT(urlChanged(const QString &)));
     outer->addWidget(m_urlCombo, 3, 1, 1, 2);
 
-    m_fileLabel = new QLabel(tr("File:"));
+    m_fileLabel = new QLabel(tr("&File:"));
     outer->addWidget(m_fileLabel, 4, 0);
 
     m_fileCombo = new QComboBox();
     m_fileCombo->setEditable(true);
+    m_fileLabel->setBuddy(m_fileCombo);
+    connect(m_fileCombo, SIGNAL(editTextChanged(const QString &)),
+            this, SLOT(fileChanged(const QString &)));
     outer->addWidget(m_fileCombo, 4, 1);
     outer->setColumnStretch(1, 20);
 
@@ -78,7 +82,10 @@ MultiChoiceDialog::MultiChoiceDialog(QString title, QString heading, QWidget *pa
     connect(bbox, SIGNAL(accepted()), this, SLOT(accept()));
     connect(bbox, SIGNAL(rejected()), this, SLOT(reject()));
     outer->addWidget(bbox, 5, 0, 1, 3);
-    
+
+    m_okButton = bbox->button(QDialogButtonBox::Ok);
+    m_okButton->setEnabled(false);
+
     setMinimumWidth(480);
 }
 
@@ -215,6 +222,17 @@ MultiChoiceDialog::urlChanged(const QString &s)
 }
 
 void
+MultiChoiceDialog::fileChanged(const QString &s)
+{
+    if (m_argTypes[m_currentChoice] == UrlToDirectoryArg) {
+        m_okButton->setEnabled(getArgument() != "" &&
+                               getAdditionalArgument() != "");
+    } else {
+        m_okButton->setEnabled(getArgument() != "");
+    }
+}
+
+void
 MultiChoiceDialog::choiceChanged()
 {
     DEBUG << "choiceChanged" << endl;
@@ -263,7 +281,7 @@ MultiChoiceDialog::choiceChanged()
         break;
 
     case FileArg:
-        m_fileLabel->setText(tr("File:"));
+        m_fileLabel->setText(tr("&File:"));
         m_fileLabel->show();
         m_fileCombo->show();
         m_fileCombo->addItems(rf->getRecent());
@@ -271,7 +289,7 @@ MultiChoiceDialog::choiceChanged()
         break;
 
     case DirectoryArg:
-        m_fileLabel->setText(tr("Folder:"));
+        m_fileLabel->setText(tr("&Folder:"));
         m_fileLabel->show();
         m_fileCombo->show();
         m_fileCombo->addItems(rf->getRecent());
@@ -287,7 +305,7 @@ MultiChoiceDialog::choiceChanged()
         m_urlLabel->show();
         m_urlCombo->show();
         m_urlCombo->addItems(rf->getRecent());
-        m_fileLabel->setText(tr("Folder:"));
+        m_fileLabel->setText(tr("&Folder:"));
         m_fileLabel->show();
         m_fileCombo->show();
         m_fileCombo->lineEdit()->setText(QDir::homePath());

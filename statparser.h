@@ -7,7 +7,7 @@
     Copyright (c) 2010 Jari Korhonen
     Copyright (c) 2010 Chris Cannam
     Copyright (c) 2010 Queen Mary, University of London
-    
+
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
     published by the Free Software Foundation; either version 2 of the
@@ -15,28 +15,24 @@
     COPYING included with this distribution for more information.
 */
 
-#ifndef LOGPARSER_H
-#define LOGPARSER_H
+#ifndef STATPARSER_H
+#define STATPARSER_H
 
 #include <QObject>
-#include <QString>
-#include <QList>
-#include <QMap>
+#include <QStringList>
 
-typedef QMap<QString, QString> LogEntry;
-typedef QList<LogEntry> LogList;
-
-class LogParser : public QObject
+class StatParser : public QObject
 {
+    Q_OBJECT
 public:
-    LogParser(QString text, QString separator = ":");
+    StatParser(QString text);
 
-    QStringList split();
-    LogList parse();
+    QStringList modified;
+    QStringList added;
+    QStringList unknown;
+    QStringList removed;
+    QStringList missing;
 
-private:
-    QString m_text;
-    QString m_sep;
 };
 
-#endif // LOGPARSER_H
+#endif // STATPARSER_H

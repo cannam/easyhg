@@ -33,6 +33,7 @@ QT_END_NAMESPACE
 enum HGACTIONS
 {
     ACT_NONE,
+    ACT_PATHS,
     ACT_STAT,
     ACT_HEADS,
     ACT_PARENTS,
@@ -80,6 +81,7 @@ protected:
     void closeEvent(QCloseEvent *event);
 
 public slots:
+    void hgPaths();
     void hgStat();
     void tabChanged(int currTab);
     void commandCompleted();
