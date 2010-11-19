@@ -23,7 +23,7 @@
 #include <QPainter>
 
 ChangesetItem::ChangesetItem(Changeset *cs) :
-    m_changeset(cs), m_column(0), m_row(0), m_wide(false)
+    m_changeset(cs), m_showBranch(false), m_column(0), m_row(0), m_wide(false)
 {
     m_font = QFont();
     m_font.setPixelSize(11);
@@ -93,11 +93,12 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
 
     paint->setPen(QPen(Qt::black));
 
-    if (m_changeset->children().empty()) {
+    if (m_showBranch) {
 	// write branch name
 	f.setBold(true);
 	paint->setFont(f);
 	QString branch = m_changeset->branch();
+        if (branch == "") branch = "default";
 	int wid = width - 3;
 	branch = TextAbbrev::abbreviate(branch, QFontMetrics(f), wid);
 	paint->drawText(x0, -fh + fm.ascent() - 4, branch);

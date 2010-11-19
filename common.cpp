@@ -33,7 +33,12 @@ QString findExecutable(QString name)
             QString path =
                 QProcessEnvironment::systemEnvironment().value("PATH");
             DEBUG << "findExecutable: seeking location for binary " << name
-                  << ": system path is " << path;
+                  << ": system path is " << path << endl;
+#ifndef Q_OS_WIN32
+            path = path + ":/usr/local/bin";
+            DEBUG << "... adding /usr/local/bin just in case (fix and add settings dlg please)"
+                    << endl;
+#endif
 #ifdef Q_OS_WIN32
             QChar pathSep = ';';
 #else

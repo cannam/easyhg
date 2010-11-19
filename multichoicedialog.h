@@ -61,6 +61,7 @@ public:
 private slots:
     void choiceChanged();
     void urlChanged(const QString &);
+    void fileChanged(const QString &);
     void browse();
 
 private:
@@ -79,6 +80,7 @@ private:
     QAbstractButton *m_browseButton;
     QLabel *m_urlLabel;
     QComboBox *m_urlCombo;
+    QAbstractButton *m_okButton;
 };
 
 #endif // MULTICHOICEDIALOG_H

@@ -41,9 +41,13 @@ public:
     bool isWide() const { return m_wide; }
     void setWide(bool w) { m_wide = w; }
 
+    bool shouldShowBranch() const { return m_showBranch; }
+    void setShowBranch(bool s) { m_showBranch = s; }
+
 private:
     QFont m_font;
     Changeset *m_changeset;
+    bool m_showBranch;
     int m_column;
     int m_row;
     bool m_wide;

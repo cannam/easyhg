@@ -17,10 +17,13 @@
 
 #include "logparser.h"
 
+#include "debug.h"
+
 #include <QStringList>
 #include <QRegExp>
 
-LogParser::LogParser(QString text) : m_text(text)
+LogParser::LogParser(QString text, QString separator) :
+    m_text(text), m_sep(separator)
 {
     m_text.replace("\r\n", "\n");
 }
@@ -33,7 +36,7 @@ QStringList LogParser::split()
 LogList LogParser::parse()
 {
     LogList results;
-    QRegExp re("^(\\w+):\\s+(.*)$");
+    QRegExp re(QString("^(\\w+)\\s*%1\\s+(.*)$").arg(m_sep));
     QStringList entries = split();
     foreach (QString entry, entries) {
         LogEntry dictionary;
@@ -42,7 +45,7 @@ LogList LogParser::parse()
             if (re.indexIn(line) == 0) {
                 QString key = re.cap(1);
                 QString value = re.cap(2);
-                dictionary[key] = value;
+                dictionary[key.trimmed()] = value;
             }
         }
         results.push_back(dictionary);

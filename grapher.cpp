@@ -353,6 +353,8 @@ Grapher::layout(Changesets csets)
         m_scene->addItem(item);
     }
 
+    // Add the connecting lines
+
     foreach (Changeset *cs, csets) {
 	QString id = cs->id();
 	ChangesetItem *item = m_items[id];
@@ -367,6 +369,21 @@ Grapher::layout(Changesets csets)
 	    conn->setParent(m_items[parentId]);
 	    m_scene->addItem(conn);
 	}
+    }
+
+    // Add the branch labels
+    foreach (Changeset *cs, csets) {
+        QString id = cs->id();
+        ChangesetItem *item = m_items[id];
+        bool haveChildOnSameBranch = false;
+        foreach (QString childId, cs->children()) {
+            Changeset *child = m_changesets[childId];
+            if (child->branch() == cs->branch()) {
+                haveChildOnSameBranch = true;
+                break;
+            }
+        }
+        item->setShowBranch(!haveChildOnSameBranch);
     }
 
     // We need to lay out the changesets in forward chronological
