@@ -21,6 +21,7 @@
 #include <QFileInfo>
 #include <QProcessEnvironment>
 #include <QStringList>
+#include <QDir>
 
 #include <sys/types.h>
 
@@ -34,8 +35,14 @@
 
 QString findExecutable(QString name)
 {
+    bool found = false;
     if (name != "") {
         if (name[0] != '/') {
+#ifdef Q_OS_WIN32
+            QChar pathSep = ';';
+#else
+            QChar pathSep = ':';
+#endif
             name = QFileInfo(name).fileName();
             QString path =
                 QProcessEnvironment::systemEnvironment().value("PATH");
@@ -46,22 +53,25 @@ QString findExecutable(QString name)
             DEBUG << "... adding /usr/local/bin just in case (fix and add settings dlg please)"
                     << endl;
 #endif
-#ifdef Q_OS_WIN32
-            QChar pathSep = ';';
-#else
-            QChar pathSep = ':';
-#endif
             QStringList elements = path.split(pathSep, QString::SkipEmptyParts);
             foreach (QString element, elements) {
-                QString full = QString("%1/%2").arg(element).arg(name);
+                QString full = QDir(element).filePath(name);
                 QFileInfo fi(full);
                 if (fi.exists() && fi.isFile() && fi.isExecutable()) {
                     name = full;
+                    found = true;
                     break;
                 }
             }
         }
     }
+#ifdef Q_OS_WIN32
+    if (!found) {
+        if (!name.endsWith(".exe")) {
+            return findExecutable(name + ".exe");
+        }
+    }
+#endif
     return name;
 }
     

@@ -90,10 +90,13 @@ HgRunner::~HgRunner()
 QString HgRunner::getHgBinaryName()
 {
     QSettings settings;
-    QString hg = settings.value("hgbinary", "hg").toString();
-    if (hg == "") hg = "hg";
-    hg = findExecutable(hg);
-    settings.setValue("hgbinary", hg);
+    QString hg = settings.value("hgbinary", "").toString();
+    if (hg == "") {
+        hg = findExecutable("hg");
+    }
+    if (hg != "hg") {
+        settings.setValue("hgbinary", hg);
+    }
     return hg;
 }
 
