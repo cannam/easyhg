@@ -29,9 +29,12 @@
 
 #include <iostream>
 #include <unistd.h>
-#include <pty.h>
 #include <errno.h>
 #include <stdio.h>
+
+#ifndef Q_OS_WIN32
+#include <pty.h>
+#endif
 
 HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
 {
@@ -50,6 +53,7 @@ HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
     stdErr.clear();
 
     procInput = 0;
+#ifndef Q_OS_WIN32
     char name[1024];
     if (openpty(&ptyMasterFd, &ptySlaveFd, name, NULL, NULL)) {
         perror("openpty failed");
@@ -62,7 +66,7 @@ HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
         proc->setStandardInputFile(ptySlaveFilename);
         ::close(ptySlaveFd);
     }
-
+#endif
     connect(proc, SIGNAL(started()), this, SLOT(started()));
     connect(proc, SIGNAL(finished(int, QProcess::ExitStatus)),
             this, SLOT(finished(int, QProcess::ExitStatus)));

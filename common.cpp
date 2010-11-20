@@ -23,7 +23,14 @@
 #include <QStringList>
 
 #include <sys/types.h>
+
+#ifdef Q_OS_WIN32
+#define _WIN32_WINNT 0x0500
+#include <windows.h>
+#include <security.h>
+#else
 #include <pwd.h>
+#endif
 
 QString findExecutable(QString name)
 {
@@ -90,15 +97,20 @@ QString getHgDirName()
 #ifdef Q_OS_WIN32
 QString getUserRealName()
 {
-    const int maxlen = 1023;
-    TCHAR buf[maxlen + 2];
+    TCHAR buf[1024];
+    long unsigned int maxlen = 1000;
     LPTSTR info = buf;
 
-    if (!GetUserNameEx(NameDisplay, info, maxlen)) {
+    if (!GetUserNameEx(NameDisplay, info, &maxlen)) {
+        DEBUG << "GetUserNameEx failed: " << GetLastError() << endl;
         return "";
     }
 
-    return QString::fromUcs2(info);
+#ifdef UNICODE
+    return QString::fromUtf16((const unsigned short *)info);
+#else
+    return QString::fromLocal8Bit(info);
+#endif
 }
 #else
 #ifdef Q_OS_MAC
