@@ -1021,9 +1021,9 @@ void MainWindow::commandCompleted()
                 {
                     case ACT_PATHS:
                     {
-                        QString stdout = runner->getStdOut();
-                        DEBUG << "stdout is " << stdout << endl;
-                        LogParser lp(stdout, "=");
+                        QString sout = runner->getStdOut();
+                        DEBUG << "stdout is " << sout << endl;
+                        LogParser lp(sout, "=");
                         LogList ll = lp.parse();
                         DEBUG << ll.size() << " results" << endl;
                         if (!ll.empty()) {

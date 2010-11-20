@@ -61,7 +61,13 @@ macx-* {
     LIBS += -framework Foundation
 }
 
-LIBS += -lutil
+linux* {
+    LIBS += -lutil
+}
+
+win* {
+    LIBS += -lSecur32
+}
 
 # ! [0]
 RESOURCES = easyhg.qrc
