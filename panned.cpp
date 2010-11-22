@@ -18,7 +18,6 @@
 #include "panned.h"
 
 #include <QScrollBar>
-#include <QGLWidget>
 #include <QWheelEvent>
 
 #include <iostream>
