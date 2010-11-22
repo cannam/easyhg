@@ -711,51 +711,61 @@ void MainWindow::startupDialog()
 
 void MainWindow::open()
 {
-    MultiChoiceDialog *d = new MultiChoiceDialog
-        (tr("Open Repository"),
-         tr("<qt><big>What would you like to open?</big></qt>"),
-         this);
+    bool done = false;
 
-    d->addChoice("remote",
-                 tr("<qt><center><img src=\":images/browser-64.png\"><br>Remote repository</center></qt>"),
-                 tr("Open a remote Mercurial repository, by cloning from its URL into a local folder."),
-                 MultiChoiceDialog::UrlToDirectoryArg);
+    while (!done) {
 
-    d->addChoice("local",
-                 tr("<qt><center><img src=\":images/hglogo-64.png\"><br>Local repository</center></qt>"),
-                 tr("Open an existing local Mercurial repository."),
-                 MultiChoiceDialog::DirectoryArg);
+        MultiChoiceDialog *d = new MultiChoiceDialog
+                               (tr("Open Repository"),
+                                tr("<qt><big>What would you like to open?</big></qt>"),
+                                this);
 
-    d->addChoice("init",
-                 tr("<qt><center><img src=\":images/hdd_unmount-64.png\"><br>File folder</center></qt>"),
-                 tr("Open a local folder, by creating a Mercurial repository in it."),
-                 MultiChoiceDialog::DirectoryArg);
-    
-    d->setCurrentChoice("local");
+        d->addChoice("remote",
+                     tr("<qt><center><img src=\":images/browser-64.png\"><br>Remote repository</center></qt>"),
+                     tr("Open a remote Mercurial repository, by cloning from its URL into a local folder."),
+                     MultiChoiceDialog::UrlToDirectoryArg);
 
-    if (d->exec() == QDialog::Accepted) {
+        d->addChoice("local",
+                     tr("<qt><center><img src=\":images/hglogo-64.png\"><br>Local repository</center></qt>"),
+                     tr("Open an existing local Mercurial repository."),
+                     MultiChoiceDialog::DirectoryArg);
 
-        QString choice = d->getCurrentChoice();
-        QString arg = d->getArgument().trimmed();
+        d->addChoice("init",
+                     tr("<qt><center><img src=\":images/hdd_unmount-64.png\"><br>File folder</center></qt>"),
+                     tr("Open a local folder, by creating a Mercurial repository in it."),
+                     MultiChoiceDialog::DirectoryArg);
 
-        bool result = false;
-    
-        if (choice == "local") {
-            result = openLocal(arg);
-        } else if (choice == "remote") {
-            result = openRemote(arg, d->getAdditionalArgument().trimmed());
-        } else if (choice == "init") {
-            result = openInit(arg);
+        d->setCurrentChoice("local");
+
+        if (d->exec() == QDialog::Accepted) {
+
+            QString choice = d->getCurrentChoice();
+            QString arg = d->getArgument().trimmed();
+
+            bool result = false;
+
+            if (choice == "local") {
+                result = openLocal(arg);
+            } else if (choice == "remote") {
+                result = openRemote(arg, d->getAdditionalArgument().trimmed());
+            } else if (choice == "init") {
+                result = openInit(arg);
+            }
+
+            if (result) {
+                hgExp->clearLists();
+                enableDisableActions();
+                hgPaths();
+                done = true;            }
+
+        } else {
+
+            // cancelled
+            done = true;
         }
 
-        if (result) {
-            hgExp->clearLists();
-            enableDisableActions();
-            hgPaths();
-        }
+        delete d;
     }
-
-    delete d;
 }
 
 bool MainWindow::complainAboutFilePath(QString arg)
@@ -818,7 +828,7 @@ bool MainWindow::askToOpenParentRepo(QString arg, QString parent)
 {
     return (QMessageBox::question
             (this, tr("Path is inside a repository"),
-             tr("<qt><b>Open the repository that contains this path?</b><br><br>You asked to open \"%1\".<br>There is no repository here &mdash; but it is inside a repository, whose root folder is at \"%2\". <br><br>Would you like to open that repository instead?</qt>")
+             tr("<qt><b>Open the repository that contains this path?</b><br><br>You asked to open \"%1\".<br>This is not the root folder of a repository.<br>But it is inside a repository, whose root is at \"%2\". <br><br>Would you like to open that repository instead?</qt>")
              .arg(xmlEncode(arg)).arg(xmlEncode(parent)),
              QMessageBox::Ok | QMessageBox::Cancel,
              QMessageBox::Ok)
@@ -876,6 +886,9 @@ bool MainWindow::openLocal(QString local)
             if (!askToOpenParentRepo(local, containing)) return false;
             local = containing;
         } else {
+            //!!! No -- this is likely to happen far more by accident
+            // than because the user actually wanted to init something.
+            // Don't ask, just politely reject.
             if (!askToInitExisting(local)) return false;
             return openInit(local);
         }

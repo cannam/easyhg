@@ -18,13 +18,12 @@
 #ifndef STATPARSER_H
 #define STATPARSER_H
 
-#include <QObject>
 #include <QStringList>
 
-class StatParser : public QObject
+class StatParser
 {
-    Q_OBJECT
 public:
+    StatParser() { }
     StatParser(QString text);
 
     QStringList modified;

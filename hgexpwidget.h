@@ -20,6 +20,7 @@
 
 #include "changeset.h"
 #include "common.h"
+#include "statparser.h"
 
 #include <QMenu>
 #include <QListWidget>
@@ -27,6 +28,7 @@
 #include <QVBoxLayout>
 #include <QCheckBox>
 #include <QLabel>
+
 
 #define NUM_STAT_FILE_TYPES 7
 
@@ -89,6 +91,8 @@ private:
     QVBoxLayout *historyLayout;
 
     QVBoxLayout *headsLayout;
+
+    StatParser   statParser;
 
     QString     findRev(QString itemText, QString& smallRev);
     QStringList splitChangeSets(QString chgSetsStr);

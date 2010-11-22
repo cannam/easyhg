@@ -228,6 +228,8 @@ unsigned char HgExpWidget::getFileTypesBits()
 
 void HgExpWidget::updateWorkFolderFileList(QString fileList)
 {
+    statParser = StatParser(fileList);
+
     workFolderFileList-> clear();
     workFolderFileList -> addItems(fileList.split("\n"));
 }
