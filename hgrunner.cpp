@@ -42,53 +42,33 @@
 
 HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
 {
-    proc = new QProcess(this);
+    m_proc = new QProcess(this);
 
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     env.insert("LANG", "en_US.utf8");
     env.insert("LC_ALL", "en_US.utf8");
-    proc->setProcessEnvironment(env);
+    m_proc->setProcessEnvironment(env);
+
+    m_proc->setProcessChannelMode(QProcess::MergedChannels);
 
     setTextVisible(false);
     setVisible(false);
-    isRunning = false;
+    m_isRunning = false;
 
-    stdOut.clear();
-    stdErr.clear();
+    m_output.clear();
 
-    procInput = 0;
-#ifndef Q_OS_WIN32
-    char name[1024];
-    if (openpty(&ptyMasterFd, &ptySlaveFd, name, NULL, NULL)) {
-        perror("openpty failed");
-    } else {
-        DEBUG << "openpty succeeded: master " << ptyMasterFd
-                << " slave " << ptySlaveFd << " filename " << name << endl;
-        procInput = new QFile;
-        procInput->open(ptyMasterFd, QFile::WriteOnly);
-        ptySlaveFilename = name;
-        proc->setStandardInputFile(ptySlaveFilename);
-        ::close(ptySlaveFd);
-    }
-#endif
-    connect(proc, SIGNAL(started()), this, SLOT(started()));
-    connect(proc, SIGNAL(finished(int, QProcess::ExitStatus)),
+    connect(m_proc, SIGNAL(started()), this, SLOT(started()));
+    connect(m_proc, SIGNAL(finished(int, QProcess::ExitStatus)),
             this, SLOT(finished(int, QProcess::ExitStatus)));
-    connect(proc, SIGNAL(readyReadStandardOutput()),
-            this, SLOT(stdOutReady()));
-    connect(proc, SIGNAL(readyReadStandardError()),
-            this, SLOT(stdErrReady()));
-
-    reportErrors = false;
+    connect(m_proc, SIGNAL(readyRead()), this, SLOT(dataReady()));
 }
 
 HgRunner::~HgRunner()
 {
-    if (ptySlaveFilename != "") {
-        ::close(ptyMasterFd);
-//        ::close(ptySlaveFd);
+    if (m_ptySlaveFilename != "") {
+        ::close(m_ptyMasterFd);
     }
-    delete proc;
+    delete m_proc;
 }
 
 QString HgRunner::getHgBinaryName()
@@ -117,82 +97,134 @@ void HgRunner::started()
     */
 }
 
-void HgRunner::saveOutput()
-{
-    stdOut += QString::fromUtf8(proc -> readAllStandardOutput());
-    stdErr += QString::fromUtf8(proc -> readAllStandardError());
-
-    DEBUG << "saveOutput: " << stdOut.split("\n").size() << " line(s) of stdout, " << stdErr.split("\n").size() << " line(s) of stderr" << endl;
-
-//    std::cerr << "stdout was " << stdOut.toStdString() << std::endl;
-}
-
 void HgRunner::setProcExitInfo(int procExitCode, QProcess::ExitStatus procExitStatus)
 {
-    exitCode = procExitCode;
-    exitStatus = procExitStatus;
+    m_exitCode = procExitCode;
+    m_exitStatus = procExitStatus;
 }
 
 QString HgRunner::getLastCommandLine()
 {
-    return QString("Command line: " + lastHgCommand + " " + lastParams);
+    return QString("Command line: " + m_lastHgCommand + " " + m_lastParams);
 }
 
-void HgRunner::stdOutReady()
+void HgRunner::noteUsername(QString name)
 {
-    DEBUG << "stdOutReady" << endl;
-    QString chunk = QString::fromUtf8(proc->readAllStandardOutput());
-    //DEBUG << "stdout was " << chunk << endl;
-    stdOut += chunk;
+    m_userName = name;
 }
 
-void HgRunner::stdErrReady()
+void HgRunner::noteRealm(QString realm)
 {
-    DEBUG << "stdErrReady" << endl;
-    QString chunk = QString::fromUtf8(proc->readAllStandardError());
-    //DEBUG << "stderr was " << chunk << endl;
-    stdErr += chunk;
-    if (procInput) {
-        if (chunk.toLower().trimmed() == "password:") {
-            bool ok = false;
-            QString pwd = QInputDialog::getText
-                (qobject_cast<QWidget *>(parent()),
-                 tr("Enter password"), tr("Password (but for what user name and repository??"),
-                 QLineEdit::Password, QString(), &ok);
-            if (ok) {
-                procInput->write(QString("%1\n").arg(pwd).toUtf8());
-                procInput->flush();
-            } else {
-                //!!! do what? close the terminal?
-            }
+    m_realm = realm;
+}
+
+void HgRunner::getUsername()
+{
+    if (m_procInput) {
+        bool ok = false;
+        QString prompt = tr("User name:");
+        if (m_realm != "") {
+            prompt = tr("User name for \"%1\":").arg(m_realm);
+        }
+        QString pwd = QInputDialog::getText
+            (qobject_cast<QWidget *>(parent()),
+            tr("Enter user name"), prompt,
+            QLineEdit::Normal, QString(), &ok);
+        if (ok) {
+            m_procInput->write(QString("%1\n").arg(pwd).toUtf8());
+            m_procInput->flush();
+            return;
         }
     }
+    // user cancelled or something went wrong
+    killCurrentCommand();
+}
+
+void HgRunner::getPassword()
+{
+    if (m_procInput) {
+        bool ok = false;
+        QString prompt = tr("Password:");
+        if (m_userName != "") {
+            if (m_realm != "") {
+                prompt = tr("Password for \"%1\" at \"%2\":")
+                         .arg(m_userName).arg(m_realm);
+            } else {
+                prompt = tr("Password for user \"%1\":")
+                         .arg(m_userName);
+            }
+        }
+        QString pwd = QInputDialog::getText
+            (qobject_cast<QWidget *>(parent()),
+            tr("Enter password"), prompt,
+             QLineEdit::Password, QString(), &ok);
+        if (ok) {
+            m_procInput->write(QString("%1\n").arg(pwd).toUtf8());
+            m_procInput->flush();
+            return;
+        }
+    }
+    // user cancelled or something went wrong
+    killCurrentCommand();
+}
+
+void HgRunner::checkPrompts(QString chunk)
+{
+    DEBUG << "checkPrompts: " << chunk << endl;
+
+    QString text = chunk.trimmed();
+    QString lower = text.toLower();
+    if (lower.endsWith("password:")) {
+        getPassword();
+        return;
+    }
+    if (lower.endsWith("user:")) {
+        getUsername();
+        return;
+    }
+    QRegExp userRe("\\buser:\\s*([^\\s]+)");
+    if (userRe.indexIn(text) >= 0) {
+        noteUsername(userRe.cap(1));
+    }
+    QRegExp realmRe("\\brealmr:\\s*([^\\s]+)");
+    if (realmRe.indexIn(text) >= 0) {
+        noteRealm(realmRe.cap(1));
+    }
+}
+
+void HgRunner::dataReady()
+{
+    DEBUG << "dataReady" << endl;
+    QString chunk = QString::fromUtf8(m_proc->readAll());
+    m_output += chunk;
+    checkPrompts(chunk);
 }
 
 void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
 {
     setProcExitInfo(procExitCode, procExitStatus);
-    saveOutput();
-    isRunning = false;
+    m_isRunning = false;
+
+    closeProcInput();
 
     if (procExitCode == 0 && procExitStatus == QProcess::NormalExit) {
-        DEBUG << "HgRunner::finished: Command completed successfully: stderr says: " << stdErr << endl;
+        DEBUG << "HgRunner::finished: Command completed successfully" << endl;
         emit commandCompleted();
     } else {
-        DEBUG << "HgRunner::finished: Command failed: stderr says: " << stdErr << endl;
+        DEBUG << "HgRunner::finished: Command failed" << endl;
         emit commandFailed();
     }
 }
 
 bool HgRunner::isCommandRunning()
 {
-    return isRunning;
+    return m_isRunning;
 }
 
 void HgRunner::killCurrentCommand()
 {
     if (isCommandRunning()) {
-        proc -> kill();
+        m_proc -> kill();
     }
 }
 
@@ -203,38 +235,67 @@ void HgRunner::startHgCommand(QString workingDir, QStringList params)
 
 void HgRunner::startCommand(QString command, QString workingDir, QStringList params)
 {
-    isRunning = true;
+    m_isRunning = true;
     setRange(0, 0);
     setVisible(true);
-    stdOut.clear();
-    stdErr.clear();
-    exitCode = 0;
-    exitStatus = QProcess::NormalExit;
+    m_output.clear();
+    m_exitCode = 0;
+    m_exitStatus = QProcess::NormalExit;
+    m_realm = "";
+    m_userName = "";
 
-    if (!workingDir.isEmpty())
-    {
-        proc -> setWorkingDirectory(workingDir);
+    if (!workingDir.isEmpty()) {
+        m_proc->setWorkingDirectory(workingDir);
     }
 
-    lastHgCommand = command;
-    lastParams = params.join(" ");
+    m_procInput = 0;
+#ifndef Q_OS_WIN32
+    char name[1024];
+    if (openpty(&m_ptyMasterFd, &m_ptySlaveFd, name, NULL, NULL)) {
+        perror("openpty failed");
+    } else {
+        DEBUG << "openpty succeeded: master " << m_ptyMasterFd
+                << " slave " << m_ptySlaveFd << " filename " << name << endl;
+        m_procInput = new QFile;
+        m_procInput->open(m_ptyMasterFd, QFile::WriteOnly);
+        m_ptySlaveFilename = name;
+        m_proc->setStandardInputFile(m_ptySlaveFilename);
+        ::close(m_ptySlaveFd);
+    }
+#endif
+
+    m_lastHgCommand = command;
+    m_lastParams = params.join(" ");
 
     QString cmdline = command;
     foreach (QString param, params) cmdline += " " + param;
     DEBUG << "HgRunner: starting: " << cmdline << " with cwd "
           << workingDir << endl;
 
-    proc -> start(command, params);
+    m_proc->start(command, params);
+}
+
+void HgRunner::closeProcInput()
+{
+    DEBUG << "closeProcInput" << endl;
+
+    m_proc->closeWriteChannel();
+#ifndef Q_OS_WIN32
+    if (m_ptySlaveFilename != "") {
+        ::close(m_ptyMasterFd);
+        m_ptySlaveFilename = "";
+    }
+#endif
 }
 
 int HgRunner::getExitCode()
 {
-    return exitCode;
+    return m_exitCode;
 }
 
-QString HgRunner::getStdOut()
+QString HgRunner::getOutput()
 {
-    return stdOut;
+    return m_output;
 }
 
 void HgRunner::hideProgBar()

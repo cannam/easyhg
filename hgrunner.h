@@ -43,39 +43,45 @@ public:
 
     void hideProgBar();
 
-    QString getStdOut();
+    QString getOutput();
     
 signals:
     void commandCompleted();
     void commandFailed();
 
 private:
-    void saveOutput();
     void setProcExitInfo(int procExitCode, QProcess::ExitStatus procExitStatus);
     QString getLastCommandLine();
     void presentErrorToUser();
     QString getHgBinaryName();
+    void closeProcInput();
 
-    int ptyMasterFd;
-    int ptySlaveFd;
-    QString ptySlaveFilename;
-    QFile *procInput;
+    void noteUsername(QString);
+    void noteRealm(QString);
+    void getUsername();
+    void getPassword();
+    void checkPrompts(QString);
+
+    int m_ptyMasterFd;
+    int m_ptySlaveFd;
+    QString m_ptySlaveFilename;
+    QFile *m_procInput;
     
-    bool                    reportErrors;
-    bool                    isRunning;
-    QProcess                *proc;
-    QString                 stdOut;
-    QString                 stdErr;
-    int                     exitCode;
-    QProcess::ExitStatus    exitStatus;
-    QString                 lastHgCommand;
-    QString                 lastParams;
+    bool m_isRunning;
+    QProcess *m_proc;
+    QString m_output;
+    int m_exitCode;
+    QProcess::ExitStatus m_exitStatus;
+    QString m_lastHgCommand;
+    QString m_lastParams;
+
+    QString m_userName;
+    QString m_realm;
 
 private slots:
     void started();
     void finished(int procExitCode, QProcess::ExitStatus procExitStatus);
-    void stdOutReady();
-    void stdErrReady();
+    void dataReady();
 };
 
 #endif // HGRUNNER_H

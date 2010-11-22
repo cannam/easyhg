@@ -603,6 +603,7 @@ void MainWindow::hgInit()
         QStringList params;
 
         params << "init";
+        params << workFolderPath;
 
         runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_INIT;
@@ -761,7 +762,7 @@ bool MainWindow::complainAboutFilePath(QString arg)
 {    
     QMessageBox::critical
         (this, tr("File chosen"),
-         tr("<qt><b>File chosen<b><br>The selected path (%1) is a file, not a folder as expected</qt>").arg(xmlEncode(arg)));
+         tr("<qt><b>Folder required</b><br><br>You asked to open \"%1\".<br>This is a file; to open a repository, you need to choose a folder.</qt>").arg(xmlEncode(arg)));
     return false;
 }
 
@@ -769,15 +770,55 @@ bool MainWindow::complainAboutUnknownFolder(QString arg)
 {    
     QMessageBox::critical
         (this, tr("Folder does not exist"),
-         tr("<qt><b>Folder does not exist<b><br>The selected path (%1) does not exist, and nor does its parent</qt>").arg(xmlEncode(arg)));
+         tr("<qt><b>Folder does not exist</b><br><br>You asked to open \"%1\".<br>This folder does not exist, and it cannot be created because its parent does not exist either.</qt>").arg(xmlEncode(arg)));
+    return false;
+}
+
+bool MainWindow::complainAboutInitInRepo(QString arg)
+{
+    QMessageBox::critical
+        (this, tr("Path is in existing repository"),
+         tr("<qt><b>Path is in an existing repository</b><br><br>You asked to initialise a repository at \"%1\".<br>This path is already inside an existing repository.</qt>").arg(xmlEncode(arg)));
+    return false;
+}
+
+bool MainWindow::complainAboutInitFile(QString arg)
+{
+    QMessageBox::critical
+        (this, tr("Path is a file"),
+         tr("<qt><b>Path is a file</b><br><br>You asked to initialise a repository at \"%1\".<br>This is an existing file; it is only possible to initialise in folders.</qt>").arg(xmlEncode(arg)));
+    return false;
+}
+
+bool MainWindow::complainAboutCloneToExisting(QString arg)
+{
+    QMessageBox::critical
+        (this, tr("Path is in existing repository"),
+         tr("<qt><b>Local path is in an existing repository</b><br><br>You asked to open a remote repository by cloning it to the local path \"%1\".<br>This path is already inside an existing repository.<br>Please provide a new folder name for the local repository.</qt>").arg(xmlEncode(arg)));
+    return false;
+}
+
+bool MainWindow::complainAboutCloneToFile(QString arg)
+{
+    QMessageBox::critical
+        (this, tr("Path is a file"),
+         tr("<qt><b>Local path is a file</b><br><br>You asked to open a remote repository by cloning it to the local path \"%1\".<br>This path is an existing file.<br>Please provide a new folder name for the local repository.</qt>").arg(xmlEncode(arg)));
+    return false;
+}
+
+bool MainWindow::complainAboutCloneToExistingFolder(QString arg)
+{
+    QMessageBox::critical
+        (this, tr("Folder exists"),
+         tr("<qt><b>Local folder already exists</b><br><br>You asked to open a remote repository by cloning it to the local path \"%1\".<br>This is the path of an existing folder.<br>Please provide a new folder name for the local repository.</qt>").arg(xmlEncode(arg)));
     return false;
 }
 
 bool MainWindow::askToOpenParentRepo(QString arg, QString parent)
 {
     return (QMessageBox::question
-            (this, tr("Open containing repository?"),
-             tr("<qt><b>Open containing repository?</b><br>The selected path (%1) is located inside an existing repository (at %2).<br>Would you like to open that repository instead?</qt>")
+            (this, tr("Path is inside a repository"),
+             tr("<qt><b>Open the repository that contains this path?</b><br><br>You asked to open \"%1\".<br>There is no repository here &mdash; but it is inside a repository, whose root folder is at \"%2\". <br><br>Would you like to open that repository instead?</qt>")
              .arg(xmlEncode(arg)).arg(xmlEncode(parent)),
              QMessageBox::Ok | QMessageBox::Cancel,
              QMessageBox::Ok)
@@ -787,8 +828,8 @@ bool MainWindow::askToOpenParentRepo(QString arg, QString parent)
 bool MainWindow::askToInitExisting(QString arg)
 {
     return (QMessageBox::question
-            (this, tr("Initialise repository?"),
-             tr("<qt><b>Initialise repository?</b><br>The selected folder (%1) does not contain a Mercurial repository.  Would you like to initialise a repository here?</qt>")
+            (this, tr("Folder has no repository"),
+             tr("<qt><b>Initialise a repository here?</b><br><br>You asked to open \"%1\".<br>This folder does not contain a Mercurial repository.<br><br>Would you like to initialise a repository here?</qt>")
              .arg(xmlEncode(arg)),
              QMessageBox::Ok | QMessageBox::Cancel,
              QMessageBox::Ok)
@@ -798,8 +839,19 @@ bool MainWindow::askToInitExisting(QString arg)
 bool MainWindow::askToInitNew(QString arg)
 {
     return (QMessageBox::question
-            (this, tr("Initialise new repository?"),
-             tr("<qt><b>Initialise new repository?</b><br>The selected folder (%1) does not exist, but its parent does.  Would you like to initialise a new empty repository in the selected folder?</qt>")
+            (this, tr("Folder does not exist"),
+             tr("<qt><b>Initialise a new repository?</b><br><br>You asked to open \"%1\".<br>This folder does not yet exist.<br><br>Would you like to create the folder and initialise a new empty repository in it?</qt>")
+             .arg(xmlEncode(arg)),
+             QMessageBox::Ok | QMessageBox::Cancel,
+             QMessageBox::Ok)
+            == QMessageBox::Ok);
+}
+
+bool MainWindow::askToOpenInsteadOfInit(QString arg)
+{
+    return (QMessageBox::question
+            (this, tr("Repository exists"),
+             tr("<qt><b>Open existing repository?</b><br><br>You asked to initialise a new repository at \"%1\".<br>This folder already contains a repository.  Would you like to open it?</qt>")
              .arg(xmlEncode(arg)),
              QMessageBox::Ok | QMessageBox::Cancel,
              QMessageBox::Ok)
@@ -822,6 +874,7 @@ bool MainWindow::openLocal(QString local)
     case FolderExists:
         if (containing != "") {
             if (!askToOpenParentRepo(local, containing)) return false;
+            local = containing;
         } else {
             if (!askToInitExisting(local)) return false;
             return openInit(local);
@@ -831,6 +884,7 @@ bool MainWindow::openLocal(QString local)
     case FolderParentExists:
         if (containing != "") {
             if (!askToOpenParentRepo(local, containing)) return false;
+            local = containing;
         } else {
             if (!askToInitNew(local)) return false;
             return openInit(local);
@@ -838,7 +892,13 @@ bool MainWindow::openLocal(QString local)
         break;
 
     case FolderUnknown:
-        return complainAboutUnknownFolder(local);
+        if (containing != "") {
+            if (!askToOpenParentRepo(local, containing)) return false;
+            local = containing;
+        } else {
+            return complainAboutUnknownFolder(local);
+        }
+        break;
         
     case FolderIsFile:
         return complainAboutFilePath(local);
@@ -852,12 +912,64 @@ bool MainWindow::openLocal(QString local)
 bool MainWindow::openRemote(QString remote, QString local)
 {
     DEBUG << "clone " << remote << " to " << local << endl;
-    //!!! check that work folder does not exist, append to it if it does
+
+    FolderStatus status = getFolderStatus(local);
+    QString containing = getContainingRepoFolder(local);
+
+    DEBUG << "status = " << status << ", containing = " << containing << endl;
+
+    if (status == FolderHasRepo || containing != "") {
+        return complainAboutCloneToExisting(local);
+    }
+
+    if (status == FolderIsFile) {
+        return complainAboutCloneToFile(local);
+    }
+
+    if (status == FolderUnknown) {
+        return complainAboutUnknownFolder(local);
+    }
+
+    if (status == FolderExists) {
+        //!!! we can do better than this surely?
+        return complainAboutCloneToExistingFolder(local);
+    }
+
+    workFolderPath = local;
+    remoteRepoPath = remote;
+    hgCloneFromRemote();
+
     return true;
 }
 
-bool MainWindow::openInit(QString arg)
+bool MainWindow::openInit(QString local)
 {
+    DEBUG << "openInit " << local << endl;
+
+    FolderStatus status = getFolderStatus(local);
+    QString containing = getContainingRepoFolder(local);
+
+    DEBUG << "status = " << status << ", containing = " << containing << endl;
+
+    if (status == FolderHasRepo) {
+        if (!askToOpenInsteadOfInit(local)) return false;
+    }
+
+    if (containing != "") {
+        return complainAboutInitInRepo(local);
+    }
+
+    if (status == FolderIsFile) {
+        return complainAboutInitFile(local);
+    }
+
+    if (status == FolderUnknown) {
+        return complainAboutUnknownFolder(local);
+    }
+
+    workFolderPath = local;
+    remoteRepoPath = "";
+    hgInit();
     return true;
 }
 
@@ -1125,7 +1237,7 @@ void MainWindow::commandCompleted()
                 {
                     case ACT_PATHS:
                     {
-                        QString sout = runner->getStdOut();
+                        QString sout = runner->getOutput();
                         DEBUG << "stdout is " << sout << endl;
                         LogParser lp(sout, "=");
                         LogList ll = lp.parse();
@@ -1141,24 +1253,24 @@ void MainWindow::commandCompleted()
                     }
 
                     case ACT_STAT:
-                        hgExp -> updateWorkFolderFileList(runner -> getStdOut());
+                        hgExp -> updateWorkFolderFileList(runner -> getOutput());
                         break;
 
                     case ACT_INCOMING:
                     case ACT_ANNOTATE:
                     case ACT_RESOLVE_LIST:
                     case ACT_RESOLVE_MARK:
-                        presentLongStdoutToUser(runner -> getStdOut());
+                        presentLongStdoutToUser(runner -> getOutput());
                         shouldHgStat = true;
                         break;
 
                     case ACT_PULL:
-                        QMessageBox::information(this, "Pull", runner -> getStdOut());
+                        QMessageBox::information(this, "Pull", runner -> getOutput());
                         shouldHgStat = true;
                         break;
 
                     case ACT_PUSH:
-                        QMessageBox::information(this, "Push", runner -> getStdOut());
+                        QMessageBox::information(this, "Push", runner -> getOutput());
                         shouldHgStat = true;
                         break;
 
@@ -1173,26 +1285,26 @@ void MainWindow::commandCompleted()
                         MultiChoiceDialog::addRecentArgument("local", workFolderPath);
                         MultiChoiceDialog::addRecentArgument("remote", remoteRepoPath);
                         MultiChoiceDialog::addRecentArgument("remote", workFolderPath, true);
-                        QMessageBox::information(this, "Clone", runner -> getStdOut());
+                        QMessageBox::information(this, "Clone", runner -> getOutput());
                         enableDisableActions();
                         shouldHgStat = true;
                         break;
 
                     case ACT_LOG:
                         {
-                            hgExp -> updateLocalRepoHgLogList(runner -> getStdOut());
+                            hgExp -> updateLocalRepoHgLogList(runner -> getOutput());
                         }
                         break;
 
                     case ACT_PARENTS:
                         {
-                            hgExp -> updateLocalRepoParentsList(runner -> getStdOut());
+                            hgExp -> updateLocalRepoParentsList(runner -> getOutput());
                         }
                         break;
 
                     case ACT_HEADS:
                         {
-                            QString stdOut = runner -> getStdOut();
+                            QString stdOut = runner -> getOutput();
                             hgExp -> updateLocalRepoHeadsList(stdOut);
                         }
                         break;
@@ -1211,12 +1323,12 @@ void MainWindow::commandCompleted()
                         break;
 
                     case ACT_UPDATE:
-                        QMessageBox::information(this, tr("Update"), runner -> getStdOut());
+                        QMessageBox::information(this, tr("Update"), runner -> getOutput());
                         shouldHgStat = true;
                         break;
 
                     case ACT_MERGE:
-                        QMessageBox::information(this, tr("Merge"), runner -> getStdOut());
+                        QMessageBox::information(this, tr("Merge"), runner -> getOutput());
                         shouldHgStat = true;
                         justMerged = true;
                         break;
