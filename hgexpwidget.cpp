@@ -282,10 +282,10 @@ void HgExpWidget::updateLocalRepoHgLogList(QString hgLogList)
     } catch (std::string s) {
 	std::cerr << "Internal error: Layout failed: " << s << std::endl;
     }
-    panned->scene()->deleteLater();
+    QGraphicsScene *oldScene = panned->scene();
     panned->setScene(scene);
-    panner->scene()->deleteLater();
     panner->setScene(scene);
+    if (oldScene) delete oldScene;
     ChangesetItem *tipItem = g.getItemFor(csets[0]);
     if (tipItem) tipItem->ensureVisible();
 }
