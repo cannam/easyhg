@@ -18,12 +18,18 @@
 #include <QApplication>
 
 #include "mainwindow.h"
+#include "common.h"
+#include "debug.h"
 
 int main(int argc, char *argv[])
 {
     QApplication::setOrganizationName("easymercurial");
     QApplication::setOrganizationDomain("easymercurial.org");
     QApplication::setApplicationName(QApplication::tr("EasyMercurial"));
+
+    // Lose our controlling terminal (so we can provide a new pty to
+    // capture password requests)
+    loseControllingTerminal();
 
     QApplication app(argc, argv);
     MainWindow mainWin;

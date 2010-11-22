@@ -48,6 +48,8 @@ extern QString getHgDirName();
 
 extern QString getUserRealName();
 
+extern void loseControllingTerminal();
+
 #endif 	//COMMON_H
 
 
