@@ -184,6 +184,9 @@ void loseControllingTerminal()
 
 FolderStatus getFolderStatus(QString path)
 {
+    if (path != "/" && path.endsWith("/")) {
+        path = path.left(path.length()-1);
+    }
     DEBUG << "getFolderStatus: " << path << endl;
     QFileInfo fi(path);
     if (fi.exists()) {
