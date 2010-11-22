@@ -30,7 +30,9 @@
 #include <windows.h>
 #include <security.h>
 #else
+#include <errno.h>
 #include <pwd.h>
+#include <unistd.h>
 #endif
 
 QString findExecutable(QString name)
@@ -143,3 +145,35 @@ QString getUserRealName()
 #endif
 #endif
 
+void loseControllingTerminal()
+{
+#ifndef Q_OS_WIN32
+    pid_t sid;
+    switch (fork()) {
+    case 0:
+        sid = setsid();
+        if (sid != (pid_t)-1) {
+            DEBUG << "setsid() succeeded, session ID is " << sid << endl;
+        } else {
+            perror("setsid failed");
+            DEBUG << "setsid() failed (errno = " << errno << ")" << endl;
+        }
+        switch (fork()) {
+        case 0:
+            return;
+        case -1:
+            perror("fork failed");
+            DEBUG << "second fork failed (errno = " << errno << ")" << endl;
+            return;
+        default:
+            exit(0);
+        }
+    case -1:
+        perror("fork failed");
+        DEBUG << "fork failed (errno = " << errno << ")" << endl;
+        return;
+    default:
+        exit(0);
+    }
+#endif
+}
