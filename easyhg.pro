@@ -75,4 +75,4 @@ win32 {
     RC_FILE = easyhg.rc
 }
 
-QT += network opengl
+QT += network
