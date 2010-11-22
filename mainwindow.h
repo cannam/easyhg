@@ -141,6 +141,16 @@ private:
 
     QString getUserInfo() const;
 
+    bool openLocal(QString);
+    bool openRemote(QString, QString);
+    bool openInit(QString);
+
+    bool complainAboutFilePath(QString);
+    bool complainAboutUnknownFolder(QString);
+    bool askToInitExisting(QString);
+    bool askToInitNew(QString);
+    bool askToOpenParentRepo(QString, QString);
+
     bool firstStart;
 
     //Actions enabled flags

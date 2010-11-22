@@ -50,6 +50,34 @@ extern QString getUserRealName();
 
 extern void loseControllingTerminal();
 
+/**
+ * Status used in testing whether a folder argument (received from the
+ * user) is valid for particular uses.
+ */
+enum FolderStatus {
+    FolderUnknown,      /// Neither the folder nor its parent exists
+    FolderParentExists, /// The folder is absent, but its parent exists
+    FolderExists,       /// The folder exists and has no .hg repo in it
+    FolderHasRepo,      /// The folder exists and has an .hg repo in it
+    FolderIsFile        /// The "folder" is actually a file
+};
+
+FolderStatus getFolderStatus(QString path);
+
+/**
+ * If the given path is somewhere within an existing repository,
+ * return the path of the root directory of the repository (i.e. the
+ * one with .hg in it).
+ *
+ * If the given path is _not_ in a repository, or the given path _is_
+ * the root directory of a repository, return QString().  Use
+ * getFolderStatus to distinguish between these cases.
+ */
+QString getContainingRepoFolder(QString path);
+
+QString xmlEncode(QString);
+    
+
 #endif 	//COMMON_H
 
 
