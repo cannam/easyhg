@@ -736,25 +736,129 @@ void MainWindow::open()
 
         QString choice = d->getCurrentChoice();
         QString arg = d->getArgument().trimmed();
+
+        bool result = false;
     
         if (choice == "local") {
-            DEBUG << "open " << arg << endl;
-            workFolderPath = arg;
-            remoteRepoPath = "";
+            result = openLocal(arg);
         } else if (choice == "remote") {
-            DEBUG << "clone " << arg << " to " << d->getAdditionalArgument().trimmed() << endl;
-            //!!! check that work folder does not exist, append to it if it does
+            result = openRemote(arg, d->getAdditionalArgument().trimmed());
         } else if (choice == "init") {
-            DEBUG << "init " << arg << endl;
-            //!!!
+            result = openInit(arg);
         }
-        
-        hgExp->clearLists();
-        enableDisableActions();
-        hgPaths();
+
+        if (result) {
+            hgExp->clearLists();
+            enableDisableActions();
+            hgPaths();
+        }
     }
 
     delete d;
+}
+
+bool MainWindow::complainAboutFilePath(QString arg)
+{    
+    QMessageBox::critical
+        (this, tr("File chosen"),
+         tr("<qt><b>File chosen<b><br>The selected path (%1) is a file, not a folder as expected</qt>").arg(xmlEncode(arg)));
+    return false;
+}
+
+bool MainWindow::complainAboutUnknownFolder(QString arg)
+{    
+    QMessageBox::critical
+        (this, tr("Folder does not exist"),
+         tr("<qt><b>Folder does not exist<b><br>The selected path (%1) does not exist, and nor does its parent</qt>").arg(xmlEncode(arg)));
+    return false;
+}
+
+bool MainWindow::askToOpenParentRepo(QString arg, QString parent)
+{
+    return (QMessageBox::question
+            (this, tr("Open containing repository?"),
+             tr("<qt><b>Open containing repository?</b><br>The selected path (%1) is located inside an existing repository (at %2).<br>Would you like to open that repository instead?</qt>")
+             .arg(xmlEncode(arg)).arg(xmlEncode(parent)),
+             QMessageBox::Ok | QMessageBox::Cancel,
+             QMessageBox::Ok)
+            == QMessageBox::Ok);
+}
+
+bool MainWindow::askToInitExisting(QString arg)
+{
+    return (QMessageBox::question
+            (this, tr("Initialise repository?"),
+             tr("<qt><b>Initialise repository?</b><br>The selected folder (%1) does not contain a Mercurial repository.  Would you like to initialise a repository here?</qt>")
+             .arg(xmlEncode(arg)),
+             QMessageBox::Ok | QMessageBox::Cancel,
+             QMessageBox::Ok)
+            == QMessageBox::Ok);
+}
+
+bool MainWindow::askToInitNew(QString arg)
+{
+    return (QMessageBox::question
+            (this, tr("Initialise new repository?"),
+             tr("<qt><b>Initialise new repository?</b><br>The selected folder (%1) does not exist, but its parent does.  Would you like to initialise a new empty repository in the selected folder?</qt>")
+             .arg(xmlEncode(arg)),
+             QMessageBox::Ok | QMessageBox::Cancel,
+             QMessageBox::Ok)
+            == QMessageBox::Ok);
+}
+
+bool MainWindow::openLocal(QString local)
+{
+    DEBUG << "open " << local << endl;
+
+    FolderStatus status = getFolderStatus(local);
+    QString containing = getContainingRepoFolder(local);
+
+    switch (status) {
+
+    case FolderHasRepo:
+        // fine
+        break;
+
+    case FolderExists:
+        if (containing != "") {
+            if (!askToOpenParentRepo(local, containing)) return false;
+        } else {
+            if (!askToInitExisting(local)) return false;
+            return openInit(local);
+        }
+        break;
+
+    case FolderParentExists:
+        if (containing != "") {
+            if (!askToOpenParentRepo(local, containing)) return false;
+        } else {
+            if (!askToInitNew(local)) return false;
+            return openInit(local);
+        }
+        break;
+
+    case FolderUnknown:
+        return complainAboutUnknownFolder(local);
+        
+    case FolderIsFile:
+        return complainAboutFilePath(local);
+    }
+
+    workFolderPath = local;
+    remoteRepoPath = "";
+    return true;
+}    
+
+bool MainWindow::openRemote(QString remote, QString local)
+{
+    DEBUG << "clone " << remote << " to " << local << endl;
+    //!!! check that work folder does not exist, append to it if it does
+    return true;
+}
+
+bool MainWindow::openInit(QString arg)
+{
+    return true;
 }
 
 void MainWindow::settings()
@@ -996,7 +1100,7 @@ void MainWindow::commandFailed()
     runningAction = ACT_NONE;
     runner -> hideProgBar();
 
-    //!!! N.B hg incoming returns failure even if successful, if there were no changes
+    //!!! N.B hg incoming returns 1 even if successful, if there were no changes
 }
 
 void MainWindow::commandCompleted()

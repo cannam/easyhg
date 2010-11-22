@@ -202,6 +202,7 @@ MultiChoiceDialog::browse()
 void
 MultiChoiceDialog::urlChanged(const QString &s)
 {
+/* This doesn't work well
     if (m_argTypes[m_currentChoice] != UrlToDirectoryArg) {
         return;
     }
@@ -214,11 +215,18 @@ MultiChoiceDialog::urlChanged(const QString &s)
         return;
     }
     QString urlDirName = url;
-    urlDirName.replace(QRegExp("^.*//.*/"), "");
+    urlDirName.replace(QRegExp("^.*\\//.*\\/"), "");
     if (urlDirName == "" || urlDirName == url) {
         return;
     }
     m_fileCombo->lineEdit()->setText(dirPath.filePath(urlDirName));
+*/
+    if (m_argTypes[m_currentChoice] == UrlToDirectoryArg) {
+        m_okButton->setEnabled(getArgument() != "" &&
+                               getAdditionalArgument() != "");
+    } else {
+        m_okButton->setEnabled(getArgument() != "");
+    }
 }
 
 void

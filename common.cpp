@@ -177,3 +177,55 @@ void loseControllingTerminal()
     }
 #endif
 }
+
+FolderStatus getFolderStatus(QString path)
+{
+    QFileInfo fi(path);
+    if (fi.exists()) {
+        QDir dir(path);
+        if (!dir.exists()) { // returns false for files
+            return FolderIsFile;
+        }
+        if (QDir(dir.filePath(".hg")).exists()) {
+            return FolderHasRepo;
+        }
+        return FolderExists;
+    } else {
+        QDir parent = fi.dir();
+        if (parent.exists()) {
+            return FolderParentExists;
+        }
+        return FolderUnknown;
+    }
+}
+
+QString getContainingRepoFolder(QString path)
+{
+    if (getFolderStatus(path) == FolderHasRepo) return "";
+
+    QFileInfo me(path);
+    QFileInfo parent(me.dir().absolutePath());
+
+    while (me != parent) {
+        QString parentPath = parent.filePath();
+        if (getFolderStatus(parentPath) == FolderHasRepo) {
+            return parentPath;
+        }
+        me = parent;
+        parent = me.dir().absolutePath();
+    }
+
+    return "";
+}
+
+QString xmlEncode(QString s)
+{
+    s
+	.replace("&", "&amp;")
+	.replace("<", "&lt;")
+	.replace(">", "&gt;")
+	.replace("\"", "&quot;")
+	.replace("'", "&apos;");
+
+    return s;
+}
