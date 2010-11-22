@@ -159,11 +159,11 @@ void loseControllingTerminal()
         DEBUG << "stdin is a terminal, detaching from it" << endl;
         if (ioctl(0, TIOCNOTTY, NULL) < 0) {
             perror("ioctl failed");
-            DEBUG << "ioctl for TIOCNOTTY failed (errno = " << errno << ")" << endl;
+            DEBUG << "ioctl for TIOCNOTTY on stdin failed (errno = " << errno << ")" << endl;
         } else {
-            DEBUG << "ioctl for TIOCNOTTY succeeded" << endl;
+            DEBUG << "ioctl for TIOCNOTTY on stdin succeeded" << endl;
+	    return;
         }
-        return;
     }
 
     int ttyfd = open("/dev/tty", O_RDWR);
@@ -172,11 +172,11 @@ void loseControllingTerminal()
     } else {
         if (ioctl(ttyfd, TIOCNOTTY, NULL) < 0) {
             perror("ioctl failed");
-            DEBUG << "ioctl for TIOCNOTTY failed (errno = " << errno << ")" << endl;
+            DEBUG << "ioctl for TIOCNOTTY on controlling terminal failed (errno = " << errno << ")" << endl;
         } else {
-            DEBUG << "ioctl for TIOCNOTTY succeeded" << endl;
+            DEBUG << "ioctl for TIOCNOTTY on controlling terminal succeeded" << endl;
+	    return;
         }
-        return;
     }
 
 #endif
