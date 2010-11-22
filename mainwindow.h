@@ -147,9 +147,16 @@ private:
 
     bool complainAboutFilePath(QString);
     bool complainAboutUnknownFolder(QString);
+    bool complainAboutInitInRepo(QString);
+    bool complainAboutInitFile(QString);
+    bool complainAboutCloneToExisting(QString);
+    bool complainAboutCloneToFile(QString);
+    bool complainAboutCloneToExistingFolder(QString); //!!! not sure about this one
+
     bool askToInitExisting(QString);
     bool askToInitNew(QString);
     bool askToOpenParentRepo(QString, QString);
+    bool askToOpenInsteadOfInit(QString);
 
     bool firstStart;
 

@@ -184,19 +184,24 @@ void loseControllingTerminal()
 
 FolderStatus getFolderStatus(QString path)
 {
+    DEBUG << "getFolderStatus: " << path << endl;
     QFileInfo fi(path);
     if (fi.exists()) {
+        DEBUG << "exists" << endl;
         QDir dir(path);
         if (!dir.exists()) { // returns false for files
+            DEBUG << "not directory" << endl;
             return FolderIsFile;
         }
         if (QDir(dir.filePath(".hg")).exists()) {
+            DEBUG << "has repo" << endl;
             return FolderHasRepo;
         }
         return FolderExists;
     } else {
         QDir parent = fi.dir();
         if (parent.exists()) {
+            DEBUG << "parent exists" << endl;
             return FolderParentExists;
         }
         return FolderUnknown;
