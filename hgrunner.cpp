@@ -33,7 +33,11 @@
 #include <stdio.h>
 
 #ifndef Q_OS_WIN32
+#ifdef Q_OS_MAC
+#include <util.h>
+#else
 #include <pty.h>
+#endif
 #endif
 
 HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
@@ -138,7 +142,7 @@ void HgRunner::stdOutReady()
 {
     DEBUG << "stdOutReady" << endl;
     QString chunk = QString::fromUtf8(proc->readAllStandardOutput());
-    DEBUG << "stdout was " << chunk << endl;
+    //DEBUG << "stdout was " << chunk << endl;
     stdOut += chunk;
 }
 
@@ -146,7 +150,7 @@ void HgRunner::stdErrReady()
 {
     DEBUG << "stdErrReady" << endl;
     QString chunk = QString::fromUtf8(proc->readAllStandardError());
-    DEBUG << "stderr was " << chunk << endl;
+    //DEBUG << "stderr was " << chunk << endl;
     stdErr += chunk;
     if (procInput) {
         if (chunk.toLower().trimmed() == "password:") {
