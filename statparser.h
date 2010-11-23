@@ -31,7 +31,6 @@ public:
     QStringList unknown;
     QStringList removed;
     QStringList missing;
-
 };
 
 #endif // STATPARSER_H
