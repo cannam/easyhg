@@ -28,6 +28,7 @@
 #include <QToolBar>
 #include <QToolButton>
 #include <QSettings>
+#include <QInputDialog>
 
 #include "mainwindow.h"
 #include "settingsdialog.h"
@@ -41,6 +42,8 @@
 MainWindow::MainWindow()
 {
     QString wndTitle;
+
+    fsWatcher = 0;
 
     createActions();
     createMenus();
@@ -91,6 +94,7 @@ MainWindow::MainWindow()
 void MainWindow::closeEvent(QCloseEvent *)
 {
     writeSettings();
+    delete fsWatcher;
 }
 
 
@@ -175,6 +179,7 @@ void MainWindow::hgHeads()
 
 void MainWindow::hgLog()
 {
+//!!! This needs to be incremental, except when we pull or set new repo
     if (runningAction == ACT_NONE)
     {
         QStringList params;
@@ -306,8 +311,16 @@ void MainWindow::hgAdd()
     }
 }
 
-int MainWindow::getCommentOrTag(QString& commentOrTag, QString question, QString dlgTitle)
+bool MainWindow::getCommentOrTag(QString& commentOrTag,
+                                 QString question,
+                                 QString dlgTitle)
 {
+    bool ok = false;
+    QString text = QInputDialog::getText(this, dlgTitle, question, QLineEdit::Normal, commentOrTag, &ok);
+    commentOrTag = text;
+    return ok;
+
+            /*!!!
     int ret;
 
     QDialog dlg(this);
@@ -339,6 +352,7 @@ int MainWindow::getCommentOrTag(QString& commentOrTag, QString question, QString
     ret = dlg.exec();
     commentOrTag = commentOrTagEdit -> text();
     return ret;
+    */
 }
 
 void MainWindow::hgCommit()
@@ -348,7 +362,7 @@ void MainWindow::hgCommit()
         QStringList params;
         QString comment;
         
-        if (QDialog::Accepted == getCommentOrTag(comment, tr("Comment:"), tr("Save (commit)")))
+        if (getCommentOrTag(comment, tr("Comment:"), tr("Save (commit)")))
         {
             if (!comment.isEmpty())
             {
@@ -401,7 +415,7 @@ void MainWindow::hgTag()
         QStringList params;
         QString tag;
 
-        if (QDialog::Accepted == getCommentOrTag(tag, tr("Tag:"), tr("Tag")))
+        if (getCommentOrTag(tag, tr("Tag:"), tr("Tag")))
         {
             if (!tag.isEmpty())
             {
@@ -1219,6 +1233,48 @@ void MainWindow::countModifications(QListWidget *workList, int& added, int& modi
 }
 
 
+void MainWindow::updateFileSystemWatcher()
+{
+    //!!! this needs to be incremental when something changes
+
+    delete fsWatcher;
+    fsWatcher = new QFileSystemWatcher();
+    std::deque<QString> pending;
+    pending.push_back(workFolderPath);
+    while (!pending.empty()) {
+        QString path = pending.front();
+        pending.pop_front();
+        fsWatcher->addPath(path);
+        DEBUG << "Added to file system watcher: " << path << endl;
+        QDir d(path);
+        if (d.exists()) {
+            d.setFilter(QDir::Files | QDir::Dirs |
+                        QDir::NoDotAndDotDot | QDir::Readable);
+            foreach (QString entry, d.entryList()) {
+                if (entry == ".hg") continue;
+                QString entryPath = d.absoluteFilePath(entry);
+                pending.push_back(entryPath);
+            }
+        }
+    }
+    connect(fsWatcher, SIGNAL(directoryChanged(QString)),
+            this, SLOT(fsDirectoryChanged(QString)));
+    connect(fsWatcher, SIGNAL(fileChanged(QString)),
+            this, SLOT(fsFileChanged(QString)));
+}
+
+void MainWindow::fsDirectoryChanged(QString)
+{
+    //!!! should just queue one of these!
+    hgStat();
+}
+
+void MainWindow::fsFileChanged(QString)
+{
+    //!!! should just queue one of these!
+    hgStat();
+}
+
 void MainWindow::commandFailed()
 {
     DEBUG << "MainWindow::commandFailed" << endl;
@@ -1267,6 +1323,7 @@ void MainWindow::commandCompleted()
 
                     case ACT_STAT:
                         hgExp -> updateWorkFolderFileList(runner -> getOutput());
+                        updateFileSystemWatcher();
                         break;
 
                     case ACT_INCOMING:
@@ -1403,10 +1460,8 @@ void MainWindow::commandCompleted()
             }
         }
     }
-    else
-    {
-        enableDisableActions();
-    }
+
+    enableDisableActions();
 }
 
 void MainWindow::connectActions()
@@ -1456,36 +1511,32 @@ void MainWindow::tabChanged(int currTab)
 
 void MainWindow::enableDisableActions()
 {
+    DEBUG << "MainWindow::enableDisableActions" << endl;
+
     QDir localRepoDir;
     QDir workFolderDir;
     bool workFolderExist;
     bool localRepoExist;
 
     remoteRepoActionsEnabled = true;
-    if (remoteRepoPath.isEmpty())
-    {
+    if (remoteRepoPath.isEmpty()) {
         remoteRepoActionsEnabled = false;
     }
 
     localRepoActionsEnabled = true;
-    if (workFolderPath.isEmpty())
-    {
+    if (workFolderPath.isEmpty()) {
         localRepoActionsEnabled = false;
         workFolderExist = false;
     }
 
-    if (!workFolderDir.exists(workFolderPath))
-    {
+    if (!workFolderDir.exists(workFolderPath)) {
         localRepoActionsEnabled = false;
         workFolderExist = false;
-    }
-    else
-    {
+    } else {
         workFolderExist = true;
     }
 
-    if (!localRepoDir.exists(workFolderPath + getHgDirName()))
-    {
+    if (!localRepoDir.exists(workFolderPath + "/" + getHgDirName())) {
         localRepoActionsEnabled = false;
         localRepoExist = false;
     }
@@ -1520,6 +1571,14 @@ void MainWindow::enableDisableActions()
 
     hgExp -> enableDisableOtherTabs(tabPage);
 
+    DEBUG << "localRepoActionsEnabled = " << localRepoActionsEnabled << endl;
+    DEBUG << "canCommit = " << hgExp->canCommit() << endl;
+
+    //!!! new stuff:
+    hgCommitAct->setEnabled(localRepoActionsEnabled && hgExp->canCommit());
+    hgRevertAct->setEnabled(localRepoActionsEnabled && hgExp->canCommit());
+
+/*!!!
     int added, modified, removed, notTracked, selected, selectedAdded, selectedModified, selectedRemoved, selectedNotTracked;
 
     countModifications(hgExp -> workFolderFileList,
@@ -1623,6 +1682,7 @@ void MainWindow::enableDisableActions()
             hgUpdateToRevAct -> setEnabled(false);
         }
     }
+    */
 }
 
 void MainWindow::createActions()

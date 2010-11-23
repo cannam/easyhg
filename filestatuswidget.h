@@ -41,6 +41,12 @@ public:
     StatParser statParser() const { return m_statParser; }
     void setStatParser(StatParser sp);
 
+    bool haveChangesToCommit() const {
+        return !m_statParser.added.empty() ||
+               !m_statParser.removed.empty() ||
+               !m_statParser.modified.empty();
+    }
+
 private:
     QString m_localPath;
     QLabel *m_localPathLabel;
