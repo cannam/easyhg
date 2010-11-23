@@ -31,6 +31,9 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     
     layout->addWidget(new QLabel(tr("Local:")), row, 0);
     m_localPathLabel = new QLabel;
+    QFont f(m_localPathLabel->font());
+    f.setBold(true);
+    m_localPathLabel->setFont(f);
     layout->addWidget(m_localPathLabel, row, 1);
 
     ++row;
@@ -38,17 +41,39 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_remoteURLLabel = new QLabel;
     layout->addWidget(m_remoteURLLabel, row, 1);
 
-    m_modifiedList = new QListWidget;
-    m_addedList = new QListWidget;
-    m_unknownList = new QListWidget;
-    m_removedList = new QListWidget;
-    m_missingList = new QListWidget;
+    layout->setColumnStretch(1, 20);
 
-    layout->addWidget(m_modifiedList, ++row, 0, 1, 2);
-    layout->addWidget(m_addedList, ++row, 0, 1, 2);
-    layout->addWidget(m_removedList, ++row, 0, 1, 2);
-    layout->addWidget(m_unknownList, ++row, 0, 1, 2);
-    layout->addWidget(m_missingList, ++row, 0, 1, 2);
+    QStringList labels;
+    labels << tr("Modified files:")
+            << tr("Added files:")
+            << tr("Removed files:")
+            << tr("New untracked files:")
+            << tr("Missing files:");
+
+    QList<QListWidget **> lists;
+    lists << &m_modifiedList
+            << &m_addedList
+            << &m_removedList
+            << &m_unknownList
+            << &m_missingList;
+
+    for (int i = 0; i < labels.size(); ++i) {
+
+        QWidget *box = new QWidget;
+        QGridLayout *boxlayout = new QGridLayout;
+        box->setLayout(boxlayout);
+
+        boxlayout->addWidget(new QLabel(labels[i]), 0, 0);
+
+        *lists[i] = new QListWidget;
+        (*lists[i])->setSelectionMode(QListWidget::ExtendedSelection);
+        boxlayout->addWidget(*lists[i], 1, 0);
+
+        layout->addWidget(box, ++row, 0, 1, 2);
+        box->hide();
+    }
+
+    layout->setRowStretch(++row, 20);
 }
 
 void
@@ -75,16 +100,18 @@ FileStatusWidget::setStatParser(StatParser p)
 void
 FileStatusWidget::updateWidgets()
 {
-    m_modifiedList->clear();
-    m_addedList->clear();
-    m_unknownList->clear();
-    m_removedList->clear();
-    m_missingList->clear();
+    StatParser &sp = m_statParser;
+    QMap<QStringList *, QListWidget *> listmap;
+    listmap[&sp.modified] = m_modifiedList;
+    listmap[&sp.added] = m_addedList;
+    listmap[&sp.removed] = m_removedList;
+    listmap[&sp.missing] = m_missingList;
+    listmap[&sp.unknown] = m_unknownList;
 
-    m_modifiedList->addItems(m_statParser.modified);
-    m_addedList->addItems(m_statParser.added);
-    m_unknownList->addItems(m_statParser.unknown);
-    m_removedList->addItems(m_statParser.removed);
-    m_missingList->addItems(m_statParser.missing);
+    foreach (QStringList *sl, listmap.keys()) {
+        listmap[sl]->clear();
+        listmap[sl]->addItems(*sl);
+        listmap[sl]->parentWidget()->setVisible(!sl->empty());
+    }
 }
 

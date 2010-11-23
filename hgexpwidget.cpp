@@ -107,11 +107,13 @@ HgExpWidget::HgExpWidget(QWidget *parent, QString remoteRepo,
     mainLayout -> addWidget(grpRemoteRepo, 1);
     mainLayout -> addWidget(grpLocalRepo, 8);
     mainLayout -> addWidget(grpWorkFolder, 12);
-    addTab(workPageWidget, tr("My work"));
+//!!!    addTab(workPageWidget, tr("My work"));
 
     // New work page
     fileStatusWidget = new FileStatusWidget;
-    addTab(fileStatusWidget, tr("My work (new)"));
+    fileStatusWidget->setLocalPath(workFolderPath);
+    fileStatusWidget->setRemoteURL(remoteRepo);
+    addTab(fileStatusWidget, tr("My work"));
 
     // History graph page
     historyGraphPageWidget = new QWidget;
@@ -237,6 +239,8 @@ unsigned char HgExpWidget::getFileTypesBits()
 void HgExpWidget::updateWorkFolderFileList(QString fileList)
 {
     statParser = StatParser(fileList);
+
+    fileStatusWidget->setStatParser(statParser);
 
     workFolderFileList-> clear();
     workFolderFileList -> addItems(fileList.split("\n"));
@@ -407,6 +411,9 @@ void HgExpWidget::setWorkFolderAndRepoNames(QString workFolderPath, QString remo
     grpRemoteRepo -> setTitle(tr(REMOTE_REPO_STR) + remoteRepoPath);
     grpLocalRepo -> setTitle(tr(LOCAL_REPO_STR) + workFolderPath + getHgDirName());
     grpWorkFolder -> setTitle(tr(WORKFOLDER_STR) + workFolderPath);
+
+    fileStatusWidget->setLocalPath(workFolderPath);
+    fileStatusWidget->setRemoteURL(remoteRepoPath);
 }
 
 #define MERC_SHA1_MARKER_LEN 12
