@@ -55,6 +55,10 @@ public:
     QString getStatFlags(void);
     unsigned char getFileTypesBits();
 
+    //!!! StatParser really should be renamed to express "status state" rather than activity
+    StatParser getStatParser() { return statParser; }
+
+    bool canCommit() const;
 
     QListWidget *workFolderFileList;
     QListWidget *localRepoHeadsList;

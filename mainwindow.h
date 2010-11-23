@@ -24,6 +24,7 @@
 
 #include <QMainWindow>
 #include <QListWidget>
+#include <QFileSystemWatcher>
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -116,6 +117,9 @@ private slots:
     void hgServe();
     void hgIgnore();
 
+    void fsDirectoryChanged(QString);
+    void fsFileChanged(QString);
+
 private:
     void hgHeads();
     void hgParents();
@@ -127,7 +131,7 @@ private:
     void createStatusBar();
     void readSettings();
     void splitChangeSets(QStringList *list, QString hgLogOutput);
-    int getCommentOrTag(QString& commentOrTag, QString question, QString dlgTitle);
+    bool getCommentOrTag(QString& commentOrTag, QString question, QString dlgTitle);
     void presentLongStdoutToUser(QString stdo);
     void countModifications(QListWidget *workList, int& added, int& modified, int& removed, int& notTracked,
         int& selected,
@@ -157,6 +161,8 @@ private:
     bool askToInitNew(QString);
     bool askToOpenParentRepo(QString, QString);
     bool askToOpenInsteadOfInit(QString);
+
+    void updateFileSystemWatcher();
 
     bool firstStart;
 
@@ -209,6 +215,8 @@ private:
 
     HGACTIONS   runningAction;
     HgRunner    *runner;
+
+    QFileSystemWatcher *fsWatcher;
 
     int             tabPage;
     unsigned char   initialFileTypesBits;

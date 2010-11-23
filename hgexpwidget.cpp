@@ -200,7 +200,10 @@ void HgExpWidget::copyComment()
     }
 }
 
-
+bool HgExpWidget::canCommit() const
+{
+    return fileStatusWidget->haveChangesToCommit();
+}
 
 QString HgExpWidget::getStatFlags()
 {
