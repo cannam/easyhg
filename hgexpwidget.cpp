@@ -23,6 +23,7 @@
 #include "grapher.h"
 #include "panner.h"
 #include "panned.h"
+#include "filestatuswidget.h"
 
 #include <QClipboard>
 #include <QContextMenuEvent>
@@ -46,7 +47,10 @@ const char *statFilesStr[NUM_STAT_FILE_TYPES] =  {  "M: Modified",
                                                     "I: Ignored (via .hgignore file)"};
 
 
-HgExpWidget::HgExpWidget(QWidget *parent, QString remoteRepo, QString workFolderPath, unsigned char viewFileTypesBits): QTabWidget(parent)
+HgExpWidget::HgExpWidget(QWidget *parent, QString remoteRepo,
+                         QString workFolderPath,
+                         unsigned char viewFileTypesBits) :
+    QTabWidget(parent)
 {
     //Work page
     //Work page
@@ -104,6 +108,10 @@ HgExpWidget::HgExpWidget(QWidget *parent, QString remoteRepo, QString workFolder
     mainLayout -> addWidget(grpLocalRepo, 8);
     mainLayout -> addWidget(grpWorkFolder, 12);
     addTab(workPageWidget, tr("My work"));
+
+    // New work page
+    fileStatusWidget = new FileStatusWidget;
+    addTab(fileStatusWidget, tr("My work (new)"));
 
     // History graph page
     historyGraphPageWidget = new QWidget;

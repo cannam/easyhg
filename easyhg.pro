@@ -31,7 +31,8 @@ HEADERS = mainwindow.h \
     repositorydialog.h \
     multichoicedialog.h \
     selectablelabel.h \
-    statparser.h
+    statparser.h \
+    filestatuswidget.h
 SOURCES = main.cpp \
     mainwindow.cpp \
     hgexpwidget.cpp \
@@ -54,7 +55,8 @@ SOURCES = main.cpp \
     repositorydialog.cpp \
     multichoicedialog.cpp \
     selectablelabel.cpp \
-    statparser.cpp
+    statparser.cpp \
+    filestatuswidget.cpp
 
 macx-* {
     SOURCES += common_osx.mm

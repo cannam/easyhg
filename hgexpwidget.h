@@ -28,9 +28,11 @@
 #include <QVBoxLayout>
 #include <QCheckBox>
 #include <QLabel>
-
+#include <QTabWidget>
 
 #define NUM_STAT_FILE_TYPES 7
+
+class FileStatusWidget;
 
 
 class HgExpWidget: public QTabWidget
@@ -65,6 +67,8 @@ private slots:
     void copyComment();
 
 private:
+    FileStatusWidget *fileStatusWidget;
+
     QGroupBox   *grpRemoteRepo;
     QWidget     *workPageWidget;
     QWidget     *historyGraphPageWidget;
