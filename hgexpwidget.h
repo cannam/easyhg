@@ -42,72 +42,27 @@ class HgExpWidget: public QTabWidget
 public:
     HgExpWidget(QWidget *parent, QString remoteRepo, QString workFolderPath,
                 unsigned char viewFileTypesBits = DEFAULT_HG_STAT_BITS);
+
     void updateWorkFolderFileList(QString fileList);
-    void updateLocalRepoHeadsList(QString headList);
     void updateLocalRepoHgLogList(QString hgLogList);
-    void updateLocalRepoParentsList(QString parentsList);
     void setWorkFolderAndRepoNames(QString workFolderPath, QString remoteRepoPath);
-    QString getCurrentFileListLine();
-    void getHistoryDiffRevisions(QString& revA, QString& revB);
-    void getUpdateToRevRevision(QString& rev);
-    void clearLists();
-    void enableDisableOtherTabs(int tabPage);
-    QString getStatFlags(void);
-    unsigned char getFileTypesBits();
 
     //!!! StatParser really should be renamed to express "status state" rather than activity
     StatParser getStatParser() { return statParser; }
 
     bool canCommit() const;
 
-    QListWidget *workFolderFileList;
-    QListWidget *localRepoHeadsList;
-    QListWidget *localRepoHgLogList;
-
-signals:
-    void workFolderViewTypesChanged();
-
-private slots:
-    void copyComment();
-
 private:
     FileStatusWidget *fileStatusWidget;
 
-    QGroupBox   *grpRemoteRepo;
-    QWidget     *workPageWidget;
-    QWidget     *historyGraphPageWidget;
-    QWidget     *historyGraphWidget;
-    QWidget     *historyGraphPanner;
-    QWidget     *historyPageWidget;
-    QWidget     *headsPageWidget;
+    QWidget *historyGraphPageWidget;
+    QWidget *historyGraphWidget;
+    QWidget *historyGraphPanner;
+    QWidget *historyPageWidget;
 
-    QGroupBox   *grpLocalRepo;
-    QVBoxLayout *mainLayout;
-    QVBoxLayout *localRepoLayout;
-    QVBoxLayout *parentsLayout;
-    QListWidget *localRepoHgParentsList;
-    QLabel      *parentsLabel;
-    QMenu       *userListMenu;
-    QAction     *copyCommentAct;
+    StatParser statParser;
 
-    QGroupBox   *grpWorkFolder;
-    QHBoxLayout *workFolderLayout;
-    QGroupBox   *grpViewFileTypes;
-    QVBoxLayout *fileTypesLayout;
-    QCheckBox   *chkViewFileTypes[NUM_STAT_FILE_TYPES];
-
-    QVBoxLayout *historyLayout;
-
-    QVBoxLayout *headsLayout;
-
-    StatParser   statParser;
-
-    QString     findRev(QString itemText, QString& smallRev);
-    QStringList splitChangeSets(QString chgSetsStr);
-    Changesets  parseChangeSets(QString changeSetsStr);
-
-    int findLineStart(int nowIndex, QString chgSetsStr);
-    void contextMenuEvent (QContextMenuEvent * event);
+    Changesets parseChangeSets(QString changeSetsStr);
 };
 
 #endif // HGEXPWIDGET_H
