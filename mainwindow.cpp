@@ -137,16 +137,7 @@ void MainWindow::hgStat()
     {
         QStringList params;
         
-        QString statFlags = hgExp -> getStatFlags();
-        if (statFlags.isEmpty())
-        {
-            params << "stat";
-        }
-        else
-        {
-            params << "stat" << "-" + statFlags;
-        }
-        
+        params << "stat" << "-ardum";
         
         runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_STAT;
@@ -212,7 +203,7 @@ void MainWindow::hgRemove()
     if (runningAction == ACT_NONE)
     {
         QStringList params;
-        QString currentFile = hgExp -> getCurrentFileListLine();
+        QString currentFile;//!!! = hgExp -> getCurrentFileListLine();
 
         if (!currentFile.isEmpty())
         {
@@ -233,7 +224,7 @@ void MainWindow::hgAnnotate()
     if (runningAction == ACT_NONE)
     {
         QStringList params;
-        QString currentFile = hgExp -> getCurrentFileListLine();
+        QString currentFile;//!!! = hgExp -> getCurrentFileListLine();
 
         if (!currentFile.isEmpty())
         {
@@ -251,7 +242,7 @@ void MainWindow::hgResolveMark()
     if (runningAction == ACT_NONE)
     {
         QStringList params;
-        QString currentFile = hgExp -> getCurrentFileListLine();
+        QString currentFile;//!!! = hgExp -> getCurrentFileListLine();
 
         if (!currentFile.isEmpty())
         {
@@ -285,8 +276,8 @@ void MainWindow::hgAdd()
     {
         QStringList params;
 
-        QString currentFile = hgExp -> getCurrentFileListLine();
-
+        QString currentFile;//!!! = hgExp -> getCurrentFileListLine();
+/*!!!
         if (areAllSelectedUntracked(hgExp -> workFolderFileList))
         {
             //User wants to add selected file(s)
@@ -308,6 +299,7 @@ void MainWindow::hgAdd()
 
         runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_ADD;
+    */
     }
 }
 
@@ -366,6 +358,7 @@ void MainWindow::hgCommit()
         {
             if (!comment.isEmpty())
             {
+                /*!!!
                 if ((justMerged == false) && (areAllSelectedCommitable(hgExp -> workFolderFileList)))
                 {
                     //User wants to commit selected file(s) (and this is not merge commit, which would fail if we selected files)
@@ -386,6 +379,7 @@ void MainWindow::hgCommit()
 
                 runner -> startHgCommand(workFolderPath, params);
                 runningAction = ACT_COMMIT;
+                */
             }
         }
     }
@@ -463,7 +457,7 @@ void MainWindow::hgFileDiff()
     if (runningAction == ACT_NONE)
     {
         QStringList params;
-
+/*!!!
         QString currentFile = hgExp -> getCurrentFileListLine();
 
         if (!currentFile.isEmpty())
@@ -473,6 +467,7 @@ void MainWindow::hgFileDiff()
             runner -> startHgCommand(workFolderPath, params);
             runningAction = ACT_FILEDIFF;
         }
+    */
     }
 }
 
@@ -500,7 +495,7 @@ void MainWindow::hgChgSetDiff()
         //Diff 2 history log versions against each other
         QString revA;
         QString revB;
-
+/*!!!
         hgExp -> getHistoryDiffRevisions(revA, revB);
 
         if ((!revA.isEmpty()) && (!revB.isEmpty()))
@@ -513,6 +508,7 @@ void MainWindow::hgChgSetDiff()
         {
             QMessageBox::information(this, tr("Changeset diff"), tr("Please select two changesets from history list or heads list first."));
         }
+        */
     }
 }
 
@@ -540,7 +536,7 @@ void MainWindow::hgUpdateToRev()
     {
         QStringList params;
         QString rev;
-
+/*!!!
         hgExp -> getUpdateToRevRevision(rev);
 
         hgExp -> setCurrentIndex(WORKTAB);
@@ -551,6 +547,7 @@ void MainWindow::hgUpdateToRev()
         runner -> startHgCommand(workFolderPath, params);
 
         runningAction = ACT_UPDATE;
+        */
     }
 }
 
@@ -559,6 +556,7 @@ void MainWindow::hgRevert()
 {
     if (runningAction == ACT_NONE)
     {
+        /*!!!
         QStringList params;
         QString currentFile = hgExp -> getCurrentFileListLine();
 
@@ -566,6 +564,7 @@ void MainWindow::hgRevert()
 
         runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_REVERT;
+        */
     }
 }
 
@@ -767,10 +766,10 @@ void MainWindow::open()
             }
 
             if (result) {
-                hgExp->clearLists();
                 enableDisableActions();
                 hgPaths();
-                done = true;            }
+                done = true;
+            }
 
         } else {
 
@@ -1361,21 +1360,19 @@ void MainWindow::commandCompleted()
                         break;
 
                     case ACT_LOG:
-                        {
-                            hgExp -> updateLocalRepoHgLogList(runner -> getOutput());
-                        }
+                        hgExp -> updateLocalRepoHgLogList(runner -> getOutput());
                         break;
 
                     case ACT_PARENTS:
                         {
-                            hgExp -> updateLocalRepoParentsList(runner -> getOutput());
+                        //!!!    hgExp -> updateLocalRepoParentsList(runner -> getOutput());
                         }
                         break;
 
                     case ACT_HEADS:
                         {
                             QString stdOut = runner -> getOutput();
-                            hgExp -> updateLocalRepoHeadsList(stdOut);
+                        //!!!    hgExp -> updateLocalRepoHeadsList(stdOut);
                         }
                         break;
 
@@ -1569,7 +1566,7 @@ void MainWindow::enableDisableActions()
     hgTagAct -> setEnabled(localRepoActionsEnabled);
     hgIgnoreAct -> setEnabled(localRepoActionsEnabled);
 
-    hgExp -> enableDisableOtherTabs(tabPage);
+    //!!!hgExp -> enableDisableOtherTabs(tabPage);
 
     DEBUG << "localRepoActionsEnabled = " << localRepoActionsEnabled << endl;
     DEBUG << "canCommit = " << hgExp->canCommit() << endl;
@@ -1890,7 +1887,7 @@ void MainWindow::writeSettings()
     settings.setValue("remoterepopath", remoteRepoPath);
     settings.setValue("workfolderpath", workFolderPath);
     settings.setValue("firststart", firstStart);
-    settings.setValue("viewFileTypes", hgExp -> getFileTypesBits());
+    //!!!settings.setValue("viewFileTypes", hgExp -> getFileTypesBits());
 }
 
 
