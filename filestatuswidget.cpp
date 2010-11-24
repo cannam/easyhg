@@ -49,18 +49,30 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 
     layout->setColumnStretch(1, 20);
 
-    layout->addItem(new QSpacerItem(5, 8), ++row, 0);
+    m_simpleLabels[FileStates::Clean] = tr("Unmodified:");
+    m_simpleLabels[FileStates::Modified] = tr("Modified:");
+    m_simpleLabels[FileStates::Added] = tr("Added:");
+    m_simpleLabels[FileStates::Removed] = tr("Removed:");
+    m_simpleLabels[FileStates::Missing] = tr("Missing:");
+    m_simpleLabels[FileStates::Unknown] = tr("Untracked:");
 
-    QMap<FileStates::State, QString> labels;
-    labels[FileStates::Clean] = tr("Unmodified files:");
-    labels[FileStates::Modified] = tr("Modified files:");
-    labels[FileStates::Added] = tr("Added files:");
-    labels[FileStates::Removed] = tr("Removed files:");
-    labels[FileStates::Missing] = tr("Missing files:");
-    labels[FileStates::Unknown] = tr("Untracked files:");
+    m_descriptions[FileStates::Clean] = tr("You have not changed these files.");
+    m_descriptions[FileStates::Modified] = tr("You have changed these files since you last committed them.");
+    m_descriptions[FileStates::Added] = tr("These files will be added to version control next time you commit.");
+    m_descriptions[FileStates::Removed] = tr("These files will be removed from version control next time you commit.<br>"
+                                             "They will not be deleted from the local folder.");
+    m_descriptions[FileStates::Missing] = tr("These files are recorded in the version control but absent from your working folder.<br>"
+                                             "If you deleted them intentionally, select them here and use <b>Remove</b> to tell the version control system about it.");
+    m_descriptions[FileStates::Unknown] = tr("These files are in your working folder but are not under version control.<br>"
+                                             "Select a file and use Add to place it under version control or Ignore to remove it from this list.");
+
+    m_highlightExplanation = tr("Files highlighted in red "
+                                "have appeared since your most recent commit or update.");
 
     for (int i = int(FileStates::FirstState);
              i <= int(FileStates::LastState); ++i) {
+
+        layout->addItem(new QSpacerItem(5, 8), ++row, 0);
 
         FileStates::State s = FileStates::State(i);
 
@@ -69,7 +81,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
         boxlayout->setMargin(0);
         box->setLayout(boxlayout);
 
-        boxlayout->addWidget(new QLabel(labels[s]), 0, 0);
+        boxlayout->addWidget(new QLabel(labelFor(s)), 0, 0);
 
         QListWidget *w = new QListWidget;
         m_stateListMap[s] = w;
@@ -89,6 +101,20 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 FileStatusWidget::~FileStatusWidget()
 {
     delete m_dateReference;
+}
+
+QString FileStatusWidget::labelFor(FileStates::State s, bool addHighlightExplanation)
+{
+    if (addHighlightExplanation) {
+        return QString("<qt><b>%1</b><br>%2<br>%3</qt>")
+                       .arg(m_simpleLabels[s])
+                       .arg(m_descriptions[s])
+                       .arg(m_highlightExplanation);
+    } else {
+        return QString("<qt><b>%1</b><br>%2</qt>")
+                       .arg(m_simpleLabels[s])
+                       .arg(m_descriptions[s]);
+    }
 }
 
 void FileStatusWidget::itemSelectionChanged()
@@ -244,7 +270,7 @@ FileStatusWidget::updateWidgets()
                 QString fn(m_localPath + "/" + file);
                 DEBUG << "comparing with " << fn << endl;
                 QFileInfo fi(fn);
-                if (fi.exists() && fi.lastModified() > lastInteractionTime) {
+                if (fi.exists() && fi.created() > lastInteractionTime) {
                     DEBUG << "file " << fn << " is newer (" << fi.lastModified()
                             << ") than reference" << endl;
                     highlighted = true;
@@ -271,7 +297,16 @@ FileStatusWidget::updateWidgets()
             item->setSelected(selectedFiles.contains(file));
         }
 
+        setLabelFor(w, s, !highPriority.empty());
+
         w->parentWidget()->setVisible(!files.empty());
     }
 }
 
+void FileStatusWidget::setLabelFor(QWidget *w, FileStates::State s, bool addHighlight)
+{
+    QString text = labelFor(s, addHighlight);
+    QWidget *p = w->parentWidget();
+    QList<QLabel *> ql = p->findChildren<QLabel *>();
+    if (!ql.empty()) ql[0]->setText(text);
+}
