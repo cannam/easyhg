@@ -93,6 +93,7 @@ private slots:
     void settings();
     void open();
     void startupDialog();
+    void clearSelections();
 
     void hgRemove();
     void hgAdd();
@@ -208,6 +209,9 @@ private:
     //Help menu actions
     QAction *aboutAct;
     QAction *aboutQtAct;
+
+    // Other actions
+    QAction *clearSelectionsAct;
 
     QToolBar *fileToolBar;
     QToolBar *repoToolBar;

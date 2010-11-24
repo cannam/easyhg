@@ -49,31 +49,29 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 
     layout->setColumnStretch(1, 20);
 
-    QStringList labels;
-    labels << tr("Modified files:")
-            << tr("Added files:")
-            << tr("Removed files:")
-            << tr("New untracked files:")
-            << tr("Missing files:");
+    QMap<FileStates::State, QString> labels;
+    labels[FileStates::Clean] = tr("Unmodified files:");
+    labels[FileStates::Modified] = tr("Modified files:");
+    labels[FileStates::Added] = tr("Added files:");
+    labels[FileStates::Removed] = tr("Removed files:");
+    labels[FileStates::Missing] = tr("Missing files:");
+    labels[FileStates::Unknown] = tr("Untracked files:");
 
-    QList<QListWidget **> lists;
-    lists << &m_modifiedList
-            << &m_addedList
-            << &m_removedList
-            << &m_unknownList
-            << &m_missingList;
+    for (int i = int(FileStates::FirstState);
+             i <= int(FileStates::LastState); ++i) {
 
-    for (int i = 0; i < labels.size(); ++i) {
+        FileStates::State s = FileStates::State(i);
 
         QWidget *box = new QWidget;
         QGridLayout *boxlayout = new QGridLayout;
         box->setLayout(boxlayout);
 
-        boxlayout->addWidget(new QLabel(labels[i]), 0, 0);
+        boxlayout->addWidget(new QLabel(labels[s]), 0, 0);
 
-        *lists[i] = new QListWidget;
-        (*lists[i])->setSelectionMode(QListWidget::ExtendedSelection);
-        boxlayout->addWidget(*lists[i], 1, 0);
+        QListWidget *w = new QListWidget;
+        m_stateListMap[s] = w;
+        w->setSelectionMode(QListWidget::ExtendedSelection);
+        boxlayout->addWidget(w, 1, 0);
 
         layout->addWidget(box, ++row, 0, 1, 2);
         box->hide();
@@ -85,6 +83,13 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 FileStatusWidget::~FileStatusWidget()
 {
     delete m_dateReference;
+}
+
+void FileStatusWidget::clearSelections()
+{
+    foreach (QListWidget *w, m_stateListMap) {
+        w->clearSelection();
+    }
 }
 
 void
@@ -132,18 +137,12 @@ FileStatusWidget::highlightFile(QListWidget *w, int i)
 void
 FileStatusWidget::updateWidgets()
 {
-    FileStates &sp = m_fileStates;
-    QMap<QStringList *, QListWidget *> listmap;
-    listmap[&sp.modified] = m_modifiedList;
-    listmap[&sp.added] = m_addedList;
-    listmap[&sp.removed] = m_removedList;
-    listmap[&sp.missing] = m_missingList;
-    listmap[&sp.unknown] = m_unknownList;
-
-    foreach (QStringList *sl, listmap.keys()) {
-        listmap[sl]->clear();
-        listmap[sl]->addItems(*sl);
-        listmap[sl]->parentWidget()->setVisible(!sl->empty());
+    foreach (FileStates::State s, m_stateListMap.keys()) {
+        QListWidget *w = m_stateListMap[s];
+        w->clear();
+        QStringList sl = m_fileStates.getFilesInState(s);
+        w->addItems(sl);
+        w->parentWidget()->setVisible(!sl.empty());
     }
 
     if (m_dateReference) {
@@ -151,14 +150,15 @@ FileStatusWidget::updateWidgets()
         // last interaction with the repo
         QDateTime refTime = m_dateReference->lastModified();
         DEBUG << "reference time: " << refTime << endl;
-        for (int i = 0; i < m_unknownList->count(); ++i) {
-            QString fn(m_localPath + "/" + m_unknownList->item(i)->text());
+        QListWidget *ul = m_stateListMap[FileStates::Unknown];
+        for (int i = 0; i < ul->count(); ++i) {
+            QString fn(m_localPath + "/" + ul->item(i)->text());
             DEBUG << "comparing with " << fn << endl;
             QFileInfo fi(fn);
             if (fi.exists() && fi.lastModified() > refTime) {
                 DEBUG << "file " << fn << " is newer (" << fi.lastModified()
                         << ") than reference" << endl;
-                highlightFile(m_unknownList, i);
+                highlightFile(ul, i);
             }
         }
     }

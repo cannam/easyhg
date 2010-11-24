@@ -4,56 +4,85 @@
 
 #include <QMap>
 
-FileStates::FileStates(QString text)
+FileStates::FileStates()
+{
+}
+
+void FileStates::clearBuckets()
+{
+    m_modified.clear();
+    m_added.clear();
+    m_removed.clear();
+    m_missing.clear();
+    m_unknown.clear();
+}
+
+FileStates::State FileStates::charToState(QChar c, bool *ok)
+{
+    if (ok) *ok = true;
+    if (c == 'M') return Modified;
+    if (c == 'A') return Added;
+    if (c == 'R') return Removed;
+    if (c == '!') return Missing;
+    if (c == '?') return Unknown;
+    if (c == 'C') return Clean;
+    if (ok) *ok = false;
+    return Unknown;
+}
+
+QStringList *FileStates::stateToBucket(State s)
+{
+    switch (s) {
+    case Clean: default: return 0; // not implemented yet
+    case Modified: return &m_modified;
+    case Added: return &m_added;
+    case Unknown: return &m_unknown;
+    case Removed: return &m_removed;
+    case Missing: return &m_missing;
+    }
+}
+
+void FileStates::parseStates(QString text)
 {
     text.replace("\r\n", "\n");
 
-    QMap<QChar, QStringList *> buckets;
-    buckets['M'] = &modified;
-    buckets['A'] = &added;
-    buckets['R'] = &removed;
-    buckets['!'] = &missing;
-    buckets['?'] = &unknown;
+    clearBuckets();
 
     QStringList lines = text.split("\n", QString::SkipEmptyParts);
+
     foreach (QString line, lines) {
+
         if (line.length() < 3 || line[1] != ' ') {
             continue;
         }
-        QChar tag = line[0];
+
+        QChar c = line[0];
+        bool ok = false;
+        State s = charToState(c, &ok);
+        if (!ok) continue;
+
         QString file = line.right(line.length() - 2);
-        if (buckets.contains(tag)) {
-            buckets[tag]->push_back(file);
-        }
+        QStringList *bucket = stateToBucket(s);
+        bucket->push_back(file);
+        m_stateMap[file] = s;
     }
 
-    DEBUG << "FileStates: " << modified.size() << " modified, " << added.size()
-            << " added, " << removed.size() << " removed, " << missing.size()
-            << " missing, " << unknown.size() << " unknown" << endl;
+    DEBUG << "FileStates: " << m_modified.size() << " modified, " << m_added.size()
+            << " added, " << m_removed.size() << " removed, " << m_missing.size()
+            << " missing, " << m_unknown.size() << " unknown" << endl;
 }
 
-QStringList FileStates::getFilesInState(State s)
+QStringList FileStates::getFilesInState(State s) const
 {
-    switch (s) {
-
-    case Modified: return modified;
-    case Added: return added;
-    case Unknown: return unknown;
-    case Removed: return removed;
-    case Missing: return missing;
-
-    case UpToDate: // not supported yet
-    default:
-        return QStringList();
-    }
+    QStringList *sl = const_cast<FileStates *>(this)->stateToBucket(s);
+    if (sl) return *sl;
+    else return QStringList();
 }
 
-FileStates::State FileStates::getStateOfFile(QString file)
+FileStates::State FileStates::getStateOfFile(QString file) const
 {
-    // slow, but let's worry about that if it becomes a problem
-    for (int is = int(FirstState); is <= int(LastState); ++is) {
-        QStringList fl = getFilesInState(State(is));
-        foreach (QString f, fl) if (f == file) return State(is);
+    if (m_stateMap.contains(file)) {
+        return m_stateMap[file];
     }
     DEBUG << "FileStates: WARNING: getStateOfFile: file "
             << file << " is unknown to us: returning Unknown state, "
