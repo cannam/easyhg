@@ -170,7 +170,7 @@ void HgRunner::getPassword()
 
 void HgRunner::checkPrompts(QString chunk)
 {
-    DEBUG << "checkPrompts: " << chunk << endl;
+    //DEBUG << "checkPrompts: " << chunk << endl;
 
     QString text = chunk.trimmed();
     QString lower = text.toLower();

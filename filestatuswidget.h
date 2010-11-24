@@ -24,6 +24,7 @@
 
 class QLabel;
 class QListWidget;
+class QFileInfo;
 
 class FileStatusWidget : public QWidget
 {
@@ -31,6 +32,7 @@ class FileStatusWidget : public QWidget
 
 public:
     FileStatusWidget(QWidget *parent = 0);
+    ~FileStatusWidget();
 
     QString localPath() const { return m_localPath; }
     void setLocalPath(QString p);
@@ -62,7 +64,10 @@ private:
     QListWidget *m_removedList;
     QListWidget *m_missingList;
 
+    QFileInfo *m_dateReference;
+
     void updateWidgets();
+    void highlightFile(QListWidget *, int);
 };
 
 #endif
