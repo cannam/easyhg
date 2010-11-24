@@ -3,7 +3,7 @@
 /*
     EasyMercurial
 
-    Based on HgExplorer by Jari Korhonen
+    Based on hgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
     Copyright (c) 2010 Chris Cannam
     Copyright (c) 2010 Queen Mary, University of London
@@ -67,10 +67,10 @@ MainWindow::MainWindow()
 
     tabPage = 0;
     justMerged = false;
-    hgExp = new HgTabWidget((QWidget *) this, remoteRepoPath, workFolderPath);
-    setCentralWidget(hgExp);
+    hgTabs = new HgTabWidget((QWidget *) this, remoteRepoPath, workFolderPath);
+    setCentralWidget(hgTabs);
 
-    connect(hgExp, SIGNAL(selectionChanged()),
+    connect(hgTabs, SIGNAL(selectionChanged()),
             this, SLOT(enableDisableActions()));
 
     setUnifiedTitleAndToolBarOnMac(true);
@@ -125,7 +125,7 @@ void MainWindow::about()
                       tr("<qt><h2>About EasyMercurial</h2>"
                          "<p>EasyMercurial is a simple user interface for the "
                          "Mercurial version control system.</p>"
-                         "<p>EasyMercurial is based on HgExplorer by "
+                         "<p>EasyMercurial is based on hgExplorer by "
                          "Jari Korhonen, with thanks.<br>EasyMercurial development carried out by "
                          "Chris Cannam for soundsoftware.ac.uk at the Centre for Digital Music, Queen Mary, University of London."
                          "<ul><li>Copyright &copy; 2010 Jari Korhonen</li>"
@@ -141,7 +141,7 @@ void MainWindow::about()
 
 void MainWindow::clearSelections()
 {
-    hgExp->clearSelections();
+    hgTabs->clearSelections();
 }
 
 void MainWindow::hgStat()
@@ -210,34 +210,12 @@ void MainWindow::hgParents()
 }
 
 
-
-void MainWindow::hgRemove()
-{
-    if (runningAction == ACT_NONE)
-    {
-        QStringList params;
-        QString currentFile;//!!! = hgExp -> getCurrentFileListLine();
-
-        if (!currentFile.isEmpty())
-        {
-            if (QMessageBox::Ok == QMessageBox::warning(this, "Remove file", "Really remove file " + currentFile.mid(2) + "?",
-                QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel))
-            {
-                params << "remove" << "--after" << "--force" << "--" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
-
-                runner -> startHgCommand(workFolderPath, params);
-                runningAction = ACT_REMOVE;
-            }
-        }
-    }
-}
-
 void MainWindow::hgAnnotate()
 {
     if (runningAction == ACT_NONE)
     {
         QStringList params;
-        QString currentFile;//!!! = hgExp -> getCurrentFileListLine();
+        QString currentFile;//!!! = hgTabs -> getCurrentFileListLine();
 
         if (!currentFile.isEmpty())
         {
@@ -255,7 +233,7 @@ void MainWindow::hgResolveMark()
     if (runningAction == ACT_NONE)
     {
         QStringList params;
-        QString currentFile;//!!! = hgExp -> getCurrentFileListLine();
+        QString currentFile;//!!! = hgTabs -> getCurrentFileListLine();
 
         if (!currentFile.isEmpty())
         {
@@ -289,32 +267,55 @@ void MainWindow::hgAdd()
     {
         QStringList params;
 
-        QString currentFile;//!!! = hgExp -> getCurrentFileListLine();
-/*!!!
-        if (areAllSelectedUntracked(hgExp -> workFolderFileList))
-        {
-            //User wants to add selected file(s)
-            params << "add" << "--";
+        // hgExplorer permitted adding "all" files -- I'm not sure
+        // that one is a good idea, let's require the user to select
 
-            QList <QListWidgetItem *> selList = hgExp -> workFolderFileList -> selectedItems();
+        QStringList files = hgTabs->getSelectedAddableFiles();
 
-            for (int i = 0; i < selList.size(); ++i)
-            {
-                QString tmp = selList.at(i)->text();
-                params.append(tmp.mid(2));
-            }
+        if (!files.empty()) {
+            params << "add" << "--" << files;
+            runner -> startHgCommand(workFolderPath, params);
+            runningAction = ACT_ADD;
         }
-        else
-        {
-            //Add all untracked files
-            params << "add";
-        }
-
-        runner -> startHgCommand(workFolderPath, params);
-        runningAction = ACT_ADD;
-    */
     }
 }
+
+
+void MainWindow::hgRemove()
+{
+    if (runningAction == ACT_NONE)
+    {
+        QStringList params;
+
+        QStringList files = hgTabs->getSelectedRemovableFiles();
+
+        //!!! todo: confirmation dialog (with file list in it)
+
+        if (!files.empty()) {
+
+            params << "remove" << "--after" << "--force" << "--" << files;
+            runner -> startHgCommand(workFolderPath, params);
+            runningAction = ACT_REMOVE;
+        }
+
+/*!!!
+        QString currentFile;//!!! = hgTabs -> getCurrentFileListLine();
+
+        if (!currentFile.isEmpty())
+        {
+            if (QMessageBox::Ok == QMessageBox::warning(this, "Remove file", "Really remove file " + currentFile.mid(2) + "?",
+                QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel))
+            {
+                params << "remove" << "--after" << "--force" << "--" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
+
+                runner -> startHgCommand(workFolderPath, params);
+                runningAction = ACT_REMOVE;
+            }
+        }
+        */
+    }
+}
+
 
 bool MainWindow::getCommentOrTag(QString& commentOrTag,
                                  QString question,
@@ -324,40 +325,6 @@ bool MainWindow::getCommentOrTag(QString& commentOrTag,
     QString text = QInputDialog::getText(this, dlgTitle, question, QLineEdit::Normal, commentOrTag, &ok);
     commentOrTag = text;
     return ok;
-
-            /*!!!
-    int ret;
-
-    QDialog dlg(this);
-
-    QLabel *commentLabel = new QLabel(question);
-    QLineEdit *commentOrTagEdit = new QLineEdit;
-    commentOrTagEdit -> setFixedWidth(400);
-    QHBoxLayout *commentLayout = new QHBoxLayout;
-    commentLayout -> addWidget(commentLabel);
-    commentLayout -> addWidget(commentOrTagEdit);
-
-    QPushButton *btnOk = new QPushButton(tr("Ok"));
-    QPushButton *btnCancel = new QPushButton(tr("Cancel"));
-    QHBoxLayout *btnLayout = new QHBoxLayout;
-    btnLayout -> addWidget(btnOk);
-    btnLayout -> addWidget(btnCancel);
-
-    QVBoxLayout *mainLayout = new QVBoxLayout;
-    mainLayout -> addLayout(commentLayout);
-    mainLayout -> addLayout(btnLayout);
-
-    dlg.setLayout(mainLayout);
-
-    dlg.setWindowTitle(dlgTitle);
-
-    connect(btnOk, SIGNAL(clicked()), &dlg, SLOT(accept()));
-    connect(btnCancel, SIGNAL(clicked()), &dlg, SLOT(reject()));
-
-    ret = dlg.exec();
-    commentOrTag = commentOrTagEdit -> text();
-    return ret;
-    */
 }
 
 void MainWindow::hgCommit()
@@ -373,31 +340,22 @@ void MainWindow::hgCommit()
         
         if (getCommentOrTag(comment, tr("Comment:"), tr("Save (commit)")))
         {
-            if (!comment.isEmpty())
-            {
-                /*!!!
-                if ((justMerged == false) && (areAllSelectedCommitable(hgExp -> workFolderFileList)))
-                {
-                    //User wants to commit selected file(s) (and this is not merge commit, which would fail if we selected files)
-                    params << "commit" << "--message" << comment << "--user" << getUserInfo() << "--";
+            //!!! do something more sensible when the comment is empty
+            // (i.e. tell the user about it?)
 
-                    QList <QListWidgetItem *> selList = hgExp -> workFolderFileList -> selectedItems();
-                    for (int i = 0; i < selList.size(); ++i)
-                    {
-                        QString tmp = selList.at(i)->text();
-                        params.append(tmp.mid(2));
-                    }
-                }
-                else
-                {
-                    //Commit all changes
-                    params << "commit" << "--message" << comment << "--user" << getUserInfo();
-                }
+            QStringList files = hgTabs->getSelectedCommittableFiles();
 
-                runner -> startHgCommand(workFolderPath, params);
-                runningAction = ACT_COMMIT;
-                */
+            if ((justMerged == false) && //!!! review usage of justMerged
+                !files.empty()) {
+                // User wants to commit selected file(s) (and this is not merge commit, which would fail if we selected files)
+                params << "commit" << "--message" << comment << "--user" << getUserInfo() << "--" << files;
+            } else {
+                // Commit all changes
+                params << "commit" << "--message" << comment << "--user" << getUserInfo();
             }
+
+            runner -> startHgCommand(workFolderPath, params);
+            runningAction = ACT_COMMIT;
         }
     }
 }
@@ -475,7 +433,7 @@ void MainWindow::hgFileDiff()
     {
         QStringList params;
 /*!!!
-        QString currentFile = hgExp -> getCurrentFileListLine();
+        QString currentFile = hgTabs -> getCurrentFileListLine();
 
         if (!currentFile.isEmpty())
         {
@@ -513,7 +471,7 @@ void MainWindow::hgChgSetDiff()
         QString revA;
         QString revB;
 /*!!!
-        hgExp -> getHistoryDiffRevisions(revA, revB);
+        hgTabs -> getHistoryDiffRevisions(revA, revB);
 
         if ((!revA.isEmpty()) && (!revB.isEmpty()))
         {
@@ -537,9 +495,7 @@ void MainWindow::hgUpdate()
     {
         QStringList params;
 
-
         params << "update";
-
 
         runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_UPDATE;
@@ -554,9 +510,9 @@ void MainWindow::hgUpdateToRev()
         QStringList params;
         QString rev;
 /*!!!
-        hgExp -> getUpdateToRevRevision(rev);
+        hgTabs -> getUpdateToRevRevision(rev);
 
-        hgExp -> setCurrentIndex(WORKTAB);
+        hgTabs -> setCurrentIndex(WORKTAB);
         enableDisableActions();
 
         params << "update" << "--rev" << rev << "--clean";
@@ -573,15 +529,20 @@ void MainWindow::hgRevert()
 {
     if (runningAction == ACT_NONE)
     {
-        /*!!!
-        QStringList params;
-        QString currentFile = hgExp -> getCurrentFileListLine();
+        //!!! todo: ask user!
 
-        params << "revert" << "--no-backup" << "--" << currentFile.mid(2);
+        QStringList params;
+
+        QStringList files = hgTabs->getSelectedCommittableFiles();
+
+        if (files.empty()) {
+            params << "revert" << "--no-backup";
+        } else {
+            params << "revert" << "--no-backup" << "--" << files;
+        }
 
         runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_REVERT;
-        */
     }
 }
 
@@ -1022,7 +983,7 @@ void MainWindow::settings()
     SettingsDialog *settingsDlg = new SettingsDialog(this);
     settingsDlg->setModal(true);
     settingsDlg->exec();
-    hgExp -> clearLists();
+    hgTabs -> clearLists();
     enableDisableActions();
     hgStat();
 */
@@ -1067,7 +1028,7 @@ void MainWindow::presentLongStdoutToUser(QString stdo)
     }
     else
     {
-        QMessageBox::information(this, tr("HgExplorer"), tr("Mercurial command did not return any output."));
+        QMessageBox::information(this, tr("EasyMercurial"), tr("Mercurial command did not return any output."));
     }
 }
 
@@ -1160,7 +1121,7 @@ void MainWindow::commandCompleted()
                     }
 
                     case ACT_STAT:
-                        hgExp -> updateWorkFolderFileList(runner -> getOutput());
+                        hgTabs -> updateWorkFolderFileList(runner -> getOutput());
                         updateFileSystemWatcher();
                         break;
 
@@ -1199,19 +1160,19 @@ void MainWindow::commandCompleted()
                         break;
 
                     case ACT_LOG:
-                        hgExp -> updateLocalRepoHgLogList(runner -> getOutput());
+                        hgTabs -> updateLocalRepoHgLogList(runner -> getOutput());
                         break;
 
                     case ACT_PARENTS:
                         {
-                        //!!!    hgExp -> updateLocalRepoParentsList(runner -> getOutput());
+                        //!!!    hgTabs -> updateLocalRepoParentsList(runner -> getOutput());
                         }
                         break;
 
                     case ACT_HEADS:
                         {
                             QString stdOut = runner -> getOutput();
-                        //!!!    hgExp -> updateLocalRepoHeadsList(stdOut);
+                        //!!!    hgTabs -> updateLocalRepoHeadsList(stdOut);
                         }
                         break;
 
@@ -1307,7 +1268,7 @@ void MainWindow::connectActions()
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
     connect(hgStatAct, SIGNAL(triggered()), this, SLOT(hgPaths()));
-    connect(hgExp, SIGNAL(workFolderViewTypesChanged()), this, SLOT(hgPaths()));
+    connect(hgTabs, SIGNAL(workFolderViewTypesChanged()), this, SLOT(hgPaths()));
     connect(hgRemoveAct, SIGNAL(triggered()), this, SLOT(hgRemove()));
     connect(hgAddAct, SIGNAL(triggered()), this, SLOT(hgAdd()));
     connect(hgCommitAct, SIGNAL(triggered()), this, SLOT(hgCommit()));
@@ -1330,7 +1291,7 @@ void MainWindow::connectActions()
     connect(hgPullAct, SIGNAL(triggered()), this, SLOT(hgPull()));
     connect(hgPushAct, SIGNAL(triggered()), this, SLOT(hgPush()));
 
-    connect(hgExp, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
+    connect(hgTabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
     connect(hgUpdateToRevAct, SIGNAL(triggered()), this, SLOT(hgUpdateToRev()));
     connect(hgAnnotateAct, SIGNAL(triggered()), this, SLOT(hgAnnotate()));
@@ -1406,22 +1367,22 @@ void MainWindow::enableDisableActions()
     hgTagAct -> setEnabled(localRepoActionsEnabled);
     hgIgnoreAct -> setEnabled(localRepoActionsEnabled);
 
-    //!!!hgExp -> enableDisableOtherTabs(tabPage);
+    //!!!hgTabs -> enableDisableOtherTabs(tabPage);
 
     DEBUG << "localRepoActionsEnabled = " << localRepoActionsEnabled << endl;
-    DEBUG << "canCommit = " << hgExp->canCommit() << endl;
+    DEBUG << "canCommit = " << hgTabs->canCommit() << endl;
 
     //!!! new stuff:
-    hgAddAct->setEnabled(localRepoActionsEnabled && hgExp->canAdd());
-    hgRemoveAct->setEnabled(localRepoActionsEnabled && hgExp->canRemove());
-    hgCommitAct->setEnabled(localRepoActionsEnabled && hgExp->canCommit());
-    hgRevertAct->setEnabled(localRepoActionsEnabled && hgExp->canCommit());
-    hgFolderDiffAct->setEnabled(localRepoActionsEnabled && hgExp->canDoDiff());
+    hgAddAct->setEnabled(localRepoActionsEnabled && hgTabs->canAdd());
+    hgRemoveAct->setEnabled(localRepoActionsEnabled && hgTabs->canRemove());
+    hgCommitAct->setEnabled(localRepoActionsEnabled && hgTabs->canCommit());
+    hgRevertAct->setEnabled(localRepoActionsEnabled && hgTabs->canCommit());
+    hgFolderDiffAct->setEnabled(localRepoActionsEnabled && hgTabs->canDoDiff());
 
 /*!!!
     int added, modified, removed, notTracked, selected, selectedAdded, selectedModified, selectedRemoved, selectedNotTracked;
 
-    countModifications(hgExp -> workFolderFileList,
+    countModifications(hgTabs -> workFolderFileList,
         added, modified, removed, notTracked,
         selected,
         selectedAdded, selectedModified, selectedRemoved, selectedNotTracked);
@@ -1456,7 +1417,7 @@ void MainWindow::enableDisableActions()
                 hgFolderDiffAct -> setEnabled(false);
             }
 
-            if (!isSelectedModified(hgExp -> workFolderFileList))
+            if (!isSelectedModified(hgTabs -> workFolderFileList))
             {
                 hgFileDiffAct -> setEnabled(false);
                 hgRevertAct -> setEnabled(false);
@@ -1468,25 +1429,25 @@ void MainWindow::enableDisableActions()
                 hgAddAct -> setEnabled(false);
             }
 
-            if (!isSelectedDeletable(hgExp -> workFolderFileList))
+            if (!isSelectedDeletable(hgTabs -> workFolderFileList))
             {
                 hgRemoveAct -> setEnabled(false);
             }
 
             hgResolveListAct -> setEnabled(true);
 
-            if (hgExp -> localRepoHeadsList->count() < 2)
+            if (hgTabs -> localRepoHeadsList->count() < 2)
             {
                 hgMergeAct -> setEnabled(false);
                 hgRetryMergeAct -> setEnabled(false);
             }
 
-            if (hgExp -> localRepoHeadsList->count() < 1)
+            if (hgTabs -> localRepoHeadsList->count() < 1)
             {
                 hgTagAct -> setEnabled(false);
             }
 
-            QString currentFile = hgExp -> getCurrentFileListLine();
+            QString currentFile = hgTabs -> getCurrentFileListLine();
             if (!currentFile.isEmpty())
             {
                 hgAnnotateAct -> setEnabled(true);
@@ -1501,8 +1462,8 @@ void MainWindow::enableDisableActions()
     }
     else
     {
-        QList <QListWidgetItem *> headSelList = hgExp -> localRepoHeadsList->selectedItems();
-        QList <QListWidgetItem *> historySelList = hgExp -> localRepoHgLogList->selectedItems();
+        QList <QListWidgetItem *> headSelList = hgTabs -> localRepoHeadsList->selectedItems();
+        QList <QListWidgetItem *> historySelList = hgTabs -> localRepoHgLogList->selectedItems();
 
         if ((historySelList.count() == 2) || (headSelList.count() == 2))
         {
@@ -1735,7 +1696,7 @@ void MainWindow::writeSettings()
     settings.setValue("remoterepopath", remoteRepoPath);
     settings.setValue("workfolderpath", workFolderPath);
     settings.setValue("firststart", firstStart);
-    //!!!settings.setValue("viewFileTypes", hgExp -> getFileTypesBits());
+    //!!!settings.setValue("viewFileTypes", hgTabs -> getFileTypesBits());
 }
 
 
