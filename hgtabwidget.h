@@ -15,8 +15,8 @@
     COPYING included with this distribution for more information.
 */
 
-#ifndef HGEXPWIDGET_H
-#define HGEXPWIDGET_H
+#ifndef HGTABWIDGET_H
+#define HGTABWIDGET_H
 
 #include "changeset.h"
 #include "common.h"
@@ -33,12 +33,12 @@
 class FileStatusWidget;
 
 
-class HgExpWidget: public QTabWidget
+class HgTabWidget: public QTabWidget
 {
     Q_OBJECT
 
 public:
-    HgExpWidget(QWidget *parent, QString remoteRepo, QString workFolderPath);
+    HgTabWidget(QWidget *parent, QString remoteRepo, QString workFolderPath);
 
     void updateWorkFolderFileList(QString fileList);
     void updateLocalRepoHgLogList(QString hgLogList);
@@ -75,4 +75,4 @@ private:
     Changesets parseChangeSets(QString changeSetsStr);
 };
 
-#endif // HGEXPWIDGET_H
+#endif // HGTABWIDGET_H

@@ -18,7 +18,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "hgexpwidget.h"
+#include "hgtabwidget.h"
 #include "hgrunner.h"
 #include "common.h"
 
@@ -69,7 +69,7 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow();
-    HgExpWidget *hgExp;
+    HgTabWidget *hgExp;
     void writeSettings();
 
     //Paths to remote repo & workfolder
