@@ -18,7 +18,7 @@
 #ifndef FILESTATUSWIDGET_H
 #define FILESTATUSWIDGET_H
 
-#include "statparser.h"
+#include "filestates.h"
 
 #include <QWidget>
 
@@ -38,13 +38,13 @@ public:
     QString remoteURL() const { return m_remoteURL; }
     void setRemoteURL(QString u);
 
-    StatParser statParser() const { return m_statParser; }
-    void setStatParser(StatParser sp);
+    FileStates fileStates() const { return m_fileStates; }
+    void setFileStates(FileStates sp);
 
     bool haveChangesToCommit() const {
-        return !m_statParser.added.empty() ||
-               !m_statParser.removed.empty() ||
-               !m_statParser.modified.empty();
+        return !m_fileStates.added.empty() ||
+               !m_fileStates.removed.empty() ||
+               !m_fileStates.modified.empty();
     }
 
 private:
@@ -54,7 +54,7 @@ private:
     QString m_remoteURL;
     QLabel *m_remoteURLLabel;
     
-    StatParser m_statParser;
+    FileStates m_fileStates;
 
     QListWidget *m_modifiedList;
     QListWidget *m_addedList;

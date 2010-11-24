@@ -64,8 +64,8 @@ bool HgExpWidget::canCommit() const
 
 void HgExpWidget::updateWorkFolderFileList(QString fileList)
 {
-    statParser = StatParser(fileList);
-    fileStatusWidget->setStatParser(statParser);
+    fileStates = FileStates(fileList);
+    fileStatusWidget->setFileStates(fileStates);
 }
 
 void HgExpWidget::updateLocalRepoHgLogList(QString hgLogList)

@@ -15,22 +15,38 @@
     COPYING included with this distribution for more information.
 */
 
-#ifndef STATPARSER_H
-#define STATPARSER_H
+#ifndef FILESTATES_H
+#define FILESTATES_H
 
 #include <QStringList>
 
-class StatParser
+class FileStates
 {
 public:
-    StatParser() { }
-    StatParser(QString text);
+    FileStates() { }
+    FileStates(QString text);
+
+    enum State {
+
+        UpToDate,
+        Modified,
+        Added,
+        Unknown,
+        Removed,
+        Missing,
+
+        FirstState = UpToDate,
+        LastState = Missing
+    };
 
     QStringList modified;
     QStringList added;
     QStringList unknown;
     QStringList removed;
     QStringList missing;
+
+    QStringList getFilesInState(State);
+    State getStateOfFile(QString file);
 };
 
-#endif // STATPARSER_H
+#endif // FILESTATES_H

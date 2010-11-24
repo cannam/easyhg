@@ -91,16 +91,16 @@ FileStatusWidget::setRemoteURL(QString r)
 }
 
 void
-FileStatusWidget::setStatParser(StatParser p)
+FileStatusWidget::setFileStates(FileStates p)
 {
-    m_statParser = p;
+    m_fileStates = p;
     updateWidgets();
 }
 
 void
 FileStatusWidget::updateWidgets()
 {
-    StatParser &sp = m_statParser;
+    FileStates &sp = m_fileStates;
     QMap<QStringList *, QListWidget *> listmap;
     listmap[&sp.modified] = m_modifiedList;
     listmap[&sp.added] = m_addedList;
