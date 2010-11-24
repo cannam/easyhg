@@ -31,15 +31,17 @@
 
 #include <iostream>
 
-HgExpWidget::HgExpWidget(QWidget *parent, QString remoteRepo,
-                         QString workFolderPath,
-                         unsigned char viewFileTypesBits) :
+HgExpWidget::HgExpWidget(QWidget *parent,
+                         QString remoteRepo,
+                         QString workFolderPath) :
     QTabWidget(parent)
 {
     // Work page
     fileStatusWidget = new FileStatusWidget;
     fileStatusWidget->setLocalPath(workFolderPath);
     fileStatusWidget->setRemoteURL(remoteRepo);
+    connect(fileStatusWidget, SIGNAL(selectionChanged()),
+            this, SIGNAL(selectionChanged()));
     addTab(fileStatusWidget, tr("My work"));
 
     // History graph page
@@ -65,6 +67,46 @@ void HgExpWidget::clearSelections()
 bool HgExpWidget::canCommit() const
 {
     return fileStatusWidget->haveChangesToCommit();
+}
+
+bool HgExpWidget::canAdd() const
+{
+    if (fileStatusWidget->getSelectedAddableFiles().empty()) return false;
+    if (!fileStatusWidget->getSelectedCommittableFiles().empty()) return false;
+    if (!fileStatusWidget->getSelectedRemovableFiles().empty()) return false;
+    return true;
+}
+
+bool HgExpWidget::canRemove() const
+{
+    if (fileStatusWidget->getSelectedRemovableFiles().empty()) return false;
+    if (!fileStatusWidget->getSelectedAddableFiles().empty()) return false;
+    return true;
+}
+
+bool HgExpWidget::canDoDiff() const
+{
+    return canCommit();
+}
+
+QStringList HgExpWidget::getAllSelectedFiles() const
+{
+    return fileStatusWidget->getAllSelectedFiles();
+}
+
+QStringList HgExpWidget::getSelectedCommittableFiles() const
+{
+    return fileStatusWidget->getSelectedCommittableFiles();
+}
+
+QStringList HgExpWidget::getSelectedAddableFiles() const
+{
+    return fileStatusWidget->getSelectedAddableFiles();
+}
+
+QStringList HgExpWidget::getSelectedRemovableFiles() const
+{
+    return fileStatusWidget->getSelectedRemovableFiles();
 }
 
 void HgExpWidget::updateWorkFolderFileList(QString fileList)

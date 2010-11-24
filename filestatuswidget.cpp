@@ -73,6 +73,9 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
         w->setSelectionMode(QListWidget::ExtendedSelection);
         boxlayout->addWidget(w, 1, 0);
 
+        connect(w, SIGNAL(itemSelectionChanged()),
+                this, SLOT(itemSelectionChanged()));
+
         layout->addWidget(box, ++row, 0, 1, 2);
         box->hide();
     }
@@ -85,11 +88,94 @@ FileStatusWidget::~FileStatusWidget()
     delete m_dateReference;
 }
 
+void FileStatusWidget::itemSelectionChanged()
+{
+    m_selectedFiles.clear();
+
+    DEBUG << "FileStatusWidget::itemSelectionChanged" << endl;
+
+    foreach (QListWidget *w, m_stateListMap) {
+        QList<QListWidgetItem *> sel = w->selectedItems();
+        foreach (QListWidgetItem *i, sel) {
+            m_selectedFiles.push_back(i->text());
+            DEBUG << "file " << i->text() << " is selected" << endl;
+        }
+    }
+
+    emit selectionChanged();
+}
+
 void FileStatusWidget::clearSelections()
 {
+    m_selectedFiles.clear();
     foreach (QListWidget *w, m_stateListMap) {
         w->clearSelection();
     }
+}
+
+bool FileStatusWidget::haveChangesToCommit() const
+{
+    return !m_fileStates.added().empty() ||
+           !m_fileStates.removed().empty() ||
+           !m_fileStates.modified().empty();
+}
+
+bool FileStatusWidget::haveSelection() const
+{
+    return !m_selectedFiles.empty();
+}
+
+QStringList FileStatusWidget::getAllSelectedFiles() const
+{
+    return m_selectedFiles;
+}
+
+QStringList FileStatusWidget::getSelectedCommittableFiles() const
+{
+    QStringList files;
+    foreach (QString f, m_selectedFiles) {
+        switch (m_fileStates.getStateOfFile(f)) {
+        case FileStates::Added:
+        case FileStates::Modified:
+        case FileStates::Removed:
+            files.push_back(f);
+            break;
+        default: break;
+        }
+    }
+    return files;
+}
+
+QStringList FileStatusWidget::getSelectedAddableFiles() const
+{
+    QStringList files;
+    foreach (QString f, m_selectedFiles) {
+        switch (m_fileStates.getStateOfFile(f)) {
+        case FileStates::Unknown:
+        case FileStates::Removed:
+            files.push_back(f);
+            break;
+        default: break;
+        }
+    }
+    return files;
+}
+
+QStringList FileStatusWidget::getSelectedRemovableFiles() const
+{
+    QStringList files;
+    foreach (QString f, m_selectedFiles) {
+        switch (m_fileStates.getStateOfFile(f)) {
+        case FileStates::Clean:
+        case FileStates::Added:
+        case FileStates::Modified:
+        case FileStates::Missing:
+            files.push_back(f);
+            break;
+        default: break;
+        }
+    }
+    return files;
 }
 
 void
@@ -126,41 +212,63 @@ FileStatusWidget::setFileStates(FileStates p)
 }
 
 void
-FileStatusWidget::highlightFile(QListWidget *w, int i)
-{
-    DEBUG << "FileStatusWidget: highlighting file at " << i << endl;
-    QListWidgetItem *item = w->item(i);
-    item->setForeground(Qt::red);
-    //!!! and a nice gold star
-}
-
-void
 FileStatusWidget::updateWidgets()
 {
-    foreach (FileStates::State s, m_stateListMap.keys()) {
-        QListWidget *w = m_stateListMap[s];
-        w->clear();
-        QStringList sl = m_fileStates.getFilesInState(s);
-        w->addItems(sl);
-        w->parentWidget()->setVisible(!sl.empty());
+    QDateTime lastInteractionTime;
+    if (m_dateReference) {
+        lastInteractionTime = m_dateReference->lastModified();
+        DEBUG << "reference time: " << lastInteractionTime << endl;
     }
 
-    if (m_dateReference) {
-        // Highlight untracked files that have appeared since the
-        // last interaction with the repo
-        QDateTime refTime = m_dateReference->lastModified();
-        DEBUG << "reference time: " << refTime << endl;
-        QListWidget *ul = m_stateListMap[FileStates::Unknown];
-        for (int i = 0; i < ul->count(); ++i) {
-            QString fn(m_localPath + "/" + ul->item(i)->text());
-            DEBUG << "comparing with " << fn << endl;
-            QFileInfo fi(fn);
-            if (fi.exists() && fi.lastModified() > refTime) {
-                DEBUG << "file " << fn << " is newer (" << fi.lastModified()
-                        << ") than reference" << endl;
-                highlightFile(ul, i);
+    QSet<QString> selectedFiles;
+    foreach (QString f, m_selectedFiles) selectedFiles.insert(f);
+
+    foreach (FileStates::State s, m_stateListMap.keys()) {
+
+        QListWidget *w = m_stateListMap[s];
+        w->clear();
+        QStringList files = m_fileStates.getFilesInState(s);
+
+        QStringList highPriority, lowPriority;
+
+        foreach (QString file, files) {
+
+            bool highlighted = false;
+
+            if (s == FileStates::Unknown) {
+                // We want to highlight untracked files that have appeared
+                // since the last interaction with the repo
+                QString fn(m_localPath + "/" + file);
+                DEBUG << "comparing with " << fn << endl;
+                QFileInfo fi(fn);
+                if (fi.exists() && fi.lastModified() > lastInteractionTime) {
+                    DEBUG << "file " << fn << " is newer (" << fi.lastModified()
+                            << ") than reference" << endl;
+                    highlighted = true;
+                }
+            }
+
+            if (highlighted) {
+                highPriority.push_back(file);
+            } else {
+                lowPriority.push_back(file);
             }
         }
+
+        foreach (QString file, highPriority) {
+            QListWidgetItem *item = new QListWidgetItem(file);
+            w->addItem(item);
+            item->setForeground(Qt::red); //!!! and a nice gold star
+            item->setSelected(selectedFiles.contains(file));
+        }
+
+        foreach (QString file, lowPriority) {
+            QListWidgetItem *item = new QListWidgetItem(file);
+            w->addItem(item);
+            item->setSelected(selectedFiles.contains(file));
+        }
+
+        w->parentWidget()->setVisible(!files.empty());
     }
 }
 

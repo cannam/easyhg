@@ -43,18 +43,22 @@ public:
     FileStates fileStates() const { return m_fileStates; }
     void setFileStates(FileStates sp);
 
-    bool haveChangesToCommit() const {
-        return !m_fileStates.added().empty() ||
-               !m_fileStates.removed().empty() ||
-               !m_fileStates.modified().empty();
-    }
+    bool haveChangesToCommit() const;
+    bool haveSelection() const;
 
-    QStringList getSelectedCommittableFiles();
-    QStringList getSelectedAddableFiles();
-    QStringList getSelectedRemoveableFiles();
+    QStringList getAllSelectedFiles() const;
+    QStringList getSelectedCommittableFiles() const;
+    QStringList getSelectedAddableFiles() const;
+    QStringList getSelectedRemovableFiles() const;
+
+signals:
+    void selectionChanged();
 
 public slots:
     void clearSelections();
+
+private slots:
+    void itemSelectionChanged();
 
 private:
     QString m_localPath;
@@ -67,9 +71,9 @@ private:
     QMap<FileStates::State, QListWidget *> m_stateListMap;
 
     QFileInfo *m_dateReference;
+    QStringList m_selectedFiles;
 
     void updateWidgets();
-    void highlightFile(QListWidget *, int);
 };
 
 #endif

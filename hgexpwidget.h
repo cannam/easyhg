@@ -30,8 +30,6 @@
 #include <QLabel>
 #include <QTabWidget>
 
-#define NUM_STAT_FILE_TYPES 7
-
 class FileStatusWidget;
 
 
@@ -40,8 +38,7 @@ class HgExpWidget: public QTabWidget
     Q_OBJECT
 
 public:
-    HgExpWidget(QWidget *parent, QString remoteRepo, QString workFolderPath,
-                unsigned char viewFileTypesBits = DEFAULT_HG_STAT_BITS);
+    HgExpWidget(QWidget *parent, QString remoteRepo, QString workFolderPath);
 
     void updateWorkFolderFileList(QString fileList);
     void updateLocalRepoHgLogList(QString hgLogList);
@@ -52,7 +49,15 @@ public:
     bool canCommit() const;
     bool canAdd() const;
     bool canRemove() const;
-    bool canDoFolderDiff() const;
+    bool canDoDiff() const;
+
+    QStringList getAllSelectedFiles() const;
+    QStringList getSelectedCommittableFiles() const;
+    QStringList getSelectedAddableFiles() const;
+    QStringList getSelectedRemovableFiles() const;
+
+signals:
+    void selectionChanged();
 
 public slots:
     void clearSelections();
