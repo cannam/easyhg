@@ -72,8 +72,6 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     for (int i = int(FileStates::FirstState);
              i <= int(FileStates::LastState); ++i) {
 
-        layout->addItem(new QSpacerItem(5, 8), ++row, 0);
-
         FileStates::State s = FileStates::State(i);
 
         QWidget *box = new QWidget;
@@ -81,12 +79,14 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
         boxlayout->setMargin(0);
         box->setLayout(boxlayout);
 
-        boxlayout->addWidget(new QLabel(labelFor(s)), 0, 0);
+        boxlayout->addItem(new QSpacerItem(5, 8), 0, 0);
+
+        boxlayout->addWidget(new QLabel(labelFor(s)), 1, 0);
 
         QListWidget *w = new QListWidget;
         m_stateListMap[s] = w;
         w->setSelectionMode(QListWidget::ExtendedSelection);
-        boxlayout->addWidget(w, 1, 0);
+        boxlayout->addWidget(w, 2, 0);
 
         connect(w, SIGNAL(itemSelectionChanged()),
                 this, SLOT(itemSelectionChanged()));
