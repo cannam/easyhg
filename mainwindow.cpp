@@ -67,7 +67,7 @@ MainWindow::MainWindow()
 
     tabPage = 0;
     justMerged = false;
-    hgExp = new HgExpWidget((QWidget *) this, remoteRepoPath, workFolderPath);
+    hgExp = new HgTabWidget((QWidget *) this, remoteRepoPath, workFolderPath);
     setCentralWidget(hgExp);
 
     connect(hgExp, SIGNAL(selectionChanged()),

@@ -15,7 +15,7 @@
     COPYING included with this distribution for more information.
 */
 
-#include "hgexpwidget.h"
+#include "hgtabwidget.h"
 #include "common.h"
 #include "logparser.h"
 #include "changeset.h"
@@ -31,7 +31,7 @@
 
 #include <iostream>
 
-HgExpWidget::HgExpWidget(QWidget *parent,
+HgTabWidget::HgTabWidget(QWidget *parent,
                          QString remoteRepo,
                          QString workFolderPath) :
     QTabWidget(parent)
@@ -59,17 +59,17 @@ HgExpWidget::HgExpWidget(QWidget *parent,
     addTab(historyGraphPageWidget, tr("History"));
 }
 
-void HgExpWidget::clearSelections()
+void HgTabWidget::clearSelections()
 {
     fileStatusWidget->clearSelections();
 }
 
-bool HgExpWidget::canCommit() const
+bool HgTabWidget::canCommit() const
 {
     return fileStatusWidget->haveChangesToCommit();
 }
 
-bool HgExpWidget::canAdd() const
+bool HgTabWidget::canAdd() const
 {
     if (fileStatusWidget->getSelectedAddableFiles().empty()) return false;
     if (!fileStatusWidget->getSelectedCommittableFiles().empty()) return false;
@@ -77,45 +77,45 @@ bool HgExpWidget::canAdd() const
     return true;
 }
 
-bool HgExpWidget::canRemove() const
+bool HgTabWidget::canRemove() const
 {
     if (fileStatusWidget->getSelectedRemovableFiles().empty()) return false;
     if (!fileStatusWidget->getSelectedAddableFiles().empty()) return false;
     return true;
 }
 
-bool HgExpWidget::canDoDiff() const
+bool HgTabWidget::canDoDiff() const
 {
     return canCommit();
 }
 
-QStringList HgExpWidget::getAllSelectedFiles() const
+QStringList HgTabWidget::getAllSelectedFiles() const
 {
     return fileStatusWidget->getAllSelectedFiles();
 }
 
-QStringList HgExpWidget::getSelectedCommittableFiles() const
+QStringList HgTabWidget::getSelectedCommittableFiles() const
 {
     return fileStatusWidget->getSelectedCommittableFiles();
 }
 
-QStringList HgExpWidget::getSelectedAddableFiles() const
+QStringList HgTabWidget::getSelectedAddableFiles() const
 {
     return fileStatusWidget->getSelectedAddableFiles();
 }
 
-QStringList HgExpWidget::getSelectedRemovableFiles() const
+QStringList HgTabWidget::getSelectedRemovableFiles() const
 {
     return fileStatusWidget->getSelectedRemovableFiles();
 }
 
-void HgExpWidget::updateWorkFolderFileList(QString fileList)
+void HgTabWidget::updateWorkFolderFileList(QString fileList)
 {
     fileStates.parseStates(fileList);
     fileStatusWidget->setFileStates(fileStates);
 }
 
-void HgExpWidget::updateLocalRepoHgLogList(QString hgLogList)
+void HgTabWidget::updateLocalRepoHgLogList(QString hgLogList)
 {
     //!!!
     Panned *panned = static_cast<Panned *>(historyGraphWidget);
@@ -137,7 +137,7 @@ void HgExpWidget::updateLocalRepoHgLogList(QString hgLogList)
     if (tipItem) tipItem->ensureVisible();
 }
 
-Changesets HgExpWidget::parseChangeSets(QString changeSetsStr)
+Changesets HgTabWidget::parseChangeSets(QString changeSetsStr)
 {
     Changesets csets;
     LogList log = LogParser(changeSetsStr).parse();
@@ -167,7 +167,7 @@ Changesets HgExpWidget::parseChangeSets(QString changeSetsStr)
     return csets;
 }
 
-void HgExpWidget::setWorkFolderAndRepoNames(QString workFolderPath, QString remoteRepoPath)
+void HgTabWidget::setWorkFolderAndRepoNames(QString workFolderPath, QString remoteRepoPath)
 {
     fileStatusWidget->setLocalPath(workFolderPath);
     fileStatusWidget->setRemoteURL(remoteRepoPath);

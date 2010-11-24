@@ -11,7 +11,7 @@ OBJECTS_DIR = o
 MOC_DIR = o
 
 HEADERS = mainwindow.h \
-    hgexpwidget.h \
+    hgtabwidget.h \
     common.h \
     grapher.h \
     hgrunner.h \
@@ -35,7 +35,7 @@ HEADERS = mainwindow.h \
     filestatuswidget.h
 SOURCES = main.cpp \
     mainwindow.cpp \
-    hgexpwidget.cpp \
+    hgtabwidget.cpp \
     hgrunner.cpp \
     grapher.cpp \
     settingsdialog.cpp \
