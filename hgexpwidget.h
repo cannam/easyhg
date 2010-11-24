@@ -20,7 +20,7 @@
 
 #include "changeset.h"
 #include "common.h"
-#include "statparser.h"
+#include "filestates.h"
 
 #include <QMenu>
 #include <QListWidget>
@@ -47,10 +47,12 @@ public:
     void updateLocalRepoHgLogList(QString hgLogList);
     void setWorkFolderAndRepoNames(QString workFolderPath, QString remoteRepoPath);
 
-    //!!! StatParser really should be renamed to express "status state" rather than activity
-    StatParser getStatParser() { return statParser; }
+    FileStates getFileStates() { return fileStates; }
 
     bool canCommit() const;
+    bool canAdd() const;
+    bool canRemove() const;
+    bool canDoFolderDiff() const;
 
 private:
     FileStatusWidget *fileStatusWidget;
@@ -60,7 +62,7 @@ private:
     QWidget *historyGraphPanner;
     QWidget *historyPageWidget;
 
-    StatParser statParser;
+    FileStates fileStates;
 
     Changesets parseChangeSets(QString changeSetsStr);
 };

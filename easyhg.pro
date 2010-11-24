@@ -31,7 +31,7 @@ HEADERS = mainwindow.h \
     repositorydialog.h \
     multichoicedialog.h \
     selectablelabel.h \
-    statparser.h \
+    filestates.h \
     filestatuswidget.h
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -55,7 +55,7 @@ SOURCES = main.cpp \
     repositorydialog.cpp \
     multichoicedialog.cpp \
     selectablelabel.cpp \
-    statparser.cpp \
+    filestates.cpp \
     filestatuswidget.cpp
 
 macx-* {
