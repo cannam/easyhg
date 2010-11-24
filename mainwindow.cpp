@@ -67,8 +67,11 @@ MainWindow::MainWindow()
 
     tabPage = 0;
     justMerged = false;
-    hgExp = new HgExpWidget((QWidget *) this, remoteRepoPath, workFolderPath, initialFileTypesBits);
+    hgExp = new HgExpWidget((QWidget *) this, remoteRepoPath, workFolderPath);
     setCentralWidget(hgExp);
+
+    connect(hgExp, SIGNAL(selectionChanged()),
+            this, SLOT(enableDisableActions()));
 
     setUnifiedTitleAndToolBarOnMac(true);
     connectActions();
@@ -1062,184 +1065,6 @@ void MainWindow::presentLongStdoutToUser(QString stdo)
     }
 }
 
-
-bool MainWindow::areAllSelectedCommitable(QListWidget *workList)
-{
-    QList<QListWidgetItem *> selList = workList -> selectedItems();
-    for (int i = 0; i < selList.size(); ++i)
-    {
-        QString tmp = selList.at(i) -> text().mid(0, 1);
-        if (tmp == "A")
-        {
-            //scheduled to be added, ok to commit
-        }
-        else if (tmp == "M")
-        {
-            //locally modified, ok to commit
-        }
-        else if (tmp == "R")
-        {
-            //user wants to remove from repo, ok to commit
-        }
-        else
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
-bool MainWindow::isSelectedDeletable(QListWidget *workList)
-{
-    QList<QListWidgetItem *> selList = workList -> selectedItems();
-    if (selList.count() == 1)
-    {
-        QString tmp = selList.at(0)->text().mid(0, 1);
-        if (tmp == "A")
-        {
-            //scheduled to be added, ok to remove (won't go to repo)
-            return true;
-        }
-        else if (tmp == "C")
-        {
-            //Tracked but unchanged, ok to remove
-            return true;
-        }
-        else if (tmp == "M")
-        {
-            //locally modified, ok to remove from repo
-            return true;
-        }
-        else if (tmp == "!")
-        {
-            //locally deleted, ok to remove from repo
-            return true;
-        }
-    }
-    return false;
-}
-
-
-bool MainWindow::areAllSelectedUntracked(QListWidget *workList)
-{
-    QList<QListWidgetItem *> selList = workList -> selectedItems();
-    for (int i = 0; i < selList.size(); ++i)
-    {
-        QString tmp = selList.at(i) -> text();
-
-        if (tmp.mid(0,1) != "?")
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
-
-bool MainWindow::isSelectedModified(QListWidget *workList)
-{
-    QList<QListWidgetItem *> selList = workList -> selectedItems();
-    if (selList.count() == 1)
-    {
-        if (selList.at(0)->text().mid(0, 1) == "M")
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-void MainWindow::countModifications(QListWidget *workList, int& added, int& modified, int& removed, int& notTracked,
-                                    int& selected,
-                                    int& selectedAdded, int& selectedModified, int& selectedRemoved, int& selectedNotTracked)
-{
-    int itemCount = workList -> count();
-    if (itemCount > 0)
-    {
-        int A= 0;
-        int M=0;
-        int R=0;
-        int N=0;
-        int S=0;
-        int SA=0;
-        int SM=0;
-        int SR=0;
-        int SN=0;
-
-        for (int i = 0; i < workList -> count(); i++)
-        {
-            QListWidgetItem *currItem = workList -> item(i);
-
-            QString tmp = currItem->text().mid(0, 1);
-            if (tmp == "M")
-            {
-                M++;
-            }
-            else if (tmp == "R")
-            {
-                R++;
-            }
-            else if (tmp == "A")
-            {
-                A++;
-            }
-            else if (tmp == "?")
-            {
-                N++;
-            }
-        }
-
-        added = A;
-        modified = M;
-        removed = R;
-        notTracked = N;
-
-        QList <QListWidgetItem *> selList = workList -> selectedItems();
-
-        S = selList.size();
-        for (int i = 0; i < selList.size(); ++i)
-        {
-            QString tmp = selList.at(i) -> text();
-
-            if (tmp.mid(0,1) == "A")
-            {
-                SA++;
-            }
-            else if (tmp.mid(0,1) == "M")
-            {
-                SM++;
-            }
-            else if (tmp.mid(0,1) == "R")
-            {
-                SR++;
-            }
-            else if (tmp.mid(0,1) == "?")
-            {
-                SN++;
-            }
-        }
-
-        selected = S;
-        selectedAdded = SA;
-        selectedModified = SM;
-        selectedRemoved = SR;
-        selectedNotTracked = SN;
-    }
-    else
-    {
-        added = 0;
-        modified = 0;
-        removed = 0;
-        notTracked = 0;
-        selected = 0;
-        selectedAdded = 0;
-        selectedModified = 0;
-        selectedRemoved = 0;
-        selectedNotTracked = 0;
-    }
-}
-
-
 void MainWindow::updateFileSystemWatcher()
 {
     //!!! this needs to be incremental when something changes
@@ -1581,8 +1406,11 @@ void MainWindow::enableDisableActions()
     DEBUG << "canCommit = " << hgExp->canCommit() << endl;
 
     //!!! new stuff:
+    hgAddAct->setEnabled(localRepoActionsEnabled && hgExp->canAdd());
+    hgRemoveAct->setEnabled(localRepoActionsEnabled && hgExp->canRemove());
     hgCommitAct->setEnabled(localRepoActionsEnabled && hgExp->canCommit());
     hgRevertAct->setEnabled(localRepoActionsEnabled && hgExp->canCommit());
+    hgFolderDiffAct->setEnabled(localRepoActionsEnabled && hgExp->canDoDiff());
 
 /*!!!
     int added, modified, removed, notTracked, selected, selectedAdded, selectedModified, selectedRemoved, selectedNotTracked;
@@ -1844,8 +1672,8 @@ void MainWindow::createToolBars()
     addToolBar(Qt::LeftToolBarArea, workFolderToolBar);
     workFolderToolBar -> setIconSize(QSize(MY_ICON_SIZE, MY_ICON_SIZE));
 //    workFolderToolBar->addSeparator();
-    workFolderToolBar->addAction(hgFileDiffAct);
-//    workFolderToolBar->addAction(hgFolderDiffAct);
+//    workFolderToolBar->addAction(hgFileDiffAct);
+    workFolderToolBar->addAction(hgFolderDiffAct);
     workFolderToolBar->addSeparator();
     workFolderToolBar->addAction(hgRevertAct);
     workFolderToolBar->addAction(hgUpdateAct);

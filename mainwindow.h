@@ -71,7 +71,6 @@ public:
     MainWindow();
     HgExpWidget *hgExp;
     void writeSettings();
-    void enableDisableActions();
 
     //Paths to remote repo & workfolder
     //Local repo is directory "./hg/" under work folder
@@ -87,6 +86,7 @@ public slots:
     void tabChanged(int currTab);
     void commandCompleted();
     void commandFailed();
+    void enableDisableActions();
 
 private slots:
     void about();
@@ -134,13 +134,7 @@ private:
     void splitChangeSets(QStringList *list, QString hgLogOutput);
     bool getCommentOrTag(QString& commentOrTag, QString question, QString dlgTitle);
     void presentLongStdoutToUser(QString stdo);
-    void countModifications(QListWidget *workList, int& added, int& modified, int& removed, int& notTracked,
-        int& selected,
-        int& selectedAdded, int& selectedModified, int& selectedRemoved, int& selectedNotTracked);
-    bool isSelectedModified(QListWidget *workList);
-    bool areAllSelectedUntracked(QListWidget *workList);
-    bool isSelectedDeletable(QListWidget *workList);
-    bool areAllSelectedCommitable(QListWidget *workList);
+
     QString listAllUpIpV4Addresses();
     QString filterTag(QString tag);
 
