@@ -132,7 +132,6 @@ private:
     void createStatusBar();
     void readSettings();
     void splitChangeSets(QStringList *list, QString hgLogOutput);
-    bool getCommentOrTag(QString& commentOrTag, QString question, QString dlgTitle);
     void presentLongStdoutToUser(QString stdo);
 
     QString listAllUpIpV4Addresses();

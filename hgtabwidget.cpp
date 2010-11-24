@@ -109,6 +109,21 @@ QStringList HgTabWidget::getSelectedRemovableFiles() const
     return fileStatusWidget->getSelectedRemovableFiles();
 }
 
+QStringList HgTabWidget::getAllCommittableFiles() const
+{
+    return fileStatusWidget->getAllCommittableFiles();
+}
+
+QStringList HgTabWidget::getAllAddableFiles() const
+{
+    return fileStatusWidget->getAllAddableFiles();
+}
+
+QStringList HgTabWidget::getAllRemovableFiles() const
+{
+    return fileStatusWidget->getAllRemovableFiles();
+}
+
 void HgTabWidget::updateWorkFolderFileList(QString fileList)
 {
     fileStates.parseStates(fileList);

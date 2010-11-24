@@ -55,11 +55,11 @@ bool ConfirmCommentDialog::confirmAndComment(QWidget *parent,
     QString text;
     if (files.size() <= 10) {
         text = "<qt>" + introText;
-        text += "<code>";
+        text += "<p><ul>";
         foreach (QString file, files) {
-            text += file + "<br>";
+            text += "<li>" + file + "</li>";
         }
-        text += "</code></qt>";
+        text += "</ul><p>Please enter your comment:</qt>";
     } else {
         text = "<qt>" + introText.arg(files.size());
     }
@@ -72,6 +72,7 @@ bool ConfirmCommentDialog::confirmAndComment(QWidget *parent,
                                              QString &comment)
 {
     bool ok = false;
+    //!!! ok, for comments need more than one line
     comment = QInputDialog::getText(parent, title, introText,
                                     QLineEdit::Normal, comment, &ok);
     return ok;
