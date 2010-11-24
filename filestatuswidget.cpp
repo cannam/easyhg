@@ -49,6 +49,8 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 
     layout->setColumnStretch(1, 20);
 
+    layout->addItem(new QSpacerItem(5, 8), ++row, 0);
+
     QMap<FileStates::State, QString> labels;
     labels[FileStates::Clean] = tr("Unmodified files:");
     labels[FileStates::Modified] = tr("Modified files:");
@@ -64,6 +66,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 
         QWidget *box = new QWidget;
         QGridLayout *boxlayout = new QGridLayout;
+        boxlayout->setMargin(0);
         box->setLayout(boxlayout);
 
         boxlayout->addWidget(new QLabel(labels[s]), 0, 0);

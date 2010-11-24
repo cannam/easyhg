@@ -1116,6 +1116,7 @@ void MainWindow::commandCompleted()
                         }
                         MultiChoiceDialog::addRecentArgument("local", workFolderPath);
                         MultiChoiceDialog::addRecentArgument("remote", remoteRepoPath);
+                        hgTabs->setWorkFolderAndRepoNames(workFolderPath, remoteRepoPath);
                         enableDisableActions();
                         break;
                     }
@@ -1525,7 +1526,7 @@ void MainWindow::createActions()
     hgFileDiffAct   = new QAction(QIcon(":/images/diff.png"), tr("Diff"), this);
     hgFileDiffAct->setStatusTip(tr("Filediff: View differences between selected working folder file and local repository file"));
 
-    hgFolderDiffAct   = new QAction(QIcon(":/images/folderdiff.png"), tr("View folderdiff"), this);
+    hgFolderDiffAct   = new QAction(QIcon(":/images/folderdiff.png"), tr("Diff"), this);
     hgFolderDiffAct->setStatusTip(tr("Folderdiff: View all differences between working folder files and local repository files"));
 
     hgChgSetDiffAct   = new QAction(QIcon(":/images/chgsetdiff.png"), tr("View changesetdiff"), this);
