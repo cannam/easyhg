@@ -20,9 +20,15 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QGridLayout>
+#include <QFileInfo>
+#include <QApplication>
+#include <QDateTime>
+
+#include "debug.h"
 
 FileStatusWidget::FileStatusWidget(QWidget *parent) :
-    QWidget(parent)
+    QWidget(parent),
+    m_dateReference(0)
 {
     QGridLayout *layout = new QGridLayout;
     setLayout(layout);
@@ -76,11 +82,28 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     layout->setRowStretch(++row, 20);
 }
 
+FileStatusWidget::~FileStatusWidget()
+{
+    delete m_dateReference;
+}
+
 void
 FileStatusWidget::setLocalPath(QString p)
 {
     m_localPath = p;
     m_localPathLabel->setText(p);
+    delete m_dateReference;
+    m_dateReference = new QFileInfo(p + "/.hg/dirstate");
+    if (!m_dateReference->exists() ||
+        !m_dateReference->isFile() ||
+        !m_dateReference->isReadable()) {
+        DEBUG << "FileStatusWidget::setLocalPath: date reference file "
+                << m_dateReference->absoluteFilePath()
+                << " does not exist, is not a file, or cannot be read"
+                << endl;
+        delete m_dateReference;
+        m_dateReference = 0;
+    }
 }
 
 void
@@ -98,6 +121,15 @@ FileStatusWidget::setFileStates(FileStates p)
 }
 
 void
+FileStatusWidget::highlightFile(QListWidget *w, int i)
+{
+    DEBUG << "FileStatusWidget: highlighting file at " << i << endl;
+    QListWidgetItem *item = w->item(i);
+    item->setForeground(Qt::red);
+    //!!! and a nice gold star
+}
+
+void
 FileStatusWidget::updateWidgets()
 {
     FileStates &sp = m_fileStates;
@@ -112,6 +144,23 @@ FileStatusWidget::updateWidgets()
         listmap[sl]->clear();
         listmap[sl]->addItems(*sl);
         listmap[sl]->parentWidget()->setVisible(!sl->empty());
+    }
+
+    if (m_dateReference) {
+        // Highlight untracked files that have appeared since the
+        // last interaction with the repo
+        QDateTime refTime = m_dateReference->lastModified();
+        DEBUG << "reference time: " << refTime << endl;
+        for (int i = 0; i < m_unknownList->count(); ++i) {
+            QString fn(m_localPath + "/" + m_unknownList->item(i)->text());
+            DEBUG << "comparing with " << fn << endl;
+            QFileInfo fi(fn);
+            if (fi.exists() && fi.lastModified() > refTime) {
+                DEBUG << "file " << fn << " is newer (" << fi.lastModified()
+                        << ") than reference" << endl;
+                highlightFile(m_unknownList, i);
+            }
+        }
     }
 }
 
