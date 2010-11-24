@@ -3,7 +3,7 @@
 /*
     EasyMercurial
 
-    Based on HgExplorer by Jari Korhonen
+    Based on hgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
     Copyright (c) 2010 Chris Cannam
     Copyright (c) 2010 Queen Mary, University of London
@@ -69,7 +69,7 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow();
-    HgTabWidget *hgExp;
+    HgTabWidget *hgTabs;
     void writeSettings();
 
     //Paths to remote repo & workfolder

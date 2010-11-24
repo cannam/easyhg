@@ -125,7 +125,7 @@ void SettingsDialog::okClicked()
     mainWnd -> writeSettings();
     mainWnd -> enableDisableActions();
     mainWnd -> hgStat();
-    mainWnd -> hgExp -> setWorkFolderAndRepoNames(mainWnd -> workFolderPath, mainWnd -> remoteRepoPath);
+    mainWnd -> hgTabs -> setWorkFolderAndRepoNames(mainWnd -> workFolderPath, mainWnd -> remoteRepoPath);
 
     QDir dir(mainWnd -> workFolderPath);
     if (dir.exists(mainWnd -> workFolderPath))
