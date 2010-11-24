@@ -175,6 +175,15 @@ QStringList FileStatusWidget::getSelectedCommittableFiles() const
     return files;
 }
 
+QStringList FileStatusWidget::getAllCommittableFiles() const
+{
+    QStringList files;
+    files << m_fileStates.getFilesInState(FileStates::Modified);
+    files << m_fileStates.getFilesInState(FileStates::Added);
+    files << m_fileStates.getFilesInState(FileStates::Removed);
+    return files;
+}
+
 QStringList FileStatusWidget::getSelectedAddableFiles() const
 {
     QStringList files;
@@ -187,6 +196,14 @@ QStringList FileStatusWidget::getSelectedAddableFiles() const
         default: break;
         }
     }
+    return files;
+}
+
+QStringList FileStatusWidget::getAllAddableFiles() const
+{
+    QStringList files;
+    files << m_fileStates.getFilesInState(FileStates::Removed);
+    files << m_fileStates.getFilesInState(FileStates::Unknown);
     return files;
 }
 
@@ -204,6 +221,16 @@ QStringList FileStatusWidget::getSelectedRemovableFiles() const
         default: break;
         }
     }
+    return files;
+}
+
+QStringList FileStatusWidget::getAllRemovableFiles() const
+{
+    QStringList files;
+    files << m_fileStates.getFilesInState(FileStates::Clean);
+    files << m_fileStates.getFilesInState(FileStates::Added);
+    files << m_fileStates.getFilesInState(FileStates::Modified);
+    files << m_fileStates.getFilesInState(FileStates::Missing);
     return files;
 }
 

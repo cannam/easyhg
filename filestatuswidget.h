@@ -47,9 +47,15 @@ public:
     bool haveSelection() const;
 
     QStringList getAllSelectedFiles() const;
+
     QStringList getSelectedCommittableFiles() const;
+    QStringList getAllCommittableFiles() const;
+
     QStringList getSelectedAddableFiles() const;
+    QStringList getAllAddableFiles() const;
+
     QStringList getSelectedRemovableFiles() const;
+    QStringList getAllRemovableFiles() const;
 
 signals:
     void selectionChanged();

@@ -37,6 +37,7 @@
 #include "colourset.h"
 #include "debug.h"
 #include "logparser.h"
+#include "confirmcommentdialog.h"
 
 
 MainWindow::MainWindow()
@@ -316,17 +317,6 @@ void MainWindow::hgRemove()
     }
 }
 
-
-bool MainWindow::getCommentOrTag(QString& commentOrTag,
-                                 QString question,
-                                 QString dlgTitle)
-{
-    bool ok = false;
-    QString text = QInputDialog::getText(this, dlgTitle, question, QLineEdit::Normal, commentOrTag, &ok);
-    commentOrTag = text;
-    return ok;
-}
-
 void MainWindow::hgCommit()
 {
     //!!! Now that hg actions can be fired asynchronously (e.g. from
@@ -337,13 +327,19 @@ void MainWindow::hgCommit()
     {
         QStringList params;
         QString comment;
-        
-        if (getCommentOrTag(comment, tr("Comment:"), tr("Save (commit)")))
-        {
+
+        QStringList files = hgTabs->getSelectedCommittableFiles();
+        if (files.empty()) files = hgTabs->getAllCommittableFiles();
+
+        if (ConfirmCommentDialog::confirmAndComment(this,
+                                                    tr("Commit files"),
+                                                    tr("About to commit the following files:"),
+                                                    tr("About to commit %1 files."),
+                                                    files,
+                                                    comment)) {
+
             //!!! do something more sensible when the comment is empty
             // (i.e. tell the user about it?)
-
-            QStringList files = hgTabs->getSelectedCommittableFiles();
 
             if ((justMerged == false) && //!!! review usage of justMerged
                 !files.empty()) {
@@ -384,9 +380,11 @@ void MainWindow::hgTag()
         QStringList params;
         QString tag;
 
-        if (getCommentOrTag(tag, tr("Tag:"), tr("Tag")))
-        {
-            if (!tag.isEmpty())
+        if (ConfirmCommentDialog::confirmAndComment(this,
+                                                    tr("Tag"),
+                                                    tr("Enter tag:"),
+                                                    tag)) {
+            if (!tag.isEmpty()) //!!! do something better if it is empty
             {
                 params << "tag" << "--user" << getUserInfo() << filterTag(tag);
 
