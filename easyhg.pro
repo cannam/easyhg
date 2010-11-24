@@ -32,7 +32,8 @@ HEADERS = mainwindow.h \
     multichoicedialog.h \
     selectablelabel.h \
     filestates.h \
-    filestatuswidget.h
+    filestatuswidget.h \
+    confirmcommentdialog.h
 SOURCES = main.cpp \
     mainwindow.cpp \
     hgtabwidget.cpp \
@@ -56,7 +57,8 @@ SOURCES = main.cpp \
     multichoicedialog.cpp \
     selectablelabel.cpp \
     filestates.cpp \
-    filestatuswidget.cpp
+    filestatuswidget.cpp \
+    confirmcommentdialog.cpp
 
 macx-* {
     SOURCES += common_osx.mm

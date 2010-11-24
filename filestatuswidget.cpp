@@ -66,7 +66,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_descriptions[FileStates::Unknown] = tr("These files are in your working folder but are not under version control.<br>"
                                              "Select a file and use Add to place it under version control or Ignore to remove it from this list.");
 
-    m_highlightExplanation = tr("Files highlighted in red "
+    m_highlightExplanation = tr("Files highlighted <font color=red>in red</font> "
                                 "have appeared since your most recent commit or update.");
 
     for (int i = int(FileStates::FirstState);
