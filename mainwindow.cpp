@@ -130,6 +130,10 @@ void MainWindow::about()
                         "-Windows standalone install uses InstallJammer setup tool (Thanks, great tool !)<br>"));
 }
 
+void MainWindow::clearSelections()
+{
+    hgExp->clearSelections();
+}
 
 void MainWindow::hgStat()
 {
@@ -349,6 +353,10 @@ bool MainWindow::getCommentOrTag(QString& commentOrTag,
 
 void MainWindow::hgCommit()
 {
+    //!!! Now that hg actions can be fired asynchronously (e.g. from
+    // the filesystem modified callback) we _really_ need to be able to
+    // queue important actions rather than just ignore them if busy!
+
     if (runningAction == ACT_NONE)
     {
         QStringList params;
@@ -1498,6 +1506,7 @@ void MainWindow::connectActions()
     connect(hgResolveListAct, SIGNAL(triggered()), this, SLOT(hgResolveList()));
     connect(hgResolveMarkAct, SIGNAL(triggered()), this, SLOT(hgResolveMark()));
     connect(hgServeAct, SIGNAL(triggered()), this, SLOT(hgServe()));
+    connect(clearSelectionsAct, SIGNAL(triggered()), this, SLOT(clearSelections()));
 }
 
 void MainWindow::tabChanged(int currTab)
@@ -1776,6 +1785,10 @@ void MainWindow::createActions()
 
     aboutQtAct = new QAction(tr("About Qt"), this);
     aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
+
+    // Miscellaneous
+    clearSelectionsAct = new QAction(tr("Clear selections"), this);
+    clearSelectionsAct->setShortcut(Qt::Key_Escape);
 }
 
 void MainWindow::createMenus()
@@ -1783,6 +1796,7 @@ void MainWindow::createMenus()
     fileMenu = menuBar()->addMenu(tr("File"));
     fileMenu -> addAction(hgInitAct);
     fileMenu -> addAction(hgCloneFromRemoteAct);
+    fileMenu->addAction(clearSelectionsAct); //!!! can't live here!
     fileMenu -> addSeparator();
     fileMenu -> addAction(openAct);
     fileMenu -> addAction(settingsAct);

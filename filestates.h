@@ -19,34 +19,51 @@
 #define FILESTATES_H
 
 #include <QStringList>
+#include <QMap>
+#include <QString>
 
 class FileStates
 {
 public:
-    FileStates() { }
-    FileStates(QString text);
+    FileStates();
 
     enum State {
 
-        UpToDate,
+        Clean,
         Modified,
         Added,
         Unknown,
         Removed,
         Missing,
 
-        FirstState = UpToDate,
+        FirstState = Clean,
         LastState = Missing
     };
 
-    QStringList modified;
-    QStringList added;
-    QStringList unknown;
-    QStringList removed;
-    QStringList missing;
+    void parseStates(QString text);
 
-    QStringList getFilesInState(State);
-    State getStateOfFile(QString file);
+    void clearBuckets();
+
+    QStringList getFilesInState(State) const;
+
+    QStringList modified() const { return m_modified; }
+    QStringList added() const { return m_added; }
+    QStringList unknown() const { return m_unknown; }
+    QStringList removed() const { return m_removed; }
+    QStringList missing() const { return m_missing; }
+
+    State getStateOfFile(QString file) const;
+
+private:
+    QStringList m_modified;
+    QStringList m_added;
+    QStringList m_unknown;
+    QStringList m_removed;
+    QStringList m_missing;
+    QMap<QString, State> m_stateMap;
+
+    State charToState(QChar, bool * = 0);
+    QStringList *stateToBucket(State);
 };
 
 #endif // FILESTATES_H

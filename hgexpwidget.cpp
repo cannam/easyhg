@@ -57,6 +57,11 @@ HgExpWidget::HgExpWidget(QWidget *parent, QString remoteRepo,
     addTab(historyGraphPageWidget, tr("History"));
 }
 
+void HgExpWidget::clearSelections()
+{
+    fileStatusWidget->clearSelections();
+}
+
 bool HgExpWidget::canCommit() const
 {
     return fileStatusWidget->haveChangesToCommit();
@@ -64,7 +69,7 @@ bool HgExpWidget::canCommit() const
 
 void HgExpWidget::updateWorkFolderFileList(QString fileList)
 {
-    fileStates = FileStates(fileList);
+    fileStates.parseStates(fileList);
     fileStatusWidget->setFileStates(fileStates);
 }
 

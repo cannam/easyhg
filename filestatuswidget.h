@@ -44,10 +44,17 @@ public:
     void setFileStates(FileStates sp);
 
     bool haveChangesToCommit() const {
-        return !m_fileStates.added.empty() ||
-               !m_fileStates.removed.empty() ||
-               !m_fileStates.modified.empty();
+        return !m_fileStates.added().empty() ||
+               !m_fileStates.removed().empty() ||
+               !m_fileStates.modified().empty();
     }
+
+    QStringList getSelectedCommittableFiles();
+    QStringList getSelectedAddableFiles();
+    QStringList getSelectedRemoveableFiles();
+
+public slots:
+    void clearSelections();
 
 private:
     QString m_localPath;
@@ -57,12 +64,7 @@ private:
     QLabel *m_remoteURLLabel;
     
     FileStates m_fileStates;
-
-    QListWidget *m_modifiedList;
-    QListWidget *m_addedList;
-    QListWidget *m_unknownList;
-    QListWidget *m_removedList;
-    QListWidget *m_missingList;
+    QMap<FileStates::State, QListWidget *> m_stateListMap;
 
     QFileInfo *m_dateReference;
 

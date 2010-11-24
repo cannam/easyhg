@@ -54,6 +54,9 @@ public:
     bool canRemove() const;
     bool canDoFolderDiff() const;
 
+public slots:
+    void clearSelections();
+
 private:
     FileStatusWidget *fileStatusWidget;
 
