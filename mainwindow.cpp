@@ -121,16 +121,22 @@ QString MainWindow::getUserInfo() const
 
 void MainWindow::about()
 {
-   QMessageBox::about(this, tr("About HgExplorer"),
-                      tr("<b>HgExplorer</b> tries to be Mercurial's <b>VSS Explorer:</b> ;-)<br><br>"
-                        "-Hides command line in normal use<br>"
-                        "-Makes common operations easier<br><br>"
-                        "(c) 2010 (lgpl), Jari Korhonen (jtkorhonen@gmail.com)<br><br>"
-                        "-Needs Mercurial ;-) (thanks Matt Mackall, Bryan O'Sullivan and others !)<br>"
-                        "-Uses excellent Nuvola icons (c) David Vignoni (Thanks, David !)<br>"
-                        "-Needs Qt4, mingw (in windows), python, kdiff3 (Thanks to all of you !)<br>"
-                        "-Windows standalone install uses hg / python / kdiff3 from TortoiseHg (BIG Thanks !)<br>"
-                        "-Windows standalone install uses InstallJammer setup tool (Thanks, great tool !)<br>"));
+   QMessageBox::about(this, tr("About EasyMercurial"),
+                      tr("<qt><h2>About EasyMercurial</h2>"
+                         "<p>EasyMercurial is a simple user interface for the "
+                         "Mercurial version control system.</p>"
+                         "<p>EasyMercurial is based on HgExplorer by "
+                         "Jari Korhonen, with thanks.<br>EasyMercurial development carried out by "
+                         "Chris Cannam for soundsoftware.ac.uk at the Centre for Digital Music, Queen Mary, University of London."
+                         "<ul><li>Copyright &copy; 2010 Jari Korhonen</li>"
+                         "<li>Copyright &copy; 2010 Chris Cannam</li>"
+                         "<li>Copyright &copy; 2010 Queen Mary, University of London</li>"
+                         "</ul>"
+                         "<p> This program is free software; you can redistribute it and/or "
+                         "modify it under the terms of the GNU General Public License as "
+                         "published by the Free Software Foundation; either version 2 of the "
+                         "License, or (at your option) any later version.  See the file "
+                         "COPYING included with this distribution for more information."));
 }
 
 void MainWindow::clearSelections()
