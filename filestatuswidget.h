@@ -68,12 +68,17 @@ private:
     QLabel *m_remoteURLLabel;
     
     FileStates m_fileStates;
+    QMap<FileStates::State, QString> m_simpleLabels;
+    QMap<FileStates::State, QString> m_descriptions;
     QMap<FileStates::State, QListWidget *> m_stateListMap;
+    QString m_highlightExplanation;
 
     QFileInfo *m_dateReference;
     QStringList m_selectedFiles;
 
     void updateWidgets();
+    QString labelFor(FileStates::State, bool addHighlightExplanation = false);
+    void setLabelFor(QWidget *w, FileStates::State, bool addHighlightExplanation);
 };
 
 #endif
