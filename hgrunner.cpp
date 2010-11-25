@@ -226,20 +226,25 @@ void HgRunner::killCurrentCommand()
     }
 }
 
-void HgRunner::startHgCommand(QString workingDir, QStringList params)
+void HgRunner::startHgCommand(QString workingDir, QStringList params, bool interactive)
 {
 #ifdef Q_OS_WIN32
     // This at least means we won't block on the non-working password prompt
     params.push_front("ui.interactive=false");
 #else
     // password prompt should work here
-    params.push_front("ui.interactive=true");
+    if (interactive) {
+        params.push_front("ui.interactive=true");
+    } else {
+        params.push_front("ui.interactive=false");
+    }
 #endif
     params.push_front("--config");
-    startCommand(getHgBinaryName(), workingDir, params);
+    startCommand(getHgBinaryName(), workingDir, params, interactive);
 }
 
-void HgRunner::startCommand(QString command, QString workingDir, QStringList params)
+void HgRunner::startCommand(QString command, QString workingDir, QStringList params,
+                            bool interactive)
 {
     m_isRunning = true;
     setRange(0, 0);
@@ -255,18 +260,22 @@ void HgRunner::startCommand(QString command, QString workingDir, QStringList par
     }
 
     m_procInput = 0;
+    m_ptySlaveFilename = "";
+
 #ifndef Q_OS_WIN32
-    char name[1024];
-    if (openpty(&m_ptyMasterFd, &m_ptySlaveFd, name, NULL, NULL)) {
-        perror("openpty failed");
-    } else {
-        DEBUG << "openpty succeeded: master " << m_ptyMasterFd
-                << " slave " << m_ptySlaveFd << " filename " << name << endl;
-        m_procInput = new QFile;
-        m_procInput->open(m_ptyMasterFd, QFile::WriteOnly);
-        m_ptySlaveFilename = name;
-        m_proc->setStandardInputFile(m_ptySlaveFilename);
-        ::close(m_ptySlaveFd);
+    if (interactive) {
+        char name[1024];
+        if (openpty(&m_ptyMasterFd, &m_ptySlaveFd, name, NULL, NULL)) {
+            perror("openpty failed");
+        } else {
+            DEBUG << "openpty succeeded: master " << m_ptyMasterFd
+                    << " slave " << m_ptySlaveFd << " filename " << name << endl;
+            m_procInput = new QFile;
+            m_procInput->open(m_ptyMasterFd, QFile::WriteOnly);
+            m_ptySlaveFilename = name;
+            m_proc->setStandardInputFile(m_ptySlaveFilename);
+            ::close(m_ptySlaveFd);
+        }
     }
 #endif
 

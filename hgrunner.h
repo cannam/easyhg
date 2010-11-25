@@ -32,8 +32,8 @@ public:
     HgRunner(QWidget * parent = 0);
     ~HgRunner();
 
-    void startHgCommand(QString workingDir, QStringList params);
-    void startCommand(QString command, QString workingDir, QStringList params);
+    void startHgCommand(QString workingDir, QStringList params, bool interactive = false);
+    void startCommand(QString command, QString workingDir, QStringList params, bool interactive = false);
 
     bool isCommandRunning();
     void killCurrentCommand();
