@@ -336,7 +336,8 @@ void MainWindow::hgCommit()
                                                     tr("About to commit the following files:"),
                                                     tr("About to commit %1 files."),
                                                     files,
-                                                    comment)) {
+                                                    comment,
+                                                    true)) {
 
             //!!! do something more sensible when the comment is empty
             // (i.e. tell the user about it?)
@@ -383,7 +384,8 @@ void MainWindow::hgTag()
         if (ConfirmCommentDialog::confirmAndComment(this,
                                                     tr("Tag"),
                                                     tr("Enter tag:"),
-                                                    tag)) {
+                                                    tag,
+                                                    false)) {
             if (!tag.isEmpty()) //!!! do something better if it is empty
             {
                 params << "tag" << "--user" << getUserInfo() << filterTag(tag);
@@ -577,7 +579,18 @@ void MainWindow::hgCloneFromRemote()
     {
         QStringList params;
 
+        if (!QDir(workFolderPath).exists()) {
+            if (!QDir().mkpath(workFolderPath)) {
+                DEBUG << "hgCloneFromRemote: Failed to create target path "
+                        << workFolderPath << endl;
+                //!!! report error
+                return;
+            }
+        }
+
         params << "clone" << remoteRepoPath << workFolderPath;
+
+        hgTabs->setWorkFolderAndRepoNames(workFolderPath, remoteRepoPath);
 
         runner -> startHgCommand(workFolderPath, params);
         runningAction = ACT_CLONEFROMREMOTE;

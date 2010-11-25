@@ -47,6 +47,7 @@ HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     env.insert("LANG", "en_US.utf8");
     env.insert("LC_ALL", "en_US.utf8");
+    env.insert("HGPLAIN", "1");
     m_proc->setProcessEnvironment(env);
 
     m_proc->setProcessChannelMode(QProcess::MergedChannels);
@@ -86,14 +87,11 @@ QString HgRunner::getHgBinaryName()
 
 void HgRunner::started()
 {
+    DEBUG << "started" << endl;
     /*
-    if (procInput) procInput->write("blah\n");
-    if (procInput) procInput->write("blah\n");
-    if (procInput) {
-        procInput->close();
-//        ::close(ptyMasterFd);
-    }
-    proc -> closeWriteChannel();
+    m_proc->write("blah\n");
+    m_proc->write("blah\n");
+    m_proc -> closeWriteChannel();
     */
 }
 
@@ -230,6 +228,14 @@ void HgRunner::killCurrentCommand()
 
 void HgRunner::startHgCommand(QString workingDir, QStringList params)
 {
+#ifdef Q_OS_WIN32
+    // This at least means we won't block on the non-working password prompt
+    params.push_front("ui.interactive=false");
+#else
+    // password prompt should work here
+    params.push_front("ui.interactive=true");
+#endif
+    params.push_front("--config");
     startCommand(getHgBinaryName(), workingDir, params);
 }
 

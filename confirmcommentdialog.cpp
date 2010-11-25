@@ -19,6 +19,10 @@
 
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QGridLayout>
+#include <QLabel>
+#include <QTextEdit>
+#include <QDialogButtonBox>
 
 bool ConfirmCommentDialog::confirmFilesAction(QWidget *parent,
                                               QString title,
@@ -50,7 +54,8 @@ bool ConfirmCommentDialog::confirmAndComment(QWidget *parent,
                                              QString introText,
                                              QString introTextWithCount,
                                              QStringList files,
-                                             QString &comment)
+                                             QString &comment,
+                                             bool longComment)
 {
     QString text;
     if (files.size() <= 10) {
@@ -63,17 +68,38 @@ bool ConfirmCommentDialog::confirmAndComment(QWidget *parent,
     } else {
         text = "<qt>" + introText.arg(files.size());
     }
-    return confirmAndComment(parent, title, text, comment);
+    return confirmAndComment(parent, title, text, comment, longComment);
 }
 
 bool ConfirmCommentDialog::confirmAndComment(QWidget *parent,
                                              QString title,
                                              QString introText,
-                                             QString &comment)
+                                             QString &comment,
+                                             bool longComment)
 {
     bool ok = false;
-    //!!! ok, for comments need more than one line
-    comment = QInputDialog::getText(parent, title, introText,
-                                    QLineEdit::Normal, comment, &ok);
+    if (!longComment) {
+        comment = QInputDialog::getText(parent, title, introText,
+                                        QLineEdit::Normal, comment, &ok);
+    } else {
+        QDialog *d = new QDialog(parent);
+        d->setWindowTitle(title);
+        QGridLayout *layout = new QGridLayout;
+        d->setLayout(layout);
+        QLabel *label = new QLabel(introText);
+        layout->addWidget(label, 0, 0);
+        QTextEdit *textEdit = new QTextEdit;
+        textEdit->setAcceptRichText(false);
+        layout->addWidget(textEdit, 1, 0);
+        QDialogButtonBox *bbox = new QDialogButtonBox(QDialogButtonBox::Ok |
+                                                      QDialogButtonBox::Cancel);
+        layout->addWidget(bbox, 2, 0);
+        QObject::connect(bbox, SIGNAL(accepted()), d, SLOT(accept()));
+        QObject::connect(bbox, SIGNAL(rejected()), d, SLOT(reject()));
+        if (d->exec() == QDialog::Accepted) {
+            comment = textEdit->document()->toPlainText();
+            ok = true;
+        }
+    }
     return ok;
 }
