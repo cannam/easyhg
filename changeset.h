@@ -26,6 +26,10 @@
 
 #include "logparser.h"
 
+class Changeset;
+
+typedef QList<Changeset *> Changesets;  //!!! should be QList<QSharedPointer<Changeset> >
+
 class Changeset : public QObject
 {
     Q_OBJECT
@@ -69,6 +73,23 @@ public:
         return datetime().split(' ')[0];
     }
 
+    bool isOnBranch(QString branch) {
+        QString b = m_branch;
+        if (branch == "") branch = "default";
+        if (b == "") b = "default";
+        if (branch == b) return true;
+        return false;
+    }
+
+    static Changesets parseChangesets(QString logText) {
+        Changesets csets;
+        LogList log = LogParser(logText).parse();
+        foreach (LogEntry e, log) {
+            csets.push_back(new Changeset(e));
+        }
+        return csets;
+    }
+
 signals:
     void idChanged(QString id);
     void authorChanged(QString author);
@@ -107,6 +128,5 @@ private:
     QString m_comment;
 };
 
-typedef QList<Changeset *> Changesets;
 
 #endif // CHANGESET_H

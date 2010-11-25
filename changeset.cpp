@@ -28,6 +28,8 @@ Changeset::Changeset(const LogEntry &e)
             setParents(parents);
         } else if (key == "timestamp") {
             setTimestamp(e.value(key).split(" ")[0].toULongLong());
+        } else if (key == "changeset") {
+            setId(e.value(key));
         } else {
             setProperty(key.toLocal8Bit().data(), e.value(key));
         }
