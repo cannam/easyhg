@@ -18,12 +18,17 @@
 #ifndef CONFIRMCOMMENTDIALOG_H
 #define CONFIRMCOMMENTDIALOG_H
 
+#include <QDialog>
 #include <QWidget>
 #include <QString>
 #include <QStringList>
+#include <QTextEdit>
+#include <QPushButton>
 
-class ConfirmCommentDialog
+class ConfirmCommentDialog : public QDialog
 {
+    Q_OBJECT
+
 public:
     static bool confirmFilesAction(QWidget *parent,
                                    QString title,
@@ -45,6 +50,19 @@ public:
                                   QString &comment,
                                   bool longComment);
 
+private slots:
+    void commentChanged();
+
+private:
+    ConfirmCommentDialog(QWidget *parent,
+                         QString title,
+                         QString introText,
+                         QString initialComment);
+
+    QString getComment() const;
+
+    QTextEdit *m_textEdit;
+    QPushButton *m_ok;
 };
 
 #endif // CONFIRMCOMMENTDIALOG_H

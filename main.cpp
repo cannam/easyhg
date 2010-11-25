@@ -31,6 +31,8 @@ int main(int argc, char *argv[])
     // capture password requests)
     loseControllingTerminal();
 
+    installSignalHandlers();
+
     QApplication app(argc, argv);
     MainWindow mainWin;
     mainWin.show();
