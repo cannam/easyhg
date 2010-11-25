@@ -362,7 +362,7 @@ void MainWindow::hgCommit()
                 params << "commit" << "--message" << comment << "--user" << getUserInfo();
             }
 
-            runner -> startHgCommand(workFolderPath, params);
+            runner -> startHgCommand(workFolderPath, params, true);
             runningAction = ACT_COMMIT;
         }
     }
@@ -603,7 +603,7 @@ void MainWindow::hgCloneFromRemote()
 
         hgTabs->setWorkFolderAndRepoNames(workFolderPath, remoteRepoPath);
 
-        runner -> startHgCommand(workFolderPath, params);
+        runner -> startHgCommand(workFolderPath, params, true);
         runningAction = ACT_CLONEFROMREMOTE;
     }
 }
@@ -632,7 +632,7 @@ void MainWindow::hgIncoming()
 
         params << "incoming" << "--newest-first" << remoteRepoPath;
 
-        runner -> startHgCommand(workFolderPath, params);
+        runner -> startHgCommand(workFolderPath, params, true);
         runningAction = ACT_INCOMING;
     }
 }
@@ -646,7 +646,7 @@ void MainWindow::hgPull()
 
         params << "pull" << remoteRepoPath;
 
-        runner -> startHgCommand(workFolderPath, params);
+        runner -> startHgCommand(workFolderPath, params, true);
         runningAction = ACT_PULL;
     }
 }
@@ -660,7 +660,7 @@ void MainWindow::hgPush()
 
         params << "push" << remoteRepoPath;
 
-        runner -> startHgCommand(workFolderPath, params);
+        runner -> startHgCommand(workFolderPath, params, true);
         runningAction = ACT_PUSH;
     }
 }
@@ -1265,8 +1265,7 @@ void MainWindow::commandCompleted()
             else if (runningAction == ACT_HEADS)
             {
                 runningAction = ACT_NONE;
-//!!!                hgParents(); // skip this, we don't currently use it
-                hgLog();
+                hgParents();
             }
             else if (runningAction == ACT_PARENTS)
             {
