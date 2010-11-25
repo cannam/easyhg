@@ -36,12 +36,14 @@ public:
                                   QString introText,
                                   QString introTextWithCount,
                                   QStringList files,
-                                  QString &comment);
+                                  QString &comment,
+                                  bool longComment);
 
     static bool confirmAndComment(QWidget *parent,
                                   QString title,
                                   QString introText,
-                                  QString &comment);
+                                  QString &comment,
+                                  bool longComment);
 
 };
 
