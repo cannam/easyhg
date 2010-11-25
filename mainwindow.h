@@ -80,6 +80,7 @@ public:
     QString workFolderPath;
     QString currentBranch;
     Changesets currentHeads;
+    Changesets currentParents;
 
 protected:
     void closeEvent(QCloseEvent *event);

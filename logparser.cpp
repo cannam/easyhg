@@ -36,7 +36,7 @@ QStringList LogParser::split()
 LogList LogParser::parse()
 {
     LogList results;
-    QRegExp re(QString("^(\\w+)\\s*%1\\s+(.*)$").arg(m_sep));
+    QRegExp re(QString("^(\\w+)\\s*%1\\s+([^\\s].*)$").arg(m_sep));
     QStringList entries = split();
     foreach (QString entry, entries) {
         LogEntry dictionary;

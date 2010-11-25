@@ -150,16 +150,12 @@ void HgTabWidget::updateLocalRepoHgLogList(QString hgLogList)
     if (oldScene) delete oldScene;
     ChangesetItem *tipItem = g.getItemFor(csets[0]);
     if (tipItem) tipItem->ensureVisible();
+    //!!! track lifecycle of those Changesets
 }
 
 Changesets HgTabWidget::parseChangeSets(QString changeSetsStr)
 {
-    Changesets csets;
-    LogList log = LogParser(changeSetsStr).parse();
-    foreach (LogEntry e, log) {
-        Changeset *cs = new Changeset(e);
-        csets.push_back(cs);
-    }
+    Changesets csets = Changeset::parseChangesets(changeSetsStr);
     for (int i = 0; i+1 < csets.size(); ++i) {
         Changeset *cs = csets[i];
         if (cs->parents().empty()) {

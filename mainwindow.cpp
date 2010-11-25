@@ -362,7 +362,7 @@ void MainWindow::hgCommit()
                 params << "commit" << "--message" << comment << "--user" << getUserInfo();
             }
 
-            runner -> startHgCommand(workFolderPath, params, true);
+            runner -> startHgCommand(workFolderPath, params, false);
             runningAction = ACT_COMMIT;
         }
     }
@@ -1122,14 +1122,15 @@ void MainWindow::commandCompleted()
             //Clumsy...
             if ((EXITOK(exitCode)) || ((exitCode == 1) && (runningAction == ACT_INCOMING)))
             {
+                QString output = runner->getOutput();
+
                 //Successful running.
                 switch(runningAction)
                 {
                     case ACT_PATHS:
                     {
-                        QString sout = runner->getOutput();
-                        DEBUG << "stdout is " << sout << endl;
-                        LogParser lp(sout, "=");
+                        DEBUG << "stdout is " << output << endl;
+                        LogParser lp(output, "=");
                         LogList ll = lp.parse();
                         DEBUG << ll.size() << " results" << endl;
                         if (!ll.empty()) {
@@ -1144,12 +1145,12 @@ void MainWindow::commandCompleted()
                     }
 
                     case ACT_BRANCH:
-                        currentBranch = runner->getOutput().trimmed();
+                        currentBranch = output.trimmed();
                         hgTabs->setBranch(currentBranch);
                         break;
 
                     case ACT_STAT:
-                        hgTabs -> updateWorkFolderFileList(runner -> getOutput());
+                        hgTabs -> updateWorkFolderFileList(output);
                         updateFileSystemWatcher();
                         break;
 
@@ -1157,17 +1158,17 @@ void MainWindow::commandCompleted()
                     case ACT_ANNOTATE:
                     case ACT_RESOLVE_LIST:
                     case ACT_RESOLVE_MARK:
-                        presentLongStdoutToUser(runner -> getOutput());
+                        presentLongStdoutToUser(output);
                         shouldHgStat = true;
                         break;
 
                     case ACT_PULL:
-                        QMessageBox::information(this, "Pull", runner -> getOutput());
+                        QMessageBox::information(this, "Pull", output);
                         shouldHgStat = true;
                         break;
 
                     case ACT_PUSH:
-                        QMessageBox::information(this, "Push", runner -> getOutput());
+                        QMessageBox::information(this, "Push", output);
                         shouldHgStat = true;
                         break;
 
@@ -1182,32 +1183,23 @@ void MainWindow::commandCompleted()
                         MultiChoiceDialog::addRecentArgument("local", workFolderPath);
                         MultiChoiceDialog::addRecentArgument("remote", remoteRepoPath);
                         MultiChoiceDialog::addRecentArgument("remote", workFolderPath, true);
-                        QMessageBox::information(this, "Clone", runner -> getOutput());
+                        QMessageBox::information(this, "Clone", output);
                         enableDisableActions();
                         shouldHgStat = true;
                         break;
 
                     case ACT_LOG:
-                        hgTabs -> updateLocalRepoHgLogList(runner -> getOutput());
+                        hgTabs -> updateLocalRepoHgLogList(output);
                         break;
 
                     case ACT_PARENTS:
-                        {
-                        //!!!    hgTabs -> updateLocalRepoParentsList(runner -> getOutput());
-                        }
+                        foreach (Changeset *cs, currentParents) delete cs;
+                        currentParents = Changeset::parseChangesets(output);
                         break;
 
                     case ACT_HEADS:
-                        {
-                            foreach (Changeset *cs, currentHeads) delete cs;
-                            currentHeads.clear();
-                            QString output = runner -> getOutput();
-                            DEBUG << "heads output is: " << output << endl;
-                            LogList log = LogParser(output).parse();
-                            foreach (LogEntry e, log) {
-                                currentHeads.push_back(new Changeset(e));
-                            }
-                        }
+                        foreach (Changeset *cs, currentHeads) delete cs;
+                        currentHeads = Changeset::parseChangesets(output);
                         break;
 
                     case ACT_REMOVE:
@@ -1224,12 +1216,12 @@ void MainWindow::commandCompleted()
                         break;
 
                     case ACT_UPDATE:
-                        QMessageBox::information(this, tr("Update"), runner -> getOutput());
+                        QMessageBox::information(this, tr("Update"), output);
                         shouldHgStat = true;
                         break;
 
                     case ACT_MERGE:
-                        QMessageBox::information(this, tr("Merge"), runner -> getOutput());
+                        QMessageBox::information(this, tr("Merge"), output);
                         shouldHgStat = true;
                         justMerged = true;
                         break;
@@ -1417,6 +1409,45 @@ void MainWindow::enableDisableActions()
     hgCommitAct->setEnabled(localRepoActionsEnabled && hgTabs->canCommit());
     hgRevertAct->setEnabled(localRepoActionsEnabled && hgTabs->canCommit());
     hgFolderDiffAct->setEnabled(localRepoActionsEnabled && hgTabs->canDoDiff());
+
+    // A default merge makes sense if:
+    //  * there is only one parent (if there are two, we have an uncommitted merge) and
+    //  * there are exactly two heads that have the same branch as the current branch and
+    //  * our parent is one of those heads
+    //
+    // A default update makes sense if:
+    //  * there is only one parent and
+    //  * the parent is not one of the current heads
+    //!!! test this
+    bool canMerge = false;
+    bool canUpdate = false;
+    if (currentParents.size() == 1) {
+        Changeset *parent = currentParents[0];
+        int currentBranchHeads = 0;
+        bool parentIsHead = false;
+        foreach (Changeset *head, currentHeads) {
+            DEBUG << "head branch " << head->branch() << ", current branch " << currentBranch << endl;
+            if (head->isOnBranch(currentBranch)) {
+                ++currentBranchHeads;
+                if (parent->id() == head->id()) {
+                    parentIsHead = true;
+                }
+            }
+        }
+        if (currentBranchHeads == 2 && parentIsHead) {
+            canMerge = true;
+        }
+        if (!parentIsHead) {
+            canUpdate = true;
+            DEBUG << "parent id = " << parent->id() << endl;
+            DEBUG << " head ids "<<endl;
+            foreach (Changeset *h, currentHeads) {
+                DEBUG << "head id = " << h->id() << endl;
+            }
+        }
+    }
+    hgMergeAct->setEnabled(localRepoActionsEnabled && canMerge);
+    hgUpdateAct->setEnabled(localRepoActionsEnabled && canUpdate);
 
 /*!!!
     int added, modified, removed, notTracked, selected, selectedAdded, selectedModified, selectedRemoved, selectedNotTracked;
