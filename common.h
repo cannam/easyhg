@@ -50,6 +50,8 @@ extern QString getUserRealName();
 
 extern void loseControllingTerminal();
 
+void installSignalHandlers();
+
 /**
  * Status used in testing whether a folder argument (received from the
  * user) is valid for particular uses.

@@ -37,6 +37,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <signal.h>
 #endif
 
 QString findExecutable(QString name)
@@ -179,6 +180,17 @@ void loseControllingTerminal()
         }
     }
 
+#endif
+}
+
+void installSignalHandlers()
+{
+#ifndef Q_OS_WIN32
+    sigset_t sgnals;
+    sigemptyset (&sgnals);
+    sigaddset(&sgnals, SIGHUP);
+    sigaddset(&sgnals, SIGCONT);
+    pthread_sigmask(SIG_BLOCK, &sgnals, 0);
 #endif
 }
 
