@@ -169,6 +169,17 @@ void MainWindow::hgPaths()
     }
 }
 
+void MainWindow::hgBranch()
+{
+    if (runningAction == ACT_NONE)
+    {
+        QStringList params;
+        params << "branch";
+        runner -> startHgCommand(workFolderPath, params);
+        runningAction = ACT_BRANCH;
+    }
+}
+
 void MainWindow::hgHeads()
 {
     if (runningAction == ACT_NONE)
@@ -1132,6 +1143,11 @@ void MainWindow::commandCompleted()
                         break;
                     }
 
+                    case ACT_BRANCH:
+                        currentBranch = runner->getOutput().trimmed();
+                        hgTabs->setBranch(currentBranch);
+                        break;
+
                     case ACT_STAT:
                         hgTabs -> updateWorkFolderFileList(runner -> getOutput());
                         updateFileSystemWatcher();
@@ -1183,8 +1199,14 @@ void MainWindow::commandCompleted()
 
                     case ACT_HEADS:
                         {
-                            QString stdOut = runner -> getOutput();
-                        //!!!    hgTabs -> updateLocalRepoHeadsList(stdOut);
+                            foreach (Changeset *cs, currentHeads) delete cs;
+                            currentHeads.clear();
+                            QString output = runner -> getOutput();
+                            DEBUG << "heads output is: " << output << endl;
+                            LogList log = LogParser(output).parse();
+                            foreach (LogEntry e, log) {
+                                currentHeads.push_back(new Changeset(e));
+                            }
                         }
                         break;
 
@@ -1224,8 +1246,13 @@ void MainWindow::commandCompleted()
             }
 
 
-            //Typical sequence goes paths -> stat -> heads -> parents -> log
+            //Typical sequence goes paths -> branch -> stat -> heads -> parents -> log
             if (runningAction == ACT_PATHS)
+            {
+                runningAction = ACT_NONE;
+                hgBranch();
+            }
+            else if (runningAction == ACT_BRANCH)
             {
                 runningAction = ACT_NONE;
                 hgStat();
@@ -1238,7 +1265,8 @@ void MainWindow::commandCompleted()
             else if (runningAction == ACT_HEADS)
             {
                 runningAction = ACT_NONE;
-                hgParents();
+//!!!                hgParents(); // skip this, we don't currently use it
+                hgLog();
             }
             else if (runningAction == ACT_PARENTS)
             {
@@ -1247,7 +1275,7 @@ void MainWindow::commandCompleted()
             }
             else if ((runningAction == ACT_MERGE) && (exitCode != 0))
             {
-                //If we had a failed merge, offer to retry
+                // If we had a failed merge, offer to retry
                 if (QMessageBox::Ok == QMessageBox::information(this, tr("Retry merge ?"), tr("Merge attempt failed. retry ?"), QMessageBox::Ok | QMessageBox::Cancel))
                 {
                     runningAction = ACT_NONE;

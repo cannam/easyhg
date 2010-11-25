@@ -16,3 +16,21 @@
 */
 
 #include "changeset.h"
+
+#include <QVariant>
+
+Changeset::Changeset(const LogEntry &e)
+{
+    foreach (QString key, e.keys()) {
+        if (key == "parents") {
+            QStringList parents = e.value(key).split
+                (" ", QString::SkipEmptyParts);
+            setParents(parents);
+        } else if (key == "timestamp") {
+            setTimestamp(e.value(key).split(" ")[0].toULongLong());
+        } else {
+            setProperty(key.toLocal8Bit().data(), e.value(key));
+        }
+    }
+}
+

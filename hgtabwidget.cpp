@@ -34,7 +34,7 @@
 HgTabWidget::HgTabWidget(QWidget *parent,
                          QString remoteRepo,
                          QString workFolderPath) :
-    QTabWidget(parent)
+QTabWidget(parent)
 {
     // Work page
     fileStatusWidget = new FileStatusWidget;
@@ -140,9 +140,9 @@ void HgTabWidget::updateLocalRepoHgLogList(QString hgLogList)
     if (csets.empty()) return;
     Grapher g(scene);
     try {
-	g.layout(csets);
+        g.layout(csets);
     } catch (std::string s) {
-	std::cerr << "Internal error: Layout failed: " << s << std::endl;
+        std::cerr << "Internal error: Layout failed: " << s << std::endl;
     }
     QGraphicsScene *oldScene = panned->scene();
     panned->setScene(scene);
@@ -157,27 +157,16 @@ Changesets HgTabWidget::parseChangeSets(QString changeSetsStr)
     Changesets csets;
     LogList log = LogParser(changeSetsStr).parse();
     foreach (LogEntry e, log) {
-        Changeset *cs = new Changeset();
-        foreach (QString key, e.keys()) {
-	    if (key == "parents") {
-		QStringList parents = e.value(key).split
-		    (" ", QString::SkipEmptyParts);
-		cs->setParents(parents);
-	    } else if (key == "timestamp") {
-		cs->setTimestamp(e.value(key).split(" ")[0].toULongLong());
-	    } else {
-		cs->setProperty(key.toLocal8Bit().data(), e.value(key));
-	    }
-        }
+        Changeset *cs = new Changeset(e);
         csets.push_back(cs);
     }
     for (int i = 0; i+1 < csets.size(); ++i) {
-	Changeset *cs = csets[i];
-	if (cs->parents().empty()) {
-	    QStringList list;
-	    list.push_back(csets[i+1]->id());
-	    cs->setParents(list);
-	}
+        Changeset *cs = csets[i];
+        if (cs->parents().empty()) {
+            QStringList list;
+            list.push_back(csets[i+1]->id());
+            cs->setParents(list);
+        }
     }
     return csets;
 }
@@ -186,4 +175,9 @@ void HgTabWidget::setWorkFolderAndRepoNames(QString workFolderPath, QString remo
 {
     fileStatusWidget->setLocalPath(workFolderPath);
     fileStatusWidget->setRemoteURL(remoteRepoPath);
+}
+
+void HgTabWidget::setBranch(QString branch)
+{
+    fileStatusWidget->setBranch(branch);
 }
