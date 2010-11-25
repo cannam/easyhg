@@ -47,7 +47,14 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_remoteURLLabel = new QLabel;
     layout->addWidget(m_remoteURLLabel, row, 1);
 
+    ++row;
+    layout->addWidget(new QLabel(tr("Branch:")), row, 0);
+    m_branchLabel = new QLabel;
+    layout->addWidget(m_branchLabel, row, 1);
+
     layout->setColumnStretch(1, 20);
+
+    layout->addWidget(new QLabel("<qt><hr></qt>"), ++row, 0, 1, 2);
 
     m_simpleLabels[FileStates::Clean] = tr("Unmodified:");
     m_simpleLabels[FileStates::Modified] = tr("Modified:");
@@ -79,7 +86,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
         boxlayout->setMargin(0);
         box->setLayout(boxlayout);
 
-        boxlayout->addItem(new QSpacerItem(5, 8), 0, 0);
+        boxlayout->addItem(new QSpacerItem(5, 5), 0, 0);
 
         boxlayout->addWidget(new QLabel(labelFor(s)), 1, 0);
 
@@ -265,6 +272,13 @@ FileStatusWidget::setFileStates(FileStates p)
 {
     m_fileStates = p;
     updateWidgets();
+}
+
+void
+FileStatusWidget::setBranch(QString b)
+{
+    m_branch = b;
+    m_branchLabel->setText(b);
 }
 
 void

@@ -43,6 +43,7 @@ public:
     void updateWorkFolderFileList(QString fileList);
     void updateLocalRepoHgLogList(QString hgLogList);
     void setWorkFolderAndRepoNames(QString workFolderPath, QString remoteRepoPath);
+    void setBranch(QString branch);
 
     FileStates getFileStates() { return fileStates; }
 

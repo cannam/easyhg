@@ -40,6 +40,9 @@ public:
     QString remoteURL() const { return m_remoteURL; }
     void setRemoteURL(QString u);
 
+    QString branch() const { return m_branch; }
+    void setBranch(QString b);
+
     FileStates fileStates() const { return m_fileStates; }
     void setFileStates(FileStates sp);
 
@@ -72,7 +75,10 @@ private:
 
     QString m_remoteURL;
     QLabel *m_remoteURLLabel;
-    
+
+    QString m_branch;
+    QLabel *m_branchLabel;
+
     FileStates m_fileStates;
     QMap<FileStates::State, QString> m_simpleLabels;
     QMap<FileStates::State, QString> m_descriptions;

@@ -21,6 +21,7 @@
 #include "hgtabwidget.h"
 #include "hgrunner.h"
 #include "common.h"
+#include "changeset.h"
 
 #include <QMainWindow>
 #include <QListWidget>
@@ -35,6 +36,7 @@ enum HGACTIONS
 {
     ACT_NONE,
     ACT_PATHS,
+    ACT_BRANCH,
     ACT_STAT,
     ACT_HEADS,
     ACT_PARENTS,
@@ -76,6 +78,8 @@ public:
     //Local repo is directory "./hg/" under work folder
     QString remoteRepoPath;
     QString workFolderPath;
+    QString currentBranch;
+    Changesets currentHeads;
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -122,6 +126,7 @@ private slots:
     void fsFileChanged(QString);
 
 private:
+    void hgBranch();
     void hgHeads();
     void hgParents();
     void hgLog();

@@ -22,6 +22,9 @@
 #include <QString>
 #include <QStringList>
 #include <QList>
+#include <QSharedPointer>
+
+#include "logparser.h"
 
 class Changeset : public QObject
 {
@@ -40,6 +43,7 @@ class Changeset : public QObject
 
 public:
     Changeset() : QObject() { }
+    explicit Changeset(const LogEntry &e);
 
     QString id() const { return m_id; }
     QString author() const { return m_author; }
