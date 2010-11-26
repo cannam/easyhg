@@ -58,8 +58,7 @@ struct HgAction
     HGACTIONS action;
     QString workingDir;
     QStringList params;
-
-    QString executable; // empty for normal Hg
+    QString executable; // empty for normal Hg, but gets filled in by hgrunner
 
     HgAction() : action(ACT_NONE) { }
 

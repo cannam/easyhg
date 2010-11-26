@@ -51,6 +51,8 @@ protected:
 
     void moveTo(QPoint);
 
+    void fit(QRectF);
+
     virtual void paintEvent(QPaintEvent *);
     virtual void mousePressEvent(QMouseEvent *e);
     virtual void mouseMoveEvent(QMouseEvent *e);
