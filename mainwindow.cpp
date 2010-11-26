@@ -1140,10 +1140,14 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     case ACT_REMOVE:
     case ACT_ADD:
     case ACT_COMMIT:
+    case ACT_REVERT:
+        hgTabs->clearSelections();
+        shouldHgStat = true;
+        break;
+
     case ACT_FILEDIFF:
     case ACT_FOLDERDIFF:
     case ACT_CHGSETDIFF:
-    case ACT_REVERT:
     case ACT_SERVE:
     case ACT_TAG:
     case ACT_HG_IGNORE:
