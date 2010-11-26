@@ -15,7 +15,6 @@ HEADERS = mainwindow.h \
     common.h \
     grapher.h \
     hgrunner.h \
-    settingsdialog.h \
     changeset.h \
     changesetitem.h \
     logparser.h \
@@ -40,7 +39,6 @@ SOURCES = main.cpp \
     hgtabwidget.cpp \
     hgrunner.cpp \
     grapher.cpp \
-    settingsdialog.cpp \
     common.cpp \
     changeset.cpp \
     changesetitem.cpp \
