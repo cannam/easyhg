@@ -17,13 +17,8 @@
 
 #include "hgtabwidget.h"
 #include "common.h"
-#include "logparser.h"
-#include "changeset.h"
-#include "changesetitem.h"
-#include "grapher.h"
-#include "panner.h"
-#include "panned.h"
 #include "filestatuswidget.h"
+#include "historywidget.h"
 
 #include <QClipboard>
 #include <QContextMenuEvent>
@@ -37,57 +32,47 @@ HgTabWidget::HgTabWidget(QWidget *parent,
 QTabWidget(parent)
 {
     // Work page
-    fileStatusWidget = new FileStatusWidget;
-    fileStatusWidget->setLocalPath(workFolderPath);
-    fileStatusWidget->setRemoteURL(remoteRepo);
-    connect(fileStatusWidget, SIGNAL(selectionChanged()),
+    m_fileStatusWidget = new FileStatusWidget;
+    m_fileStatusWidget->setLocalPath(workFolderPath);
+    m_fileStatusWidget->setRemoteURL(remoteRepo);
+    connect(m_fileStatusWidget, SIGNAL(selectionChanged()),
             this, SIGNAL(selectionChanged()));
-    addTab(fileStatusWidget, tr("My work"));
+    addTab(m_fileStatusWidget, tr("My work"));
 
     // History graph page
-    historyGraphPageWidget = new QWidget;
-    Panned *panned = new Panned;
-    Panner *panner = new Panner;
-    historyGraphWidget = panned;
-    historyGraphPanner = panner;
-    QGridLayout *layout = new QGridLayout;
-    layout->addWidget(historyGraphWidget, 0, 0);
-    layout->addWidget(historyGraphPanner, 0, 1);
-    panner->setMaximumWidth(80);
-    panner->connectToPanned(panned);
-    historyGraphPageWidget->setLayout(layout);
-    addTab(historyGraphPageWidget, tr("History"));
+    m_historyWidget = new HistoryWidget;
+    addTab(m_historyWidget, tr("History"));
 }
 
 void HgTabWidget::clearSelections()
 {
-    fileStatusWidget->clearSelections();
+    m_fileStatusWidget->clearSelections();
 }
 
 bool HgTabWidget::canCommit() const
 {
-    if (!fileStatusWidget->getSelectedAddableFiles().empty()) return false;
-    return fileStatusWidget->haveChangesToCommit();
+    if (!m_fileStatusWidget->getSelectedAddableFiles().empty()) return false;
+    return m_fileStatusWidget->haveChangesToCommit();
 }
 
 bool HgTabWidget::canRevert() const
 {
-    return fileStatusWidget->haveChangesToCommit() ||
-        !fileStatusWidget->getSelectedRevertableFiles().empty();
+    return m_fileStatusWidget->haveChangesToCommit() ||
+        !m_fileStatusWidget->getSelectedRevertableFiles().empty();
 }
 
 bool HgTabWidget::canAdd() const
 {
-    if (fileStatusWidget->getSelectedAddableFiles().empty()) return false;
-    if (!fileStatusWidget->getSelectedCommittableFiles().empty()) return false;
-    if (!fileStatusWidget->getSelectedRemovableFiles().empty()) return false;
+    if (m_fileStatusWidget->getSelectedAddableFiles().empty()) return false;
+    if (!m_fileStatusWidget->getSelectedCommittableFiles().empty()) return false;
+    if (!m_fileStatusWidget->getSelectedRemovableFiles().empty()) return false;
     return true;
 }
 
 bool HgTabWidget::canRemove() const
 {
-    if (fileStatusWidget->getSelectedRemovableFiles().empty()) return false;
-    if (!fileStatusWidget->getSelectedAddableFiles().empty()) return false;
+    if (m_fileStatusWidget->getSelectedRemovableFiles().empty()) return false;
+    if (!m_fileStatusWidget->getSelectedAddableFiles().empty()) return false;
     return true;
 }
 
@@ -98,94 +83,62 @@ bool HgTabWidget::canDoDiff() const
 
 QStringList HgTabWidget::getAllSelectedFiles() const
 {
-    return fileStatusWidget->getAllSelectedFiles();
+    return m_fileStatusWidget->getAllSelectedFiles();
 }
 
 QStringList HgTabWidget::getAllCommittableFiles() const
 {
-    return fileStatusWidget->getAllCommittableFiles();
+    return m_fileStatusWidget->getAllCommittableFiles();
 }
 
 QStringList HgTabWidget::getSelectedCommittableFiles() const
 {
-    return fileStatusWidget->getSelectedCommittableFiles();
+    return m_fileStatusWidget->getSelectedCommittableFiles();
 }
 
 QStringList HgTabWidget::getAllRevertableFiles() const
 {
-    return fileStatusWidget->getAllRevertableFiles();
+    return m_fileStatusWidget->getAllRevertableFiles();
 }
 
 QStringList HgTabWidget::getSelectedRevertableFiles() const
 {
-    return fileStatusWidget->getSelectedRevertableFiles();
+    return m_fileStatusWidget->getSelectedRevertableFiles();
 }
 
 QStringList HgTabWidget::getSelectedAddableFiles() const
 {
-    return fileStatusWidget->getSelectedAddableFiles();
+    return m_fileStatusWidget->getSelectedAddableFiles();
 }
 
 QStringList HgTabWidget::getAllRemovableFiles() const
 {
-    return fileStatusWidget->getAllRemovableFiles();
+    return m_fileStatusWidget->getAllRemovableFiles();
 }
 
 QStringList HgTabWidget::getSelectedRemovableFiles() const
 {
-    return fileStatusWidget->getSelectedRemovableFiles();
+    return m_fileStatusWidget->getSelectedRemovableFiles();
 }
 
 void HgTabWidget::updateWorkFolderFileList(QString fileList)
 {
-    fileStates.parseStates(fileList);
-    fileStatusWidget->setFileStates(fileStates);
+    m_fileStates.parseStates(fileList);
+    m_fileStatusWidget->setFileStates(m_fileStates);
 }
 
 void HgTabWidget::updateLocalRepoHgLogList(QString hgLogList)
 {
-    //!!!
-    Panned *panned = static_cast<Panned *>(historyGraphWidget);
-    Panner *panner = static_cast<Panner *>(historyGraphPanner);
-    QGraphicsScene *scene = new QGraphicsScene();
-    Changesets csets = parseChangeSets(hgLogList);
-    if (csets.empty()) return;
-    Grapher g(scene);
-    try {
-        g.layout(csets);
-    } catch (std::string s) {
-        std::cerr << "Internal error: Layout failed: " << s << std::endl;
-    }
-    QGraphicsScene *oldScene = panned->scene();
-    panned->setScene(scene);
-    panner->setScene(scene);
-    if (oldScene) delete oldScene;
-    ChangesetItem *tipItem = g.getItemFor(csets[0]);
-    if (tipItem) tipItem->ensureVisible();
-    //!!! track lifecycle of those Changesets
-}
-
-Changesets HgTabWidget::parseChangeSets(QString changeSetsStr)
-{
-    Changesets csets = Changeset::parseChangesets(changeSetsStr);
-    for (int i = 0; i+1 < csets.size(); ++i) {
-        Changeset *cs = csets[i];
-        if (cs->parents().empty()) {
-            QStringList list;
-            list.push_back(csets[i+1]->id());
-            cs->setParents(list);
-        }
-    }
-    return csets;
+    m_historyWidget->parseLog(hgLogList);
 }
 
 void HgTabWidget::setWorkFolderAndRepoNames(QString workFolderPath, QString remoteRepoPath)
 {
-    fileStatusWidget->setLocalPath(workFolderPath);
-    fileStatusWidget->setRemoteURL(remoteRepoPath);
+    m_fileStatusWidget->setLocalPath(workFolderPath);
+    m_fileStatusWidget->setRemoteURL(remoteRepoPath);
 }
 
 void HgTabWidget::setState(QString state)
 {
-    fileStatusWidget->setState(state);
+    m_fileStatusWidget->setState(state);
 }

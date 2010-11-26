@@ -31,7 +31,7 @@
 #include <QTabWidget>
 
 class FileStatusWidget;
-
+class HistoryWidget;
 
 class HgTabWidget: public QTabWidget
 {
@@ -45,7 +45,7 @@ public:
     void setWorkFolderAndRepoNames(QString workFolderPath, QString remoteRepoPath);
     void setState(QString state);
 
-    FileStates getFileStates() { return fileStates; }
+    FileStates getFileStates() { return m_fileStates; }
 
     bool canCommit() const;
     bool canRevert() const;
@@ -74,14 +74,9 @@ public slots:
     void clearSelections();
 
 private:
-    FileStatusWidget *fileStatusWidget;
-
-    QWidget *historyGraphPageWidget;
-    QWidget *historyGraphWidget;
-    QWidget *historyGraphPanner;
-    QWidget *historyPageWidget;
-
-    FileStates fileStates;
+    FileStatusWidget *m_fileStatusWidget;
+    HistoryWidget *m_historyWidget;
+    FileStates m_fileStates;
 
     Changesets parseChangeSets(QString changeSetsStr);
 };
