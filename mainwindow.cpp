@@ -176,7 +176,8 @@ void MainWindow::hgQueryHeads()
 
 void MainWindow::hgLog()
 {
-//!!! This needs to be incremental, except when we pull or set new repo
+//!!! This needs to be incremental, except when we pull or set new repo.
+    // Be sure to use ACT_LOG_INCREMENTAL for incremental logs
     QStringList params;
     params << "log";
     params << "--template";
@@ -981,8 +982,7 @@ void MainWindow::updateFileSystemWatcher()
         DEBUG << "Added to file system watcher: " << path << endl;
         QDir d(path);
         if (d.exists()) {
-            d.setFilter(QDir::Files | QDir::Dirs |
-                        QDir::NoDotAndDotDot | QDir::Readable);
+            d.setFilter(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Readable);
             foreach (QString entry, d.entryList()) {
                 if (entry == ".hg") continue;
                 QString entryPath = d.absoluteFilePath(entry);
@@ -1077,13 +1077,11 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         MultiChoiceDialog::addRecentArgument("local", workFolderPath);
         MultiChoiceDialog::addRecentArgument("remote", remoteRepoPath);
         hgTabs->setWorkFolderAndRepoNames(workFolderPath, remoteRepoPath);
-        enableDisableActions();
         break;
     }
 
     case ACT_QUERY_BRANCH:
         currentBranch = output.trimmed();
-        hgTabs->setBranch(currentBranch);
         break;
 
     case ACT_STAT:
@@ -1259,6 +1257,9 @@ void MainWindow::enableDisableActions()
 {
     DEBUG << "MainWindow::enableDisableActions" << endl;
 
+    //!!! should also do things like set the status texts for the
+    //!!! actions appropriately by context
+
     QDir localRepoDir;
     QDir workFolderDir;
     bool workFolderExist;
@@ -1367,6 +1368,22 @@ void MainWindow::enableDisableActions()
     }
     hgMergeAct->setEnabled(localRepoActionsEnabled && canMerge);
     hgUpdateAct->setEnabled(localRepoActionsEnabled && canUpdate);
+
+    // Set the state field on the file status widget
+
+    QString branchText;
+    if (currentBranch == "" || currentBranch == "default") {
+        branchText = tr("the default branch");
+    } else {
+        branchText = tr("branch \"%1\"").arg(currentBranch);
+    }
+    if (canUpdate) {
+        hgTabs->setState(tr("On %1. Not at the head of the branch: consider updating").arg(branchText));
+    } else if (canMerge) {
+        hgTabs->setState(tr("<b>Awaiting merge</b> on %1").arg(branchText));
+    } else {
+        hgTabs->setState(tr("At the head of %1").arg(branchText));
+    }
 }
 
 void MainWindow::createActions()

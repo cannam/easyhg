@@ -308,7 +308,7 @@ void HgRunner::startCommand(HgAction action)
 
     m_isRunning = true;
     setRange(0, 0);
-    show();
+    if (!action.shouldBeFast()) show();
     m_stdout.clear();
     m_stderr.clear();
     m_realm = "";

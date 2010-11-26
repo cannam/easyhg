@@ -185,7 +185,7 @@ void HgTabWidget::setWorkFolderAndRepoNames(QString workFolderPath, QString remo
     fileStatusWidget->setRemoteURL(remoteRepoPath);
 }
 
-void HgTabWidget::setBranch(QString branch)
+void HgTabWidget::setState(QString state)
 {
-    fileStatusWidget->setBranch(branch);
+    fileStatusWidget->setState(state);
 }

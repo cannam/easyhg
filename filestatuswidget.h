@@ -24,6 +24,7 @@
 
 class QLabel;
 class QListWidget;
+class QPushButton;
 class QFileInfo;
 
 class FileStatusWidget : public QWidget
@@ -40,8 +41,8 @@ public:
     QString remoteURL() const { return m_remoteURL; }
     void setRemoteURL(QString u);
 
-    QString branch() const { return m_branch; }
-    void setBranch(QString b);
+    QString state() const { return m_state; }
+    void setState(QString b);
 
     FileStates fileStates() const { return m_fileStates; }
     void setFileStates(FileStates sp);
@@ -79,8 +80,10 @@ private:
     QString m_remoteURL;
     QLabel *m_remoteURLLabel;
 
-    QString m_branch;
-    QLabel *m_branchLabel;
+    QString m_state;
+    QLabel *m_stateLabel;
+    
+    QLabel *m_noModificationsLabel;
 
     FileStates m_fileStates;
     QMap<FileStates::State, QString> m_simpleLabels;
@@ -92,6 +95,7 @@ private:
     QStringList m_selectedFiles;
 
     void updateWidgets();
+    void updateStateLabel();
     QString labelFor(FileStates::State, bool addHighlightExplanation = false);
     void setLabelFor(QWidget *w, FileStates::State, bool addHighlightExplanation);
 };
