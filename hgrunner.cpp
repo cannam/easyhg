@@ -50,18 +50,17 @@ HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
     env.insert("HGPLAIN", "1");
     m_proc->setProcessEnvironment(env);
 
-    m_proc->setProcessChannelMode(QProcess::MergedChannels);
-
     setTextVisible(false);
     setVisible(false);
     m_isRunning = false;
 
-    m_output.clear();
-
     connect(m_proc, SIGNAL(started()), this, SLOT(started()));
     connect(m_proc, SIGNAL(finished(int, QProcess::ExitStatus)),
             this, SLOT(finished(int, QProcess::ExitStatus)));
-    connect(m_proc, SIGNAL(readyRead()), this, SLOT(dataReady()));
+    connect(m_proc, SIGNAL(readyReadStandardOutput()),
+            this, SLOT(dataReadyStdout()));
+    connect(m_proc, SIGNAL(readyReadStandardError()),
+            this, SLOT(dataReadyStderr()));
 }
 
 HgRunner::~HgRunner()
@@ -202,11 +201,19 @@ void HgRunner::checkPrompts(QString chunk)
     }
 }
 
-void HgRunner::dataReady()
+void HgRunner::dataReadyStdout()
 {
-    DEBUG << "dataReady" << endl;
-    QString chunk = QString::fromUtf8(m_proc->readAll());
-    m_output += chunk;
+    DEBUG << "dataReadyStdout" << endl;
+    QString chunk = QString::fromUtf8(m_proc->readAllStandardOutput());
+    m_stdout += chunk;
+    checkPrompts(chunk);
+}
+
+void HgRunner::dataReadyStderr()
+{
+    DEBUG << "dataReadyStderr" << endl;
+    QString chunk = QString::fromUtf8(m_proc->readAllStandardError());
+    m_stderr += chunk;
     checkPrompts(chunk);
 }
 
@@ -230,12 +237,10 @@ void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
 
     if (procExitCode == 0 && procExitStatus == QProcess::NormalExit) {
         DEBUG << "HgRunner::finished: Command completed successfully" << endl;
-        //!!! NB this is all output not stdout as it should be
-        emit commandCompleted(completedAction, m_output);
+        emit commandCompleted(completedAction, m_stdout);
     } else {
         DEBUG << "HgRunner::finished: Command failed" << endl;
-        //!!! NB this is all output not stderr as it should be
-        emit commandFailed(completedAction, m_output);
+        emit commandFailed(completedAction, m_stderr);
     }
 
     checkQueue();
@@ -296,7 +301,8 @@ void HgRunner::startCommand(HgAction action)
     m_isRunning = true;
     setRange(0, 0);
     show();
-    m_output.clear();
+    m_stdout.clear();
+    m_stderr.clear();
     m_realm = "";
     m_userName = "";
 
