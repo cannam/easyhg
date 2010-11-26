@@ -27,6 +27,7 @@ class ChangesetDetailItem : public QGraphicsItem
 {
 public:
     ChangesetDetailItem(Changeset *cs);
+    virtual ~ChangesetDetailItem();
 
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter *, const QStyleOptionGraphicsItem *, QWidget *);
@@ -36,6 +37,9 @@ public:
 private:
     QFont m_font;
     Changeset *m_changeset;
+    QTextDocument *m_doc;
+
+    void makeDocument();
 };
 
 #endif // CHANGESETDETAILITEM_H

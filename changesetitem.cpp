@@ -48,7 +48,11 @@ ChangesetItem::mousePressEvent(QGraphicsSceneMouseEvent *e)
 {
     DEBUG << "ChangesetItem::mousePressEvent" << endl;
     //!!! how best to handle this?
-    if (m_detail) return;
+    if (m_detail) {
+        delete m_detail;
+        m_detail = 0;
+        return;
+    }
     m_detail = new ChangesetDetailItem(m_changeset);
     m_detail->setZValue(zValue() + 1);
     scene()->addItem(m_detail);

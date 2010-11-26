@@ -83,7 +83,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_descriptions[FileStates::Unknown] = tr("These files are in your working folder but are not under version control.<br>"
                                              "Select a file and use Add to place it under version control or Ignore to remove it from this list.");
 
-    m_highlightExplanation = tr("Files highlighted <font color=red>in red</font> "
+    m_highlightExplanation = tr("Files highlighted <font color=#d40000>in red</font> "
                                 "have appeared since your most recent commit or update.");
 
     for (int i = int(FileStates::FirstState);
@@ -367,7 +367,7 @@ FileStatusWidget::updateWidgets()
         foreach (QString file, highPriority) {
             QListWidgetItem *item = new QListWidgetItem(file);
             w->addItem(item);
-            item->setForeground(Qt::red); //!!! and a nice gold star
+            item->setForeground(QColor("#d40000")); //!!! and a nice gold star
             item->setSelected(selectedFiles.contains(file));
         }
 
