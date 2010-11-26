@@ -33,7 +33,8 @@ HEADERS = mainwindow.h \
     selectablelabel.h \
     filestates.h \
     filestatuswidget.h \
-    confirmcommentdialog.h
+    confirmcommentdialog.h \
+    hgaction.h
 SOURCES = main.cpp \
     mainwindow.cpp \
     hgtabwidget.cpp \

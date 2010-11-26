@@ -36,6 +36,45 @@ public:
                                    QString introTextWithCount,
                                    QStringList files);
 
+    static bool confirmDangerousFilesAction(QWidget *parent,
+                                            QString title,
+                                            QString introText,
+                                            QString introTextWithCount,
+                                            QStringList files);
+
+    static bool confirmAndGetShortComment(QWidget *parent,
+                                          QString title,
+                                          QString introText,
+                                          QString introTextWithCount,
+                                          QStringList files,
+                                          QString &comment);
+
+    static bool confirmAndGetLongComment(QWidget *parent,
+                                         QString title,
+                                         QString introText,
+                                         QString introTextWithCount,
+                                         QStringList files,
+                                         QString &comment);
+
+    static bool confirmAndGetShortComment(QWidget *parent,
+                                          QString title,
+                                          QString introText,
+                                          QString &comment);
+
+    static bool confirmAndGetLongComment(QWidget *parent,
+                                         QString title,
+                                         QString introText,
+                                         QString &comment);
+
+private slots:
+    void commentChanged();
+
+private:
+    ConfirmCommentDialog(QWidget *parent,
+                         QString title,
+                         QString introText,
+                         QString initialComment);
+
     static bool confirmAndComment(QWidget *parent,
                                   QString title,
                                   QString introText,
@@ -50,14 +89,7 @@ public:
                                   QString &comment,
                                   bool longComment);
 
-private slots:
-    void commentChanged();
-
-private:
-    ConfirmCommentDialog(QWidget *parent,
-                         QString title,
-                         QString introText,
-                         QString initialComment);
+    static QString buildFilesText(QString intro, QStringList files);
 
     QString getComment() const;
 

@@ -18,11 +18,15 @@
 #ifndef HGRUNNER_H
 #define HGRUNNER_H
 
+#include "hgaction.h"
+
 #include <QProgressBar>
 #include <QProcess>
 #include <QByteArray>
 #include <QRect>
 #include <QFile>
+
+#include <deque>
 
 class HgRunner : public QProgressBar
 {
@@ -32,29 +36,28 @@ public:
     HgRunner(QWidget * parent = 0);
     ~HgRunner();
 
-    void startHgCommand(QString workingDir, QStringList params, bool interactive = false);
-    void startCommand(QString command, QString workingDir, QStringList params, bool interactive = false);
-
+    void requestAction(HgAction action);
+/*
     bool isCommandRunning();
     void killCurrentCommand();
 
-    int getExitCode();
-    QProcess::ExitStatus getExitStatus();
-
     void hideProgBar();
-
-    QString getOutput();
-    
+*/    
 signals:
-    void commandCompleted();
-    void commandFailed();
+    void commandCompleted(HgAction action, QString stdout);
+    void commandFailed(HgAction action, QString stderr);
+
+private slots:
+    void started();
+    void finished(int procExitCode, QProcess::ExitStatus procExitStatus);
+    void dataReady();
 
 private:
-    void setProcExitInfo(int procExitCode, QProcess::ExitStatus procExitStatus);
-    QString getLastCommandLine();
-    void presentErrorToUser();
+    void checkQueue();
+    void startCommand(HgAction action);
     QString getHgBinaryName();
     void closeProcInput();
+    void killCurrentCommand();
 
     void noteUsername(QString);
     void noteRealm(QString);
@@ -70,18 +73,13 @@ private:
     bool m_isRunning;
     QProcess *m_proc;
     QString m_output;
-    int m_exitCode;
-    QProcess::ExitStatus m_exitStatus;
-    QString m_lastHgCommand;
-    QString m_lastParams;
 
     QString m_userName;
     QString m_realm;
 
-private slots:
-    void started();
-    void finished(int procExitCode, QProcess::ExitStatus procExitStatus);
-    void dataReady();
+    typedef std::deque<HgAction> ActionQueue;
+    ActionQueue m_queue;
+    HgAction m_currentAction;
 };
 
 #endif // HGRUNNER_H
