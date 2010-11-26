@@ -31,7 +31,6 @@
 #include <QInputDialog>
 
 #include "mainwindow.h"
-#include "settingsdialog.h"
 #include "multichoicedialog.h"
 #include "startupdialog.h"
 #include "colourset.h"
@@ -80,6 +79,8 @@ MainWindow::MainWindow()
     if (firstStart) {
         startupDialog();
     }
+
+    findDiffBinaryName();
 
     ColourSet *cs = ColourSet::instance();
     cs->clearDefaultNames();
@@ -285,8 +286,8 @@ void MainWindow::hgCommit()
     if (ConfirmCommentDialog::confirmAndGetLongComment
         (this,
          tr("Commit files"),
-         tr("<h2>Commit files</h2><p>About to commit the following files:"),
-         tr("<h2>Commit files</h2><p>About to commit %1 files."),
+         tr("<h3>Commit files</h3><p>You are about to commit the following files:"),
+         tr("<h3>Commit files</h3><p>You are about to commit %1 files."),
          files,
          comment)) {
 
@@ -350,15 +351,17 @@ void MainWindow::hgIgnore()
     hgIgnorePath += ".hgignore";
     
     params << hgIgnorePath;
-    
-    if ((getSystem() == "Linux"))
-    {
+
+//!!!    
+#ifdef Q_OS_LINUX
+
         editorName = "gedit";
-    }
-    else
-    {
+
+#else
+
         editorName = """C:\\Program Files\\Windows NT\\Accessories\\wordpad.exe""";
-    }
+
+#endif
 
     HgAction action(ACT_HG_IGNORE, workFolderPath, params);
     action.executable = editorName;
@@ -366,7 +369,29 @@ void MainWindow::hgIgnore()
     runner->requestAction(action);
 }
 
-
+void MainWindow::findDiffBinaryName()
+{
+    QSettings settings;
+    QString diff = settings.value("extdiffbinary", "").toString();
+    if (diff == "") {
+        QStringList bases;
+        bases << "opendiff" << "kompare" << "kdiff3" << "meld";
+        bool found = false;
+        foreach (QString base, bases) {
+            diff = findExecutable(base);
+            if (diff != base) {
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            settings.setValue("extdiffbinary", diff);
+        } else {
+            diff = "";
+        }
+    }
+    diffBinaryName = diff;
+}
 
 void MainWindow::hgFileDiff()
 {
@@ -387,14 +412,15 @@ void MainWindow::hgFileDiff()
 
 void MainWindow::hgFolderDiff()
 {
+    if (diffBinaryName == "") return;
+
     QStringList params;
 
-    //Diff parent against working folder (folder diff)
+    // Diff parent against working folder (folder diff)
+
     params << "--config" << "extensions.extdiff=" << "extdiff" << "-p";
+    params << diffBinaryName;
 
-    params << "kompare";
-
-//    params << "kdiff3";
     runner->requestAction(HgAction(ACT_FOLDERDIFF, workFolderPath, params));
 }
 
@@ -465,8 +491,8 @@ void MainWindow::hgRevert()
     if (ConfirmCommentDialog::confirmDangerousFilesAction
         (this,
          tr("Revert files"),
-         tr("<h2>Revert files</h2><p>About to revert the following files to their previous committed state.  This will <b>throw away any changes</b> that you have made to these files but have not committed."),
-         tr("<h2>Revert files</h2><p>About to revert %1 files.  This will <b>throw away any changes</b> that you have made to these files but have not committed."),
+         tr("<h3>Revert files</h3><p>You are about to <b>revert</b> the following files to their previous committed state.<br><br>This will <b>throw away any changes</b> that you have made to these files but have not committed."),
+         tr("<h3>Revert files</h3><p>You are about to <b>revert</b> %1 files.<br><br>This will <b>throw away any changes</b> that you have made to these files but have not committed."),
          files)) {
         
         if (files.empty()) {
@@ -1217,7 +1243,7 @@ void MainWindow::enableDisableActions()
         workFolderExist = true;
     }
 
-    if (!localRepoDir.exists(workFolderPath + "/" + getHgDirName())) {
+    if (!localRepoDir.exists(workFolderPath + "/.hg")) {
         localRepoActionsEnabled = false;
         localRepoExist = false;
     }
@@ -1232,10 +1258,12 @@ void MainWindow::enableDisableActions()
         localRepoActionsEnabled = false;
     }
 */
+    bool haveDiff = (diffBinaryName != "");
+
     hgInitAct -> setEnabled((localRepoExist == false) && (workFolderExist==true));
     hgStatAct -> setEnabled(localRepoActionsEnabled);
-    hgFileDiffAct -> setEnabled(localRepoActionsEnabled);
-    hgFolderDiffAct -> setEnabled(localRepoActionsEnabled);
+    hgFileDiffAct -> setEnabled(localRepoActionsEnabled && haveDiff);
+    hgFolderDiffAct -> setEnabled(localRepoActionsEnabled && haveDiff);
     hgRevertAct -> setEnabled(localRepoActionsEnabled);
     hgAddAct -> setEnabled(localRepoActionsEnabled);
     hgRemoveAct -> setEnabled(localRepoActionsEnabled);

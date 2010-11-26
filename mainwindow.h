@@ -56,7 +56,6 @@ protected:
 public slots:
     void hgQueryPaths();
     void hgStat();
-//    void tabChanged(int currTab);
     void commandCompleted(HgAction action, QString stdout);
     void commandFailed(HgAction action, QString stdout);
     void enableDisableActions();
@@ -186,11 +185,12 @@ private:
 
     HgRunner *runner;
 
+    void findDiffBinaryName();
+    QString diffBinaryName;
+
     QFileSystemWatcher *fsWatcher;
 
-//    int             tabPage;
-//    unsigned char   initialFileTypesBits;
-    bool            justMerged;
+    bool justMerged;
 };
 
 #endif
