@@ -28,16 +28,13 @@
 #include <QInputDialog>
 
 #include <iostream>
-#include <unistd.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifndef Q_OS_WIN32
-#ifdef Q_OS_MAC
-#include <util.h>
-#else
-#include <pty.h>
-#endif
+#include <unistd.h>
+#include <fcntl.h>
 #endif
 
 HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
@@ -65,9 +62,7 @@ HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
 
 HgRunner::~HgRunner()
 {
-    if (m_ptySlaveFilename != "") {
-        ::close(m_ptyMasterFd);
-    }
+    closeTerminal();
     delete m_proc;
 }
 
@@ -143,9 +138,14 @@ void HgRunner::getUsername()
             m_procInput->write(QString("%1\n").arg(pwd).toUtf8());
             m_procInput->flush();
             return;
+        } else {
+            DEBUG << "HgRunner::getUsername: user cancelled" << endl;
+            killCurrentCommand();
+            return;
         }
     }
     // user cancelled or something went wrong
+    DEBUG << "HgRunner::getUsername: something went wrong" << endl;
     killCurrentCommand();
 }
 
@@ -171,9 +171,14 @@ void HgRunner::getPassword()
             m_procInput->write(QString("%1\n").arg(pwd).toUtf8());
             m_procInput->flush();
             return;
+        } else {
+            DEBUG << "HgRunner::getPassword: user cancelled" << endl;
+            killCurrentCommand();
+            return;
         }
     }
     // user cancelled or something went wrong
+    DEBUG << "HgRunner::getPassword: something went wrong" << endl;
     killCurrentCommand();
 }
 
@@ -239,18 +244,13 @@ void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
         DEBUG << "HgRunner::finished: Command completed successfully" << endl;
         emit commandCompleted(completedAction, m_stdout);
     } else {
-        DEBUG << "HgRunner::finished: Command failed" << endl;
+        DEBUG << "HgRunner::finished: Command failed, stderr follows" << endl;
+        DEBUG << m_stderr << endl;
         emit commandFailed(completedAction, m_stderr);
     }
 
     checkQueue();
 }
-/*
-bool HgRunner::isCommandRunning()
-{
-    return m_isRunning;
-}
-*/
 
 void HgRunner::killCurrentCommand()
 {
@@ -310,25 +310,12 @@ void HgRunner::startCommand(HgAction action)
         m_proc->setWorkingDirectory(action.workingDir);
     }
 
-    m_procInput = 0;
-    m_ptySlaveFilename = "";
-
-#ifndef Q_OS_WIN32
     if (interactive) {
-        char name[1024];
-        if (openpty(&m_ptyMasterFd, &m_ptySlaveFd, name, NULL, NULL)) {
-            perror("openpty failed");
-        } else {
-            DEBUG << "openpty succeeded: master " << m_ptyMasterFd
-                    << " slave " << m_ptySlaveFd << " filename " << name << endl;
-            m_procInput = new QFile;
-            m_procInput->open(m_ptyMasterFd, QFile::WriteOnly);
-            m_ptySlaveFilename = name;
+        openTerminal();
+        if (m_ptySlaveFilename != "") {
             m_proc->setStandardInputFile(m_ptySlaveFilename);
-            ::close(m_ptySlaveFd);
         }
     }
-#endif
 
     QString cmdline = executable;
     foreach (QString param, params) cmdline += " " + param;
@@ -347,11 +334,48 @@ void HgRunner::closeProcInput()
     DEBUG << "closeProcInput" << endl;
 
     m_proc->closeWriteChannel();
+}
+
+void HgRunner::openTerminal()
+{
+#ifndef Q_OS_WIN32
+    if (m_ptySlaveFilename != "") return; // already open
+    DEBUG << "HgRunner::openTerminal: trying to open new pty" << endl;
+    int master = posix_openpt(O_RDWR | O_NOCTTY);
+    if (master < 0) {
+        DEBUG << "openpt failed" << endl;
+        perror("openpt failed");
+        return;
+    }
+    if (grantpt(master)) {
+        perror("grantpt failed");
+    }
+    if (unlockpt(master)) {
+        perror("unlockpt failed");
+    }
+    char *slave = ptsname(master);
+    if (!slave) {
+        perror("ptsname failed");
+        ::close(master);
+        return;
+    }
+    m_ptyMasterFd = master;
+    m_procInput = new QFile();
+    m_procInput->open(m_ptyMasterFd, QFile::WriteOnly);
+    m_ptySlaveFilename = slave;
+    DEBUG << "HgRunner::openTerminal: succeeded, slave is "
+          << m_ptySlaveFilename << endl;
+#endif
+}
+
+void HgRunner::closeTerminal()
+{
 #ifndef Q_OS_WIN32
     if (m_ptySlaveFilename != "") {
+        delete m_procInput;
+        m_procInput = 0;
         ::close(m_ptyMasterFd);
         m_ptySlaveFilename = "";
     }
 #endif
 }
-
