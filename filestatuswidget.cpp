@@ -16,6 +16,8 @@
 */
 
 #include "filestatuswidget.h"
+#include "debug.h"
+#include "multichoicedialog.h"
 
 #include <QLabel>
 #include <QListWidget>
@@ -23,8 +25,7 @@
 #include <QFileInfo>
 #include <QApplication>
 #include <QDateTime>
-
-#include "debug.h"
+#include <QPushButton>
 
 FileStatusWidget::FileStatusWidget(QWidget *parent) :
     QWidget(parent),
@@ -35,6 +36,9 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 
     int row = 0;
     
+    layout->addItem(new QSpacerItem(1, 1), row, 0);
+
+    ++row;
     layout->addWidget(new QLabel(tr("Local:")), row, 0);
     m_localPathLabel = new QLabel;
     QFont f(m_localPathLabel->font());
@@ -48,13 +52,18 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     layout->addWidget(m_remoteURLLabel, row, 1);
 
     ++row;
-    layout->addWidget(new QLabel(tr("Branch:")), row, 0);
-    m_branchLabel = new QLabel;
-    layout->addWidget(m_branchLabel, row, 1);
+    layout->addWidget(new QLabel(tr("State:")), row, 0);
+    m_stateLabel = new QLabel;
+    layout->addWidget(m_stateLabel, row, 1, 1, 2);
 
     layout->setColumnStretch(1, 20);
 
-    layout->addWidget(new QLabel("<qt><hr></qt>"), ++row, 0, 1, 2);
+    layout->addWidget(new QLabel("<qt><hr></qt>"), ++row, 0, 1, 3);
+
+    ++row;
+    m_noModificationsLabel = new QLabel
+        (tr("You have made no changes."));
+    layout->addWidget(m_noModificationsLabel, row, 1, 1, 2);
 
     m_simpleLabels[FileStates::Clean] = tr("Unmodified:");
     m_simpleLabels[FileStates::Modified] = tr("Modified:");
@@ -99,7 +108,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
         connect(w, SIGNAL(itemSelectionChanged()),
                 this, SLOT(itemSelectionChanged()));
 
-        layout->addWidget(box, ++row, 0, 1, 2);
+        layout->addWidget(box, ++row, 0, 1, 3);
         box->hide();
     }
 
@@ -303,10 +312,10 @@ FileStatusWidget::setFileStates(FileStates p)
 }
 
 void
-FileStatusWidget::setBranch(QString b)
+FileStatusWidget::setState(QString b)
 {
-    m_branch = b;
-    m_branchLabel->setText(b);
+    m_state = b;
+    updateStateLabel();
 }
 
 void
@@ -320,6 +329,8 @@ FileStatusWidget::updateWidgets()
 
     QSet<QString> selectedFiles;
     foreach (QString f, m_selectedFiles) selectedFiles.insert(f);
+
+    bool haveAnything = false;
 
     foreach (FileStates::State s, m_stateListMap.keys()) {
 
@@ -368,8 +379,17 @@ FileStatusWidget::updateWidgets()
 
         setLabelFor(w, s, !highPriority.empty());
 
-        w->parentWidget()->setVisible(!files.empty());
+        if (files.empty()) {
+            w->parentWidget()->hide();
+        } else {
+            w->parentWidget()->show();
+            haveAnything = true;
+        }
     }
+
+    m_noModificationsLabel->setVisible(!haveAnything);
+
+    updateStateLabel();
 }
 
 void FileStatusWidget::setLabelFor(QWidget *w, FileStates::State s, bool addHighlight)
@@ -378,4 +398,9 @@ void FileStatusWidget::setLabelFor(QWidget *w, FileStates::State s, bool addHigh
     QWidget *p = w->parentWidget();
     QList<QLabel *> ql = p->findChildren<QLabel *>();
     if (!ql.empty()) ql[0]->setText(text);
+}
+
+void FileStatusWidget::updateStateLabel()
+{
+    m_stateLabel->setText(m_state);
 }

@@ -30,6 +30,7 @@ enum HGACTIONS
     ACT_QUERY_HEADS,
     ACT_QUERY_PARENTS,
     ACT_LOG,
+    ACT_LOG_INCREMENTAL,
     ACT_REMOVE,
     ACT_ADD,
     ACT_INCOMING,
@@ -70,6 +71,21 @@ struct HgAction
                 a.params == params && a.executable == executable);
     }
 
+    bool shouldBeFast() const {
+        switch (action) {
+        case ACT_NONE:
+        case ACT_QUERY_PATHS:
+        case ACT_QUERY_BRANCH:
+        case ACT_STAT:
+        case ACT_QUERY_HEADS:
+        case ACT_QUERY_PARENTS:
+        case ACT_LOG_INCREMENTAL:
+            return true;
+        default:
+            return false;
+        }
+    }
+    
     bool mayBeInteractive() const {
 	switch (action) {
 	case ACT_INCOMING:
