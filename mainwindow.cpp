@@ -540,6 +540,7 @@ void MainWindow::hgCloneFromRemote()
     params << "clone" << remoteRepoPath << workFolderPath;
     
     hgTabs->setWorkFolderAndRepoNames(workFolderPath, remoteRepoPath);
+    hgTabs->updateWorkFolderFileList("");
 
     runner->requestAction(HgAction(ACT_CLONEFROMREMOTE, workFolderPath, params));
 }
@@ -1010,9 +1011,46 @@ void MainWindow::fsFileChanged(QString)
 void MainWindow::commandFailed(HgAction action, QString stderr)
 {
     DEBUG << "MainWindow::commandFailed" << endl;
-//    runner -> hideProgBar();
 
-    //!!! N.B hg incoming returns 1 even if successful, if there were no changes
+    // Some commands we just have to ignore bad return values from:
+
+    switch(action.action) {
+    case ACT_NONE:
+        // uh huh
+        return;
+    case ACT_INCOMING:
+        // returns non-zero code if the check was successful but there
+        // are no changes pending
+        return;
+    case ACT_FOLDERDIFF:
+    case ACT_FILEDIFF:
+    case ACT_CHGSETDIFF:
+        // external program, unlikely to be anything useful in stderr
+        // and some return with failure codes when something as basic
+        // as the user closing the window via the wm happens
+        return;
+
+    default:
+    }
+
+    QString command = action.executable;
+    if (command == "") command = "hg";
+    foreach (QString arg, action.params) {
+        command += " " + arg;
+    }
+
+    QString message = tr("<qt><h3>Command failed</h3>"
+                         "<p>The following command failed:</p>"
+                         "<code>%1</code>"
+                         "%2</qt>")
+        .arg(command)
+        .arg((stderr.trimmed() != "") ?
+             tr("<p>Its output said:</p><code>%1</code>")
+             .arg(xmlEncode(stderr.left(800))
+                  .replace("\n", "<br>"))
+             : "");
+
+    QMessageBox::warning(this, tr("Command failed"), message);
 }
 
 void MainWindow::commandCompleted(HgAction completedAction, QString output)
@@ -1048,7 +1086,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
 
     case ACT_STAT:
-        hgTabs -> updateWorkFolderFileList(output);
+        hgTabs->updateWorkFolderFileList(output);
         updateFileSystemWatcher();
         break;
         

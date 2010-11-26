@@ -34,30 +34,17 @@
 
 #ifndef Q_OS_WIN32
 #include <unistd.h>
+#include <termios.h>
 #include <fcntl.h>
 #endif
 
 HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
 {
-    m_proc = new QProcess(this);
-
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    env.insert("LANG", "en_US.utf8");
-    env.insert("LC_ALL", "en_US.utf8");
-    env.insert("HGPLAIN", "1");
-    m_proc->setProcessEnvironment(env);
+    m_proc = 0;
 
     setTextVisible(false);
     setVisible(false);
     m_isRunning = false;
-
-    connect(m_proc, SIGNAL(started()), this, SLOT(started()));
-    connect(m_proc, SIGNAL(finished(int, QProcess::ExitStatus)),
-            this, SLOT(finished(int, QProcess::ExitStatus)));
-    connect(m_proc, SIGNAL(readyReadStandardOutput()),
-            this, SLOT(dataReadyStdout()));
-    connect(m_proc, SIGNAL(readyReadStandardError()),
-            this, SLOT(dataReadyStderr()));
 }
 
 HgRunner::~HgRunner()
@@ -124,7 +111,7 @@ void HgRunner::noteRealm(QString realm)
 
 void HgRunner::getUsername()
 {
-    if (m_procInput) {
+    if (m_ptyFile) {
         bool ok = false;
         QString prompt = tr("User name:");
         if (m_realm != "") {
@@ -135,8 +122,8 @@ void HgRunner::getUsername()
             tr("Enter user name"), prompt,
             QLineEdit::Normal, QString(), &ok);
         if (ok) {
-            m_procInput->write(QString("%1\n").arg(pwd).toUtf8());
-            m_procInput->flush();
+            m_ptyFile->write(QString("%1\n").arg(pwd).toUtf8());
+            m_ptyFile->flush();
             return;
         } else {
             DEBUG << "HgRunner::getUsername: user cancelled" << endl;
@@ -151,7 +138,7 @@ void HgRunner::getUsername()
 
 void HgRunner::getPassword()
 {
-    if (m_procInput) {
+    if (m_ptyFile) {
         bool ok = false;
         QString prompt = tr("Password:");
         if (m_userName != "") {
@@ -168,8 +155,8 @@ void HgRunner::getPassword()
             tr("Enter password"), prompt,
              QLineEdit::Password, QString(), &ok);
         if (ok) {
-            m_procInput->write(QString("%1\n").arg(pwd).toUtf8());
-            m_procInput->flush();
+            m_ptyFile->write(QString("%1\n").arg(pwd).toUtf8());
+            m_ptyFile->flush();
             return;
         } else {
             DEBUG << "HgRunner::getPassword: user cancelled" << endl;
@@ -182,7 +169,7 @@ void HgRunner::getPassword()
     killCurrentCommand();
 }
 
-void HgRunner::checkPrompts(QString chunk)
+bool HgRunner::checkPrompts(QString chunk)
 {
     //DEBUG << "checkPrompts: " << chunk << endl;
 
@@ -190,11 +177,11 @@ void HgRunner::checkPrompts(QString chunk)
     QString lower = text.toLower();
     if (lower.endsWith("password:")) {
         getPassword();
-        return;
+        return true;
     }
     if (lower.endsWith("user:")) {
         getUsername();
-        return;
+        return true;
     }
     QRegExp userRe("\\buser:\\s*([^\\s]+)");
     if (userRe.indexIn(text) >= 0) {
@@ -204,22 +191,36 @@ void HgRunner::checkPrompts(QString chunk)
     if (realmRe.indexIn(text) >= 0) {
         noteRealm(realmRe.cap(1));
     }
+    return false;
 }
 
 void HgRunner::dataReadyStdout()
 {
     DEBUG << "dataReadyStdout" << endl;
     QString chunk = QString::fromUtf8(m_proc->readAllStandardOutput());
-    m_stdout += chunk;
-    checkPrompts(chunk);
+    if (!checkPrompts(chunk)) {
+        m_stdout += chunk;
+    }
 }
 
 void HgRunner::dataReadyStderr()
 {
     DEBUG << "dataReadyStderr" << endl;
     QString chunk = QString::fromUtf8(m_proc->readAllStandardError());
-    m_stderr += chunk;
-    checkPrompts(chunk);
+    DEBUG << chunk;
+    if (!checkPrompts(chunk)) {
+        m_stderr += chunk;
+    }
+}
+
+void HgRunner::dataReadyPty()
+{
+    DEBUG << "dataReadyPty" << endl;
+    QString chunk = QString::fromUtf8(m_ptyFile->readAll());
+    DEBUG << "chunk of " << chunk.length() << " chars" << endl;
+    if (!checkPrompts(chunk)) {
+        m_stdout += chunk;
+    }
 }
 
 void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
@@ -235,18 +236,23 @@ void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
     m_currentAction = HgAction();
 
     closeProcInput();
+    delete m_proc;
+    m_proc = 0;
 
     if (completedAction.action == ACT_NONE) {
         DEBUG << "HgRunner::finished: WARNING: completed action is ACT_NONE" << endl;
-    }
-
-    if (procExitCode == 0 && procExitStatus == QProcess::NormalExit) {
-        DEBUG << "HgRunner::finished: Command completed successfully" << endl;
-        emit commandCompleted(completedAction, m_stdout);
     } else {
-        DEBUG << "HgRunner::finished: Command failed, stderr follows" << endl;
-        DEBUG << m_stderr << endl;
-        emit commandFailed(completedAction, m_stderr);
+        if (procExitCode == 0 && procExitStatus == QProcess::NormalExit) {
+            DEBUG << "HgRunner::finished: Command completed successfully"
+                  << endl;
+            emit commandCompleted(completedAction, m_stdout);
+        } else {
+            DEBUG << "HgRunner::finished: Command failed, exit code "
+                  << procExitCode << ", exit status " << procExitStatus
+                  << ", stderr follows" << endl;
+            DEBUG << m_stderr << endl;
+            emit commandFailed(completedAction, m_stderr);
+        }
     }
 
     checkQueue();
@@ -255,7 +261,8 @@ void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
 void HgRunner::killCurrentCommand()
 {
     if (m_isRunning) {
-        m_proc -> kill();
+        m_currentAction.action = ACT_NONE; // so that we don't bother to notify
+        m_proc->kill();
     }
 }
 
@@ -306,6 +313,22 @@ void HgRunner::startCommand(HgAction action)
     m_realm = "";
     m_userName = "";
 
+    m_proc = new QProcess;
+
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("LANG", "en_US.utf8");
+    env.insert("LC_ALL", "en_US.utf8");
+    env.insert("HGPLAIN", "1");
+    m_proc->setProcessEnvironment(env);
+
+    connect(m_proc, SIGNAL(started()), this, SLOT(started()));
+    connect(m_proc, SIGNAL(finished(int, QProcess::ExitStatus)),
+            this, SLOT(finished(int, QProcess::ExitStatus)));
+    connect(m_proc, SIGNAL(readyReadStandardOutput()),
+            this, SLOT(dataReadyStdout()));
+    connect(m_proc, SIGNAL(readyReadStandardError()),
+            this, SLOT(dataReadyStderr()));
+
     if (!action.workingDir.isEmpty()) {
         m_proc->setWorkingDirectory(action.workingDir);
     }
@@ -313,7 +336,10 @@ void HgRunner::startCommand(HgAction action)
     if (interactive) {
         openTerminal();
         if (m_ptySlaveFilename != "") {
+            DEBUG << "HgRunner: connecting to pseudoterminal" << endl;
             m_proc->setStandardInputFile(m_ptySlaveFilename);
+            m_proc->setStandardOutputFile(m_ptySlaveFilename);
+//            m_proc->setStandardErrorFile(m_ptySlaveFilename);
         }
     }
 
@@ -323,6 +349,10 @@ void HgRunner::startCommand(HgAction action)
           << action.workingDir << endl;
 
     m_currentAction = action;
+
+    // fill these out with what we actually ran
+    m_currentAction.executable = executable;
+    m_currentAction.params = params;
 
     DEBUG << "set current action to " << m_currentAction.action << endl;
     
@@ -347,6 +377,16 @@ void HgRunner::openTerminal()
         perror("openpt failed");
         return;
     }
+    struct termios t;
+    if (tcgetattr(master, &t)) {
+        DEBUG << "tcgetattr failed" << endl;
+        perror("tcgetattr failed");
+    }
+    cfmakeraw(&t);
+    if (tcsetattr(master, TCSANOW, &t)) {
+        DEBUG << "tcsetattr failed" << endl;
+        perror("tcsetattr failed");
+    }
     if (grantpt(master)) {
         perror("grantpt failed");
     }
@@ -360,8 +400,11 @@ void HgRunner::openTerminal()
         return;
     }
     m_ptyMasterFd = master;
-    m_procInput = new QFile();
-    m_procInput->open(m_ptyMasterFd, QFile::WriteOnly);
+    m_ptyFile = new QFile();
+    connect(m_ptyFile, SIGNAL(readyRead()), this, SLOT(dataReadyPty()));
+    if (!m_ptyFile->open(m_ptyMasterFd, QFile::ReadWrite)) {
+        DEBUG << "HgRunner::openTerminal: Failed to open QFile on master fd" << endl;
+    }
     m_ptySlaveFilename = slave;
     DEBUG << "HgRunner::openTerminal: succeeded, slave is "
           << m_ptySlaveFilename << endl;
@@ -372,8 +415,8 @@ void HgRunner::closeTerminal()
 {
 #ifndef Q_OS_WIN32
     if (m_ptySlaveFilename != "") {
-        delete m_procInput;
-        m_procInput = 0;
+        delete m_ptyFile;
+        m_ptyFile = 0;
         ::close(m_ptyMasterFd);
         m_ptySlaveFilename = "";
     }

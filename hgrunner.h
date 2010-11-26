@@ -52,6 +52,7 @@ private slots:
     void finished(int procExitCode, QProcess::ExitStatus procExitStatus);
     void dataReadyStdout();
     void dataReadyStderr();
+    void dataReadyPty();
 
 private:
     void checkQueue();
@@ -64,7 +65,7 @@ private:
     void noteRealm(QString);
     void getUsername();
     void getPassword();
-    void checkPrompts(QString);
+    bool checkPrompts(QString);
 
     void openTerminal();
     void closeTerminal();
@@ -72,7 +73,7 @@ private:
     int m_ptyMasterFd;
     int m_ptySlaveFd;
     QString m_ptySlaveFilename;
-    QFile *m_procInput;
+    QFile *m_ptyFile;
     
     bool m_isRunning;
     QProcess *m_proc;

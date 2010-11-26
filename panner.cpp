@@ -17,6 +17,7 @@
 
 #include "panner.h"
 #include "panned.h"
+#include "debug.h"
 
 #include <QPolygon>
 #include <QMouseEvent>
@@ -42,6 +43,26 @@ Panner::Panner() :
 }
 
 void
+Panner::fit(QRectF r)
+{
+    Qt::AspectRatioMode m = Qt::IgnoreAspectRatio;
+    if (height() > width()) {
+        // Our panner is vertical; if the source is not tall,
+        // don't stretch it to fit in the height, it'd look weird
+        if (r.height() < height() * 2) {
+            m = Qt::KeepAspectRatio;
+        }
+    } else {
+        // Similarly, but horizontal
+        if (r.width() < width() * 2) {
+            m = Qt::KeepAspectRatio;
+        }
+    }
+    DEBUG << "Panner: fit mode " << m << endl;
+    fitInView(r, m);
+}
+
+void
 Panner::setScene(QGraphicsScene *s)
 {
     if (scene()) {
@@ -49,7 +70,11 @@ Panner::setScene(QGraphicsScene *s)
                    this, SLOT(slotSceneRectChanged(const QRectF &)));
     }
     QGraphicsView::setScene(s);
-    if (scene()) fitInView(sceneRect(), Qt::IgnoreAspectRatio);
+    if (scene()) {
+        QRectF r = sceneRect();
+        DEBUG << "scene rect: " << r << ", my rect " << rect() << endl;
+        fit(r);
+    }
     m_cache = QPixmap();
     connect(scene(), SIGNAL(sceneRectChanged(const QRectF &)),
             this, SLOT(slotSceneRectChanged(const QRectF &)));
@@ -81,7 +106,7 @@ Panner::slotSetPannedRect(QRectF rect)
 void
 Panner::resizeEvent(QResizeEvent *)
 {
-    if (scene()) fitInView(sceneRect(), Qt::IgnoreAspectRatio);
+    if (scene()) fit(sceneRect());
     m_cache = QPixmap();
 }
 
@@ -89,7 +114,7 @@ void
 Panner::slotSceneRectChanged(const QRectF &newRect)
 {
     if (!scene()) return; // spurious
-    fitInView(newRect, Qt::IgnoreAspectRatio);
+    fit(newRect);
     m_cache = QPixmap();
     viewport()->update();
 }
@@ -137,7 +162,7 @@ Panner::drawItems(QPainter *painter, int numItems,
 {
     if (m_cache.size() != viewport()->size()) {
 
-    std::cerr << "Panner: recreating cache" << std::endl;
+        DEBUG << "Panner: recreating cache" << endl;
 
         QGraphicsScene *s = scene();
         if (!s) return;
