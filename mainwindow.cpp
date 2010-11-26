@@ -1031,6 +1031,7 @@ void MainWindow::commandFailed(HgAction action, QString stderr)
         return;
 
     default:
+        break;
     }
 
     QString command = action.executable;

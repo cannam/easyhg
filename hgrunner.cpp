@@ -50,7 +50,7 @@ HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
 HgRunner::~HgRunner()
 {
     closeTerminal();
-    delete m_proc;
+    if (m_proc) delete m_proc;
 }
 
 void HgRunner::requestAction(HgAction action)
@@ -245,6 +245,7 @@ void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
         if (procExitCode == 0 && procExitStatus == QProcess::NormalExit) {
             DEBUG << "HgRunner::finished: Command completed successfully"
                   << endl;
+            DEBUG << "stdout is " << m_stdout << endl;
             emit commandCompleted(completedAction, m_stdout);
         } else {
             DEBUG << "HgRunner::finished: Command failed, exit code "
@@ -338,7 +339,7 @@ void HgRunner::startCommand(HgAction action)
         if (m_ptySlaveFilename != "") {
             DEBUG << "HgRunner: connecting to pseudoterminal" << endl;
             m_proc->setStandardInputFile(m_ptySlaveFilename);
-            m_proc->setStandardOutputFile(m_ptySlaveFilename);
+//            m_proc->setStandardOutputFile(m_ptySlaveFilename);
 //            m_proc->setStandardErrorFile(m_ptySlaveFilename);
         }
     }
