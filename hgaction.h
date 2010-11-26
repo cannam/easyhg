@@ -65,21 +65,7 @@ struct HgAction
 
     HgAction(HGACTIONS _action, QString _wd, QStringList _params) :
         action(_action), workingDir(_wd), params(_params) { }
-/*
-    HgAction(const HgAction &a) :
-        action(a.action), workingDir(a.workingDir),
-        params(a.params), executable(a.executable) { }
 
-    HgAction &operator=(const HgAction &a) {
-        if (&a != this) {
-            action = a.action;
-            workingDir = a.workingDir;
-            params = a.params;
-            executable = a.executable;
-        }
-        return *this;
-    }
-*/
     bool operator==(const HgAction &a) {
         return (a.action == action && a.workingDir == workingDir &&
                 a.params == params && a.executable == executable);
@@ -91,6 +77,10 @@ struct HgAction
 	case ACT_PUSH:
 	case ACT_PULL:
 	case ACT_CLONEFROMREMOTE:
+	case ACT_FILEDIFF:
+	case ACT_FOLDERDIFF:
+	case ACT_CHGSETDIFF:
+	case ACT_SERVE:
 	    return true;
 	default:
 	    return false;

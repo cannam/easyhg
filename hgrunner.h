@@ -37,7 +37,7 @@ public:
     ~HgRunner();
 
     void requestAction(HgAction action);
-/*
+/*!!!
     bool isCommandRunning();
     void killCurrentCommand();
 
@@ -50,7 +50,8 @@ signals:
 private slots:
     void started();
     void finished(int procExitCode, QProcess::ExitStatus procExitStatus);
-    void dataReady();
+    void dataReadyStdout();
+    void dataReadyStderr();
 
 private:
     void checkQueue();
@@ -72,7 +73,8 @@ private:
     
     bool m_isRunning;
     QProcess *m_proc;
-    QString m_output;
+    QString m_stdout;
+    QString m_stderr;
 
     QString m_userName;
     QString m_realm;
