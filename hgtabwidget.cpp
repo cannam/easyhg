@@ -66,7 +66,14 @@ void HgTabWidget::clearSelections()
 
 bool HgTabWidget::canCommit() const
 {
+    if (!fileStatusWidget->getSelectedAddableFiles().empty()) return false;
     return fileStatusWidget->haveChangesToCommit();
+}
+
+bool HgTabWidget::canRevert() const
+{
+    return fileStatusWidget->haveChangesToCommit() ||
+        !fileStatusWidget->getSelectedRevertableFiles().empty();
 }
 
 bool HgTabWidget::canAdd() const
@@ -94,9 +101,24 @@ QStringList HgTabWidget::getAllSelectedFiles() const
     return fileStatusWidget->getAllSelectedFiles();
 }
 
+QStringList HgTabWidget::getAllCommittableFiles() const
+{
+    return fileStatusWidget->getAllCommittableFiles();
+}
+
 QStringList HgTabWidget::getSelectedCommittableFiles() const
 {
     return fileStatusWidget->getSelectedCommittableFiles();
+}
+
+QStringList HgTabWidget::getAllRevertableFiles() const
+{
+    return fileStatusWidget->getAllRevertableFiles();
+}
+
+QStringList HgTabWidget::getSelectedRevertableFiles() const
+{
+    return fileStatusWidget->getSelectedRevertableFiles();
 }
 
 QStringList HgTabWidget::getSelectedAddableFiles() const
@@ -104,24 +126,14 @@ QStringList HgTabWidget::getSelectedAddableFiles() const
     return fileStatusWidget->getSelectedAddableFiles();
 }
 
-QStringList HgTabWidget::getSelectedRemovableFiles() const
-{
-    return fileStatusWidget->getSelectedRemovableFiles();
-}
-
-QStringList HgTabWidget::getAllCommittableFiles() const
-{
-    return fileStatusWidget->getAllCommittableFiles();
-}
-
-QStringList HgTabWidget::getAllAddableFiles() const
-{
-    return fileStatusWidget->getAllAddableFiles();
-}
-
 QStringList HgTabWidget::getAllRemovableFiles() const
 {
     return fileStatusWidget->getAllRemovableFiles();
+}
+
+QStringList HgTabWidget::getSelectedRemovableFiles() const
+{
+    return fileStatusWidget->getSelectedRemovableFiles();
 }
 
 void HgTabWidget::updateWorkFolderFileList(QString fileList)

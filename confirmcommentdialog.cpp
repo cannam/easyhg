@@ -16,6 +16,7 @@
 */
 
 #include "confirmcommentdialog.h"
+#include "common.h"
 
 #include <QMessageBox>
 #include <QInputDialog>
@@ -64,6 +65,18 @@ QString ConfirmCommentDialog::getComment() const
     return m_textEdit->document()->toPlainText();
 }
 
+QString ConfirmCommentDialog::buildFilesText(QString intro, QStringList files)
+{
+    QString text;
+    text = "<qt>" + intro;
+    text += "<p><code>";
+    foreach (QString file, files) {
+        text += "&nbsp;&nbsp;&nbsp;" + xmlEncode(file) + "<br>";
+    }
+    text += "</code></qt>";
+    return text;
+}
+
 bool ConfirmCommentDialog::confirmFilesAction(QWidget *parent,
                                               QString title,
                                               QString introText,
@@ -72,14 +85,9 @@ bool ConfirmCommentDialog::confirmFilesAction(QWidget *parent,
 {
     QString text;
     if (files.size() <= 10) {
-        text = "<qt>" + introText;
-        text += "<code>";
-        foreach (QString file, files) {
-            text += file + "<br>";
-        }
-        text += "</code></qt>";
+        text = buildFilesText(introText, files);
     } else {
-        text = "<qt>" + introText.arg(files.size());
+        text = "<qt>" + introTextWithCount.arg(files.size()) + "</qt>";
     }
     return (QMessageBox::information(parent,
                                      title,
@@ -87,6 +95,48 @@ bool ConfirmCommentDialog::confirmFilesAction(QWidget *parent,
                                      QMessageBox::Ok | QMessageBox::Cancel,
                                      QMessageBox::Ok)
             == QMessageBox::Ok);
+}
+
+bool ConfirmCommentDialog::confirmDangerousFilesAction(QWidget *parent,
+                                                       QString title,
+                                                       QString introText,
+                                                       QString introTextWithCount,
+                                                       QStringList files)
+{
+    QString text;
+    if (files.size() <= 10) {
+        text = buildFilesText(introText, files);
+    } else {
+        text = "<qt>" + introTextWithCount.arg(files.size()) + "</qt>";
+    }
+    return (QMessageBox::warning(parent,
+                                 title,
+                                 text,
+                                 QMessageBox::Ok | QMessageBox::Cancel,
+                                 QMessageBox::Cancel)
+            == QMessageBox::Ok);
+}
+
+bool ConfirmCommentDialog::confirmAndGetShortComment(QWidget *parent,
+                                                     QString title,
+                                                     QString introText,
+                                                     QString introTextWithCount,
+                                                     QStringList files,
+                                                     QString &comment)
+{
+    return confirmAndComment(parent, title, introText,
+                             introTextWithCount, files, comment, false);
+}
+
+bool ConfirmCommentDialog::confirmAndGetLongComment(QWidget *parent,
+                                                    QString title,
+                                                    QString introText,
+                                                    QString introTextWithCount,
+                                                    QStringList files,
+                                                    QString &comment)
+{
+    return confirmAndComment(parent, title, introText,
+                             introTextWithCount, files, comment, true);
 }
 
 bool ConfirmCommentDialog::confirmAndComment(QWidget *parent,
@@ -99,16 +149,28 @@ bool ConfirmCommentDialog::confirmAndComment(QWidget *parent,
 {
     QString text;
     if (files.size() <= 10) {
-        text = "<qt>" + introText;
-        text += "<p><ul>";
-        foreach (QString file, files) {
-            text += "<li>" + file + "</li>";
-        }
-        text += "</ul><p>Please enter your comment:</qt>";
+        text = buildFilesText(introText, files);
     } else {
-        text = "<qt>" + introText.arg(files.size());
+        text = "<qt>" + introTextWithCount.arg(files.size());
     }
+    text += tr("<p>Please enter your comment:</qt>");
     return confirmAndComment(parent, title, text, comment, longComment);
+}
+
+bool ConfirmCommentDialog::confirmAndGetShortComment(QWidget *parent,
+                                                     QString title,
+                                                     QString introText,
+                                                     QString &comment)
+{
+    return confirmAndComment(parent, title, introText, comment, false);
+}
+
+bool ConfirmCommentDialog::confirmAndGetLongComment(QWidget *parent,
+                                                    QString title,
+                                                    QString introText,
+                                                    QString &comment)
+{
+    return confirmAndComment(parent, title, introText, comment, true);
 }
 
 bool ConfirmCommentDialog::confirmAndComment(QWidget *parent,

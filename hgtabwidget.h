@@ -48,6 +48,7 @@ public:
     FileStates getFileStates() { return fileStates; }
 
     bool canCommit() const;
+    bool canRevert() const;
     bool canAdd() const;
     bool canRemove() const;
     bool canDoDiff() const;
@@ -56,6 +57,9 @@ public:
 
     QStringList getSelectedCommittableFiles() const;
     QStringList getAllCommittableFiles() const;
+
+    QStringList getSelectedRevertableFiles() const;
+    QStringList getAllRevertableFiles() const;
 
     QStringList getSelectedAddableFiles() const;
     QStringList getAllAddableFiles() const;

@@ -54,6 +54,9 @@ public:
     QStringList getSelectedCommittableFiles() const;
     QStringList getAllCommittableFiles() const;
 
+    QStringList getSelectedRevertableFiles() const;
+    QStringList getAllRevertableFiles() const;
+
     QStringList getSelectedAddableFiles() const;
     QStringList getAllAddableFiles() const;
 

@@ -68,8 +68,9 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_descriptions[FileStates::Added] = tr("These files will be added to version control next time you commit.");
     m_descriptions[FileStates::Removed] = tr("These files will be removed from version control next time you commit.<br>"
                                              "They will not be deleted from the local folder.");
-    m_descriptions[FileStates::Missing] = tr("These files are recorded in the version control but absent from your working folder.<br>"
-                                             "If you deleted them intentionally, select them here and use <b>Remove</b> to tell the version control system about it.");
+    m_descriptions[FileStates::Missing] = tr("These files are recorded in the version control, but absent from your working folder.<br>"
+                                             "If you deleted them by accident, select them here and use Revert to restore their previous contents.<br>"
+                                             "If you deleted them intentionally, select them here and use Remove to tell the version control system about it.");
     m_descriptions[FileStates::Unknown] = tr("These files are in your working folder but are not under version control.<br>"
                                              "Select a file and use Add to place it under version control or Ignore to remove it from this list.");
 
@@ -188,6 +189,33 @@ QStringList FileStatusWidget::getAllCommittableFiles() const
     files << m_fileStates.getFilesInState(FileStates::Modified);
     files << m_fileStates.getFilesInState(FileStates::Added);
     files << m_fileStates.getFilesInState(FileStates::Removed);
+    return files;
+}
+
+QStringList FileStatusWidget::getSelectedRevertableFiles() const
+{
+    QStringList files;
+    foreach (QString f, m_selectedFiles) {
+        switch (m_fileStates.getStateOfFile(f)) {
+        case FileStates::Added:
+        case FileStates::Modified:
+        case FileStates::Removed:
+        case FileStates::Missing:
+            files.push_back(f);
+            break;
+        default: break;
+        }
+    }
+    return files;
+}
+
+QStringList FileStatusWidget::getAllRevertableFiles() const
+{
+    QStringList files;
+    files << m_fileStates.getFilesInState(FileStates::Modified);
+    files << m_fileStates.getFilesInState(FileStates::Added);
+    files << m_fileStates.getFilesInState(FileStates::Removed);
+    files << m_fileStates.getFilesInState(FileStates::Missing);
     return files;
 }
 

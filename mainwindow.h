@@ -22,6 +22,7 @@
 #include "hgrunner.h"
 #include "common.h"
 #include "changeset.h"
+#include "hgaction.h"
 
 #include <QMainWindow>
 #include <QListWidget>
@@ -31,39 +32,6 @@ QT_BEGIN_NAMESPACE
 class QAction;
 class QMenu;
 QT_END_NAMESPACE
-
-enum HGACTIONS
-{
-    ACT_NONE,
-    ACT_PATHS,
-    ACT_BRANCH,
-    ACT_STAT,
-    ACT_HEADS,
-    ACT_PARENTS,
-    ACT_LOG,
-    ACT_REMOVE,
-    ACT_ADD,
-    ACT_INCOMING,
-    ACT_PUSH,
-    ACT_PULL,
-    ACT_CLONEFROMREMOTE,
-    ACT_INIT,
-    ACT_COMMIT,
-    ACT_ANNOTATE,
-    ACT_FILEDIFF,
-    ACT_FOLDERDIFF,
-    ACT_CHGSETDIFF,
-    ACT_UPDATE,
-    ACT_REVERT,
-    ACT_MERGE,
-    ACT_RESOLVE_LIST,
-    ACT_SERVE,
-    ACT_RESOLVE_MARK,
-    ACT_RETRY_MERGE,
-    ACT_TAG,
-    ACT_HG_IGNORE,
-};
-
 
 class MainWindow : public QMainWindow
 {
@@ -86,11 +54,11 @@ protected:
     void closeEvent(QCloseEvent *event);
 
 public slots:
-    void hgPaths();
+    void hgQueryPaths();
     void hgStat();
-    void tabChanged(int currTab);
-    void commandCompleted();
-    void commandFailed();
+//    void tabChanged(int currTab);
+    void commandCompleted(HgAction action, QString stdout);
+    void commandFailed(HgAction action, QString stdout);
     void enableDisableActions();
 
 private slots:
@@ -127,9 +95,9 @@ private slots:
     void fsFileChanged(QString);
 
 private:
-    void hgBranch();
-    void hgHeads();
-    void hgParents();
+    void hgQueryBranch();
+    void hgQueryHeads();
+    void hgQueryParents();
     void hgLog();
     void createActions();
     void connectActions();
@@ -216,13 +184,12 @@ private:
     QToolBar *repoToolBar;
     QToolBar *workFolderToolBar;
 
-    HGACTIONS   runningAction;
-    HgRunner    *runner;
+    HgRunner *runner;
 
     QFileSystemWatcher *fsWatcher;
 
-    int             tabPage;
-    unsigned char   initialFileTypesBits;
+//    int             tabPage;
+//    unsigned char   initialFileTypesBits;
     bool            justMerged;
 };
 

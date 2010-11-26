@@ -72,6 +72,29 @@ HgRunner::~HgRunner()
     delete m_proc;
 }
 
+void HgRunner::requestAction(HgAction action)
+{
+    DEBUG << "requestAction " << action.action << endl;
+    bool pushIt = true;
+    if (m_queue.empty()) {
+        if (action == m_currentAction) {
+            // this request is identical to the thing we're executing
+            DEBUG << "requestAction: we're already handling this one, ignoring identical request" << endl;
+            pushIt = false;
+        }
+    } else {
+        HgAction last = m_queue.back();
+        if (action == last) {
+            // this request is identical to the previous thing we
+            // queued which we haven't executed yet
+            DEBUG << "requestAction: we're already queueing this one, ignoring identical request" << endl;
+            pushIt = false;
+        }
+    }
+    if (pushIt) m_queue.push_back(action);
+    checkQueue();
+}
+
 QString HgRunner::getHgBinaryName()
 {
     QSettings settings;
@@ -93,17 +116,6 @@ void HgRunner::started()
     m_proc->write("blah\n");
     m_proc -> closeWriteChannel();
     */
-}
-
-void HgRunner::setProcExitInfo(int procExitCode, QProcess::ExitStatus procExitStatus)
-{
-    m_exitCode = procExitCode;
-    m_exitStatus = procExitStatus;
-}
-
-QString HgRunner::getLastCommandLine()
-{
-    return QString("Command line: " + m_lastHgCommand + " " + m_lastParams);
 }
 
 void HgRunner::noteUsername(QString name)
@@ -200,63 +212,96 @@ void HgRunner::dataReady()
 
 void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
 {
-    setProcExitInfo(procExitCode, procExitStatus);
+    // Save the current action and reset m_currentAction before we
+    // emit a signal to mark the completion; otherwise we may be
+    // resetting the action after a slot has already tried to set it
+    // to something else to start a new action
+
+    HgAction completedAction = m_currentAction;
+
     m_isRunning = false;
+    m_currentAction = HgAction();
 
     closeProcInput();
 
+    if (completedAction.action == ACT_NONE) {
+        DEBUG << "HgRunner::finished: WARNING: completed action is ACT_NONE" << endl;
+    }
+
     if (procExitCode == 0 && procExitStatus == QProcess::NormalExit) {
         DEBUG << "HgRunner::finished: Command completed successfully" << endl;
-        emit commandCompleted();
+        //!!! NB this is all output not stdout as it should be
+        emit commandCompleted(completedAction, m_output);
     } else {
         DEBUG << "HgRunner::finished: Command failed" << endl;
-        emit commandFailed();
+        //!!! NB this is all output not stderr as it should be
+        emit commandFailed(completedAction, m_output);
     }
-}
 
+    checkQueue();
+}
+/*
 bool HgRunner::isCommandRunning()
 {
     return m_isRunning;
 }
+*/
 
 void HgRunner::killCurrentCommand()
 {
-    if (isCommandRunning()) {
+    if (m_isRunning) {
         m_proc -> kill();
     }
 }
 
-void HgRunner::startHgCommand(QString workingDir, QStringList params, bool interactive)
+void HgRunner::checkQueue()
 {
-#ifdef Q_OS_WIN32
-    // This at least means we won't block on the non-working password prompt
-    params.push_front("ui.interactive=false");
-#else
-    // password prompt should work here
-    if (interactive) {
-        params.push_front("ui.interactive=true");
-    } else {
-        params.push_front("ui.interactive=false");
+    if (m_isRunning) {
+        return;
     }
-#endif
-    params.push_front("--config");
-    startCommand(getHgBinaryName(), workingDir, params, interactive);
+    if (m_queue.empty()) {
+        hide();
+        return;
+    }
+    HgAction toRun = m_queue.front();
+    m_queue.pop_front();
+    DEBUG << "checkQueue: have action: running " << toRun.action << endl;
+    startCommand(toRun);
 }
 
-void HgRunner::startCommand(QString command, QString workingDir, QStringList params,
-                            bool interactive)
+void HgRunner::startCommand(HgAction action)
 {
+    QString executable = action.executable;
+    bool interactive = false;
+    QStringList params = action.params;
+
+    if (executable == "") {
+        // This is a Hg command
+        executable = getHgBinaryName();
+#ifdef Q_OS_WIN32
+        // This at least means we won't block on the non-working password prompt
+        params.push_front("--noninteractive");
+#else
+        // password prompt should work here
+        if (action.mayBeInteractive()) {
+            params.push_front("ui.interactive=true");
+            params.push_front("--config");
+            interactive = true;
+        } else {
+            params.push_front("--noninteractive");
+        }
+    }
+#endif
+
     m_isRunning = true;
     setRange(0, 0);
-    setVisible(true);
+    show();
     m_output.clear();
-    m_exitCode = 0;
-    m_exitStatus = QProcess::NormalExit;
     m_realm = "";
     m_userName = "";
 
-    if (!workingDir.isEmpty()) {
-        m_proc->setWorkingDirectory(workingDir);
+    if (!action.workingDir.isEmpty()) {
+        m_proc->setWorkingDirectory(action.workingDir);
     }
 
     m_procInput = 0;
@@ -279,15 +324,16 @@ void HgRunner::startCommand(QString command, QString workingDir, QStringList par
     }
 #endif
 
-    m_lastHgCommand = command;
-    m_lastParams = params.join(" ");
-
-    QString cmdline = command;
+    QString cmdline = executable;
     foreach (QString param, params) cmdline += " " + param;
     DEBUG << "HgRunner: starting: " << cmdline << " with cwd "
-          << workingDir << endl;
+          << action.workingDir << endl;
 
-    m_proc->start(command, params);
+    m_currentAction = action;
+
+    DEBUG << "set current action to " << m_currentAction.action << endl;
+    
+    m_proc->start(executable, params);
 }
 
 void HgRunner::closeProcInput()
@@ -302,20 +348,4 @@ void HgRunner::closeProcInput()
     }
 #endif
 }
-
-int HgRunner::getExitCode()
-{
-    return m_exitCode;
-}
-
-QString HgRunner::getOutput()
-{
-    return m_output;
-}
-
-void HgRunner::hideProgBar()
-{
-    setVisible(false);
-}
-
 
