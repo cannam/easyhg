@@ -15,7 +15,6 @@
     COPYING included with this distribution for more information.
 */
 
-#include "changesetitem.h"
 #include "changesetdetailitem.h"
 #include "changeset.h"
 #include "textabbrev.h"
@@ -23,11 +22,9 @@
 #include "debug.h"
 
 #include <QPainter>
-#include <QGraphicsScene>
 
-ChangesetItem::ChangesetItem(Changeset *cs) :
-    m_changeset(cs), m_detail(0),
-    m_showBranch(false), m_column(0), m_row(0), m_wide(false)
+ChangesetDetailItem::ChangesetDetailItem(Changeset *cs) :
+    m_changeset(cs)
 {
     m_font = QFont();
     m_font.setPixelSize(11);
@@ -36,31 +33,15 @@ ChangesetItem::ChangesetItem(Changeset *cs) :
 }
 
 QRectF
-ChangesetItem::boundingRect() const
+ChangesetDetailItem::boundingRect() const
 {
-    int w = 100;
-    if (m_wide) w = 180;
-    return QRectF(-((w-50)/2 - 1), -30, w - 3, 79);
+    return QRectF(0, 0, 350, 200);
 }
 
 void
-ChangesetItem::mousePressEvent(QGraphicsSceneMouseEvent *e)
-{
-    DEBUG << "ChangesetItem::mousePressEvent" << endl;
-    //!!! how best to handle this?
-    if (m_detail) return;
-    m_detail = new ChangesetDetailItem(m_changeset);
-    m_detail->setZValue(zValue() + 1);
-    scene()->addItem(m_detail);
-    int w = 100;
-    if (m_wide) w = 180;
-    m_detail->moveBy(x() - (m_detail->boundingRect().width() - 50) / 2,
-                     y() + 60);
-}
-
-void
-ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
-                     QWidget *w)
+ChangesetDetailItem::paint(QPainter *paint,
+			   const QStyleOptionGraphicsItem *option,
+			   QWidget *w)
 {
     paint->save();
     
@@ -83,24 +64,23 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     } else {
 	paint->setPen(QPen(branchColour, 2));
     }
-	
+
     paint->setFont(f);
     QFontMetrics fm(f);
     int fh = fm.height();
 
-    int width = 100;
-    if (m_wide) width = 180;
-    int x0 = -((width - 50) / 2 - 1);
+    int width = 350;
+    int height = 200;
 
-    int height = 49;
-    QRectF r(x0, 0, width - 3, height);
+    QRectF r(0.5, 0.5, width - 1, height - 1);
+    paint->setBrush(Qt::white);
     paint->drawRect(r);
 
     if (scale < 0.1) {
 	paint->restore();
 	return;
     }
-
+/*
     paint->fillRect(QRectF(x0 + 0.5, 0.5, width - 4, fh - 0.5),
 		    QBrush(userColour));
 
@@ -145,6 +125,6 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     for (int i = 0; i < lines.size(); ++i) {
 	paint->drawText(x0 + 3, i * fh + fh + fm.ascent(), lines[i].trimmed());
     }
-
+    */
     paint->restore();
 }

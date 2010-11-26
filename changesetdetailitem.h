@@ -15,47 +15,27 @@
     COPYING included with this distribution for more information.
 */
 
-#ifndef CHANGESETITEM_H
-#define CHANGESETITEM_H
+#ifndef CHANGESETDETAILITEM_H
+#define CHANGESETDETAILITEM_H
 
 #include <QGraphicsItem>
 #include <QFont>
 
 class Changeset;
-class ChangesetDetailItem;
 
-class ChangesetItem : public QGraphicsItem
+class ChangesetDetailItem : public QGraphicsItem
 {
 public:
-    ChangesetItem(Changeset *cs);
+    ChangesetDetailItem(Changeset *cs);
 
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter *, const QStyleOptionGraphicsItem *, QWidget *);
 
     Changeset *getChangeset() { return m_changeset; }
 
-    int column() const { return m_column; }
-    int row() const { return m_row; }
-    void setColumn(int c) { m_column = c; setX(c * 100); }
-    void setRow(int r) { m_row = r; setY(r * 90); }
-
-    bool isWide() const { return m_wide; }
-    void setWide(bool w) { m_wide = w; }
-
-    bool shouldShowBranch() const { return m_showBranch; }
-    void setShowBranch(bool s) { m_showBranch = s; }
-
-protected:
-    virtual void mousePressEvent(QGraphicsSceneMouseEvent *);
-
 private:
     QFont m_font;
     Changeset *m_changeset;
-    ChangesetDetailItem *m_detail;
-    bool m_showBranch;
-    int m_column;
-    int m_row;
-    bool m_wide;
 };
 
-#endif // CHANGESETITEM_H
+#endif // CHANGESETDETAILITEM_H
