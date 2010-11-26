@@ -17,6 +17,7 @@ HEADERS = mainwindow.h \
     hgrunner.h \
     changeset.h \
     changesetitem.h \
+    changesetdetailitem.h \
     logparser.h \
     panner.h \
     panned.h \
@@ -42,6 +43,7 @@ SOURCES = main.cpp \
     grapher.cpp \
     common.cpp \
     changeset.cpp \
+    changesetdetailitem.cpp \
     changesetitem.cpp \
     logparser.cpp \
     panner.cpp \

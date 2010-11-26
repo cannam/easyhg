@@ -29,7 +29,7 @@
 HgTabWidget::HgTabWidget(QWidget *parent,
                          QString remoteRepo,
                          QString workFolderPath) :
-QTabWidget(parent)
+    QTabWidget(parent)
 {
     // Work page
     m_fileStatusWidget = new FileStatusWidget;

@@ -37,12 +37,7 @@ public:
     ~HgRunner();
 
     void requestAction(HgAction action);
-/*!!!
-    bool isCommandRunning();
-    void killCurrentCommand();
 
-    void hideProgBar();
-*/    
 signals:
     void commandCompleted(HgAction action, QString stdout);
     void commandFailed(HgAction action, QString stderr);
