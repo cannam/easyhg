@@ -66,6 +66,9 @@ private:
     void getPassword();
     void checkPrompts(QString);
 
+    void openTerminal();
+    void closeTerminal();
+
     int m_ptyMasterFd;
     int m_ptySlaveFd;
     QString m_ptySlaveFilename;
