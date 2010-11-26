@@ -18,6 +18,7 @@
 #include "grapher.h"
 #include "connectionitem.h"
 #include "dateitem.h"
+#include "debug.h"
 
 #include <QGraphicsScene>
 
@@ -58,7 +59,7 @@ void Grapher::layoutRow(QString id)
     }
     Changeset *cs = m_changesets[id];
     ChangesetItem *item = m_items[id];
-    std::cerr << "layoutRow: Looking at " << id.toStdString() << std::endl;
+    DEBUG << "layoutRow: Looking at " << id.toStdString() << endl;
 
     int row = 0;
     int nparents = cs->parents().size();
@@ -102,8 +103,8 @@ void Grapher::layoutRow(QString id)
         m_rowDates[row] = date;
     }
 
-    std::cerr << "putting " << cs->id().toStdString() << " at row " << row 
-            << std::endl;
+    DEBUG << "putting " << cs->id().toStdString() << " at row " << row 
+          << endl;
 
     item->setRow(row);
     m_handled.insert(id);
@@ -112,7 +113,7 @@ void Grapher::layoutRow(QString id)
 void Grapher::layoutCol(QString id)
 {
     if (m_handled.contains(id)) {
-        std::cerr << "Already looked at " << id.toStdString() << std::endl;
+        DEBUG << "Already looked at " << id.toStdString() << endl;
         return;
     }
     if (!m_changesets.contains(id)) {
@@ -123,7 +124,7 @@ void Grapher::layoutCol(QString id)
     }
 
     Changeset *cs = m_changesets[id];
-//    std::cerr << "layoutCol: Looking at " << id.toStdString() << std::endl;
+//    DEBUG << "layoutCol: Looking at " << id.toStdString() << endl;
 
     ChangesetItem *item = m_items[id];
 
@@ -180,7 +181,7 @@ void Grapher::layoutCol(QString id)
         break;
     }
 
-//    std::cerr << "putting " << cs->id().toStdString() << " at col " << col << std::endl;
+//    DEBUG << "putting " << cs->id().toStdString() << " at col " << col << endl;
 
     m_alloc[row].insert(col);
     item->setColumn(col);
@@ -300,7 +301,7 @@ void Grapher::allocateBranchHomes(Changesets csets)
     }
 
     foreach (QString branch, m_branchRanges.keys()) {
-        std::cerr << branch.toStdString() << ": " << m_branchRanges[branch].first << " - " << m_branchRanges[branch].second << ", home " << m_branchHomes[branch] << std::endl;
+        DEBUG << branch.toStdString() << ": " << m_branchRanges[branch].first << " - " << m_branchRanges[branch].second << ", home " << m_branchHomes[branch] << endl;
     }
 }
 
@@ -329,7 +330,7 @@ void Grapher::layout(Changesets csets)
     foreach (Changeset *cs, csets) {
 
         QString id = cs->id();
-        std::cerr << id.toStdString() << std::endl;
+        DEBUG << id.toStdString() << endl;
 
         if (id == "") {
             throw LayoutException("Changeset has no ID");
@@ -390,7 +391,7 @@ void Grapher::layout(Changesets csets)
     qStableSort(csets.begin(), csets.end(), compareChangesetsByDate);
 
     foreach (Changeset *cs, csets) {
-        std::cerr << "id " << cs->id().toStdString() << ", ts " << cs->timestamp() << ", date " << cs->datetime().toStdString() << std::endl;
+        DEBUG << "id " << cs->id().toStdString() << ", ts " << cs->timestamp() << ", date " << cs->datetime().toStdString() << endl;
     }
 
     m_handled.clear();
