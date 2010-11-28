@@ -35,7 +35,8 @@ HEADERS = mainwindow.h \
     filestatuswidget.h \
     confirmcommentdialog.h \
     hgaction.h \
-    historywidget.h
+    historywidget.h \
+    changesetscene.h
 SOURCES = main.cpp \
     mainwindow.cpp \
     hgtabwidget.cpp \
@@ -61,7 +62,8 @@ SOURCES = main.cpp \
     filestates.cpp \
     filestatuswidget.cpp \
     confirmcommentdialog.cpp \
-    historywidget.cpp
+    historywidget.cpp \
+    changesetscene.cpp
 
 macx-* {
     SOURCES += common_osx.mm

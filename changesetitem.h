@@ -24,8 +24,11 @@
 class Changeset;
 class ChangesetDetailItem;
 
-class ChangesetItem : public QGraphicsItem
+class ChangesetItem : public QObject, public QGraphicsItem
 {
+    Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
+
 public:
     ChangesetItem(Changeset *cs);
 
@@ -44,6 +47,14 @@ public:
 
     bool shouldShowBranch() const { return m_showBranch; }
     void setShowBranch(bool s) { m_showBranch = s; }
+
+signals:
+    void detailShown();
+    void detailHidden();
+
+public slots:
+    void showDetail();
+    void hideDetail();
 
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *);

@@ -19,8 +19,7 @@
 #include "connectionitem.h"
 #include "dateitem.h"
 #include "debug.h"
-
-#include <QGraphicsScene>
+#include "changesetscene.h"
 
 #include <iostream>
 
@@ -346,6 +345,8 @@ void Grapher::layout(Changesets csets)
         item->setY(0);
         m_items[id] = item;
         m_scene->addItem(item);
+        QObject::connect(item, SIGNAL(detailShown()),
+                         m_scene, SLOT(changesetDetailShown()));
     }
 
     // Add the connecting lines
