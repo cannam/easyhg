@@ -20,6 +20,7 @@
 
 #include "changeset.h"
 #include "changesetitem.h"
+#include "changesetscene.h"
 
 #include <QSet>
 #include <QMap>
@@ -30,7 +31,7 @@
 class Grapher
 {
 public:
-    Grapher(QGraphicsScene *scene) { m_scene = scene; }
+    Grapher(ChangesetScene *scene) { m_scene = scene; }
 
     void layout(Changesets csets);
 
@@ -48,7 +49,7 @@ public:
     };
 
 private:
-    QGraphicsScene *m_scene;
+    ChangesetScene *m_scene;
 
     typedef QMap<QString, Changeset *> IdChangesetMap;
     IdChangesetMap m_changesets;

@@ -17,6 +17,7 @@
 
 #include "historywidget.h"
 
+#include "changesetscene.h"
 #include "panned.h"
 #include "panner.h"
 #include "grapher.h"
@@ -53,7 +54,7 @@ void HistoryWidget::clearChangesets()
     
 void HistoryWidget::parseLog(QString log)
 {
-    QGraphicsScene *scene = new QGraphicsScene();
+    ChangesetScene *scene = new ChangesetScene();
     Changesets csets = parseChangeSets(log);
     ChangesetItem *tipItem = 0;
 

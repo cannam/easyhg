@@ -44,15 +44,9 @@ ChangesetItem::boundingRect() const
 }
 
 void
-ChangesetItem::mousePressEvent(QGraphicsSceneMouseEvent *e)
+ChangesetItem::showDetail()
 {
-    DEBUG << "ChangesetItem::mousePressEvent" << endl;
-    //!!! how best to handle this?
-    if (m_detail) {
-        delete m_detail;
-        m_detail = 0;
-        return;
-    }
+    if (m_detail) return;
     m_detail = new ChangesetDetailItem(m_changeset);
     m_detail->setZValue(zValue() + 1);
     scene()->addItem(m_detail);
@@ -60,6 +54,26 @@ ChangesetItem::mousePressEvent(QGraphicsSceneMouseEvent *e)
     if (m_wide) w = 180;
     m_detail->moveBy(x() - (m_detail->boundingRect().width() - 50) / 2,
                      y() + 60);
+    emit detailShown();
+}    
+
+void
+ChangesetItem::hideDetail()
+{
+    delete m_detail;
+    m_detail = 0;
+    emit detailHidden();
+}    
+
+void
+ChangesetItem::mousePressEvent(QGraphicsSceneMouseEvent *e)
+{
+    DEBUG << "ChangesetItem::mousePressEvent" << endl;
+    if (m_detail) {
+        hideDetail();
+    } else {
+        showDetail();
+    }
 }
 
 void
