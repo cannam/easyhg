@@ -998,8 +998,6 @@ void MainWindow::presentLongStdoutToUser(QString stdo)
 
 void MainWindow::updateFileSystemWatcher()
 {
-    //!!! this needs to be incremental when something changes
-
     delete fsWatcher;
     fsWatcher = new QFileSystemWatcher();
     std::deque<QString> pending;
@@ -1229,20 +1227,27 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
 
     enableDisableActions();
 
-    // Typical sequence goes paths -> branch -> stat -> heads -> parents -> log
+    // Sequence when no full log required:
+    //   paths -> branch -> stat -> incremental-log -> heads -> parents
+    // Sequence when full log required:
+    //   paths -> branch -> stat -> heads -> parents -> log
     if (action == ACT_QUERY_PATHS) {
         hgQueryBranch();
     } else if (action == ACT_QUERY_BRANCH) {
         hgStat();
     } else if (action == ACT_STAT) {
+        if (!needNewLog) {
+            hgLogIncremental();
+        } else {
+            hgQueryHeads();
+        }
+    } else if (action == ACT_LOG_INCREMENTAL) {
         hgQueryHeads();
     } else if (action == ACT_QUERY_HEADS) {
         hgQueryParents();
     } else if (action == ACT_QUERY_PARENTS) {
         if (needNewLog) {
             hgLog();
-        } else {
-            hgLogIncremental();
         }
     } else 
 /* Move to commandFailed
