@@ -35,7 +35,7 @@ class Changeset : public QObject
     Q_OBJECT
 
     Q_PROPERTY(QString id READ id WRITE setId NOTIFY idChanged STORED true);
-    Q_PROPERTY(QString author READ author WRITE setAuthor NOTIFY authorChanged STORED true);
+    Q_PROPERTY(QString user READ user WRITE setUser NOTIFY userChanged STORED true);
     Q_PROPERTY(QString branch READ branch WRITE setBranch NOTIFY branchChanged STORED true);
     Q_PROPERTY(QString tag READ tag WRITE setTag NOTIFY tagChanged STORED true);
     Q_PROPERTY(QString datetime READ datetime WRITE setDatetime NOTIFY datetimeChanged STORED true);
@@ -50,7 +50,7 @@ public:
     explicit Changeset(const LogEntry &e);
 
     QString id() const { return m_id; }
-    QString author() const { return m_author; }
+    QString user() const { return m_user; }
     QString branch() const { return m_branch; }
     QString tag() const { return m_tag; }
     QString datetime() const { return m_datetime; }
@@ -69,8 +69,8 @@ public:
         return id().split(':')[0].toInt();
     }
 
-    QString authorName() const {
-	QString a = author();
+    QString userName() const {
+	QString a = user();
 	return a.replace(QRegExp("\\s*<[^>]*>"), "");
     }
 
@@ -95,9 +95,13 @@ public:
         return csets;
     }
 
+    static QString getLogTemplate();
+
+    QString formatHtml();
+    
 signals:
     void idChanged(QString id);
-    void authorChanged(QString author);
+    void userChanged(QString user);
     void branchChanged(QString branch);
     void tagChanged(QString tag);
     void datetimeChanged(QString datetime);
@@ -109,7 +113,7 @@ signals:
 
 public slots:
     void setId(QString id) { m_id = id; emit idChanged(id); }
-    void setAuthor(QString author) { m_author = author; emit authorChanged(author); }
+    void setUser(QString user) { m_user = user; emit userChanged(user); }
     void setBranch(QString branch) { m_branch = branch; emit branchChanged(branch); }
     void setTag(QString tag) { m_tag = tag; emit tagChanged(tag); }
     void setDatetime(QString datetime) { m_datetime = datetime; emit datetimeChanged(datetime); }
@@ -122,7 +126,7 @@ public slots:
 
 private:
     QString m_id;
-    QString m_author;
+    QString m_user;
     QString m_branch;
     QString m_tag;
     QString m_datetime;
