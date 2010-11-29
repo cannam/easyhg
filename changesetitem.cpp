@@ -52,14 +52,19 @@ ChangesetItem::showDetail()
     scene()->addItem(m_detail);
     int w = 100;
     if (m_wide) w = 180;
-    m_detail->moveBy(x() - (m_detail->boundingRect().width() - 50) / 2,
-                     y() + 60);
+    int h = 80;
+//    m_detail->moveBy(x() - (m_detail->boundingRect().width() - 50) / 2,
+//                     y() + 60);
+    m_detail->moveBy(x() + (w + 50) / 2 + 10 + 0.5,
+                     y() - (m_detail->boundingRect().height() - h) / 2 + 0.5);
     emit detailShown();
 }    
 
 void
 ChangesetItem::hideDetail()
 {
+    if (!m_detail) return;
+    scene()->removeItem(m_detail);
     delete m_detail;
     m_detail = 0;
     emit detailHidden();

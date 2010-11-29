@@ -248,7 +248,7 @@ void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
         if (procExitCode == 0 && procExitStatus == QProcess::NormalExit) {
             DEBUG << "HgRunner::finished: Command completed successfully"
                   << endl;
-            DEBUG << "stdout is " << m_stdout << endl;
+//            DEBUG << "stdout is " << m_stdout << endl;
             emit commandCompleted(completedAction, m_stdout);
         } else {
             DEBUG << "HgRunner::finished: Command failed, exit code "
