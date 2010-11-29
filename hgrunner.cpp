@@ -176,19 +176,21 @@ bool HgRunner::checkPrompts(QString chunk)
 {
     //DEBUG << "checkPrompts: " << chunk << endl;
 
+    if (!m_currentAction.mayBeInteractive()) return false;
+
     QString text = chunk.trimmed();
     QString lower = text.toLower();
     if (lower.endsWith("password:")) {
         getPassword();
         return true;
     }
-    if (lower.endsWith("user:")) {
+    if (lower.endsWith("user:") || lower.endsWith("username:")) {
         getUsername();
         return true;
     }
-    QRegExp userRe("\\buser:\\s*([^\\s]+)");
+    QRegExp userRe("\\buser(name)?:\\s*([^\\s]+)");
     if (userRe.indexIn(text) >= 0) {
-        noteUsername(userRe.cap(1));
+        noteUsername(userRe.cap(2));
     }
     QRegExp realmRe("\\brealmr:\\s*([^\\s]+)");
     if (realmRe.indexIn(text) >= 0) {

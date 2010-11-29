@@ -48,6 +48,8 @@ public:
     void setWorkFolderAndRepoNames(QString workFolderPath, QString remoteRepoPath);
     void setState(QString state);
 
+    void setCurrent(QStringList ids);
+
     FileStates getFileStates() { return m_fileStates; }
 
     bool canCommit() const;

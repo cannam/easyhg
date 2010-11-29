@@ -27,7 +27,7 @@
 
 ChangesetItem::ChangesetItem(Changeset *cs) :
     m_changeset(cs), m_detail(0),
-    m_showBranch(false), m_column(0), m_row(0), m_wide(false)
+    m_showBranch(false), m_column(0), m_row(0), m_wide(false), m_current(false)
 {
     m_font = QFont();
     m_font.setPixelSize(11);
@@ -89,7 +89,7 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     
     ColourSet *colourSet = ColourSet::instance();
     QColor branchColour = colourSet->getColourFor(m_changeset->branch());
-    QColor userColour = colourSet->getColourFor(m_changeset->user());
+    QColor userColour = colourSet->getColourFor(m_changeset->author());
 
     QFont f(m_font);
 
@@ -119,6 +119,10 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     QRectF r(x0, 0, width - 3, height);
     paint->drawRect(r);
 
+    if (m_current) {
+        paint->drawRect(QRectF(x0 - 4, -4, width + 5, height + 8));
+    }
+
     if (scale < 0.1) {
 	paint->restore();
 	return;
@@ -130,10 +134,18 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     paint->setPen(QPen(Qt::white));
 
     int wid = width - 5;
-    QString person = TextAbbrev::abbreviate(m_changeset->userName(), fm, wid);
+    QString person = TextAbbrev::abbreviate(m_changeset->authorName(), fm, wid);
     paint->drawText(x0 + 3, fm.ascent(), person);
 
     paint->setPen(QPen(Qt::black));
+
+    QString tags = m_changeset->tags().join(" ").trimmed();
+    if (tags != "") {
+        int tw = fm.width(tags);
+        paint->fillRect(QRectF(x0 + width - 8 - tw, 1, tw + 4, fh - 1),
+                        QBrush(Qt::yellow));
+        paint->drawText(x0 + width - 6 - tw, fm.ascent(), tags);
+    }
 
     if (m_showBranch) {
 	// write branch name

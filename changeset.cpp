@@ -27,6 +27,10 @@ Changeset::Changeset(const LogEntry &e)
             QStringList parents = e.value(key).split
                 (" ", QString::SkipEmptyParts);
             setParents(parents);
+        } else if (key == "tag") {
+            QStringList tags = e.value(key).split
+                (" ", QString::SkipEmptyParts);
+            setTags(tags);
         } else if (key == "timestamp") {
             setTimestamp(e.value(key).split(" ")[0].toULongLong());
         } else if (key == "changeset") {
@@ -39,7 +43,7 @@ Changeset::Changeset(const LogEntry &e)
 
 QString Changeset::getLogTemplate()
 {
-    return "id: {rev}:{node|short}\\nuser: {author}\\nbranch: {branches}\\ntag: {tag}\\ndatetime: {date|isodate}\\ntimestamp: {date|hgdate}\\nage: {date|age}\\nparents: {parents}\\ncomment: {desc|json}\\n\\n";
+    return "id: {rev}:{node|short}\\nauthor: {author}\\nbranch: {branches}\\ntag: {tags}\\ndatetime: {date|isodate}\\ntimestamp: {date|hgdate}\\nage: {date|age}\\nparents: {parents}\\ncomment: {desc|json}\\n\\n";
 }
 
 QString Changeset::formatHtml()
@@ -59,10 +63,10 @@ QString Changeset::formatHtml()
     QStringList propNames, propTexts;
     
     propNames << "id"
-	      << "user"
+	      << "author"
 	      << "datetime"
 	      << "branch"
-	      << "tag"
+	      << "tags"
 	      << "comment";
 
     propTexts << QObject::tr("Identifier")
@@ -75,8 +79,11 @@ QString Changeset::formatHtml()
     for (int i = 0; i < propNames.size(); ++i) {
 	QString prop = propNames[i];
 	QString value;
-	if (prop == "comment") value = c;
-	else {
+	if (prop == "comment") {
+            value = c;
+        } else if (prop == "tags") {
+            value = tags().join(" ");
+        } else {
 	    value = xmlEncode(property(prop.toLocal8Bit().data()).toString());
 	}
 	if (value != "") {

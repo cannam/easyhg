@@ -45,6 +45,9 @@ public:
     bool isWide() const { return m_wide; }
     void setWide(bool w) { m_wide = w; }
 
+    bool isCurrent() const { return m_current; }
+    void setCurrent(bool c) { m_current = c; }
+
     bool shouldShowBranch() const { return m_showBranch; }
     void setShowBranch(bool s) { m_showBranch = s; }
 
@@ -67,6 +70,7 @@ private:
     int m_column;
     int m_row;
     bool m_wide;
+    bool m_current;
 };
 
 #endif // CHANGESETITEM_H
