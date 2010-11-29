@@ -49,13 +49,13 @@ public:
     QString currentBranch;
     Changesets currentHeads;
     Changesets currentParents;
+    bool needNewLog;
 
 protected:
     void closeEvent(QCloseEvent *event);
 
 public slots:
-    void hgQueryPaths();
-    void hgStat();
+    void hgRefresh();
     void commandCompleted(HgAction action, QString stdout);
     void commandFailed(HgAction action, QString stdout);
     void enableDisableActions();
@@ -67,6 +67,8 @@ private slots:
     void startupDialog();
     void clearSelections();
 
+    void hgQueryPaths();
+    void hgStat();
     void hgRemove();
     void hgAdd();
     void hgCommit();
@@ -98,6 +100,7 @@ private:
     void hgQueryHeads();
     void hgQueryParents();
     void hgLog();
+    void hgLogIncremental();
     void createActions();
     void connectActions();
     void createMenus();
@@ -129,6 +132,12 @@ private:
     bool askToOpenParentRepo(QString, QString);
     bool askToOpenInsteadOfInit(QString);
 
+    void showIncoming(QString);
+    void showPullResult(QString);
+    void showPushResult(QString);
+
+    void clearState();
+
     void updateFileSystemWatcher();
 
     bool firstStart;
@@ -148,7 +157,7 @@ private:
     QAction *hgIncomingAct;
     QAction *hgPushAct;
     QAction *hgPullAct;
-    QAction *hgStatAct;
+    QAction *hgRefreshAct;
     QAction *hgFileDiffAct;
     QAction *hgFolderDiffAct;
     QAction *hgChgSetDiffAct;

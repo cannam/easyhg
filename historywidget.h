@@ -33,7 +33,8 @@ public:
     HistoryWidget();
     virtual ~HistoryWidget();
 
-    void parseLog(QString log);
+    void parseNewLog(QString log);
+    void parseIncrementalLog(QString log);
     
 private:
     Changesets m_changesets;
@@ -42,6 +43,7 @@ private:
     Panner *m_panner;
 
     void clearChangesets();
+    void layoutAll();
     Changesets parseChangeSets(QString);
 };
 
