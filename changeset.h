@@ -57,8 +57,13 @@ public:
     qulonglong timestamp() const { return m_timestamp; }
     QString age() const { return m_age; }
     QStringList parents() const { return m_parents; }
-    QStringList children() const { return m_children; }
     QString comment() const { return m_comment; }
+
+    /**
+     * The children property is not obtained from Hg, but set in
+     * Grapher::layout() based on reported parents
+     */
+    QStringList children() const { return m_children; }
 
     int number() const {
         return id().split(':')[0].toInt();
