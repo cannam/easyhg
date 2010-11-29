@@ -105,6 +105,10 @@ void HistoryWidget::setChangesetParents()
 {
     for (int i = 0; i+1 < m_changesets.size(); ++i) {
         Changeset *cs = m_changesets[i];
+        // Need to reset this, as Grapher::layout will recalculate it
+        // and we don't want to end up with twice the children for
+        // each parent...
+        cs->setChildren(QStringList());
         if (cs->parents().empty()) {
             QStringList list;
             list.push_back(m_changesets[i+1]->id());
