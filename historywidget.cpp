@@ -22,6 +22,7 @@
 #include "panner.h"
 #include "grapher.h"
 #include "debug.h"
+#include "uncommitteditem.h"
 
 #include <iostream>
 
@@ -31,6 +32,8 @@ HistoryWidget::HistoryWidget()
 {
     m_panned = new Panned;
     m_panner = new Panner;
+    m_uncommitted = new UncommittedItem();
+    m_uncommitted->setRow(-1);
 
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(m_panned, 0, 0);
@@ -44,6 +47,7 @@ HistoryWidget::HistoryWidget()
 HistoryWidget::~HistoryWidget()
 {
     clearChangesets();
+    delete m_uncommitted;
 }
 
 void HistoryWidget::clearChangesets()
@@ -62,7 +66,17 @@ void HistoryWidget::setCurrent(QStringList ids)
 
 void HistoryWidget::showUncommittedChanges(bool show)
 {
-    //!!! implement!
+    QGraphicsScene *scene = m_panned->scene();
+    if (!scene) return;
+
+    if (show) {
+        if (m_uncommitted->scene() == scene) return;
+        scene->addItem(m_uncommitted);
+        m_uncommitted->ensureVisible();
+    } else {
+        if (m_uncommitted->scene() != scene) return;
+        scene->removeItem(m_uncommitted);
+    }
 }
     
 void HistoryWidget::parseNewLog(QString log)
@@ -90,6 +104,7 @@ void HistoryWidget::parseIncrementalLog(QString log)
 void HistoryWidget::layoutAll()
 {
     setChangesetParents();
+    showUncommittedChanges(false); // detach the item from our scene
 
     ChangesetScene *scene = new ChangesetScene();
     ChangesetItem *tipItem = 0;
@@ -146,6 +161,10 @@ void HistoryWidget::updateCurrentItems()
                 DEBUG << "id " << id << " is current" << endl;
             }
             csit->setCurrent(current);
+            m_uncommitted->setRow(csit->row() - 1);
+            m_uncommitted->setColumn(csit->column());
+            m_uncommitted->setWide(csit->isWide());
+            m_uncommitted->setBranch(csit->getChangeset()->branch());
         }
     }
 }

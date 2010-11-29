@@ -1246,13 +1246,8 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
         
     case ACT_QUERY_PARENTS:
-    {
         foreach (Changeset *cs, currentParents) delete cs;
         currentParents = Changeset::parseChangesets(output);
-        QStringList ids;
-        foreach (Changeset *cs, currentParents) ids.push_back(cs->id());
-        hgTabs->setCurrent(ids);
-    }
         break;
         
     case ACT_QUERY_HEADS:
@@ -1506,6 +1501,11 @@ void MainWindow::enableDisableActions()
     }
     hgMergeAct->setEnabled(localRepoActionsEnabled && canMerge);
     hgUpdateAct->setEnabled(localRepoActionsEnabled && canUpdate);
+
+    QStringList ids;
+    foreach (Changeset *cs, currentParents) ids.push_back(cs->id());
+    hgTabs->setCurrent(ids);
+    hgTabs->showUncommittedChanges(hgTabs->canCommit());
 
     // Set the state field on the file status widget
 
