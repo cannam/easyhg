@@ -303,14 +303,15 @@ void MainWindow::hgCommit()
     QString comment;
 
     QStringList files = hgTabs->getSelectedCommittableFiles();
-    if (files.empty()) files = hgTabs->getAllCommittableFiles();
+    QStringList reportFiles = files;
+    if (reportFiles.empty()) reportFiles = hgTabs->getAllCommittableFiles();
 
     if (ConfirmCommentDialog::confirmAndGetLongComment
         (this,
          tr("Commit files"),
          tr("<h3>Commit files</h3><p>You are about to commit the following files:"),
          tr("<h3>Commit files</h3><p>You are about to commit %1 files."),
-         files,
+         reportFiles,
          comment)) {
 
         if ((justMerged == false) && //!!! review usage of justMerged, and how it interacts with asynchronous request queue
@@ -513,7 +514,7 @@ void MainWindow::hgRevert()
     if (ConfirmCommentDialog::confirmDangerousFilesAction
         (this,
          tr("Revert files"),
-         tr("<h3>Revert files</h3><p>You are about to <b>revert</b> the following files to their previous committed state.<br><br>This will <b>throw away any changes</b> that you have made to these files but have not committed."),
+         tr("<h3>Revert files</h3><p>You are about to <b>revert</b> the following files to their previous committed state.<br><br>This will <b>throw away any changes</b> that you have made to these files but have not committed:"),
          tr("<h3>Revert files</h3><p>You are about to <b>revert</b> %1 files.<br><br>This will <b>throw away any changes</b> that you have made to these files but have not committed."),
          files)) {
         
