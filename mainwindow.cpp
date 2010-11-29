@@ -64,7 +64,6 @@ MainWindow::MainWindow()
 
     readSettings();
 
-//    tabPage = 0;
     justMerged = false;
     hgTabs = new HgTabWidget((QWidget *) this, remoteRepoPath, workFolderPath);
     setCentralWidget(hgTabs);
@@ -74,6 +73,7 @@ MainWindow::MainWindow()
 
     setUnifiedTitleAndToolBarOnMac(true);
     connectActions();
+    clearState();
     enableDisableActions();
 
     if (firstStart) {
@@ -145,6 +145,12 @@ void MainWindow::clearSelections()
     hgTabs->clearSelections();
 }
 
+void MainWindow::hgRefresh()
+{
+    clearState();
+    hgQueryPaths();
+}
+
 void MainWindow::hgStat()
 {
     QStringList params;
@@ -176,8 +182,6 @@ void MainWindow::hgQueryHeads()
 
 void MainWindow::hgLog()
 {
-//!!! This needs to be incremental, except when we pull or set new repo.
-    // Be sure to use ACT_LOG_INCREMENTAL for incremental logs
     QStringList params;
     params << "log";
     params << "--template";
@@ -186,6 +190,21 @@ void MainWindow::hgLog()
     runner->requestAction(HgAction(ACT_LOG, workFolderPath, params));
 }
 
+void MainWindow::hgLogIncremental()
+{
+    QStringList params;
+    params << "log";
+
+    foreach (Changeset *head, currentHeads) {
+        int n = head->number();
+        params << "--prune" << QString("%1").arg(n);
+    }
+        
+    params << "--template";
+    params << "id: {rev}:{node|short}\\nauthor: {author}\\nbranch: {branches}\\ntag: {tag}\\ndatetime: {date|isodate}\\ntimestamp: {date|hgdate}\\nage: {date|age}\\nparents: {parents}\\ncomment: {desc|json}\\n\\n";
+    
+    runner->requestAction(HgAction(ACT_LOG_INCREMENTAL, workFolderPath, params));
+}
 
 void MainWindow::hgQueryParents()
 {
@@ -613,6 +632,15 @@ QString MainWindow::listAllUpIpV4Addresses()
     return ret;
 }
 
+void MainWindow::clearState()
+{
+    foreach (Changeset *cs, currentParents) delete cs;
+    currentParents.clear();
+    foreach (Changeset *cs, currentHeads) delete cs;
+    currentHeads.clear();
+    currentBranch = "";
+    needNewLog = true;
+}
 
 void MainWindow::hgServe()
 {
@@ -680,6 +708,7 @@ void MainWindow::open()
 
             if (result) {
                 enableDisableActions();
+                clearState();
                 hgQueryPaths();
                 done = true;
             }
@@ -998,14 +1027,30 @@ void MainWindow::updateFileSystemWatcher()
 
 void MainWindow::fsDirectoryChanged(QString)
 {
-    //!!! should just queue one of these!
     hgStat();
 }
 
 void MainWindow::fsFileChanged(QString)
 {
-    //!!! should just queue one of these!
     hgStat();
+}
+
+void MainWindow::showIncoming(QString output)
+{
+    runner->hide();
+    QMessageBox::information(this, "Incoming", output);
+}
+
+void MainWindow::showPushResult(QString output)
+{
+    runner->hide();
+    QMessageBox::information(this, "Push", output);
+}
+
+void MainWindow::showPullResult(QString output)
+{
+    runner->hide();
+    QMessageBox::information(this, "Pull", output);
 }
 
 void MainWindow::commandFailed(HgAction action, QString stderr)
@@ -1090,6 +1135,9 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
         
     case ACT_INCOMING:
+        showIncoming(output);
+        break;
+
     case ACT_ANNOTATE:
     case ACT_RESOLVE_LIST:
     case ACT_RESOLVE_MARK:
@@ -1098,13 +1146,12 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
         
     case ACT_PULL:
-        QMessageBox::information(this, "Pull", output);
+        showPullResult(output);
         shouldHgStat = true;
         break;
         
     case ACT_PUSH:
-        QMessageBox::information(this, "Push", output);
-        shouldHgStat = true;
+        showPushResult(output);
         break;
         
     case ACT_INIT:
@@ -1124,7 +1171,12 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
         
     case ACT_LOG:
-        hgTabs -> updateLocalRepoHgLogList(output);
+        hgTabs->setNewLog(output);
+        needNewLog = false;
+        break;
+        
+    case ACT_LOG_INCREMENTAL:
+        hgTabs->addIncrementalLog(output);
         break;
         
     case ACT_QUERY_PARENTS:
@@ -1187,7 +1239,11 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     } else if (action == ACT_QUERY_HEADS) {
         hgQueryParents();
     } else if (action == ACT_QUERY_PARENTS) {
-        hgLog();
+        if (needNewLog) {
+            hgLog();
+        } else {
+            hgLogIncremental();
+        }
     } else 
 /* Move to commandFailed
 if ((runningAction == ACT_MERGE) && (exitCode != 0))
@@ -1218,7 +1274,7 @@ void MainWindow::connectActions()
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
-    connect(hgStatAct, SIGNAL(triggered()), this, SLOT(hgQueryPaths()));
+    connect(hgRefreshAct, SIGNAL(triggered()), this, SLOT(hgRefresh()));
     connect(hgRemoveAct, SIGNAL(triggered()), this, SLOT(hgRemove()));
     connect(hgAddAct, SIGNAL(triggered()), this, SLOT(hgAdd()));
     connect(hgCommitAct, SIGNAL(triggered()), this, SLOT(hgCommit()));
@@ -1305,7 +1361,7 @@ void MainWindow::enableDisableActions()
     bool haveDiff = (diffBinaryName != "");
 
     hgInitAct -> setEnabled((localRepoExist == false) && (workFolderExist==true));
-    hgStatAct -> setEnabled(localRepoActionsEnabled);
+    hgRefreshAct -> setEnabled(localRepoActionsEnabled);
     hgFileDiffAct -> setEnabled(localRepoActionsEnabled && haveDiff);
     hgFolderDiffAct -> setEnabled(localRepoActionsEnabled && haveDiff);
     hgRevertAct -> setEnabled(localRepoActionsEnabled);
@@ -1413,8 +1469,8 @@ void MainWindow::createActions()
     exitAct -> setIconVisibleInMenu(true);
 
     //Repository actions
-    hgStatAct = new QAction(QIcon(":/images/status.png"), tr("Refresh"), this);
-    hgStatAct->setStatusTip(tr("Refresh (info of) status of workfolder files"));
+    hgRefreshAct = new QAction(QIcon(":/images/status.png"), tr("Refresh"), this);
+    hgRefreshAct->setStatusTip(tr("Refresh (info of) status of workfolder files"));
 
     hgIncomingAct = new QAction(QIcon(":/images/incoming.png"), tr("Preview"), this);
     hgIncomingAct -> setStatusTip(tr("View info of changesets incoming to us from remote repository (on pull operation)"));
@@ -1527,7 +1583,7 @@ void MainWindow::createToolBars()
     fileToolBar = addToolBar(tr("File"));
     fileToolBar -> setIconSize(QSize(MY_ICON_SIZE, MY_ICON_SIZE));
     fileToolBar -> addAction(openAct);
-    fileToolBar -> addAction(hgStatAct);
+    fileToolBar -> addAction(hgRefreshAct);
     fileToolBar -> addSeparator();
 //    fileToolBar -> addAction(hgChgSetDiffAct);
     fileToolBar -> setMovable(false);

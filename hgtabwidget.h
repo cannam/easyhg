@@ -41,7 +41,10 @@ public:
     HgTabWidget(QWidget *parent, QString remoteRepo, QString workFolderPath);
 
     void updateWorkFolderFileList(QString fileList);
-    void updateLocalRepoHgLogList(QString hgLogList);
+
+    void setNewLog(QString hgLogList);
+    void addIncrementalLog(QString hgLogList);
+
     void setWorkFolderAndRepoNames(QString workFolderPath, QString remoteRepoPath);
     void setState(QString state);
 

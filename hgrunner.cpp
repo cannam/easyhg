@@ -50,7 +50,10 @@ HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
 HgRunner::~HgRunner()
 {
     closeTerminal();
-    if (m_proc) delete m_proc;
+    if (m_proc) {
+        m_proc->kill();
+        delete m_proc;
+    }
 }
 
 void HgRunner::requestAction(HgAction action)

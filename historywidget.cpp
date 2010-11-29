@@ -52,20 +52,42 @@ void HistoryWidget::clearChangesets()
     m_changesets.clear();
 }
     
-void HistoryWidget::parseLog(QString log)
+void HistoryWidget::parseNewLog(QString log)
+{
+    DEBUG << "HistoryWidget::parseNewLog: log has " << log.length() << " chars" << endl;
+    Changesets csets = parseChangeSets(log);
+    DEBUG << "HistoryWidget::parseNewLog: log has " << csets.size() << " changesets" << endl;
+    clearChangesets();
+    m_changesets = csets;
+    layoutAll();
+}
+    
+void HistoryWidget::parseIncrementalLog(QString log)
+{
+    DEBUG << "HistoryWidget::parseIncrementalLog: log has " << log.length() << " chars" << endl;
+    Changesets csets = parseChangeSets(log);
+    DEBUG << "HistoryWidget::parseIncrementalLog: log has " << csets.size() << " changesets" << endl;
+    if (!csets.empty()) {
+        m_changesets << csets;
+        layoutAll();
+    }
+}
+
+void HistoryWidget::layoutAll()
 {
     ChangesetScene *scene = new ChangesetScene();
-    Changesets csets = parseChangeSets(log);
     ChangesetItem *tipItem = 0;
 
-    if (!csets.empty()) {
+    if (!m_changesets.empty()) {
 	Grapher g(scene);
 	try {
-	    g.layout(csets);
+	    g.layout(m_changesets);
 	} catch (std::string s) {
 	    std::cerr << "Internal error: Layout failed: " << s << std::endl;
 	}
-	tipItem = g.getItemFor(csets[0]);
+	tipItem = g.getItemFor(m_changesets[0]);
+        DEBUG << "tipItem is " << tipItem << " for tip changeset " 
+              << m_changesets[0]->id() << endl;
     }
 
     QGraphicsScene *oldScene = m_panned->scene();
@@ -73,10 +95,6 @@ void HistoryWidget::parseLog(QString log)
     m_panner->setScene(scene);
 
     if (oldScene) delete oldScene;
-    clearChangesets();
-
-    m_changesets = csets;
-
     if (tipItem) tipItem->ensureVisible();
 }
 
