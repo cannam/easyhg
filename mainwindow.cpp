@@ -587,24 +587,34 @@ void MainWindow::hgIncoming()
     runner->requestAction(HgAction(ACT_INCOMING, workFolderPath, params));
 }
 
-
 void MainWindow::hgPull()
 {
-    QStringList params;
+    if (QMessageBox::question
+        (this, tr("Confirm pull"),
+         format3(tr("Confirm pull from remote repository"),
+                 tr("You are about to pull from the following remote repository:"),
+                 remoteRepoPath),
+         QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Ok) {
 
-    params << "pull" << remoteRepoPath;
-
-    runner->requestAction(HgAction(ACT_PULL, workFolderPath, params));
+        QStringList params;
+        params << "pull" << remoteRepoPath;
+        runner->requestAction(HgAction(ACT_PULL, workFolderPath, params));
+    }
 }
-
 
 void MainWindow::hgPush()
 {
-    QStringList params;
+    if (QMessageBox::question
+        (this, tr("Confirm push"),
+         format3(tr("Confirm push to remote repository"),
+                 tr("You are about to push to the following remote repository:"),
+                 remoteRepoPath),
+         QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Ok) {
 
-    params << "push" << remoteRepoPath;
-
-    runner->requestAction(HgAction(ACT_PUSH, workFolderPath, params));
+        QStringList params;
+        params << "push" << remoteRepoPath;
+        runner->requestAction(HgAction(ACT_PUSH, workFolderPath, params));
+    }
 }
 
 QString MainWindow::listAllUpIpV4Addresses()
@@ -1043,6 +1053,9 @@ QString MainWindow::format3(QString head, QString intro, QString code)
     if (intro == "") {
         return QString("<qt><h3>%1</h3><code>%2</code>")
             .arg(head).arg(xmlEncode(code).replace("\n", "<br>"));
+    } else if (code == "") {
+        return QString("<qt><h3>%1</h3><p>%2</p>")
+            .arg(head).arg(intro);
     } else {
         return QString("<qt><h3>%1</h3><p>%2</p><code>%3</code>")
             .arg(head).arg(intro).arg(xmlEncode(code).replace("\n", "<br>"));
