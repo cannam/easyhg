@@ -58,7 +58,7 @@ ChangesetDetailItem::paint(QPainter *paint,
     
     ColourSet *colourSet = ColourSet::instance();
     QColor branchColour = colourSet->getColourFor(m_changeset->branch());
-    QColor userColour = colourSet->getColourFor(m_changeset->author());
+    QColor userColour = colourSet->getColourFor(m_changeset->user());
 
     QFont f(m_font);
 
@@ -120,55 +120,7 @@ void
 ChangesetDetailItem::makeDocument()
 {
     delete m_doc;
-
-    QString description;
-    QString rowTemplate = "<tr><td><b>%1</b></td><td>%2</td></tr>";
-
-    description = "<qt><table border=0>";
-
-    QString comment = m_changeset->comment().trimmed();
-    comment = comment.replace(QRegExp("^\""), "");
-    comment = comment.replace(QRegExp("\"$"), "");
-    comment = comment.replace("\\\"", "\"");
-    comment = xmlEncode(comment);
-    comment = comment.replace("\\n", "<br>");
-
-    QStringList propNames, propTexts;
-    
-    propNames << "id"
-	      << "author"
-	      << "datetime"
-	      << "branch"
-	      << "tag"
-	      << "comment";
-
-    propTexts << QObject::tr("Identifier")
-	      << QObject::tr("Author")
-	      << QObject::tr("Date")
-	      << QObject::tr("Branch")
-	      << QObject::tr("Tag")
-	      << QObject::tr("Comment");
-
-    for (int i = 0; i < propNames.size(); ++i) {
-	QString prop = propNames[i];
-	QString value;
-	if (prop == "comment") value = comment;
-	else {
-	    value = xmlEncode(m_changeset->property
-			      (prop.toLocal8Bit().data()).toString());
-	}
-	if (value != "") {
-	    description += rowTemplate
-		.arg(xmlEncode(propTexts[i]))
-		.arg(value);
-	}
-    }
-
-    description += "</table></qt>";
-
-    DEBUG << "ChangesetDetailItem: description = " << description << endl;
-
     m_doc = new QTextDocument;
-    m_doc->setHtml(description);
+    m_doc->setHtml(m_changeset->formatHtml());
 }
 

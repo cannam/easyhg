@@ -29,6 +29,7 @@
 #include <QToolButton>
 #include <QSettings>
 #include <QInputDialog>
+#include <QRegExp>
 
 #include "mainwindow.h"
 #include "multichoicedialog.h"
@@ -37,6 +38,7 @@
 #include "debug.h"
 #include "logparser.h"
 #include "confirmcommentdialog.h"
+#include "incomingdialog.h"
 
 
 MainWindow::MainWindow()
@@ -185,7 +187,7 @@ void MainWindow::hgLog()
     QStringList params;
     params << "log";
     params << "--template";
-    params << "id: {rev}:{node|short}\\nauthor: {author}\\nbranch: {branches}\\ntag: {tag}\\ndatetime: {date|isodate}\\ntimestamp: {date|hgdate}\\nage: {date|age}\\nparents: {parents}\\ncomment: {desc|json}\\n\\n";
+    params << Changeset::getLogTemplate();
     
     runner->requestAction(HgAction(ACT_LOG, workFolderPath, params));
 }
@@ -201,7 +203,7 @@ void MainWindow::hgLogIncremental()
     }
         
     params << "--template";
-    params << "id: {rev}:{node|short}\\nauthor: {author}\\nbranch: {branches}\\ntag: {tag}\\ndatetime: {date|isodate}\\ntimestamp: {date|hgdate}\\nage: {date|age}\\nparents: {parents}\\ncomment: {desc|json}\\n\\n";
+    params << Changeset::getLogTemplate();
     
     runner->requestAction(HgAction(ACT_LOG_INCREMENTAL, workFolderPath, params));
 }
@@ -580,6 +582,7 @@ void MainWindow::hgIncoming()
     QStringList params;
 
     params << "incoming" << "--newest-first" << remoteRepoPath;
+    params << "--template" << Changeset::getLogTemplate();
 
     runner->requestAction(HgAction(ACT_INCOMING, workFolderPath, params));
 }
@@ -1035,22 +1038,70 @@ void MainWindow::fsFileChanged(QString f)
     hgStat();
 }
 
+QString MainWindow::format3(QString head, QString intro, QString code)
+{
+    if (intro == "") {
+        return QString("<qt><h3>%1</h3><code>%2</code>")
+            .arg(head).arg(xmlEncode(code).replace("\n", "<br>"));
+    } else {
+        return QString("<qt><h3>%1</h3><p>%2</p><code>%3</code>")
+            .arg(head).arg(intro).arg(xmlEncode(code).replace("\n", "<br>"));
+    }
+}
+
 void MainWindow::showIncoming(QString output)
 {
     runner->hide();
-    QMessageBox::information(this, "Incoming", output);
+    IncomingDialog *d = new IncomingDialog(this, output);
+    d->exec();
+    delete d;
+}
+
+int MainWindow::extractChangeCount(QString text)
+{
+    QRegExp re("added (\\d+) ch\\w+ with (\\d+) ch\\w+ to (\\d+) f\\w+");
+    if (re.indexIn(text) >= 0) {
+        return re.cap(1).toInt();
+    } else if (text.contains("no changes")) {
+        return 0;
+    } else {
+        return -1; // unknown
+    }
 }
 
 void MainWindow::showPushResult(QString output)
 {
+    QString report;
+    int n = extractChangeCount(output);
+    if (n > 0) {
+        report = tr("Pushed %n changeset(s)", "", n);
+    } else if (n == 0) {
+        report = tr("No changes to push");
+    } else {
+        report = tr("Push complete");
+    }
+    report = format3(report, tr("The push command output was:"), output);
     runner->hide();
-    QMessageBox::information(this, "Push", output);
+    QMessageBox::information(this, "Push complete", report);
 }
 
 void MainWindow::showPullResult(QString output)
 {
+    QString report;
+    int n = extractChangeCount(output);
+    if (n > 0) {
+        report = tr("Pulled %n changeset(s)", "", n);
+    } else if (n == 0) {
+        report = tr("No changes to pull");
+    } else {
+        report = tr("Pull complete");
+    }
+    report = format3(report, tr("The pull command output was:"), output);
     runner->hide();
-    QMessageBox::information(this, "Pull", output);
+
+    //!!! and something about updating
+
+    QMessageBox::information(this, "Pull complete", report);
 }
 
 void MainWindow::commandFailed(HgAction action, QString stderr)
@@ -1066,6 +1117,7 @@ void MainWindow::commandFailed(HgAction action, QString stderr)
     case ACT_INCOMING:
         // returns non-zero code if the check was successful but there
         // are no changes pending
+        if (stderr.trimmed() == "") showIncoming("");
         return;
     case ACT_FOLDERDIFF:
     case ACT_FILEDIFF:

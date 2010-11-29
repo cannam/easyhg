@@ -16,6 +16,7 @@
 */
 
 #include "changeset.h"
+#include "common.h"
 
 #include <QVariant>
 
@@ -36,3 +37,56 @@ Changeset::Changeset(const LogEntry &e)
     }
 }
 
+QString Changeset::getLogTemplate()
+{
+    return "id: {rev}:{node|short}\\nuser: {author}\\nbranch: {branches}\\ntag: {tag}\\ndatetime: {date|isodate}\\ntimestamp: {date|hgdate}\\nage: {date|age}\\nparents: {parents}\\ncomment: {desc|json}\\n\\n";
+}
+
+QString Changeset::formatHtml()
+{
+    QString description;
+    QString rowTemplate = "<tr><td><b>%1</b></td><td>%2</td></tr>";
+
+    description = "<qt><table border=0>";
+
+    QString c = comment().trimmed();
+    c = c.replace(QRegExp("^\""), "");
+    c = c.replace(QRegExp("\"$"), "");
+    c = c.replace("\\\"", "\"");
+    c = xmlEncode(c);
+    c = c.replace("\\n", "<br>");
+
+    QStringList propNames, propTexts;
+    
+    propNames << "id"
+	      << "user"
+	      << "datetime"
+	      << "branch"
+	      << "tag"
+	      << "comment";
+
+    propTexts << QObject::tr("Identifier")
+	      << QObject::tr("Author")
+	      << QObject::tr("Date")
+	      << QObject::tr("Branch")
+	      << QObject::tr("Tag")
+	      << QObject::tr("Comment");
+
+    for (int i = 0; i < propNames.size(); ++i) {
+	QString prop = propNames[i];
+	QString value;
+	if (prop == "comment") value = c;
+	else {
+	    value = xmlEncode(property(prop.toLocal8Bit().data()).toString());
+	}
+	if (value != "") {
+	    description += rowTemplate
+		.arg(xmlEncode(propTexts[i]))
+		.arg(value);
+	}
+    }
+
+    description += "</table></qt>";
+
+    return description;
+}

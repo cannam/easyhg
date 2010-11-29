@@ -89,7 +89,7 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     
     ColourSet *colourSet = ColourSet::instance();
     QColor branchColour = colourSet->getColourFor(m_changeset->branch());
-    QColor userColour = colourSet->getColourFor(m_changeset->author());
+    QColor userColour = colourSet->getColourFor(m_changeset->user());
 
     QFont f(m_font);
 
@@ -130,7 +130,7 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     paint->setPen(QPen(Qt::white));
 
     int wid = width - 5;
-    QString person = TextAbbrev::abbreviate(m_changeset->authorName(), fm, wid);
+    QString person = TextAbbrev::abbreviate(m_changeset->userName(), fm, wid);
     paint->drawText(x0 + 3, fm.ascent(), person);
 
     paint->setPen(QPen(Qt::black));
