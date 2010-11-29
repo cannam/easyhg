@@ -44,7 +44,7 @@ private:
 
     void clearChangesets();
     void layoutAll();
-    Changesets parseChangeSets(QString);
+    void setChangesetParents();
 };
 
 #endif

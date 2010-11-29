@@ -123,7 +123,7 @@ void Grapher::layoutCol(QString id)
     }
 
     Changeset *cs = m_changesets[id];
-//    DEBUG << "layoutCol: Looking at " << id.toStdString() << endl;
+    DEBUG << "layoutCol: Looking at " << id.toStdString() << endl;
 
     ChangesetItem *item = m_items[id];
 
@@ -180,7 +180,7 @@ void Grapher::layoutCol(QString id)
         break;
     }
 
-//    DEBUG << "putting " << cs->id().toStdString() << " at col " << col << endl;
+    DEBUG << "putting " << cs->id().toStdString() << " at col " << col << endl;
 
     m_alloc[row].insert(col);
     item->setColumn(col);

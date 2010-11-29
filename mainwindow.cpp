@@ -1023,13 +1023,15 @@ void MainWindow::updateFileSystemWatcher()
             this, SLOT(fsFileChanged(QString)));
 }
 
-void MainWindow::fsDirectoryChanged(QString)
+void MainWindow::fsDirectoryChanged(QString d)
 {
+    DEBUG << "MainWindow::fsDirectoryChanged " << d << endl;
     hgStat();
 }
 
-void MainWindow::fsFileChanged(QString)
+void MainWindow::fsFileChanged(QString f)
 {
+    DEBUG << "MainWindow::fsFileChanged " << f << endl;
     hgStat();
 }
 
