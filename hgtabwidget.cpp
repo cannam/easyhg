@@ -54,6 +54,11 @@ void HgTabWidget::setCurrent(QStringList ids)
     m_historyWidget->setCurrent(ids);
 }
 
+void HgTabWidget::showUncommittedChanges(bool u)
+{
+    m_historyWidget->showUncommittedChanges(u);
+}
+
 bool HgTabWidget::canCommit() const
 {
     if (!m_fileStatusWidget->getSelectedAddableFiles().empty()) return false;

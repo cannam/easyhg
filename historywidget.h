@@ -24,6 +24,7 @@
 
 class Panned;
 class Panner;
+class UncommittedItem;
 
 class HistoryWidget : public QWidget
 {
@@ -42,6 +43,7 @@ public:
 private:
     Changesets m_changesets;
     QStringList m_currentIds;
+    UncommittedItem *m_uncommitted;
 
     Panned *m_panned;
     Panner *m_panner;

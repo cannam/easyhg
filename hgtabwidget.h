@@ -49,6 +49,7 @@ public:
     void setState(QString state);
 
     void setCurrent(QStringList ids);
+    void showUncommittedChanges(bool);
 
     FileStates getFileStates() { return m_fileStates; }
 
