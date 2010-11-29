@@ -29,7 +29,7 @@ ChangesetScene::changesetDetailShown()
     ChangesetItem *csi = qobject_cast<ChangesetItem *>(sender());
     if (!csi) return;
 
-    if (m_detailShown) {
+    if (m_detailShown && m_detailShown != csi) {
 	m_detailShown->hideDetail();
     }
     m_detailShown = csi;

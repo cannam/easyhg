@@ -46,7 +46,7 @@ ChangesetDetailItem::boundingRect() const
 {
     int w = 350;
     m_doc->setTextWidth(w);
-    return QRectF(0, -10, w, m_doc->size().height() + 10);
+    return QRectF(-10, -10, w + 10, m_doc->size().height() + 10);
 }
 
 void
@@ -93,6 +93,16 @@ ChangesetDetailItem::paint(QPainter *paint,
 	return;
     }
 
+    // little triangle connecting to its "owning" changeset item
+    paint->setBrush(branchColour);
+    QVector<QPointF> pts;
+    pts.push_back(QPointF(0, height/3 - 5));
+    pts.push_back(QPointF(0, height/3 + 5));
+    pts.push_back(QPointF(-10, height/3));
+    pts.push_back(QPointF(0, height/3 - 5));
+    paint->drawPolygon(QPolygonF(pts));
+
+/*
     paint->setBrush(branchColour);
     QVector<QPointF> pts;
     pts.push_back(QPointF(width/2 - 5, 0));
@@ -100,49 +110,9 @@ ChangesetDetailItem::paint(QPainter *paint,
     pts.push_back(QPointF(width/2, -10));
     pts.push_back(QPointF(width/2 - 5, 0));
     paint->drawPolygon(QPolygonF(pts));
-
+*/
     m_doc->drawContents(paint, r);
 
-/*
-    paint->fillRect(QRectF(x0 + 0.5, 0.5, width - 4, fh - 0.5),
-		    QBrush(userColour));
-
-    paint->setPen(QPen(Qt::white));
-
-    int wid = width - 5;
-    QString person = TextAbbrev::abbreviate(m_changeset->authorName(), fm, wid);
-    paint->drawText(x0 + 3, fm.ascent(), person);
-
-    paint->setPen(QPen(Qt::black));
-
-    if (m_showBranch) {
-	// write branch name
-	f.setBold(true);
-	paint->setFont(f);
-	QString branch = m_changeset->branch();
-        if (branch == "") branch = "default";
-	int wid = width - 3;
-	branch = TextAbbrev::abbreviate(branch, QFontMetrics(f), wid);
-	paint->drawText(x0, -fh + fm.ascent() - 4, branch);
-	f.setBold(false);
-    }
-
-//    f.setItalic(true);
-    fm = QFontMetrics(f);
-    fh = fm.height();
-    paint->setFont(f);
-
-    wid = width - 5;
-    int nlines = (height / fh) - 1;
-    if (nlines < 1) nlines = 1;
-    comment = TextAbbrev::abbreviate(comment, fm, wid, TextAbbrev::ElideEnd,
-				     "...", nlines);
-
-    QStringList lines = comment.split('\n');
-    for (int i = 0; i < lines.size(); ++i) {
-	paint->drawText(x0 + 3, i * fh + fh + fm.ascent(), lines[i].trimmed());
-    }
-    */
     paint->restore();
 }
 
