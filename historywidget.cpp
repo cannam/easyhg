@@ -55,7 +55,7 @@ void HistoryWidget::clearChangesets()
 void HistoryWidget::parseNewLog(QString log)
 {
     DEBUG << "HistoryWidget::parseNewLog: log has " << log.length() << " chars" << endl;
-    Changesets csets = parseChangeSets(log);
+    Changesets csets = Changeset::parseChangesets(log);
     DEBUG << "HistoryWidget::parseNewLog: log has " << csets.size() << " changesets" << endl;
     clearChangesets();
     m_changesets = csets;
@@ -65,16 +65,19 @@ void HistoryWidget::parseNewLog(QString log)
 void HistoryWidget::parseIncrementalLog(QString log)
 {
     DEBUG << "HistoryWidget::parseIncrementalLog: log has " << log.length() << " chars" << endl;
-    Changesets csets = parseChangeSets(log);
+    Changesets csets = Changeset::parseChangesets(log);
     DEBUG << "HistoryWidget::parseIncrementalLog: log has " << csets.size() << " changesets" << endl;
     if (!csets.empty()) {
-        m_changesets << csets;
+        csets << m_changesets;
+        m_changesets = csets;
         layoutAll();
     }
 }
 
 void HistoryWidget::layoutAll()
 {
+    setChangesetParents();
+
     ChangesetScene *scene = new ChangesetScene();
     ChangesetItem *tipItem = 0;
 
@@ -98,16 +101,14 @@ void HistoryWidget::layoutAll()
     if (tipItem) tipItem->ensureVisible();
 }
 
-Changesets HistoryWidget::parseChangeSets(QString changeSetsStr)
+void HistoryWidget::setChangesetParents()
 {
-    Changesets csets = Changeset::parseChangesets(changeSetsStr);
-    for (int i = 0; i+1 < csets.size(); ++i) {
-        Changeset *cs = csets[i];
+    for (int i = 0; i+1 < m_changesets.size(); ++i) {
+        Changeset *cs = m_changesets[i];
         if (cs->parents().empty()) {
             QStringList list;
-            list.push_back(csets[i+1]->id());
+            list.push_back(m_changesets[i+1]->id());
             cs->setParents(list);
         }
     }
-    return csets;
 }

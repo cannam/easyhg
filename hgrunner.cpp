@@ -52,7 +52,7 @@ HgRunner::~HgRunner()
     closeTerminal();
     if (m_proc) {
         m_proc->kill();
-        delete m_proc;
+        m_proc->deleteLater();
     }
 }
 
