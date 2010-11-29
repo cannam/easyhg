@@ -58,7 +58,7 @@ ChangesetDetailItem::paint(QPainter *paint,
     
     ColourSet *colourSet = ColourSet::instance();
     QColor branchColour = colourSet->getColourFor(m_changeset->branch());
-    QColor userColour = colourSet->getColourFor(m_changeset->user());
+    QColor userColour = colourSet->getColourFor(m_changeset->author());
 
     QFont f(m_font);
 

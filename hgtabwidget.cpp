@@ -49,6 +49,11 @@ void HgTabWidget::clearSelections()
     m_fileStatusWidget->clearSelections();
 }
 
+void HgTabWidget::setCurrent(QStringList ids)
+{
+    m_historyWidget->setCurrent(ids);
+}
+
 bool HgTabWidget::canCommit() const
 {
     if (!m_fileStatusWidget->getSelectedAddableFiles().empty()) return false;

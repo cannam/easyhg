@@ -35,9 +35,9 @@ class Changeset : public QObject
     Q_OBJECT
 
     Q_PROPERTY(QString id READ id WRITE setId NOTIFY idChanged STORED true);
-    Q_PROPERTY(QString user READ user WRITE setUser NOTIFY userChanged STORED true);
+    Q_PROPERTY(QString author READ author WRITE setAuthor NOTIFY authorChanged STORED true);
     Q_PROPERTY(QString branch READ branch WRITE setBranch NOTIFY branchChanged STORED true);
-    Q_PROPERTY(QString tag READ tag WRITE setTag NOTIFY tagChanged STORED true);
+    Q_PROPERTY(QStringList tags READ tags WRITE setTags NOTIFY tagsChanged STORED true);
     Q_PROPERTY(QString datetime READ datetime WRITE setDatetime NOTIFY datetimeChanged STORED true);
     Q_PROPERTY(qulonglong timestamp READ timestamp WRITE setTimestamp NOTIFY timestampChanged STORED true);
     Q_PROPERTY(QString age READ age WRITE setAge NOTIFY ageChanged STORED true);
@@ -50,9 +50,9 @@ public:
     explicit Changeset(const LogEntry &e);
 
     QString id() const { return m_id; }
-    QString user() const { return m_user; }
+    QString author() const { return m_author; }
     QString branch() const { return m_branch; }
-    QString tag() const { return m_tag; }
+    QStringList tags() const { return m_tags; }
     QString datetime() const { return m_datetime; }
     qulonglong timestamp() const { return m_timestamp; }
     QString age() const { return m_age; }
@@ -69,8 +69,8 @@ public:
         return id().split(':')[0].toInt();
     }
 
-    QString userName() const {
-	QString a = user();
+    QString authorName() const {
+	QString a = author();
 	return a.replace(QRegExp("\\s*<[^>]*>"), "");
     }
 
@@ -101,9 +101,9 @@ public:
     
 signals:
     void idChanged(QString id);
-    void userChanged(QString user);
+    void authorChanged(QString author);
     void branchChanged(QString branch);
-    void tagChanged(QString tag);
+    void tagsChanged(QStringList tags);
     void datetimeChanged(QString datetime);
     void timestampChanged(qulonglong timestamp);
     void ageChanged(QString age);
@@ -113,9 +113,10 @@ signals:
 
 public slots:
     void setId(QString id) { m_id = id; emit idChanged(id); }
-    void setUser(QString user) { m_user = user; emit userChanged(user); }
+    void setAuthor(QString author) { m_author = author; emit authorChanged(author); }
     void setBranch(QString branch) { m_branch = branch; emit branchChanged(branch); }
-    void setTag(QString tag) { m_tag = tag; emit tagChanged(tag); }
+    void setTags(QStringList tags) { m_tags = tags; emit tagsChanged(tags); }
+    void addTag(QString tag) { m_tags.push_back(tag); emit tagsChanged(m_tags); }
     void setDatetime(QString datetime) { m_datetime = datetime; emit datetimeChanged(datetime); }
     void setTimestamp(qulonglong timestamp) { m_timestamp = timestamp; emit timestampChanged(timestamp); }
     void setAge(QString age) { m_age = age; emit ageChanged(age); }
@@ -126,9 +127,9 @@ public slots:
 
 private:
     QString m_id;
-    QString m_user;
+    QString m_author;
     QString m_branch;
-    QString m_tag;
+    QStringList m_tags;
     QString m_datetime;
     qulonglong m_timestamp;
     QString m_age;

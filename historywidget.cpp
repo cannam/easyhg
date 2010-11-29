@@ -51,6 +51,19 @@ void HistoryWidget::clearChangesets()
     foreach (Changeset *cs, m_changesets) delete cs;
     m_changesets.clear();
 }
+
+void HistoryWidget::setCurrent(QStringList ids)
+{
+    if (m_currentIds == ids) return;
+    DEBUG << "HistoryWidget::setCurrent: " << ids.size() << " ids" << endl;
+    m_currentIds = ids;
+    updateCurrentItems();
+}
+
+void HistoryWidget::showUncommittedChanges(bool show)
+{
+    //!!! implement!
+}
     
 void HistoryWidget::parseNewLog(QString log)
 {
@@ -99,6 +112,8 @@ void HistoryWidget::layoutAll()
 
     if (oldScene) delete oldScene;
     if (tipItem) tipItem->ensureVisible();
+
+    updateCurrentItems();
 }
 
 void HistoryWidget::setChangesetParents()
@@ -116,3 +131,22 @@ void HistoryWidget::setChangesetParents()
         }
     }
 }
+
+void HistoryWidget::updateCurrentItems()
+{
+    QGraphicsScene *scene = m_panned->scene();
+    if (!scene) return;
+    QList<QGraphicsItem *> items = scene->items();
+    foreach (QGraphicsItem *it, items) {
+        ChangesetItem *csit = dynamic_cast<ChangesetItem *>(it);
+        if (csit) {
+            QString id = csit->getChangeset()->id();
+            bool current = m_currentIds.contains(id);
+            if (current) {
+                DEBUG << "id " << id << " is current" << endl;
+            }
+            csit->setCurrent(current);
+        }
+    }
+}
+

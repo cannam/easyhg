@@ -33,11 +33,15 @@ public:
     HistoryWidget();
     virtual ~HistoryWidget();
 
+    void setCurrent(QStringList ids);
+    void showUncommittedChanges(bool);
+
     void parseNewLog(QString log);
     void parseIncrementalLog(QString log);
     
 private:
     Changesets m_changesets;
+    QStringList m_currentIds;
 
     Panned *m_panned;
     Panner *m_panner;
@@ -45,6 +49,7 @@ private:
     void clearChangesets();
     void layoutAll();
     void setChangesetParents();
+    void updateCurrentItems();
 };
 
 #endif
