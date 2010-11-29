@@ -1254,10 +1254,15 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         foreach (Changeset *cs, currentHeads) delete cs;
         currentHeads = Changeset::parseChangesets(output);
         break;
+
+    case ACT_COMMIT:
+        hgTabs->clearSelections();
+        shouldHgStat = true;
+        needNewLog = true; // naive incremental log will give us a duplicate tip tag
+        break;
         
     case ACT_REMOVE:
     case ACT_ADD:
-    case ACT_COMMIT:
     case ACT_REVERT:
         hgTabs->clearSelections();
         shouldHgStat = true;
