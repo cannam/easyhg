@@ -16,6 +16,7 @@
 */
 
 #include "panned.h"
+#include "debug.h"
 
 #include <QScrollBar>
 #include <QWheelEvent>
@@ -31,6 +32,8 @@ Panned::Panned()
 void
 Panned::resizeEvent(QResizeEvent *ev)
 {
+    DEBUG << "Panned::resizeEvent()" << endl;
+
     QPointF nearpt = mapToScene(0, 0);
     QPointF farpt = mapToScene(width(), height());
     QSizeF sz(farpt.x()-nearpt.x(), farpt.y()-nearpt.y());

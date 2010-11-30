@@ -1632,16 +1632,18 @@ void MainWindow::createActions()
 void MainWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("File"));
-    fileMenu -> addAction(hgInitAct);
+/*    fileMenu -> addAction(hgInitAct);
     fileMenu -> addAction(hgCloneFromRemoteAct);
     fileMenu->addAction(clearSelectionsAct); //!!! can't live here!
     fileMenu -> addSeparator();
+*/
     fileMenu -> addAction(openAct);
     fileMenu -> addAction(settingsAct);
     fileMenu -> addSeparator();
     fileMenu -> addAction(exitAct);
 
     advancedMenu = menuBar()->addMenu(tr("Advanced"));
+/*
     advancedMenu -> addAction(hgUpdateToRevAct);
     advancedMenu -> addSeparator();
     advancedMenu -> addAction(hgAnnotateAct);
@@ -1652,6 +1654,7 @@ void MainWindow::createMenus()
     advancedMenu -> addSeparator();
     advancedMenu -> addAction(hgTagAct);
     advancedMenu -> addSeparator();
+*/
     advancedMenu -> addAction(hgIgnoreAct);
     advancedMenu -> addSeparator();
     advancedMenu -> addAction(hgServeAct);
