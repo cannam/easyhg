@@ -36,6 +36,7 @@ public:
     virtual void paint(QPainter *, const QStyleOptionGraphicsItem *, QWidget *);
 
     Changeset *getChangeset() { return m_changeset; }
+    QString getId();
 
     int column() const { return m_column; }
     int row() const { return m_row; }
@@ -58,9 +59,22 @@ signals:
     void detailShown();
     void detailHidden();
 
+    void updateTo(QString);
+    void diffToPrevious(QString);
+    void diffToCurrent(QString);
+    void mergeFrom(QString);
+    void tag(QString);
+
 public slots:
     void showDetail();
     void hideDetail();
+
+private slots:
+    void updateActivated();
+    void diffToPreviousActivated();
+    void diffToCurrentActivated();
+    void mergeActivated();
+    void tagActivated();
 
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *);

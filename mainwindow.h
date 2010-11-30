@@ -104,6 +104,7 @@ private:
     void hgLogIncremental();
     void createActions();
     void connectActions();
+    void connectTabsSignals();
     void createMenus();
     void createToolBars();
     void createStatusBar();

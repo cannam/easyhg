@@ -42,6 +42,30 @@ HgTabWidget::HgTabWidget(QWidget *parent,
     // History graph page
     m_historyWidget = new HistoryWidget;
     addTab(m_historyWidget, tr("History"));
+
+    connect(m_historyWidget, SIGNAL(commit()),
+            this, SIGNAL(commit()));
+    
+    connect(m_historyWidget, SIGNAL(revert()),
+            this, SIGNAL(revert()));
+    
+    connect(m_historyWidget, SIGNAL(diffWorkingFolder()),
+            this, SIGNAL(diffWorkingFolder()));
+
+    connect(m_historyWidget, SIGNAL(updateTo(QString)),
+            this, SIGNAL(updateTo(QString)));
+
+    connect(m_historyWidget, SIGNAL(diffToCurrent(QString)),
+            this, SIGNAL(diffToCurrent(QString)));
+
+    connect(m_historyWidget, SIGNAL(diffToPrevious(QString)),
+            this, SIGNAL(diffToPrevious(QString)));
+
+    connect(m_historyWidget, SIGNAL(mergeFrom(QString)),
+            this, SIGNAL(mergeFrom(QString)));
+
+    connect(m_historyWidget, SIGNAL(tag(QString)),
+            this, SIGNAL(tag(QString)));
 }
 
 void HgTabWidget::clearSelections()

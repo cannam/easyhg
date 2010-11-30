@@ -76,6 +76,16 @@ public:
 signals:
     void selectionChanged();
 
+    void commit();
+    void revert();
+    void diffWorkingFolder();
+
+    void updateTo(QString id);
+    void diffToPrevious(QString id);
+    void diffToCurrent(QString id);
+    void mergeFrom(QString id);
+    void tag(QString id);
+
 public slots:
     void clearSelections();
 

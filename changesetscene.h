@@ -21,6 +21,7 @@
 #include <QGraphicsScene>
 
 class ChangesetItem;
+class UncommittedItem;
 
 class ChangesetScene : public QGraphicsScene
 {
@@ -28,6 +29,20 @@ class ChangesetScene : public QGraphicsScene
 
 public:
     ChangesetScene();
+
+    void addChangesetItem(ChangesetItem *item);
+    void addUncommittedItem(UncommittedItem *item);
+
+signals:
+    void commit();
+    void revert();
+    void diffWorkingFolder();
+
+    void updateTo(QString id);
+    void diffToPrevious(QString id);
+    void diffToCurrent(QString id);
+    void mergeFrom(QString id);
+    void tag(QString id);
 
 public slots:
     void changesetDetailShown();
