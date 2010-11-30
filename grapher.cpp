@@ -196,6 +196,7 @@ void Grapher::layoutCol(QString id)
     // connection lines
 
     foreach (QString childId, cs->children()) {
+        DEBUG << "reserving connection line space" << endl;
         if (!m_changesets.contains(childId)) continue;
         Changeset *child = m_changesets[childId];
         int childRow = m_items[childId]->row();
@@ -211,7 +212,6 @@ void Grapher::layoutCol(QString id)
     // branch as us: split them to a little either side of our position
 
     if (nchildren > 1) {
-
         QList<QString> special;
         foreach (QString childId, cs->children()) {
             if (!m_changesets.contains(childId)) continue;
@@ -222,6 +222,7 @@ void Grapher::layoutCol(QString id)
             }
         }
         if (special.size() == 2) {
+            DEBUG << "handling split-in-two for children " << special[0] << " and " << special[1] << endl;
             for (int i = 0; i < 2; ++i) {
                 int off = i * 2 - 1; // 0 -> -1, 1 -> 1
                 ChangesetItem *it = m_items[special[i]];
@@ -324,12 +325,14 @@ void Grapher::layout(Changesets csets)
     m_alloc.clear();
     m_branchHomes.clear();
 
+    DEBUG << "Grapher::layout: Have " << csets.size() << " changesets" << endl;
+
     if (csets.empty()) return;
 
     foreach (Changeset *cs, csets) {
 
         QString id = cs->id();
-        DEBUG << id.toStdString() << endl;
+//        DEBUG << id.toStdString() << endl;
 
         if (id == "") {
             throw LayoutException("Changeset has no ID");

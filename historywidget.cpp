@@ -70,8 +70,15 @@ void HistoryWidget::setCurrent(QStringList ids)
 
 void HistoryWidget::showUncommittedChanges(bool show)
 {
+    if (m_uncommittedVisible == show) return;
     m_uncommittedVisible = show;
-    layoutAll();
+    QGraphicsScene *scene = m_panned->scene();
+    if (!scene) return;
+    if (m_uncommittedVisible) {
+        scene->addItem(m_uncommitted);
+    } else {
+        scene->removeItem(m_uncommitted);
+    }
 }
     
 void HistoryWidget::parseNewLog(QString log)
@@ -185,12 +192,15 @@ void HistoryWidget::layoutAll()
 
 void HistoryWidget::setChangesetParents()
 {
-    for (int i = 0; i+1 < m_changesets.size(); ++i) {
+    for (int i = 0; i < m_changesets.size(); ++i) {
         Changeset *cs = m_changesets[i];
         // Need to reset this, as Grapher::layout will recalculate it
         // and we don't want to end up with twice the children for
         // each parent...
         cs->setChildren(QStringList());
+    }
+    for (int i = 0; i+1 < m_changesets.size(); ++i) {
+        Changeset *cs = m_changesets[i];
         if (cs->parents().empty()) {
             QStringList list;
             list.push_back(m_changesets[i+1]->id());
