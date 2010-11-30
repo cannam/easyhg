@@ -136,9 +136,21 @@ QString FileStatusWidget::labelFor(FileStates::State s, bool addHighlightExplana
 
 void FileStatusWidget::itemSelectionChanged()
 {
-    m_selectedFiles.clear();
-
     DEBUG << "FileStatusWidget::itemSelectionChanged" << endl;
+
+    QListWidget *list = qobject_cast<QListWidget *>(sender());
+
+    if (list) {
+        foreach (QListWidget *w, m_stateListMap) {
+            if (w != list) {
+                w->blockSignals(true);
+                w->clearSelection();
+                w->blockSignals(false);
+            }
+        }
+    }
+
+    m_selectedFiles.clear();
 
     foreach (QListWidget *w, m_stateListMap) {
         QList<QListWidgetItem *> sel = w->selectedItems();
