@@ -24,6 +24,7 @@
 
 #include <QPainter>
 #include <QGraphicsScene>
+#include <QGraphicsSceneMouseEvent>
 
 ChangesetItem::ChangesetItem(Changeset *cs) :
     m_changeset(cs), m_detail(0),
@@ -74,10 +75,12 @@ void
 ChangesetItem::mousePressEvent(QGraphicsSceneMouseEvent *e)
 {
     DEBUG << "ChangesetItem::mousePressEvent" << endl;
-    if (m_detail) {
-        hideDetail();
-    } else {
-        showDetail();
+    if (e->button() == Qt::LeftButton) {
+        if (m_detail) {
+            hideDetail();
+        } else {
+            showDetail();
+        }
     }
 }
 

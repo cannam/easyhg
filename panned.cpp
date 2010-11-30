@@ -39,12 +39,13 @@ Panned::resizeEvent(QResizeEvent *ev)
     QSizeF sz(farpt.x()-nearpt.x(), farpt.y()-nearpt.y());
     QRectF pr(nearpt, sz);
 
+    QGraphicsView::resizeEvent(ev);
+
     if (pr != m_pannedRect) {
+        DEBUG << "Panned: setting panned rect to " << pr << endl;
         m_pannedRect = pr;
         emit pannedRectChanged(pr);
     }
-
-    QGraphicsView::resizeEvent(ev);
 }
 
 void
