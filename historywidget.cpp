@@ -72,10 +72,11 @@ void HistoryWidget::showUncommittedChanges(bool show)
 {
     if (m_uncommittedVisible == show) return;
     m_uncommittedVisible = show;
-    QGraphicsScene *scene = m_panned->scene();
+    ChangesetScene *scene = qobject_cast<ChangesetScene *>(m_panned->scene());
     if (!scene) return;
     if (m_uncommittedVisible) {
-        scene->addItem(m_uncommitted);
+        scene->addUncommittedItem(m_uncommitted);
+        m_uncommitted->ensureVisible();
     } else {
         scene->removeItem(m_uncommitted);
     }
@@ -174,7 +175,7 @@ void HistoryWidget::layoutAll()
     }
 
     if (m_uncommittedVisible) {
-        scene->addItem(m_uncommitted);
+        scene->addUncommittedItem(m_uncommitted);
     }
 
     m_panned->setScene(scene);
@@ -183,11 +184,14 @@ void HistoryWidget::layoutAll()
     updateNewAndCurrentItems();
 
     if (m_uncommittedVisible) {
+        DEBUG << "asking uncommitted item to be visible" << endl;
         m_uncommitted->ensureVisible();
     } else if (tipItem) {
         DEBUG << "asking tip item to be visible" << endl;
         tipItem->ensureVisible();
     }
+
+    connectSceneSignals();
 }
 
 void HistoryWidget::setChangesetParents()
@@ -241,4 +245,34 @@ void HistoryWidget::updateNewAndCurrentItems()
             m_uncommitted->setBranch(csit->getChangeset()->branch());
         }
     }
+}
+
+void HistoryWidget::connectSceneSignals()
+{
+    ChangesetScene *scene = qobject_cast<ChangesetScene *>(m_panned->scene());
+    if (!scene) return;
+    
+    connect(scene, SIGNAL(commit()),
+            this, SIGNAL(commit()));
+    
+    connect(scene, SIGNAL(revert()),
+            this, SIGNAL(revert()));
+    
+    connect(scene, SIGNAL(diffWorkingFolder()),
+            this, SIGNAL(diffWorkingFolder()));
+
+    connect(scene, SIGNAL(updateTo(QString)),
+            this, SIGNAL(updateTo(QString)));
+
+    connect(scene, SIGNAL(diffToCurrent(QString)),
+            this, SIGNAL(diffToCurrent(QString)));
+
+    connect(scene, SIGNAL(diffToPrevious(QString)),
+            this, SIGNAL(diffToPrevious(QString)));
+
+    connect(scene, SIGNAL(mergeFrom(QString)),
+            this, SIGNAL(mergeFrom(QString)));
+
+    connect(scene, SIGNAL(tag(QString)),
+            this, SIGNAL(tag(QString)));
 }

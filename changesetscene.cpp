@@ -17,10 +17,50 @@
 
 #include "changesetscene.h"
 #include "changesetitem.h"
+#include "uncommitteditem.h"
 
 ChangesetScene::ChangesetScene()
     : QGraphicsScene(), m_detailShown(0)
 {
+}
+
+void
+ChangesetScene::addChangesetItem(ChangesetItem *item)
+{
+    addItem(item);
+
+    connect(item, SIGNAL(detailShown()),
+            this, SLOT(changesetDetailShown()));
+
+    connect(item, SIGNAL(updateTo(QString)),
+            this, SIGNAL(updateTo(QString)));
+
+    connect(item, SIGNAL(diffToCurrent(QString)),
+            this, SIGNAL(diffToCurrent(QString)));
+
+    connect(item, SIGNAL(diffToPrevious(QString)),
+            this, SIGNAL(diffToPrevious(QString)));
+
+    connect(item, SIGNAL(mergeFrom(QString)),
+            this, SIGNAL(mergeFrom(QString)));
+
+    connect(item, SIGNAL(tag(QString)),
+            this, SIGNAL(tag(QString)));
+}
+
+void
+ChangesetScene::addUncommittedItem(UncommittedItem *item)
+{
+    addItem(item);
+    
+    connect(item, SIGNAL(commit()),
+            this, SIGNAL(commit()));
+    
+    connect(item, SIGNAL(revert()),
+            this, SIGNAL(revert()));
+    
+    connect(item, SIGNAL(diff()),
+            this, SIGNAL(diffWorkingFolder()));
 }
 
 void

@@ -21,6 +21,11 @@
 
 #include <QPainter>
 #include <QGraphicsScene>
+#include <QGraphicsSceneMouseEvent>
+#include <QMenu>
+#include <QAction>
+#include <QLabel>
+#include <QWidgetAction>
 
 UncommittedItem::UncommittedItem() :
     m_column(0), m_row(0), m_wide(false)
@@ -38,6 +43,37 @@ UncommittedItem::boundingRect() const
     int w = 100;
     if (m_wide) w = 180;
     return QRectF(-((w-50)/2 - 1), -30, w - 3, 79 + 40);
+}
+
+void
+UncommittedItem::mousePressEvent(QGraphicsSceneMouseEvent *e)
+{
+    DEBUG << "UncommittedItem::mousePressEvent" << endl;
+    if (e->button() == Qt::RightButton) {
+        activateMenu();
+    }
+}
+
+void
+UncommittedItem::activateMenu()
+{
+    QMenu *menu = new QMenu;
+    QLabel *label = new QLabel(tr("<qt><b>Uncommitted changes</b></qt>"));
+    QWidgetAction *wa = new QWidgetAction(menu);
+    wa->setDefaultWidget(label);
+    menu->addAction(wa);
+    menu->addSeparator();
+
+    QAction *commit = menu->addAction(tr("Commit..."));
+    connect(commit, SIGNAL(triggered()), this, SIGNAL(commit()));
+    QAction *revert = menu->addAction(tr("Revert..."));
+    connect(revert, SIGNAL(triggered()), this, SIGNAL(revert()));
+    QAction *dif = menu->addAction(tr("Diff"));
+    connect(dif, SIGNAL(triggered()), this, SIGNAL(diff()));
+
+    menu->exec(QCursor::pos());
+
+    ungrabMouse();
 }
 
 void

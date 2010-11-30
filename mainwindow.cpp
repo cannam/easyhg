@@ -69,6 +69,7 @@ MainWindow::MainWindow()
 
     justMerged = false;
     hgTabs = new HgTabWidget((QWidget *) this, remoteRepoPath, workFolderPath);
+    connectTabsSignals();
     setCentralWidget(hgTabs);
 
     connect(hgTabs, SIGNAL(selectionChanged()),
@@ -1389,6 +1390,35 @@ void MainWindow::connectActions()
     connect(hgServeAct, SIGNAL(triggered()), this, SLOT(hgServe()));
     connect(clearSelectionsAct, SIGNAL(triggered()), this, SLOT(clearSelections()));
 }
+
+void MainWindow::connectTabsSignals()
+{
+    connect(hgTabs, SIGNAL(commit()),
+            this, SLOT(hgCommit()));
+    
+    connect(hgTabs, SIGNAL(revert()),
+            this, SLOT(hgRevert()));
+    
+    connect(hgTabs, SIGNAL(diffWorkingFolder()),
+            this, SLOT(hgFolderDiff()));
+/*!!!!
+    connect(hgTabs, SIGNAL(updateTo(QString)),
+            this, SIGNAL(updateTo(QString)));
+
+    connect(hgTabs, SIGNAL(diffToCurrent(QString)),
+            this, SIGNAL(diffToCurrent(QString)));
+
+    connect(hgTabs, SIGNAL(diffToPrevious(QString)),
+            this, SIGNAL(diffToPrevious(QString)));
+
+    connect(hgTabs, SIGNAL(mergeFrom(QString)),
+            this, SIGNAL(mergeFrom(QString)));
+
+    connect(hgTabs, SIGNAL(tag(QString)),
+            this, SIGNAL(tag(QString)));
+*/
+}    
+
 /*!!!
 void MainWindow::tabChanged(int currTab)
 {

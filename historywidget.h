@@ -42,6 +42,17 @@ public:
     void parseIncrementalLog(QString log);
 
     bool haveNewItems() const { return !m_newIds.empty(); }
+
+signals:
+    void commit();
+    void revert();
+    void diffWorkingFolder();
+
+    void updateTo(QString id);
+    void diffToPrevious(QString id);
+    void diffToCurrent(QString id);
+    void mergeFrom(QString id);
+    void tag(QString id);
     
 private:
     Changesets m_changesets;
@@ -59,6 +70,7 @@ private:
     void layoutAll();
     void setChangesetParents();
     void updateNewAndCurrentItems();
+    void connectSceneSignals();
 };
 
 #endif

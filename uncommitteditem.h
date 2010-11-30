@@ -43,7 +43,17 @@ public:
     bool isWide() const { return m_wide; }
     void setWide(bool w) { m_wide = w; }
 
+signals:
+    void commit();
+    void revert();
+    void diff();
+
+protected:
+    virtual void mousePressEvent(QGraphicsSceneMouseEvent *);
+
 private:
+    void activateMenu();
+
     QString m_branch;
     QFont m_font;
     int m_column;

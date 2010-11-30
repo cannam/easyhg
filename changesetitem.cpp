@@ -41,6 +41,12 @@ ChangesetItem::ChangesetItem(Changeset *cs) :
     m_font.setItalic(false);
 }
 
+QString
+ChangesetItem::getId()
+{
+    return m_changeset->id();
+}
+
 QRectF
 ChangesetItem::boundingRect() const
 {
@@ -87,6 +93,9 @@ ChangesetItem::mousePressEvent(QGraphicsSceneMouseEvent *e)
             showDetail();
         }
     } else if (e->button() == Qt::RightButton) {
+        if (m_detail) {
+            hideDetail();
+        }
         activateMenu();
     }
 }
@@ -95,21 +104,40 @@ void
 ChangesetItem::activateMenu()
 {
     QMenu *menu = new QMenu;
-    QLabel *label = new QLabel(tr("<qt><b>Identifier: </b>%1</qt>")
+    QLabel *label = new QLabel(tr("<qt><b>Revision: </b>%1</qt>")
                                .arg(m_changeset->id()));
-    QWidgetAction *wa = new QWidgetAction(menu);;
+    QWidgetAction *wa = new QWidgetAction(menu);
     wa->setDefaultWidget(label);
     menu->addAction(wa);
     menu->addSeparator();
+
     QAction *update = menu->addAction(tr("Update to this revision"));
+    connect(update, SIGNAL(triggered()), this, SLOT(updateActivated()));
+
     menu->addSeparator();
+
     QAction *diffParent = menu->addAction(tr("Diff against previous revision"));
+    connect(diffParent, SIGNAL(triggered()), this, SLOT(diffToPreviousActivated()));
     QAction *diffCurrent = menu->addAction(tr("Diff against current revision"));
+    connect(diffCurrent, SIGNAL(triggered()), this, SLOT(diffToCurrentActivated()));
+
     menu->addSeparator();
+
     QAction *merge = menu->addAction(tr("Merge from here to current"));
+    connect(merge, SIGNAL(triggered()), this, SLOT(mergeActivated()));
     QAction *tag = menu->addAction(tr("Tag this revision"));
-    menu->exec(QCursor::pos());
+    connect(tag, SIGNAL(triggered()), this, SLOT(tagActivated()));
+
+    QAction *a = menu->exec(QCursor::pos());
+    ungrabMouse();
+    if (a) a->trigger();
 }
+
+void ChangesetItem::updateActivated() { emit updateTo(getId()); }
+void ChangesetItem::diffToPreviousActivated() { emit diffToPrevious(getId()); }
+void ChangesetItem::diffToCurrentActivated() { emit diffToCurrent(getId()); }
+void ChangesetItem::mergeActivated() { emit mergeFrom(getId()); }
+void ChangesetItem::tagActivated() { emit tag(getId()); }
 
 void
 ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,

@@ -347,9 +347,7 @@ void Grapher::layout(Changesets csets)
         item->setX(0);
         item->setY(0);
         m_items[id] = item;
-        m_scene->addItem(item);
-        QObject::connect(item, SIGNAL(detailShown()),
-                         m_scene, SLOT(changesetDetailShown()));
+        m_scene->addChangesetItem(item);
     }
 
     // Add the connecting lines
