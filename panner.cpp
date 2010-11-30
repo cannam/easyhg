@@ -72,16 +72,16 @@ Panner::setScene(QGraphicsScene *s)
                    this, SLOT(slotSceneRectChanged(const QRectF &)));
     }
     QGraphicsView::setScene(s);
+    m_cache = QPixmap();
     if (scene()) {
         QRectF r = sceneRect();
         DEBUG << "scene rect: " << r << ", my rect " << rect() << endl;
         fit(r);
+        connect(scene(), SIGNAL(changed(const QList<QRectF> &)),
+                this, SLOT(slotSceneChanged(const QList<QRectF> &)));
+        connect(scene(), SIGNAL(sceneRectChanged(const QRectF &)),
+                this, SLOT(slotSceneRectChanged(const QRectF &)));
     }
-    m_cache = QPixmap();
-    connect(scene(), SIGNAL(changed(const QList<QRectF> &)),
-            this, SLOT(slotSceneChanged(const QList<QRectF> &)));
-    connect(scene(), SIGNAL(sceneRectChanged(const QRectF &)),
-            this, SLOT(slotSceneRectChanged(const QRectF &)));
 }
 
 void
