@@ -66,6 +66,8 @@ protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *);
 
 private:
+    void activateMenu();
+
     QFont m_font;
     Changeset *m_changeset;
     ChangesetDetailItem *m_detail;
