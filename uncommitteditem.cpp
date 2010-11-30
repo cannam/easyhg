@@ -34,10 +34,10 @@ UncommittedItem::UncommittedItem() :
 QRectF
 UncommittedItem::boundingRect() const
 {
-    //!!! this stuff is gross, refactor with changesetitem
+    //!!! this stuff is gross, refactor with changesetitem and connectionitem
     int w = 100;
     if (m_wide) w = 180;
-    return QRectF(-((w-50)/2 - 1), -30, w - 3, 79);
+    return QRectF(-((w-50)/2 - 1), -30, w - 3, 79 + 40);
 }
 
 void
@@ -76,6 +76,8 @@ UncommittedItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     int height = 49;
     QRectF r(x0, 0, width - 3, height);
     paint->drawRect(r);
+
+    paint->drawLine(x0 + width/2, height, x0 + width/2, height + 40);
 
     QString label = tr("Uncommitted changes");
     paint->drawText(-(fm.width(label) - 50)/2, 25 - fm.height()/2 + fm.ascent(), label);

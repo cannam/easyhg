@@ -162,7 +162,7 @@ Panner::drawItems(QPainter *painter, int numItems,
 {
     if (m_cache.size() != viewport()->size()) {
 
-        DEBUG << "Panner: recreating cache" << endl;
+        DEBUG << "Panner: cache size " << m_cache.size() << " != viewport size " << viewport()->size() << ": recreating cache" << endl;
 
         QGraphicsScene *s = scene();
         if (!s) return;
