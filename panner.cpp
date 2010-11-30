@@ -66,6 +66,8 @@ void
 Panner::setScene(QGraphicsScene *s)
 {
     if (scene()) {
+        disconnect(scene(), SIGNAL(sceneChanged(const QList<QRectF> &)),
+                   this, SLOT(slotSceneChanged(const QList<QRectF> &)));
         disconnect(scene(), SIGNAL(sceneRectChanged(const QRectF &)),
                    this, SLOT(slotSceneRectChanged(const QRectF &)));
     }
@@ -76,6 +78,8 @@ Panner::setScene(QGraphicsScene *s)
         fit(r);
     }
     m_cache = QPixmap();
+    connect(scene(), SIGNAL(sceneChanged(const QList<QRectF> &)),
+            this, SLOT(slotSceneChanged(const QList<QRectF> &)));
     connect(scene(), SIGNAL(sceneRectChanged(const QRectF &)),
             this, SLOT(slotSceneRectChanged(const QRectF &)));
 }
@@ -115,6 +119,14 @@ Panner::slotSceneRectChanged(const QRectF &newRect)
 {
     if (!scene()) return; // spurious
     fit(newRect);
+    m_cache = QPixmap();
+    viewport()->update();
+}
+
+void
+Panner::slotSceneChanged(const QList<QRectF> &)
+{
+    if (!scene()) return; // spurious
     m_cache = QPixmap();
     viewport()->update();
 }

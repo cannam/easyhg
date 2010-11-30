@@ -45,6 +45,7 @@ public slots:
 
 protected slots:
     void slotSceneRectChanged(const QRectF &);
+    void slotSceneChanged(const QList<QRectF> &);
 
 protected:
     QRectF m_pannedRect;
