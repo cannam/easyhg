@@ -122,9 +122,14 @@ void HistoryWidget::replaceChangesets(Changesets csets)
 void HistoryWidget::addChangesets(Changesets csets)
 {
     m_newIds.clear();
+
+    if (csets.empty()) return;
+
     foreach (Changeset *cs, csets) {
         m_newIds.insert(cs->id());
     }
+
+    DEBUG << "addChangesets: " << csets.size() << " new changesets" << endl;
 
     csets << m_changesets;
     m_changesets = csets;
@@ -136,6 +141,18 @@ void HistoryWidget::layoutAll()
 
     ChangesetScene *scene = new ChangesetScene();
     ChangesetItem *tipItem = 0;
+
+    QGraphicsScene *oldScene = m_panned->scene();
+
+    // detach m_uncommitted from old scene so it doesn't get deleted
+    if (oldScene && (m_uncommitted->scene() == oldScene)) {
+        oldScene->removeItem(m_uncommitted);
+    }
+
+    m_panned->setScene(0);
+    m_panner->setScene(0);
+
+    delete oldScene;
 
     if (!m_changesets.empty()) {
 	Grapher g(scene);
@@ -149,20 +166,12 @@ void HistoryWidget::layoutAll()
               << m_changesets[0]->id() << endl;
     }
 
-    QGraphicsScene *oldScene = m_panned->scene();
-
-    // detach m_uncommitted from old scene so it doesn't get deleted
-    if (oldScene && (m_uncommitted->scene() == oldScene)) {
-        oldScene->removeItem(m_uncommitted);
-    }
     if (m_uncommittedVisible) {
         scene->addItem(m_uncommitted);
     }
 
     m_panned->setScene(scene);
     m_panner->setScene(scene);
-
-    if (oldScene) delete oldScene;
 
     updateNewAndCurrentItems();
 
