@@ -25,6 +25,10 @@
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
+#include <QMenu>
+#include <QAction>
+#include <QLabel>
+#include <QWidgetAction>
 
 ChangesetItem::ChangesetItem(Changeset *cs) :
     m_changeset(cs), m_detail(0),
@@ -82,7 +86,29 @@ ChangesetItem::mousePressEvent(QGraphicsSceneMouseEvent *e)
         } else {
             showDetail();
         }
+    } else if (e->button() == Qt::RightButton) {
+        activateMenu();
     }
+}
+
+void
+ChangesetItem::activateMenu()
+{
+    QMenu *menu = new QMenu;
+    QLabel *label = new QLabel(tr("<qt><b>Identifier: </b>%1</qt>")
+                               .arg(m_changeset->id()));
+    QWidgetAction *wa = new QWidgetAction(menu);;
+    wa->setDefaultWidget(label);
+    menu->addAction(wa);
+    menu->addSeparator();
+    QAction *update = menu->addAction(tr("Update to this revision"));
+    menu->addSeparator();
+    QAction *diffParent = menu->addAction(tr("Diff against previous revision"));
+    QAction *diffCurrent = menu->addAction(tr("Diff against current revision"));
+    menu->addSeparator();
+    QAction *merge = menu->addAction(tr("Merge from here to current"));
+    QAction *tag = menu->addAction(tr("Tag this revision"));
+    menu->exec(QCursor::pos());
 }
 
 void
