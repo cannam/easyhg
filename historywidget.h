@@ -21,6 +21,7 @@
 #include "changeset.h"
 
 #include <QWidget>
+#include <QSet>
 
 class Panned;
 class Panner;
@@ -43,15 +44,18 @@ public:
 private:
     Changesets m_changesets;
     QStringList m_currentIds;
+    QSet<QString> m_newIds;
     UncommittedItem *m_uncommitted;
 
     Panned *m_panned;
     Panner *m_panner;
 
     void clearChangesets();
+    void replaceChangesets(Changesets);
+    void addChangesets(Changesets);
     void layoutAll();
     void setChangesetParents();
-    void updateCurrentItems();
+    void updateNewAndCurrentItems();
 };
 
 #endif

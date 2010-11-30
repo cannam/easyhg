@@ -49,6 +49,7 @@ public:
     QString currentBranch;
     Changesets currentHeads;
     Changesets currentParents;
+    int commitsSincePush;
     bool needNewLog;
 
 protected:
