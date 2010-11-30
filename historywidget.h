@@ -40,12 +40,15 @@ public:
 
     void parseNewLog(QString log);
     void parseIncrementalLog(QString log);
+
+    bool haveNewItems() const { return !m_newIds.empty(); }
     
 private:
     Changesets m_changesets;
     QStringList m_currentIds;
     QSet<QString> m_newIds;
     UncommittedItem *m_uncommitted;
+    bool m_uncommittedVisible;
 
     Panned *m_panned;
     Panner *m_panner;

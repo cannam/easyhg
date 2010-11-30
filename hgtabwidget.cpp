@@ -140,11 +140,17 @@ void HgTabWidget::updateWorkFolderFileList(QString fileList)
 void HgTabWidget::setNewLog(QString hgLogList)
 {
     m_historyWidget->parseNewLog(hgLogList);
+    if (m_historyWidget->haveNewItems()) {
+        setCurrentWidget(m_historyWidget);
+    }
 }
 
 void HgTabWidget::addIncrementalLog(QString hgLogList)
 {
     m_historyWidget->parseIncrementalLog(hgLogList);
+    if (m_historyWidget->haveNewItems()) {
+        setCurrentWidget(m_historyWidget);
+    }
 }
 
 void HgTabWidget::setWorkFolderAndRepoNames(QString workFolderPath, QString remoteRepoPath)
