@@ -178,8 +178,12 @@ void MainWindow::hgQueryBranch()
 void MainWindow::hgQueryHeads()
 {
     QStringList params;
-    params << "heads";
-    // on empty repos, "hg heads" will fail -- we don't care about that.
+    // On empty repos, "hg heads" will fail -- we don't care about
+    // that.  Use --closed option so as to include closed branches;
+    // otherwise we'll be stuck if the user updates into one, and our
+    // incremental log will end up with spurious stuff in it because
+    // we won't be pruning at the ends of closed branches
+    params << "heads" << "--closed";
     runner->requestAction(HgAction(ACT_QUERY_HEADS, workFolderPath, params));
 }
 
