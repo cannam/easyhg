@@ -34,6 +34,7 @@ HistoryWidget::HistoryWidget()
     m_panner = new Panner;
     m_uncommitted = new UncommittedItem();
     m_uncommitted->setRow(-1);
+    m_uncommittedVisible = false;
 
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(m_panned, 0, 0);
@@ -47,7 +48,7 @@ HistoryWidget::HistoryWidget()
 HistoryWidget::~HistoryWidget()
 {
     clearChangesets();
-    delete m_uncommitted;
+    if (!m_uncommittedVisible) delete m_uncommitted;
 }
 
 void HistoryWidget::clearChangesets()
@@ -69,17 +70,8 @@ void HistoryWidget::setCurrent(QStringList ids)
 
 void HistoryWidget::showUncommittedChanges(bool show)
 {
-    QGraphicsScene *scene = m_panned->scene();
-    if (!scene) return;
-
-    if (show) {
-        if (m_uncommitted->scene() == scene) return;
-        scene->addItem(m_uncommitted);
-        m_uncommitted->ensureVisible();
-    } else {
-        if (m_uncommitted->scene() != scene) return;
-        scene->removeItem(m_uncommitted);
-    }
+    m_uncommittedVisible = show;
+    layoutAll();
 }
     
 void HistoryWidget::parseNewLog(QString log)
@@ -141,7 +133,6 @@ void HistoryWidget::addChangesets(Changesets csets)
 void HistoryWidget::layoutAll()
 {
     setChangesetParents();
-    showUncommittedChanges(false); // detach the item from our scene
 
     ChangesetScene *scene = new ChangesetScene();
     ChangesetItem *tipItem = 0;
@@ -159,13 +150,28 @@ void HistoryWidget::layoutAll()
     }
 
     QGraphicsScene *oldScene = m_panned->scene();
+
+    // detach m_uncommitted from old scene so it doesn't get deleted
+    if (oldScene && (m_uncommitted->scene() == oldScene)) {
+        oldScene->removeItem(m_uncommitted);
+    }
+    if (m_uncommittedVisible) {
+        scene->addItem(m_uncommitted);
+    }
+
     m_panned->setScene(scene);
     m_panner->setScene(scene);
 
     if (oldScene) delete oldScene;
-    if (tipItem) tipItem->ensureVisible();
 
     updateNewAndCurrentItems();
+
+    if (m_uncommittedVisible) {
+        m_uncommitted->ensureVisible();
+    } else if (tipItem) {
+        DEBUG << "asking tip item to be visible" << endl;
+        tipItem->ensureVisible();
+    }
 }
 
 void HistoryWidget::setChangesetParents()
