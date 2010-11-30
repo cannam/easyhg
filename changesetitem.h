@@ -48,6 +48,9 @@ public:
     bool isCurrent() const { return m_current; }
     void setCurrent(bool c) { m_current = c; }
 
+    bool isNew() const { return m_new; }
+    void setNew(bool n) { m_new = n; }
+
     bool shouldShowBranch() const { return m_showBranch; }
     void setShowBranch(bool s) { m_showBranch = s; }
 
@@ -71,6 +74,7 @@ private:
     int m_row;
     bool m_wide;
     bool m_current;
+    bool m_new;
 };
 
 #endif // CHANGESETITEM_H

@@ -46,6 +46,7 @@ MainWindow::MainWindow()
     QString wndTitle;
 
     fsWatcher = 0;
+    commitsSincePush = 0;
 
     createActions();
     createMenus();

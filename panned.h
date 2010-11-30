@@ -31,6 +31,8 @@ public:
     Panned();
     virtual ~Panned() { }
 
+    virtual void setScene(QGraphicsScene *s);
+
 signals:
     void pannedRectChanged(QRectF);
     void wheelEventReceived(QWheelEvent *);

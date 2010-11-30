@@ -28,7 +28,8 @@
 
 ChangesetItem::ChangesetItem(Changeset *cs) :
     m_changeset(cs), m_detail(0),
-    m_showBranch(false), m_column(0), m_row(0), m_wide(false), m_current(false)
+    m_showBranch(false), m_column(0), m_row(0), m_wide(false),
+    m_current(false), m_new(false)
 {
     m_font = QFont();
     m_font.setPixelSize(11);
@@ -121,6 +122,13 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     int height = 49;
     QRectF r(x0, 0, width - 3, height);
     paint->drawRect(r);
+
+    if (m_new) {
+        paint->save();
+        paint->setPen(Qt::yellow);
+        paint->drawRect(QRectF(x0 - 2, -2, width + 1, height + 4));
+        paint->restore();
+    }
 
     if (m_current) {
         paint->drawRect(QRectF(x0 - 4, -4, width + 5, height + 8));

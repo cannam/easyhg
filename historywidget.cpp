@@ -60,8 +60,11 @@ void HistoryWidget::setCurrent(QStringList ids)
 {
     if (m_currentIds == ids) return;
     DEBUG << "HistoryWidget::setCurrent: " << ids.size() << " ids" << endl;
-    m_currentIds = ids;
-    updateCurrentItems();
+    m_currentIds.clear();
+    foreach (QString id, ids) {
+        m_currentIds.push_back(id);
+    }
+    updateNewAndCurrentItems();
 }
 
 void HistoryWidget::showUncommittedChanges(bool show)
@@ -84,8 +87,7 @@ void HistoryWidget::parseNewLog(QString log)
     DEBUG << "HistoryWidget::parseNewLog: log has " << log.length() << " chars" << endl;
     Changesets csets = Changeset::parseChangesets(log);
     DEBUG << "HistoryWidget::parseNewLog: log has " << csets.size() << " changesets" << endl;
-    clearChangesets();
-    m_changesets = csets;
+    replaceChangesets(csets);
     layoutAll();
 }
     
@@ -95,10 +97,45 @@ void HistoryWidget::parseIncrementalLog(QString log)
     Changesets csets = Changeset::parseChangesets(log);
     DEBUG << "HistoryWidget::parseIncrementalLog: log has " << csets.size() << " changesets" << endl;
     if (!csets.empty()) {
-        csets << m_changesets;
-        m_changesets = csets;
+        addChangesets(csets);
         layoutAll();
     }
+}
+
+void HistoryWidget::replaceChangesets(Changesets csets)
+{
+    QSet<QString> oldIds;
+    foreach (Changeset *cs, m_changesets) {
+        oldIds.insert(cs->id());
+    }
+
+    QSet<QString> newIds;
+    foreach (Changeset *cs, csets) {
+        if (!oldIds.contains(cs->id())) {
+            newIds.insert(cs->id());
+        }
+    }
+
+    if (newIds.size() == csets.size()) {
+        // completely new set, unrelated to the old: don't mark new
+        m_newIds.clear();
+    } else {
+        m_newIds = newIds;
+    }
+
+    clearChangesets();
+    m_changesets = csets;
+}
+
+void HistoryWidget::addChangesets(Changesets csets)
+{
+    m_newIds.clear();
+    foreach (Changeset *cs, csets) {
+        m_newIds.insert(cs->id());
+    }
+
+    csets << m_changesets;
+    m_changesets = csets;
 }
 
 void HistoryWidget::layoutAll()
@@ -128,7 +165,7 @@ void HistoryWidget::layoutAll()
     if (oldScene) delete oldScene;
     if (tipItem) tipItem->ensureVisible();
 
-    updateCurrentItems();
+    updateNewAndCurrentItems();
 }
 
 void HistoryWidget::setChangesetParents()
@@ -147,20 +184,32 @@ void HistoryWidget::setChangesetParents()
     }
 }
 
-void HistoryWidget::updateCurrentItems()
+void HistoryWidget::updateNewAndCurrentItems()
 {
     QGraphicsScene *scene = m_panned->scene();
     if (!scene) return;
+
     QList<QGraphicsItem *> items = scene->items();
     foreach (QGraphicsItem *it, items) {
+
         ChangesetItem *csit = dynamic_cast<ChangesetItem *>(it);
-        if (csit) {
-            QString id = csit->getChangeset()->id();
-            bool current = m_currentIds.contains(id);
-            if (current) {
-                DEBUG << "id " << id << " is current" << endl;
-            }
-            csit->setCurrent(current);
+        if (!csit) continue;
+
+        QString id = csit->getChangeset()->id();
+
+        bool current = m_currentIds.contains(id);
+        if (current) {
+            DEBUG << "id " << id << " is current" << endl;
+        }
+        bool newid = m_newIds.contains(id);
+        if (newid) {
+            DEBUG << "id " << id << " is new" << endl;
+        }
+        
+        csit->setCurrent(current);
+        csit->setNew(newid);
+        
+        if (current) {
             m_uncommitted->setRow(csit->row() - 1);
             m_uncommitted->setColumn(csit->column());
             m_uncommitted->setWide(csit->isWide());
@@ -168,4 +217,3 @@ void HistoryWidget::updateCurrentItems()
         }
     }
 }
-

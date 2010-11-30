@@ -44,6 +44,32 @@ Panned::resizeEvent(QResizeEvent *ev)
     if (pr != m_pannedRect) {
         DEBUG << "Panned: setting panned rect to " << pr << endl;
         m_pannedRect = pr;
+        centerOn(pr.center());
+        emit pannedRectChanged(pr);
+    }
+}
+
+void
+Panned::setScene(QGraphicsScene *s)
+{
+    if (!scene()) {
+        QGraphicsView::setScene(s);
+        return;
+    }
+
+    QPointF nearpt = mapToScene(0, 0);
+    QPointF farpt = mapToScene(width(), height());
+    QSizeF sz(farpt.x()-nearpt.x(), farpt.y()-nearpt.y());
+    QRectF pr(nearpt, sz);
+
+    QGraphicsView::setScene(s);
+
+    DEBUG << "Panned::setScene: pr = " << pr << ", sceneRect = " << sceneRect() << endl;
+
+    if (scene() && sceneRect().intersects(pr)) {
+        DEBUG << "Panned::setScene: restoring old rect " << pr << endl;
+        m_pannedRect = pr;
+        centerOn(pr.center());
         emit pannedRectChanged(pr);
     }
 }
@@ -63,6 +89,7 @@ Panned::drawForeground(QPainter *paint, const QRectF &)
     QRectF pr(nearpt, sz);
 
     if (pr != m_pannedRect) {
+        DEBUG << "Panned::drawForeground: visible rect " << pr << " differs from panned rect " << m_pannedRect << ", updating panned rect" <<endl;
         if (pr.x() != m_pannedRect.x()) emit pannedContentsScrolled();
         m_pannedRect = pr;
         emit pannedRectChanged(pr);
