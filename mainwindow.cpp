@@ -447,36 +447,39 @@ void MainWindow::hgFolderDiff()
 
     // Diff parent against working folder (folder diff)
 
-    params << "--config" << "extensions.extdiff=" << "extdiff" << "-p";
-    params << diffBinaryName;
+    params << "--config" << "extensions.extdiff=" << "extdiff";
+    params << "--program" << diffBinaryName;
 
     runner->requestAction(HgAction(ACT_FOLDERDIFF, workFolderPath, params));
 }
 
 
-void MainWindow::hgChgSetDiff()
+void MainWindow::hgDiffToCurrent(QString id)
 {
-        QStringList params;
+    QStringList params;
 
-        //Diff 2 history log versions against each other
-        QString revA;
-        QString revB;
-/*!!!
-        hgTabs -> getHistoryDiffRevisions(revA, revB);
+    // Diff given revision against working folder
 
-        if ((!revA.isEmpty()) && (!revB.isEmpty()))
-        {
-            params << "kdiff3" << "--rev" << revA << "--rev" << revB;
-            runner -> startHgCommand(workFolderPath, params);
-            runningAction = ACT_CHGSETDIFF;
-        }
-        else
-        {
-            QMessageBox::information(this, tr("Changeset diff"), tr("Please select two changesets from history list or heads list first."));
-        }
-        */
+    params << "--config" << "extensions.extdiff=" << "extdiff";
+    params << "--program" << diffBinaryName;
+    params << "--rev" << id;
+
+    runner->requestAction(HgAction(ACT_FOLDERDIFF, workFolderPath, params));
 }
 
+
+void MainWindow::hgDiffToParent(QString child, QString parent)
+{
+    QStringList params;
+
+    // Diff given revision against working folder
+
+    params << "--config" << "extensions.extdiff=" << "extdiff";
+    params << "--program" << diffBinaryName;
+    params << "--rev" << parent << "--rev" << child;
+
+    runner->requestAction(HgAction(ACT_CHGSETDIFF, workFolderPath, params));
+}
 
 
 void MainWindow::hgUpdate()
@@ -489,23 +492,13 @@ void MainWindow::hgUpdate()
 }
 
 
-void MainWindow::hgUpdateToRev()
+void MainWindow::hgUpdateToRev(QString id)
 {
-        QStringList params;
-        QString rev;
-/*!!!
-        hgTabs -> getUpdateToRevRevision(rev);
+    QStringList params;
 
-        hgTabs -> setCurrentIndex(WORKTAB);
-        enableDisableActions();
+    params << "update" << "--rev" << id << "--check";
 
-        params << "update" << "--rev" << rev << "--clean";
-
-        runner -> startHgCommand(workFolderPath, params);
-
-        runningAction = ACT_UPDATE;
-        */
-
+    runner->requestAction(HgAction(ACT_UPDATE, workFolderPath, params));
 }
 
 
@@ -548,6 +541,17 @@ void MainWindow::hgMerge()
     QStringList params;
 
     params << "merge";
+    
+    runner->requestAction(HgAction(ACT_MERGE, workFolderPath, params));
+}
+
+
+void MainWindow::hgMergeFrom(QString id)
+{
+    QStringList params;
+
+    params << "merge";
+    params << "--rev" << id;
     
     runner->requestAction(HgAction(ACT_MERGE, workFolderPath, params));
 }
@@ -1391,7 +1395,7 @@ void MainWindow::connectActions()
 
 //    connect(hgTabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
-    connect(hgUpdateToRevAct, SIGNAL(triggered()), this, SLOT(hgUpdateToRev()));
+//    connect(hgUpdateToRevAct, SIGNAL(triggered()), this, SLOT(hgUpdateToRev()));
     connect(hgAnnotateAct, SIGNAL(triggered()), this, SLOT(hgAnnotate()));
     connect(hgResolveListAct, SIGNAL(triggered()), this, SLOT(hgResolveList()));
     connect(hgResolveMarkAct, SIGNAL(triggered()), this, SLOT(hgResolveMark()));
@@ -1409,21 +1413,21 @@ void MainWindow::connectTabsSignals()
     
     connect(hgTabs, SIGNAL(diffWorkingFolder()),
             this, SLOT(hgFolderDiff()));
-/*!!!!
+
     connect(hgTabs, SIGNAL(updateTo(QString)),
-            this, SIGNAL(updateTo(QString)));
+            this, SLOT(hgUpdateToRev(QString)));
 
     connect(hgTabs, SIGNAL(diffToCurrent(QString)),
-            this, SIGNAL(diffToCurrent(QString)));
+            this, SLOT(hgDiffToCurrent(QString)));
 
-    connect(hgTabs, SIGNAL(diffToPrevious(QString)),
-            this, SIGNAL(diffToPrevious(QString)));
+    connect(hgTabs, SIGNAL(diffToParent(QString, QString)),
+            this, SLOT(hgDiffToParent(QString, QString)));
 
     connect(hgTabs, SIGNAL(mergeFrom(QString)),
-            this, SIGNAL(mergeFrom(QString)));
-
+            this, SLOT(hgMergeFrom(QString)));
+/*
     connect(hgTabs, SIGNAL(tag(QString)),
-            this, SIGNAL(tag(QString)));
+            this, SLOT(hgTag(QString)));
 */
 }    
 
@@ -1635,9 +1639,9 @@ void MainWindow::createActions()
     hgMergeAct->setStatusTip(tr("Merge two local repository changesets to working folder"));
 
     //Advanced actions
-    hgUpdateToRevAct = new QAction(tr("Update to revision"), this);
+/*    hgUpdateToRevAct = new QAction(tr("Update to revision"), this);
     hgUpdateToRevAct -> setStatusTip(tr("Update working folder to version selected from history list"));
-
+*/
     hgAnnotateAct = new QAction(tr("Annotate"), this);
     hgAnnotateAct -> setStatusTip(tr("Show line-by-line version information for selected file"));
 

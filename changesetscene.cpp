@@ -38,8 +38,8 @@ ChangesetScene::addChangesetItem(ChangesetItem *item)
     connect(item, SIGNAL(diffToCurrent(QString)),
             this, SIGNAL(diffToCurrent(QString)));
 
-    connect(item, SIGNAL(diffToPrevious(QString)),
-            this, SIGNAL(diffToPrevious(QString)));
+    connect(item, SIGNAL(diffToParent(QString, QString)),
+            this, SIGNAL(diffToParent(QString, QString)));
 
     connect(item, SIGNAL(mergeFrom(QString)),
             this, SIGNAL(mergeFrom(QString)));
