@@ -48,8 +48,7 @@ public:
     void setWorkFolderAndRepoNames(QString workFolderPath, QString remoteRepoPath);
     void setState(QString state);
 
-    void setCurrent(QStringList ids);
-    void showUncommittedChanges(bool);
+    void setCurrent(QStringList ids, bool showUncommittedChanges);
 
     FileStates getFileStates() { return m_fileStates; }
 

@@ -743,6 +743,15 @@ void MainWindow::open()
     }
 }
 
+void MainWindow::open(QString local)
+{
+    if (openLocal(local)) {
+        enableDisableActions();
+        clearState();
+        hgQueryPaths();
+    }
+}
+
 bool MainWindow::complainAboutFilePath(QString arg)
 {    
     QMessageBox::critical
@@ -1435,8 +1444,8 @@ void MainWindow::enableDisableActions()
 
     QDir localRepoDir;
     QDir workFolderDir;
-    bool workFolderExist;
-    bool localRepoExist;
+    bool workFolderExist = true;
+    bool localRepoExist = true;
 
     remoteRepoActionsEnabled = true;
     if (remoteRepoPath.isEmpty()) {
@@ -1544,8 +1553,7 @@ void MainWindow::enableDisableActions()
 
     QStringList ids;
     foreach (Changeset *cs, currentParents) ids.push_back(cs->id());
-    hgTabs->setCurrent(ids);
-    hgTabs->showUncommittedChanges(hgTabs->canCommit());
+    hgTabs->setCurrent(ids, hgTabs->canCommit());
 
     // Set the state field on the file status widget
 

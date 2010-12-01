@@ -32,9 +32,6 @@ HistoryWidget::HistoryWidget()
 {
     m_panned = new Panned;
     m_panner = new Panner;
-    m_uncommitted = new UncommittedItem();
-    m_uncommitted->setRow(-1);
-    m_uncommittedVisible = false;
 
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(m_panned, 0, 0);
@@ -48,7 +45,11 @@ HistoryWidget::HistoryWidget()
 HistoryWidget::~HistoryWidget()
 {
     clearChangesets();
-    if (!m_uncommittedVisible) delete m_uncommitted;
+}
+
+QGraphicsScene *HistoryWidget::scene()
+{
+    return m_panned->scene();
 }
 
 void HistoryWidget::clearChangesets()
@@ -57,29 +58,25 @@ void HistoryWidget::clearChangesets()
     m_changesets.clear();
 }
 
-void HistoryWidget::setCurrent(QStringList ids)
+void HistoryWidget::setCurrent(QStringList ids, bool showUncommitted)
 {
-    if (m_currentIds == ids) return;
-    DEBUG << "HistoryWidget::setCurrent: " << ids.size() << " ids" << endl;
+    if (m_currentIds == ids && m_showUncommitted == showUncommitted) return;
+
+    DEBUG << "HistoryWidget::setCurrent: " << ids.size() << " ids, "
+          << "showUncommitted: " << showUncommitted << endl;
+
     m_currentIds.clear();
+    m_uncommittedParentId = "";
+    m_showUncommitted = showUncommitted;
+
+    if (ids.empty()) return;
+
     foreach (QString id, ids) {
         m_currentIds.push_back(id);
     }
-    updateNewAndCurrentItems();
-}
 
-void HistoryWidget::showUncommittedChanges(bool show)
-{
-    if (m_uncommittedVisible == show) return;
-    m_uncommittedVisible = show;
-    ChangesetScene *scene = qobject_cast<ChangesetScene *>(m_panned->scene());
-    if (!scene) return;
-    if (m_uncommittedVisible) {
-        scene->addUncommittedItem(m_uncommitted);
-        m_uncommitted->ensureVisible();
-    } else {
-        scene->removeItem(m_uncommitted);
-    }
+    if (m_showUncommitted) m_uncommittedParentId = m_currentIds[0];
+    layoutAll();
 }
     
 void HistoryWidget::parseNewLog(QString log)
@@ -152,30 +149,24 @@ void HistoryWidget::layoutAll()
 
     QGraphicsScene *oldScene = m_panned->scene();
 
-    // detach m_uncommitted from old scene so it doesn't get deleted
-    if (oldScene && (m_uncommitted->scene() == oldScene)) {
-        oldScene->removeItem(m_uncommitted);
-    }
-
     m_panned->setScene(0);
     m_panner->setScene(0);
 
     delete oldScene;
 
+    QGraphicsItem *toFocus = 0;
+
     if (!m_changesets.empty()) {
 	Grapher g(scene);
 	try {
-	    g.layout(m_changesets);
+	    g.layout(m_changesets, m_uncommittedParentId);
 	} catch (std::string s) {
 	    std::cerr << "Internal error: Layout failed: " << s << std::endl;
 	}
-	tipItem = g.getItemFor(m_changesets[0]);
-        DEBUG << "tipItem is " << tipItem << " for tip changeset " 
-              << m_changesets[0]->id() << endl;
-    }
-
-    if (m_uncommittedVisible) {
-        scene->addUncommittedItem(m_uncommitted);
+        toFocus = g.getUncommittedItem();
+        if (!toFocus) {
+            toFocus = g.getItemFor(m_changesets[0]);
+        }
     }
 
     m_panned->setScene(scene);
@@ -183,12 +174,8 @@ void HistoryWidget::layoutAll()
 
     updateNewAndCurrentItems();
 
-    if (m_uncommittedVisible) {
-        DEBUG << "asking uncommitted item to be visible" << endl;
-        m_uncommitted->ensureVisible();
-    } else if (tipItem) {
-        DEBUG << "asking tip item to be visible" << endl;
-        tipItem->ensureVisible();
+    if (toFocus) {
+        toFocus->ensureVisible();
     }
 
     connectSceneSignals();
@@ -237,13 +224,6 @@ void HistoryWidget::updateNewAndCurrentItems()
         
         csit->setCurrent(current);
         csit->setNew(newid);
-        
-        if (current) {
-            m_uncommitted->setRow(csit->row() - 1);
-            m_uncommitted->setColumn(csit->column());
-            m_uncommitted->setWide(csit->isWide());
-            m_uncommitted->setBranch(csit->getChangeset()->branch());
-        }
     }
 }
 

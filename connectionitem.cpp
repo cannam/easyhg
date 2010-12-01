@@ -16,6 +16,7 @@
 */
 
 #include "connectionitem.h"
+#include "uncommitteditem.h"
 
 #include "changesetitem.h"
 #include "changeset.h"
@@ -26,33 +27,49 @@
 QRectF
 ConnectionItem::boundingRect() const
 {
-    if (!m_parent || !m_child) return QRectF();
+    if (!m_parent || !(m_child || m_uncommitted)) return QRectF();
     float xscale = 100;
     float yscale = 90;
     float size = 50;
-    return QRectF(xscale * m_child->column() + size/2 - 2,
-		  yscale * m_child->row() + size - 2,
-		  xscale * m_parent->column() - xscale * m_child->column() + 4,
-		  yscale * m_parent->row() - yscale * m_child->row() - size + 4)
+
+    int p_col = m_parent->column(), p_row = m_parent->row();
+    int c_col, c_row;
+    if (m_child) {
+        c_col = m_child->column(); c_row = m_child->row();
+    } else {
+        c_col = m_uncommitted->column(); c_row = m_uncommitted->row();
+    }
+
+    return QRectF(xscale * c_col + size/2 - 2,
+		  yscale * c_row + size - 2,
+		  xscale * p_col - xscale * c_col + 4,
+		  yscale * p_row - yscale * c_row - size + 4)
 	.normalized();
 }
 
 void
 ConnectionItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget *)
 {
+    if (!m_parent || !(m_child || m_uncommitted)) return;
     QPainterPath p;
 
     paint->save();
 
     ColourSet *colourSet = ColourSet::instance();
-    QColor branchColour = colourSet->getColourFor(m_child->getChangeset()->branch());
+    QString branch;
+    if (m_child) branch = m_child->getChangeset()->branch();
+    else branch = m_uncommitted->branch();
+    QColor branchColour = colourSet->getColourFor(branch);
+
+    Qt::PenStyle ls = Qt::SolidLine;
+    if (!m_child) ls = Qt::DashLine;
 
     QTransform t = paint->worldTransform();
     float scale = std::min(t.m11(), t.m22());
-    if (scale < 0.1) {
-	paint->setPen(QPen(branchColour, 0));
+    if (scale < 0.2) {
+	paint->setPen(QPen(branchColour, 0, ls));
     } else {
-	paint->setPen(QPen(branchColour, 2));
+	paint->setPen(QPen(branchColour, 2, ls));
     }
 
     float xscale = 100;
@@ -61,8 +78,13 @@ ConnectionItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget
     float size = 50;
     float ygap = yscale - size;
 
-    int c_col = m_child->column(), c_row = m_child->row();
     int p_col = m_parent->column(), p_row = m_parent->row();
+    int c_col, c_row;
+    if (m_child) {
+        c_col = m_child->column(); c_row = m_child->row();
+    } else {
+        c_col = m_uncommitted->column(); c_row = m_uncommitted->row();
+    }
 
     float c_x = xscale * c_col + size/2;
     float p_x = xscale * p_col + size/2;

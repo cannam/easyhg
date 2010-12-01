@@ -188,7 +188,7 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
         paint->drawRect(QRectF(x0 - 4, -4, width + 5, height + 8));
     }
 
-    if (scale < 0.1) {
+    if (scale < 0.2) {
 	paint->restore();
 	return;
     }
