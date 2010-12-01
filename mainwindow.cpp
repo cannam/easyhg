@@ -1273,7 +1273,6 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     case ACT_COMMIT:
         hgTabs->clearSelections();
         shouldHgStat = true;
-        needNewLog = true; // naive incremental log will give us a duplicate tip tag
         break;
         
     case ACT_REMOVE:

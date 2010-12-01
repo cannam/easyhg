@@ -204,12 +204,26 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
 
     paint->setPen(QPen(Qt::black));
 
-    QString tags = m_changeset->tags().join(" ").trimmed();
-    if (tags != "") {
-        int tw = fm.width(tags);
-        paint->fillRect(QRectF(x0 + width - 8 - tw, 1, tw + 4, fh - 1),
-                        QBrush(Qt::yellow));
-        paint->drawText(x0 + width - 6 - tw, fm.ascent(), tags);
+    QStringList tags = m_changeset->tags();
+    if (!tags.empty()) {
+        QStringList nonTipTags;
+        foreach (QString t, tags) {
+            // I'm not convinced that showing the tip tag really
+            // works; I think perhaps it confuses as much as it
+            // illuminates.  But also, our current implementation
+            // doesn't interact well with it because it moves -- it's
+            // the one thing that can actually (in normal use) change
+            // inside an existing changeset record even during an
+            // incremental update
+            if (t != "tip") nonTipTags.push_back(t);
+        }
+        if (!nonTipTags.empty()) {
+            QString tagText = nonTipTags.join(" ").trimmed();
+            int tw = fm.width(tagText);
+            paint->fillRect(QRectF(x0 + width - 8 - tw, 1, tw + 4, fh - 1),
+                            QBrush(Qt::yellow));
+            paint->drawText(x0 + width - 6 - tw, fm.ascent(), tagText);
+        }
     }
 
     if (m_showBranch) {

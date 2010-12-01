@@ -221,9 +221,12 @@ void HistoryWidget::updateNewAndCurrentItems()
         if (newid) {
             DEBUG << "id " << id << " is new" << endl;
         }
-        
-        csit->setCurrent(current);
-        csit->setNew(newid);
+
+        if (csit->isCurrent() != current || csit->isNew() != newid) {
+            csit->setCurrent(current);
+            csit->setNew(newid);
+            csit->update();
+        }
     }
 }
 
