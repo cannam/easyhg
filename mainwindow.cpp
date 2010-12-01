@@ -1376,7 +1376,7 @@ void MainWindow::connectActions()
     connect(hgCommitAct, SIGNAL(triggered()), this, SLOT(hgCommit()));
     connect(hgFileDiffAct, SIGNAL(triggered()), this, SLOT(hgFileDiff()));
     connect(hgFolderDiffAct, SIGNAL(triggered()), this, SLOT(hgFolderDiff()));
-    connect(hgChgSetDiffAct, SIGNAL(triggered()), this, SLOT(hgChgSetDiff()));
+//    connect(hgChgSetDiffAct, SIGNAL(triggered()), this, SLOT(hgChgSetDiff()));
     connect(hgUpdateAct, SIGNAL(triggered()), this, SLOT(hgUpdate()));
     connect(hgRevertAct, SIGNAL(triggered()), this, SLOT(hgRevert()));
     connect(hgMergeAct, SIGNAL(triggered()), this, SLOT(hgMerge()));

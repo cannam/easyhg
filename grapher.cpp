@@ -401,7 +401,7 @@ void Grapher::layout(Changesets csets, QString uncommittedSproutsFrom)
 
     if (m_uncommittedParentId != "") {
         m_uncommitted = new UncommittedItem();
-        m_scene->addItem(m_uncommitted);
+        m_scene->addUncommittedItem(m_uncommitted);
         ConnectionItem *conn = new ConnectionItem();
         conn->setParent(m_items[m_uncommittedParentId]);
         conn->setChild(m_uncommitted);
