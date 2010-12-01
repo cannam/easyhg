@@ -60,8 +60,8 @@ signals:
     void detailHidden();
 
     void updateTo(QString);
-    void diffToPrevious(QString);
     void diffToCurrent(QString);
+    void diffToParent(QString child, QString parent);
     void mergeFrom(QString);
     void tag(QString);
 

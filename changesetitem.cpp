@@ -128,13 +128,13 @@ ChangesetItem::activateMenu()
     QAction *tag = menu->addAction(tr("Tag this revision"));
     connect(tag, SIGNAL(triggered()), this, SLOT(tagActivated()));
 
-    QAction *a = menu->exec(QCursor::pos());
+    menu->exec(QCursor::pos());
+
     ungrabMouse();
-    if (a) a->trigger();
 }
 
 void ChangesetItem::updateActivated() { emit updateTo(getId()); }
-void ChangesetItem::diffToPreviousActivated() { emit diffToPrevious(getId()); }
+void ChangesetItem::diffToPreviousActivated() { emit diffToParent(getId(), m_changeset->parents()[0]); } //!!! no, this is most likely to be useful when something has more than one parent!
 void ChangesetItem::diffToCurrentActivated() { emit diffToCurrent(getId()); }
 void ChangesetItem::mergeActivated() { emit mergeFrom(getId()); }
 void ChangesetItem::tagActivated() { emit tag(getId()); }

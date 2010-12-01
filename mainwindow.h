@@ -76,7 +76,8 @@ private slots:
     void hgCommit();
     void hgFileDiff();
     void hgFolderDiff();
-    void hgChgSetDiff();
+    void hgDiffToCurrent(QString);
+    void hgDiffToParent(QString, QString);
     void hgUpdate();
     void hgRevert();
     void hgMerge();
@@ -86,7 +87,8 @@ private slots:
     void hgIncoming();
     void hgPush();
     void hgPull();
-    void hgUpdateToRev();
+    void hgUpdateToRev(QString);
+    void hgMergeFrom(QString);
     void hgAnnotate();
     void hgResolveList();
     void hgResolveMark();

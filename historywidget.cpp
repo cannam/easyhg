@@ -250,8 +250,8 @@ void HistoryWidget::connectSceneSignals()
     connect(scene, SIGNAL(diffToCurrent(QString)),
             this, SIGNAL(diffToCurrent(QString)));
 
-    connect(scene, SIGNAL(diffToPrevious(QString)),
-            this, SIGNAL(diffToPrevious(QString)));
+    connect(scene, SIGNAL(diffToParent(QString, QString)),
+            this, SIGNAL(diffToParent(QString, QString)));
 
     connect(scene, SIGNAL(mergeFrom(QString)),
             this, SIGNAL(mergeFrom(QString)));
