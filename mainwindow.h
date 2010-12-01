@@ -57,8 +57,8 @@ protected:
 
 public slots:
     void hgRefresh();
-    void commandCompleted(HgAction action, QString stdout);
-    void commandFailed(HgAction action, QString stdout);
+    void commandCompleted(HgAction action, QString stdOut);
+    void commandFailed(HgAction action, QString stdErr);
     void enableDisableActions();
 
 private slots:

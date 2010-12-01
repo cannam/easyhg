@@ -39,8 +39,8 @@ public:
     void requestAction(HgAction action);
 
 signals:
-    void commandCompleted(HgAction action, QString stdout);
-    void commandFailed(HgAction action, QString stderr);
+    void commandCompleted(HgAction action, QString stdOut);
+    void commandFailed(HgAction action, QString stdErr);
 
 private slots:
     void started();
