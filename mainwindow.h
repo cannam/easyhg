@@ -56,6 +56,7 @@ protected:
     void closeEvent(QCloseEvent *event);
 
 public slots:
+    void open(QString local);
     void hgRefresh();
     void commandCompleted(HgAction action, QString stdOut);
     void commandFailed(HgAction action, QString stdErr);

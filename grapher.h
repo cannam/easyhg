@@ -20,6 +20,7 @@
 
 #include "changeset.h"
 #include "changesetitem.h"
+#include "uncommitteditem.h"
 #include "changesetscene.h"
 
 #include <QSet>
@@ -33,9 +34,11 @@ class Grapher
 public:
     Grapher(ChangesetScene *scene) { m_scene = scene; }
 
-    void layout(Changesets csets);
+    void layout(Changesets csets, QString uncommittedSproutsFrom = "");
 
     ChangesetItem *getItemFor(Changeset *cs);
+
+    UncommittedItem *getUncommittedItem() { return m_uncommitted; }
 
     class LayoutException : public std::exception {
     public:
@@ -74,11 +77,17 @@ private:
     typedef QMap<int, QString> RowDateMap;
     RowDateMap m_rowDates;
 
+    QString m_uncommittedParentId;
+    int m_uncommittedParentRow;
+    UncommittedItem *m_uncommitted;
+    bool m_haveAllocatedUncommittedColumn;
+
     void layoutRow(QString id);
     void layoutCol(QString id);
     void allocateBranchHomes(Changesets csets);
     bool rangesConflict(const Range &r1, const Range &r2);
     int findAvailableColumn(int row, int parent, bool preferParentCol);
+    bool isAvailable(int row, int col);
 };
 
 #endif 

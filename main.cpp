@@ -15,11 +15,12 @@
     COPYING included with this distribution for more information.
 */
 
-#include <QApplication>
-
 #include "mainwindow.h"
 #include "common.h"
 #include "debug.h"
+
+#include <QApplication>
+#include <QDir>
 
 int main(int argc, char *argv[])
 {
@@ -34,7 +35,18 @@ int main(int argc, char *argv[])
     installSignalHandlers();
 
     QApplication app(argc, argv);
+    QStringList args = app.arguments();
     MainWindow mainWin;
     mainWin.show();
+
+    if (args.size() == 2) {
+        QString path = args[1];
+        DEBUG << "Opening " << args[1] << endl;
+        if (QDir(path).exists()) {
+            path = QDir(path).canonicalPath();
+            mainWin.open(path);
+        }
+    }
+
     return app.exec();
 }

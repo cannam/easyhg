@@ -23,6 +23,7 @@
 class Connection;
 
 class ChangesetItem;
+class UncommittedItem;
 
 class ConnectionItem : public QGraphicsItem
 {
@@ -41,18 +42,20 @@ public:
     Type connectionType() const { return m_type; }
     void setConnectionType(Type t) { m_type = t; }
 
-    //!!! deletion signals from parent/child
+    //!!! deletion signals from parent/child?
 
     ChangesetItem *parent() { return m_parent; }
     ChangesetItem *child() { return m_child; }
 
     void setParent(ChangesetItem *p) { m_parent = p; }
     void setChild(ChangesetItem *c) { m_child = c; }
+    void setChild(UncommittedItem *u) { m_uncommitted = u; }
 
 private:
     Type m_type;
     ChangesetItem *m_parent;
     ChangesetItem *m_child;
+    UncommittedItem *m_uncommitted;
 };
 
 #endif // CONNECTIONITEM_H

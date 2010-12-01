@@ -27,22 +27,28 @@ int Grapher::findAvailableColumn(int row, int parent, bool preferParentCol)
 {
     int col = parent;
     if (preferParentCol) {
-        if (!m_alloc[row].contains(col)) {
-            return col;
-        }
+        if (isAvailable(row, col)) return col;
     }
     while (col > 0) {
-        if (!m_alloc[row].contains(--col)) return col;
+        if (isAvailable(row, --col)) return col;
     }
     while (col < 0) {
-        if (!m_alloc[row].contains(++col)) return col;
+        if (isAvailable(row, ++col)) return col;
     }
     col = parent;
     int sign = (col < 0 ? -1 : 1);
     while (1) {
         col += sign;
-        if (!m_alloc[row].contains(col)) return col;
+        if (isAvailable(row, col)) return col;
     }
+}
+
+bool Grapher::isAvailable(int row, int col)
+{
+    if (m_alloc.contains(row) && m_alloc[row].contains(col)) return false;
+    if (!m_haveAllocatedUncommittedColumn) return true;
+    if (!m_uncommitted) return true;
+    return !(row <= m_uncommittedParentRow && col == m_uncommitted->column());
 }
 
 void Grapher::layoutRow(QString id)
@@ -100,6 +106,12 @@ void Grapher::layoutRow(QString id)
 
     if (!m_rowDates.contains(row)) {
         m_rowDates[row] = date;
+    }
+
+    // If we're the parent of the uncommitted item, make a note of our
+    // row (we need it later, to avoid overwriting the connecting line)
+    if (m_uncommittedParentId == id) {
+        m_uncommittedParentRow = row;
     }
 
     DEBUG << "putting " << cs->id().toStdString() << " at row " << row 
@@ -185,6 +197,15 @@ void Grapher::layoutCol(QString id)
     m_alloc[row].insert(col);
     item->setColumn(col);
     m_handled.insert(id);
+
+    // If we're the parent of the uncommitted item, it should be given
+    // the same column as us (ideally)
+
+    if (m_uncommittedParentId == id) {
+        int ucol = findAvailableColumn(row-1, col, true);
+        m_uncommitted->setColumn(ucol);
+        m_haveAllocatedUncommittedColumn = true;
+    }
 
     // Normally the children will lay out themselves, but we can do
     // a better job in some special cases:
@@ -306,39 +327,46 @@ void Grapher::allocateBranchHomes(Changesets csets)
 }
 
 static bool
-        compareChangesetsByDate(Changeset *const &a, Changeset *const &b)
+compareChangesetsByDate(Changeset *const &a, Changeset *const &b)
 {
     return a->timestamp() < b->timestamp();
 }
 
 ChangesetItem *
-        Grapher::getItemFor(Changeset *cs)
+Grapher::getItemFor(Changeset *cs)
 {
     if (!cs || !m_items.contains(cs->id())) return 0;
     return m_items[cs->id()];
 }
 
-void Grapher::layout(Changesets csets)
+void Grapher::layout(Changesets csets, QString uncommittedSproutsFrom)
 {
     m_changesets.clear();
     m_items.clear();
     m_alloc.clear();
     m_branchHomes.clear();
 
+    m_uncommittedParentId = uncommittedSproutsFrom;
+    m_haveAllocatedUncommittedColumn = false;
+    m_uncommittedParentRow = 0;
+    m_uncommitted = 0;
+
     DEBUG << "Grapher::layout: Have " << csets.size() << " changesets" << endl;
 
     if (csets.empty()) return;
 
+    // Create (but don't yet position) the changeset items
+
     foreach (Changeset *cs, csets) {
 
         QString id = cs->id();
-//        DEBUG << id.toStdString() << endl;
 
         if (id == "") {
             throw LayoutException("Changeset has no ID");
         }
         if (m_changesets.contains(id)) {
-            DEBUG << "Duplicate changeset ID " << id << " in Grapher::layout()" << endl;
+            DEBUG << "Duplicate changeset ID " << id
+                  << " in Grapher::layout()" << endl;
             throw LayoutException(QString("Duplicate changeset ID %1").arg(id));
         }
 
@@ -368,8 +396,20 @@ void Grapher::layout(Changesets csets)
             m_scene->addItem(conn);
         }
     }
+    
+    // Add uncommitted item and connecting line as necessary
+
+    if (m_uncommittedParentId != "") {
+        m_uncommitted = new UncommittedItem();
+        m_scene->addItem(m_uncommitted);
+        ConnectionItem *conn = new ConnectionItem();
+        conn->setParent(m_items[m_uncommittedParentId]);
+        conn->setChild(m_uncommitted);
+        m_scene->addItem(conn);
+    }
 
     // Add the branch labels
+
     foreach (Changeset *cs, csets) {
         QString id = cs->id();
         ChangesetItem *item = m_items[id];
@@ -394,7 +434,8 @@ void Grapher::layout(Changesets csets)
     qStableSort(csets.begin(), csets.end(), compareChangesetsByDate);
 
     foreach (Changeset *cs, csets) {
-        DEBUG << "id " << cs->id().toStdString() << ", ts " << cs->timestamp() << ", date " << cs->datetime().toStdString() << endl;
+        DEBUG << "id " << cs->id().toStdString() << ", ts " << cs->timestamp()
+              << ", date " << cs->datetime().toStdString() << endl;
     }
 
     m_handled.clear();
@@ -415,16 +456,10 @@ void Grapher::layout(Changesets csets)
         layoutCol(cs->id());
     }
 
-    foreach (Changeset *cs, csets) {
-        ChangesetItem *item = m_items[cs->id()];
-        if (!m_alloc[item->row()].contains(item->column()-1) &&
-            !m_alloc[item->row()].contains(item->column()+1)) {
-            item->setWide(true);
-        }
-    }
+    // Find row and column extents.  We know that 0 is an upper bound
+    // on row, and that mincol must be <= 0 and maxcol >= 0, so these
+    // initial values are good
 
-    // we know that 0 is an upper bound on row, and that mincol must
-    // be <= 0 and maxcol >= 0, so these initial values are good
     int minrow = 0, maxrow = 0;
     int mincol = 0, maxcol = 0;
 
@@ -438,11 +473,43 @@ void Grapher::layout(Changesets csets)
         }
     }
 
+    // We've given the uncommitted item a column, but not a row yet --
+    // it always goes at the top
+
+    if (m_uncommitted) {
+        --minrow;
+        DEBUG << "putting uncommitted item at row " << minrow << endl;
+        m_uncommitted->setRow(minrow);
+    }
+
+    // Changeset items that have nothing to either side of them can be
+    // made double-width
+
+    foreach (Changeset *cs, csets) {
+        ChangesetItem *item = m_items[cs->id()];
+        if (isAvailable(item->row(), item->column()-1) &&
+            isAvailable(item->row(), item->column()+1)) {
+            item->setWide(true);
+        }
+    }
+
+    if (m_uncommitted) {
+        if (isAvailable(m_uncommitted->row(), m_uncommitted->column()-1) &&
+            isAvailable(m_uncommitted->row(), m_uncommitted->column()+1)) {
+            m_uncommitted->setWide(true);
+        }
+    }
+
     QString prevDate;
     int changeRow = 0;
 
     bool even = false;
     int n = 0;
+
+    if (mincol == maxcol) {
+        --mincol;
+        ++maxcol;
+    }
 
     for (int row = minrow; row <= maxrow; ++row) {
 

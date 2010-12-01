@@ -26,6 +26,7 @@
 class Panned;
 class Panner;
 class UncommittedItem;
+class QGraphicsScene;
 
 class HistoryWidget : public QWidget
 {
@@ -35,8 +36,7 @@ public:
     HistoryWidget();
     virtual ~HistoryWidget();
 
-    void setCurrent(QStringList ids);
-    void showUncommittedChanges(bool);
+    void setCurrent(QStringList ids, bool showUncommitted);
 
     void parseNewLog(QString log);
     void parseIncrementalLog(QString log);
@@ -58,12 +58,13 @@ private:
     Changesets m_changesets;
     QStringList m_currentIds;
     QSet<QString> m_newIds;
-    UncommittedItem *m_uncommitted;
-    bool m_uncommittedVisible;
+    bool m_showUncommitted;
+    QString m_uncommittedParentId;
 
     Panned *m_panned;
     Panner *m_panner;
 
+    QGraphicsScene *scene();
     void clearChangesets();
     void replaceChangesets(Changesets);
     void addChangesets(Changesets);

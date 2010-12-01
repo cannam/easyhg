@@ -113,10 +113,21 @@ UncommittedItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     QRectF r(x0, 0, width - 3, height);
     paint->drawRect(r);
 
-    paint->drawLine(x0 + width/2, height, x0 + width/2, height + 40);
-
-    QString label = tr("Uncommitted changes");
-    paint->drawText(-(fm.width(label) - 50)/2, 25 - fm.height()/2 + fm.ascent(), label);
+    if (m_wide) {
+        QString label = tr("Uncommitted changes");
+        paint->drawText(-(fm.width(label) - 50)/2,
+                        25 - fm.height()/2 + fm.ascent(),
+                        label);
+    } else {
+        QString label = tr("Uncommitted");
+        paint->drawText(-(fm.width(label) - 50)/2,
+                        25 - fm.height() + fm.ascent(),
+                        label);
+        label = tr("changes");
+        paint->drawText(-(fm.width(label) - 50)/2,
+                        25 + fm.ascent(),
+                        label);
+    }        
 
     paint->restore();
     return;
