@@ -338,6 +338,7 @@ void Grapher::layout(Changesets csets)
             throw LayoutException("Changeset has no ID");
         }
         if (m_changesets.contains(id)) {
+            DEBUG << "Duplicate changeset ID " << id << " in Grapher::layout()" << endl;
             throw LayoutException(QString("Duplicate changeset ID %1").arg(id));
         }
 

@@ -1124,7 +1124,7 @@ void MainWindow::showPullResult(QString output)
     QMessageBox::information(this, "Pull complete", report);
 }
 
-void MainWindow::commandFailed(HgAction action, QString stderr)
+void MainWindow::commandFailed(HgAction action, QString output)
 {
     DEBUG << "MainWindow::commandFailed" << endl;
 
@@ -1137,7 +1137,7 @@ void MainWindow::commandFailed(HgAction action, QString stderr)
     case ACT_INCOMING:
         // returns non-zero code if the check was successful but there
         // are no changes pending
-        if (stderr.trimmed() == "") showIncoming("");
+        if (output.trimmed() == "") showIncoming("");
         return;
     case ACT_FOLDERDIFF:
     case ACT_FILEDIFF:
@@ -1162,9 +1162,9 @@ void MainWindow::commandFailed(HgAction action, QString stderr)
                          "<code>%1</code>"
                          "%2</qt>")
         .arg(command)
-        .arg((stderr.trimmed() != "") ?
+        .arg((output.trimmed() != "") ?
              tr("<p>Its output said:</p><code>%1</code>")
-             .arg(xmlEncode(stderr.left(800))
+             .arg(xmlEncode(output.left(800))
                   .replace("\n", "<br>"))
              : "");
 
