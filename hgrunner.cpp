@@ -308,8 +308,8 @@ void HgRunner::startCommand(HgAction action)
         } else {
             params.push_front("--noninteractive");
         }
-    }
 #endif
+    }
 
     m_isRunning = true;
     setRange(0, 0);
