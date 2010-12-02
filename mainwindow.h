@@ -207,6 +207,7 @@ private:
     QFileSystemWatcher *fsWatcher;
 
     bool justMerged;
+    QString mergeCommitComment;
 };
 
 #endif

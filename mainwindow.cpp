@@ -314,6 +314,10 @@ void MainWindow::hgCommit()
     QStringList params;
     QString comment;
 
+    if (justMerged) {
+        comment = mergeCommitComment;
+    }
+
     QStringList files = hgTabs->getSelectedCommittableFiles();
     QStringList reportFiles = files;
     if (reportFiles.empty()) reportFiles = hgTabs->getAllCommittableFiles();
@@ -330,17 +334,21 @@ void MainWindow::hgCommit()
          reportFiles,
          comment)) {
 
-        if ((justMerged == false) && //!!! review usage of justMerged, and how it interacts with asynchronous request queue
-            !files.empty()) {
-            // User wants to commit selected file(s) (and this is not merge commit, which would fail if we selected files)
-            params << "commit" << "--message" << comment << "--user" << getUserInfo() << "--" << files;
+        if (!justMerged && !files.empty()) {
+            // User wants to commit selected file(s) (and this is not
+            // merge commit, which would fail if we selected files)
+            params << "commit" << "--message" << comment
+                   << "--user" << getUserInfo() << "--" << files;
         } else {
             // Commit all changes
-            params << "commit" << "--message" << comment << "--user" << getUserInfo();
+            params << "commit" << "--message" << comment
+                   << "--user" << getUserInfo();
         }
         
         runner->requestAction(HgAction(ACT_COMMIT, workFolderPath, params));
     }
+    
+    justMerged = false;
 }
 
 QString MainWindow::filterTag(QString tag)
@@ -560,6 +568,8 @@ void MainWindow::hgMerge()
     params << "merge";
     
     runner->requestAction(HgAction(ACT_MERGE, workFolderPath, params));
+
+    mergeCommitComment = tr("Merge");
 }
 
 
@@ -571,6 +581,22 @@ void MainWindow::hgMergeFrom(QString id)
     params << "--rev" << Changeset::hashOf(id);
     
     runner->requestAction(HgAction(ACT_MERGE, workFolderPath, params));
+
+    mergeCommitComment = "";
+
+    foreach (Changeset *cs, currentHeads) {
+        if (cs->id() == id && !cs->isOnBranch(currentBranch)) {
+            if (cs->branch() == "" || cs->branch() == "default") {
+                mergeCommitComment = tr("Merge from the default branch");
+            } else {
+                mergeCommitComment = tr("Merge from branch \"%1\"").arg(cs->branch());
+            }
+        }
+    }
+
+    if (mergeCommitComment == "") {
+        mergeCommitComment = tr("Merge from %1").arg(id);
+    }
 }
 
 
@@ -1644,7 +1670,7 @@ void MainWindow::enableDisableActions()
     if (canMerge) {
         hgTabs->setState(tr("<b>Awaiting merge</b> on %1").arg(branchText));
     } else if (haveMerge) {
-        hgTabs->setState(tr("Have merged but not committed on %1").arg(branchText));
+        hgTabs->setState(tr("Have merged but not yet committed on %1").arg(branchText));
     } else if (canUpdate) {
         hgTabs->setState(tr("On %1. Not at the head of the branch: consider updating").arg(branchText));
     } else if (currentBranchHeads > 1) {
