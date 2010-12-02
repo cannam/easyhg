@@ -29,6 +29,8 @@
 #include <QAction>
 #include <QLabel>
 #include <QWidgetAction>
+#include <QApplication>
+#include <QClipboard>
 
 ChangesetItem::ChangesetItem(Changeset *cs) :
     m_changeset(cs), m_detail(0),
@@ -103,29 +105,53 @@ ChangesetItem::mousePressEvent(QGraphicsSceneMouseEvent *e)
 void
 ChangesetItem::activateMenu()
 {
+    m_parentDiffActions.clear();
+
     QMenu *menu = new QMenu;
-    QLabel *label = new QLabel(tr("<qt><b>Revision: </b>%1</qt>")
+    QLabel *label = new QLabel(tr("<qt>&nbsp;<b>Revision: </b>%1</qt>")
                                .arg(m_changeset->id()));
     QWidgetAction *wa = new QWidgetAction(menu);
     wa->setDefaultWidget(label);
     menu->addAction(wa);
     menu->addSeparator();
 
-    QAction *update = menu->addAction(tr("Update to this revision"));
-    connect(update, SIGNAL(triggered()), this, SLOT(updateActivated()));
+    QAction *copyId = menu->addAction(tr("Copy identifier to clipboard"));
+    connect(copyId, SIGNAL(triggered()), this, SLOT(copyIdActivated()));
 
     menu->addSeparator();
 
-    QAction *diffParent = menu->addAction(tr("Diff against previous revision"));
-    connect(diffParent, SIGNAL(triggered()), this, SLOT(diffToPreviousActivated()));
-    QAction *diffCurrent = menu->addAction(tr("Diff against current revision"));
+    if (m_changeset->parents().size() > 1) {
+
+        foreach (QString parentId, m_changeset->parents()) {
+            QAction *diffParent =
+                menu->addAction(tr("Diff to parent %1").arg(parentId));
+            connect(diffParent, SIGNAL(triggered()),
+                    this, SLOT(diffToParentActivated()));
+            m_parentDiffActions[diffParent] = parentId;
+        }
+
+    } else {
+
+        QAction *diffParent =
+            menu->addAction(tr("Diff to parent"));
+        connect(diffParent, SIGNAL(triggered()),
+                this, SLOT(diffToParentActivated()));
+    }
+
+    QAction *diffCurrent = menu->addAction(tr("Diff to current working folder"));
     connect(diffCurrent, SIGNAL(triggered()), this, SLOT(diffToCurrentActivated()));
 
     menu->addSeparator();
 
+    QAction *update = menu->addAction(tr("Update to this revision"));
+    connect(update, SIGNAL(triggered()), this, SLOT(updateActivated()));
+
     QAction *merge = menu->addAction(tr("Merge from here to current"));
     connect(merge, SIGNAL(triggered()), this, SLOT(mergeActivated()));
-    QAction *tag = menu->addAction(tr("Tag this revision"));
+
+    menu->addSeparator();
+
+    QAction *tag = menu->addAction(tr("Add tag..."));
     connect(tag, SIGNAL(triggered()), this, SLOT(tagActivated()));
 
     menu->exec(QCursor::pos());
@@ -133,8 +159,32 @@ ChangesetItem::activateMenu()
     ungrabMouse();
 }
 
+void
+ChangesetItem::copyIdActivated()
+{
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setText(Changeset::hashOf(m_changeset->id()));
+}
+
+void ChangesetItem::diffToParentActivated()
+{
+    QAction *a = qobject_cast<QAction *>(sender());
+    QString parentId;
+    if (m_parentDiffActions.contains(a)) {
+        parentId = m_parentDiffActions[a];
+        DEBUG << "ChangesetItem::diffToParentActivated: specific parent " 
+              << parentId << " selected" << endl;
+    } else {
+        parentId = m_changeset->parents()[0];
+        DEBUG << "ChangesetItem::diffToParentActivated: "
+              << "no specific parent selected, using first parent "
+              << parentId << endl;
+    }
+
+    emit diffToParent(getId(), parentId);
+}
+
 void ChangesetItem::updateActivated() { emit updateTo(getId()); }
-void ChangesetItem::diffToPreviousActivated() { emit diffToParent(getId(), m_changeset->parents()[0]); } //!!! no, this is most likely to be useful when something has more than one parent!
 void ChangesetItem::diffToCurrentActivated() { emit diffToCurrent(getId()); }
 void ChangesetItem::mergeActivated() { emit mergeFrom(getId()); }
 void ChangesetItem::tagActivated() { emit tag(getId()); }
@@ -228,17 +278,19 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
 
     if (m_showBranch) {
 	// write branch name
+        paint->save();
 	f.setBold(true);
 	paint->setFont(f);
+	paint->setPen(QPen(branchColour));
 	QString branch = m_changeset->branch();
         if (branch == "") branch = "default";
 	int wid = width - 3;
 	branch = TextAbbrev::abbreviate(branch, QFontMetrics(f), wid);
 	paint->drawText(x0, -fh + fm.ascent() - 4, branch);
 	f.setBold(false);
+        paint->restore();
     }
 
-//    f.setItalic(true);
     fm = QFontMetrics(f);
     fh = fm.height();
     paint->setFont(f);

@@ -37,6 +37,7 @@ signals:
     void commit();
     void revert();
     void diffWorkingFolder();
+    void showWork();
 
     void updateTo(QString id);
     void diffToParent(QString id, QString parent);

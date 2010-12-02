@@ -36,7 +36,7 @@ public:
     HistoryWidget();
     virtual ~HistoryWidget();
 
-    void setCurrent(QStringList ids, bool showUncommitted);
+    void setCurrent(QStringList ids, QString branch, bool showUncommitted);
 
     void parseNewLog(QString log);
     void parseIncrementalLog(QString log);
@@ -47,6 +47,7 @@ signals:
     void commit();
     void revert();
     void diffWorkingFolder();
+    void showWork();
 
     void updateTo(QString id);
     void diffToParent(QString id, QString parent);
@@ -57,9 +58,9 @@ signals:
 private:
     Changesets m_changesets;
     QStringList m_currentIds;
+    QString m_currentBranch;
     QSet<QString> m_newIds;
     bool m_showUncommitted;
-    QString m_uncommittedParentId;
 
     Panned *m_panned;
     Panner *m_panner;

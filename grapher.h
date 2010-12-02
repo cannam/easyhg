@@ -34,7 +34,9 @@ class Grapher
 public:
     Grapher(ChangesetScene *scene) { m_scene = scene; }
 
-    void layout(Changesets csets, QString uncommittedSproutsFrom = "");
+    void layout(Changesets csets,
+                QStringList uncommittedParents,
+                QString uncommittedBranch);
 
     ChangesetItem *getItemFor(Changeset *cs);
 
@@ -77,7 +79,7 @@ private:
     typedef QMap<int, QString> RowDateMap;
     RowDateMap m_rowDates;
 
-    QString m_uncommittedParentId;
+    QStringList m_uncommittedParents;
     int m_uncommittedParentRow;
     UncommittedItem *m_uncommitted;
     bool m_haveAllocatedUncommittedColumn;

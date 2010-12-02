@@ -24,6 +24,8 @@
 class Changeset;
 class ChangesetDetailItem;
 
+class QAction;
+
 class ChangesetItem : public QObject, public QGraphicsItem
 {
     Q_OBJECT
@@ -52,7 +54,7 @@ public:
     bool isNew() const { return m_new; }
     void setNew(bool n) { m_new = n; }
 
-    bool shouldShowBranch() const { return m_showBranch; }
+    bool showBranch() const { return m_showBranch; }
     void setShowBranch(bool s) { m_showBranch = s; }
 
 signals:
@@ -70,8 +72,9 @@ public slots:
     void hideDetail();
 
 private slots:
+    void copyIdActivated();
     void updateActivated();
-    void diffToPreviousActivated();
+    void diffToParentActivated();
     void diffToCurrentActivated();
     void mergeActivated();
     void tagActivated();
@@ -91,6 +94,8 @@ private:
     bool m_wide;
     bool m_current;
     bool m_new;
+
+    QMap<QAction *, QString> m_parentDiffActions;
 };
 
 #endif // CHANGESETITEM_H

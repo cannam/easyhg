@@ -49,7 +49,7 @@ QString Changeset::getLogTemplate()
 QString Changeset::formatHtml()
 {
     QString description;
-    QString rowTemplate = "<tr><td><b>%1</b></td><td>%2</td></tr>";
+    QString rowTemplate = "<tr><td><b>%1</b>&nbsp;</td><td>%2</td></tr>";
 
     description = "<qt><table border=0>";
 

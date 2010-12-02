@@ -89,6 +89,7 @@ MainWindow::MainWindow()
     ColourSet *cs = ColourSet::instance();
     cs->clearDefaultNames();
     cs->addDefaultName("");
+    cs->addDefaultName("default");
     cs->addDefaultName(getUserInfo());
 
     if (workFolderPath == "") {
@@ -159,6 +160,12 @@ void MainWindow::hgStat()
 {
     QStringList params;
     params << "stat" << "-ardum";
+
+    // annoyingly, hg stat actually modifies the working directory --
+    // it creates files called hg-checklink and hg-checkexec to test
+    // properties of the filesystem
+    if (fsWatcher) fsWatcher->blockSignals(true);
+
     runner->requestAction(HgAction(ACT_STAT, workFolderPath, params));
 }
 
@@ -204,8 +211,7 @@ void MainWindow::hgLogIncremental(QStringList prune)
     params << "log";
 
     foreach (QString p, prune) {
-        QString number = p.split(':')[0];
-        params << "--prune" << number;
+        params << "--prune" << Changeset::hashOf(p);
     }
         
     params << "--template";
@@ -450,6 +456,8 @@ void MainWindow::hgFolderDiff()
     params << "--config" << "extensions.extdiff=" << "extdiff";
     params << "--program" << diffBinaryName;
 
+    params << hgTabs->getSelectedCommittableFiles(); // may be none: whole dir
+
     runner->requestAction(HgAction(ACT_FOLDERDIFF, workFolderPath, params));
 }
 
@@ -462,7 +470,7 @@ void MainWindow::hgDiffToCurrent(QString id)
 
     params << "--config" << "extensions.extdiff=" << "extdiff";
     params << "--program" << diffBinaryName;
-    params << "--rev" << id;
+    params << "--rev" << Changeset::hashOf(id);
 
     runner->requestAction(HgAction(ACT_FOLDERDIFF, workFolderPath, params));
 }
@@ -476,7 +484,8 @@ void MainWindow::hgDiffToParent(QString child, QString parent)
 
     params << "--config" << "extensions.extdiff=" << "extdiff";
     params << "--program" << diffBinaryName;
-    params << "--rev" << parent << "--rev" << child;
+    params << "--rev" << Changeset::hashOf(parent)
+           << "--rev" << Changeset::hashOf(child);
 
     runner->requestAction(HgAction(ACT_CHGSETDIFF, workFolderPath, params));
 }
@@ -496,7 +505,7 @@ void MainWindow::hgUpdateToRev(QString id)
 {
     QStringList params;
 
-    params << "update" << "--rev" << id << "--check";
+    params << "update" << "--rev" << Changeset::hashOf(id) << "--check";
 
     runner->requestAction(HgAction(ACT_UPDATE, workFolderPath, params));
 }
@@ -551,7 +560,7 @@ void MainWindow::hgMergeFrom(QString id)
     QStringList params;
 
     params << "merge";
-    params << "--rev" << id;
+    params << "--rev" << Changeset::hashOf(id);
     
     runner->requestAction(HgAction(ACT_MERGE, workFolderPath, params));
 }
@@ -1236,6 +1245,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
 
     case ACT_STAT:
+        if (fsWatcher) fsWatcher->blockSignals(false);
         hgTabs->updateWorkFolderFileList(output);
         updateFileSystemWatcher();
         break;
@@ -1290,7 +1300,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         foreach (Changeset *cs, currentParents) delete cs;
         currentParents = Changeset::parseChangesets(output);
         QStringList parentIds = Changeset::getIds(currentParents);
-        hgTabs->setCurrent(parentIds);
+        hgTabs->setCurrent(parentIds, currentBranch);
     }
         break;
         

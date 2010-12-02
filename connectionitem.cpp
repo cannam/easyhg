@@ -76,7 +76,7 @@ ConnectionItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget
 
     float yscale = 90;
     float size = 50;
-    float ygap = yscale - size;
+    float ygap = yscale - size - 2;
 
     int p_col = m_parent->column(), p_row = m_parent->row();
     int c_col, c_row;

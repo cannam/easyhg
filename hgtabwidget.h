@@ -48,7 +48,7 @@ public:
     void setWorkFolderAndRepoNames(QString workFolderPath, QString remoteRepoPath);
     void setState(QString state);
 
-    void setCurrent(QStringList ids);
+    void setCurrent(QStringList ids, QString branch);
 
     FileStates getFileStates() { return m_fileStates; }
 
@@ -87,6 +87,8 @@ signals:
 
 public slots:
     void clearSelections();
+    void showWorkTab();
+    void showHistoryTab();
 
 private:
     FileStatusWidget *m_fileStatusWidget;

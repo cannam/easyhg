@@ -78,8 +78,8 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_descriptions[FileStates::Removed] = tr("These files will be removed from version control next time you commit.<br>"
                                              "They will not be deleted from the local folder.");
     m_descriptions[FileStates::Missing] = tr("These files are recorded in the version control, but absent from your working folder.<br>"
-                                             "If you deleted them by accident, select them here and use Revert to restore their previous contents.<br>"
-                                             "If you deleted them intentionally, select them here and use Remove to tell the version control system about it.");
+                                             "If you intended to delete them, select them and use Remove to tell the version control system about it.<br>"
+                                             "If you deleted them by accident, select them and use Revert to restore their previous contents.");
     m_descriptions[FileStates::Unknown] = tr("These files are in your working folder but are not under version control.<br>"
                                              "Select a file and use Add to place it under version control or Ignore to remove it from this list.");
 
