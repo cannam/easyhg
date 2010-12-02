@@ -50,6 +50,8 @@ public:
 
     void setCurrent(QStringList ids, QString branch);
 
+    void updateHistory();
+
     FileStates getFileStates() { return m_fileStates; }
 
     bool canCommit() const;
