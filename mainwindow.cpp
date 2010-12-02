@@ -204,7 +204,8 @@ void MainWindow::hgLogIncremental(QStringList prune)
     params << "log";
 
     foreach (QString p, prune) {
-        params << "--prune" << p;
+        QString number = p.split(':')[0];
+        params << "--prune" << number;
     }
         
     params << "--template";
