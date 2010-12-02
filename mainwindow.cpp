@@ -318,11 +318,15 @@ void MainWindow::hgCommit()
     QStringList reportFiles = files;
     if (reportFiles.empty()) reportFiles = hgTabs->getAllCommittableFiles();
 
+    QString cf(tr("Commit files"));
+
     if (ConfirmCommentDialog::confirmAndGetLongComment
         (this,
-         tr("Commit files"),
-         tr("<h3>Commit files</h3><p>You are about to commit the following files:"),
-         tr("<h3>Commit files</h3><p>You are about to commit %1 files."),
+         cf,
+         tr("<h3>%1</h3><p>%2").arg(cf)
+         .arg(tr("You are about to commit the following files:")),
+         tr("<h3>%1</h3><p>%2").arg(cf)
+         .arg(tr("You are about to commit %n file(s):", "", reportFiles.size())),
          reportFiles,
          comment)) {
 
@@ -518,12 +522,16 @@ void MainWindow::hgRevert()
 
     QStringList files = hgTabs->getSelectedRevertableFiles();
     if (files.empty()) files = hgTabs->getAllRevertableFiles();
+
+    QString rf(tr("Revert files"));
     
     if (ConfirmCommentDialog::confirmDangerousFilesAction
         (this,
-         tr("Revert files"),
-         tr("<h3>Revert files</h3><p>You are about to <b>revert</b> the following files to their previous committed state.<br><br>This will <b>throw away any changes</b> that you have made to these files but have not committed:"),
-         tr("<h3>Revert files</h3><p>You are about to <b>revert</b> %1 files.<br><br>This will <b>throw away any changes</b> that you have made to these files but have not committed."),
+         rf,
+         tr("<h3>%1</h3><p>%2").arg(rf)
+         .arg(tr("You are about to <b>revert</b> the following files to their previous committed state.<br><br>This will <b>throw away any changes</b> that you have made to these files but have not committed:")),
+         tr("<h3>%1</h3><p>%2").arg(rf)
+         .arg(tr("You are about to <b>revert</b> %n file(s).<br><br>This will <b>throw away any changes</b> that you have made to these files but have not committed.", "", files.size())),
          files)) {
         
         if (files.empty()) {

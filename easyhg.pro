@@ -7,6 +7,8 @@ unix {
     DESTDIR = .
 }
 
+TRANSLATIONS = easyhg_en.ts
+
 OBJECTS_DIR = o
 MOC_DIR = o
 

@@ -87,7 +87,7 @@ bool ConfirmCommentDialog::confirmFilesAction(QWidget *parent,
     if (files.size() <= 10) {
         text = buildFilesText(introText, files);
     } else {
-        text = "<qt>" + introTextWithCount.arg(files.size()) + "</qt>";
+        text = "<qt>" + introTextWithCount + "</qt>";
     }
     return (QMessageBox::information(parent,
                                      title,
@@ -107,7 +107,7 @@ bool ConfirmCommentDialog::confirmDangerousFilesAction(QWidget *parent,
     if (files.size() <= 10) {
         text = buildFilesText(introText, files);
     } else {
-        text = "<qt>" + introTextWithCount.arg(files.size()) + "</qt>";
+        text = "<qt>" + introTextWithCount + "</qt>";
     }
     return (QMessageBox::warning(parent,
                                  title,
@@ -151,7 +151,7 @@ bool ConfirmCommentDialog::confirmAndComment(QWidget *parent,
     if (files.size() <= 10) {
         text = buildFilesText(introText, files);
     } else {
-        text = "<qt>" + introTextWithCount.arg(files.size());
+        text = "<qt>" + introTextWithCount;
     }
     text += tr("<p>Please enter your comment:</qt>");
     return confirmAndComment(parent, title, text, comment, longComment);

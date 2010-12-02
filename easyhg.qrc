@@ -22,5 +22,6 @@
         <file>images/hdd_unmount.png</file>
         <file>images/hdd_unmount-64.png</file>
         <file>images/fileopen.png</file>
+	<file>easyhg_en.qm</file>
     </qresource>
 </RCC>

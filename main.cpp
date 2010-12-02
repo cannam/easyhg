@@ -20,6 +20,7 @@
 #include "debug.h"
 
 #include <QApplication>
+#include <QTranslator>
 #include <QDir>
 
 int main(int argc, char *argv[])
@@ -35,6 +36,13 @@ int main(int argc, char *argv[])
     installSignalHandlers();
 
     QApplication app(argc, argv);
+
+    QTranslator translator;
+    QString language = QLocale::system().name();
+    QString trname = QString("easyhg_%1").arg(language);
+    translator.load(trname, ":");
+    app.installTranslator(&translator);
+
     QStringList args = app.arguments();
     MainWindow mainWin;
     mainWin.show();
