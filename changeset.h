@@ -28,7 +28,7 @@
 
 class Changeset;
 
-typedef QList<Changeset *> Changesets;  //!!! should be QList<QSharedPointer<Changeset> >
+typedef QList<Changeset *> Changesets;
 
 class Changeset : public QObject
 {
@@ -84,6 +84,12 @@ public:
         if (b == "") b = "default";
         if (branch == b) return true;
         return false;
+    }
+
+    static QStringList getIds(Changesets csets) {
+        QStringList ids;
+        foreach (Changeset *cs, csets) ids.push_back(cs->id());
+        return ids;
     }
 
     static Changesets parseChangesets(QString logText) {
