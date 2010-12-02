@@ -18,6 +18,7 @@
 #include "uncommitteditem.h"
 #include "colourset.h"
 #include "debug.h"
+#include "textabbrev.h"
 
 #include <QPainter>
 #include <QGraphicsScene>
@@ -28,7 +29,7 @@
 #include <QWidgetAction>
 
 UncommittedItem::UncommittedItem() :
-    m_column(0), m_row(0), m_wide(false)
+    m_showBranch(false), m_column(0), m_row(0), m_wide(false)
 {
     m_font = QFont();
     m_font.setPixelSize(11);
@@ -55,21 +56,33 @@ UncommittedItem::mousePressEvent(QGraphicsSceneMouseEvent *e)
 }
 
 void
+UncommittedItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
+{
+    DEBUG << "UncommittedItem::mouseDoubleClickEvent" << endl;
+    if (e->button() == Qt::LeftButton) {
+        emit showWork();
+    }
+}
+
+void
 UncommittedItem::activateMenu()
 {
     QMenu *menu = new QMenu;
-    QLabel *label = new QLabel(tr("<qt><b>Uncommitted changes</b></qt>"));
+    QLabel *label = new QLabel(tr("<qt>&nbsp;<b>Uncommitted changes</b></qt>"));
     QWidgetAction *wa = new QWidgetAction(menu);
     wa->setDefaultWidget(label);
     menu->addAction(wa);
+    menu->addSeparator();
+
+    QAction *dif = menu->addAction(tr("Diff"));
+    connect(dif, SIGNAL(triggered()), this, SIGNAL(diff()));
+    
     menu->addSeparator();
 
     QAction *commit = menu->addAction(tr("Commit..."));
     connect(commit, SIGNAL(triggered()), this, SIGNAL(commit()));
     QAction *revert = menu->addAction(tr("Revert..."));
     connect(revert, SIGNAL(triggered()), this, SIGNAL(revert()));
-    QAction *dif = menu->addAction(tr("Diff"));
-    connect(dif, SIGNAL(triggered()), this, SIGNAL(diff()));
 
     menu->exec(QCursor::pos());
 
@@ -128,6 +141,16 @@ UncommittedItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
                         25 + fm.ascent(),
                         label);
     }        
+
+    if (m_showBranch && m_branch != "") {
+        // write branch name
+        f.setBold(true);
+        paint->setFont(f);
+        int wid = width - 3;
+        QString b = TextAbbrev::abbreviate(m_branch, QFontMetrics(f), wid);
+        paint->drawText(x0, -fh + fm.ascent() - 4, b);
+        f.setBold(false);
+    }
 
     paint->restore();
     return;

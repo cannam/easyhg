@@ -52,6 +52,9 @@ HgTabWidget::HgTabWidget(QWidget *parent,
     connect(m_historyWidget, SIGNAL(diffWorkingFolder()),
             this, SIGNAL(diffWorkingFolder()));
 
+    connect(m_historyWidget, SIGNAL(showWork()),
+            this, SLOT(showWorkTab()));
+
     connect(m_historyWidget, SIGNAL(updateTo(QString)),
             this, SIGNAL(updateTo(QString)));
 
@@ -73,9 +76,9 @@ void HgTabWidget::clearSelections()
     m_fileStatusWidget->clearSelections();
 }
 
-void HgTabWidget::setCurrent(QStringList ids)
+void HgTabWidget::setCurrent(QStringList ids, QString branch)
 {
-    m_historyWidget->setCurrent(ids, canCommit());
+    m_historyWidget->setCurrent(ids, branch, canCommit());
 }
 
 bool HgTabWidget::canCommit() const
@@ -160,7 +163,7 @@ void HgTabWidget::setNewLog(QString hgLogList)
 {
     m_historyWidget->parseNewLog(hgLogList);
     if (m_historyWidget->haveNewItems()) {
-        setCurrentWidget(m_historyWidget);
+        showHistoryTab();
     }
 }
 
@@ -168,7 +171,7 @@ void HgTabWidget::addIncrementalLog(QString hgLogList)
 {
     m_historyWidget->parseIncrementalLog(hgLogList);
     if (m_historyWidget->haveNewItems()) {
-        setCurrentWidget(m_historyWidget);
+        showHistoryTab();
     }
 }
 
@@ -182,3 +185,14 @@ void HgTabWidget::setState(QString state)
 {
     m_fileStatusWidget->setState(state);
 }
+
+void HgTabWidget::showWorkTab()
+{
+    setCurrentWidget(m_fileStatusWidget);
+}
+
+void HgTabWidget::showHistoryTab()
+{
+    setCurrentWidget(m_historyWidget);
+}
+

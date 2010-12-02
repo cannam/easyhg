@@ -61,6 +61,9 @@ ChangesetScene::addUncommittedItem(UncommittedItem *item)
     
     connect(item, SIGNAL(diff()),
             this, SIGNAL(diffWorkingFolder()));
+
+    connect(item, SIGNAL(showWork()),
+            this, SIGNAL(showWork()));
 }
 
 void

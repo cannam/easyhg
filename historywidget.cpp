@@ -58,15 +58,18 @@ void HistoryWidget::clearChangesets()
     m_changesets.clear();
 }
 
-void HistoryWidget::setCurrent(QStringList ids, bool showUncommitted)
+void HistoryWidget::setCurrent(QStringList ids, QString branch,
+                               bool showUncommitted)
 {
-    if (m_currentIds == ids && m_showUncommitted == showUncommitted) return;
+    if (m_currentIds == ids &&
+        m_currentBranch == branch &&
+        m_showUncommitted == showUncommitted) return;
 
     DEBUG << "HistoryWidget::setCurrent: " << ids.size() << " ids, "
           << "showUncommitted: " << showUncommitted << endl;
 
     m_currentIds.clear();
-    m_uncommittedParentId = "";
+    m_currentBranch = branch;
     m_showUncommitted = showUncommitted;
 
     if (ids.empty()) return;
@@ -75,7 +78,6 @@ void HistoryWidget::setCurrent(QStringList ids, bool showUncommitted)
         m_currentIds.push_back(id);
     }
 
-    if (m_showUncommitted) m_uncommittedParentId = m_currentIds[0];
     layoutAll();
 }
     
@@ -159,7 +161,9 @@ void HistoryWidget::layoutAll()
     if (!m_changesets.empty()) {
 	Grapher g(scene);
 	try {
-	    g.layout(m_changesets, m_uncommittedParentId);
+	    g.layout(m_changesets,
+                     m_showUncommitted ? m_currentIds : QStringList(),
+                     m_currentBranch);
 	} catch (std::string s) {
 	    std::cerr << "Internal error: Layout failed: " << s << std::endl;
 	}
@@ -244,6 +248,9 @@ void HistoryWidget::connectSceneSignals()
     connect(scene, SIGNAL(diffWorkingFolder()),
             this, SIGNAL(diffWorkingFolder()));
 
+    connect(scene, SIGNAL(showWork()),
+            this, SIGNAL(showWork()));
+    
     connect(scene, SIGNAL(updateTo(QString)),
             this, SIGNAL(updateTo(QString)));
 

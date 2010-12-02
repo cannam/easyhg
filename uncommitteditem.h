@@ -34,6 +34,9 @@ public:
 
     QString branch() const { return m_branch; }
     void setBranch(QString b) { m_branch = b; }
+
+    bool showBranch() const { return m_showBranch; }
+    void setShowBranch(bool s) { m_showBranch = s; }
     
     int column() const { return m_column; }
     int row() const { return m_row; }
@@ -47,14 +50,17 @@ signals:
     void commit();
     void revert();
     void diff();
+    void showWork();
 
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *);
+    virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *);
 
 private:
     void activateMenu();
 
     QString m_branch;
+    bool m_showBranch;
     QFont m_font;
     int m_column;
     int m_row;

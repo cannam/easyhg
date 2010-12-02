@@ -86,6 +86,10 @@ public:
         return false;
     }
 
+    static QString hashOf(QString id) {
+        return id.split(':')[1];
+    }
+
     static QStringList getIds(Changesets csets) {
         QStringList ids;
         foreach (Changeset *cs, csets) ids.push_back(cs->id());

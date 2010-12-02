@@ -110,7 +110,7 @@ void Grapher::layoutRow(QString id)
 
     // If we're the parent of the uncommitted item, make a note of our
     // row (we need it later, to avoid overwriting the connecting line)
-    if (m_uncommittedParentId == id) {
+    if (!m_uncommittedParents.empty() && m_uncommittedParents[0] == id) {
         m_uncommittedParentRow = row;
     }
 
@@ -158,7 +158,7 @@ void Grapher::layoutCol(QString id)
         parentId = cs->parents()[0];
 
         if (!m_changesets.contains(parentId) ||
-            m_changesets[parentId]->branch() != branch) {
+            !m_changesets[parentId]->isOnBranch(branch)) {
             // new branch
             col = m_branchHomes[branch];
         } else {
@@ -176,7 +176,7 @@ void Grapher::layoutCol(QString id)
 
         foreach (QString parentId, cs->parents()) {
             if (!m_changesets.contains(parentId)) continue;
-            if (m_changesets[parentId]->branch() == branch) {
+            if (m_changesets[parentId]->isOnBranch(branch)) {
                 ChangesetItem *parentItem = m_items[parentId];
                 col += parentItem->column();
                 parentsOnSameBranch++;
@@ -198,13 +198,24 @@ void Grapher::layoutCol(QString id)
     item->setColumn(col);
     m_handled.insert(id);
 
-    // If we're the parent of the uncommitted item, it should be given
-    // the same column as us (ideally)
+    // If we're the first parent of the uncommitted item, it should be
+    // given the same column as us (we already noted that its
+    // connecting line would end at our row)
 
-    if (m_uncommittedParentId == id) {
-        int ucol = findAvailableColumn(row-1, col, true);
-        m_uncommitted->setColumn(ucol);
-        m_haveAllocatedUncommittedColumn = true;
+    if (m_uncommittedParents.contains(id)) {
+        if (m_uncommittedParents[0] == id) {
+            int ucol = findAvailableColumn(row-1, col, true);
+            m_uncommitted->setColumn(ucol);
+            m_haveAllocatedUncommittedColumn = true;
+        }
+        // also, if the uncommitted item has a different branch from
+        // any of its parents, tell it to show the branch
+        if (!cs->isOnBranch(m_uncommitted->branch())) {
+            DEBUG << "Uncommitted branch " << m_uncommitted->branch()
+                  << " differs from my branch " << cs->branch()
+                  << ", asking it to show branch" << endl;
+            m_uncommitted->setShowBranch(true);
+        }
     }
 
     // Normally the children will lay out themselves, but we can do
@@ -222,7 +233,7 @@ void Grapher::layoutCol(QString id)
         Changeset *child = m_changesets[childId];
         int childRow = m_items[childId]->row();
         if (child->parents().size() > 1 ||
-            child->branch() == cs->branch()) {
+            child->isOnBranch(cs->branch())) {
             for (int r = row-1; r > childRow; --r) {
                 m_alloc[r].insert(col);
             }
@@ -237,7 +248,7 @@ void Grapher::layoutCol(QString id)
         foreach (QString childId, cs->children()) {
             if (!m_changesets.contains(childId)) continue;
             Changeset *child = m_changesets[childId];
-            if (child->branch() == branch &&
+            if (child->isOnBranch(branch) &&
                 child->parents().size() == 1) {
                 special.push_back(childId);
             }
@@ -287,6 +298,7 @@ void Grapher::allocateBranchHomes(Changesets csets)
     }
 
     m_branchHomes[""] = 0;
+    m_branchHomes["default"] = 0;
 
     foreach (QString branch, m_branchRanges.keys()) {
         if (branch == "") continue;
@@ -339,14 +351,16 @@ Grapher::getItemFor(Changeset *cs)
     return m_items[cs->id()];
 }
 
-void Grapher::layout(Changesets csets, QString uncommittedSproutsFrom)
+void Grapher::layout(Changesets csets,
+                     QStringList uncommittedParents,
+                     QString uncommittedBranch)
 {
     m_changesets.clear();
     m_items.clear();
     m_alloc.clear();
     m_branchHomes.clear();
 
-    m_uncommittedParentId = uncommittedSproutsFrom;
+    m_uncommittedParents = uncommittedParents;
     m_haveAllocatedUncommittedColumn = false;
     m_uncommittedParentRow = 0;
     m_uncommitted = 0;
@@ -399,13 +413,17 @@ void Grapher::layout(Changesets csets, QString uncommittedSproutsFrom)
     
     // Add uncommitted item and connecting line as necessary
 
-    if (m_uncommittedParentId != "") {
+    if (!m_uncommittedParents.empty()) {
         m_uncommitted = new UncommittedItem();
+        m_uncommitted->setBranch(uncommittedBranch);
         m_scene->addUncommittedItem(m_uncommitted);
-        ConnectionItem *conn = new ConnectionItem();
-        conn->setParent(m_items[m_uncommittedParentId]);
-        conn->setChild(m_uncommitted);
-        m_scene->addItem(conn);
+        foreach (QString p, m_uncommittedParents) {
+            ConnectionItem *conn = new ConnectionItem();
+            conn->setConnectionType(ConnectionItem::Merge);
+            conn->setParent(m_items[p]);
+            conn->setChild(m_uncommitted);
+            m_scene->addItem(conn);
+        }
     }
 
     // Add the branch labels
@@ -473,6 +491,15 @@ void Grapher::layout(Changesets csets, QString uncommittedSproutsFrom)
         }
     }
 
+    int datemincol = mincol, datemaxcol = maxcol;
+
+    if (mincol == maxcol) {
+        --datemincol;
+        ++datemaxcol;
+    } else if (m_alloc[minrow].contains(mincol)) {
+        --datemincol;
+    }
+
     // We've given the uncommitted item a column, but not a row yet --
     // it always goes at the top
 
@@ -506,11 +533,6 @@ void Grapher::layout(Changesets csets, QString uncommittedSproutsFrom)
     bool even = false;
     int n = 0;
 
-    if (mincol == maxcol) {
-        --mincol;
-        ++maxcol;
-    }
-
     for (int row = minrow; row <= maxrow; ++row) {
 
         QString date = m_rowDates[row];
@@ -520,7 +542,7 @@ void Grapher::layout(Changesets csets, QString uncommittedSproutsFrom)
             if (prevDate != "") {
                 DateItem *item = new DateItem();
                 item->setDateString(prevDate);
-                item->setCols(mincol, maxcol - mincol + 1);
+                item->setCols(datemincol, datemaxcol - datemincol + 1);
                 item->setRows(changeRow, n);
                 item->setEven(even);
                 item->setZValue(-1);
@@ -536,7 +558,7 @@ void Grapher::layout(Changesets csets, QString uncommittedSproutsFrom)
     if (n > 0) {
         DateItem *item = new DateItem();
         item->setDateString(prevDate);
-        item->setCols(mincol, maxcol - mincol + 1);
+        item->setCols(datemincol, datemaxcol - datemincol + 1);
         item->setRows(changeRow, n+1);
         item->setEven(even);
         item->setZValue(-1);
