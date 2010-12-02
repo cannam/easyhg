@@ -73,9 +73,9 @@ void HgTabWidget::clearSelections()
     m_fileStatusWidget->clearSelections();
 }
 
-void HgTabWidget::setCurrent(QStringList ids, bool showUncommittedChanges)
+void HgTabWidget::setCurrent(QStringList ids)
 {
-    m_historyWidget->setCurrent(ids, showUncommittedChanges);
+    m_historyWidget->setCurrent(ids, canCommit());
 }
 
 bool HgTabWidget::canCommit() const
