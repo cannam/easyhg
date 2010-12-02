@@ -1379,6 +1379,8 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     // Note we want to call enableDisableActions only once, at the end
     // of whichever sequence is in use.
 
+    bool noMore = false;
+
     switch (action) {
         
     case ACT_QUERY_PATHS:
@@ -1410,21 +1412,26 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
             hgLog();
         } else {
             // we're done
-            enableDisableActions();
+            noMore = true;
         }
         break;
 
     case ACT_LOG:
         // we're done
-        enableDisableActions();
+        noMore = true;
 
     default:
         if (shouldHgStat) {
             hgQueryPaths();
         } else {
-            enableDisableActions();
+            noMore = true;
         }
         break;
+    }
+
+    if (noMore) {
+        enableDisableActions();
+        hgTabs->updateHistory();
     }
 }
 
@@ -1587,13 +1594,15 @@ void MainWindow::enableDisableActions()
     // A default update makes sense if:
     //  * there is only one parent and
     //  * the parent is not one of the current heads
-    //!!! test this
+
     bool canMerge = false;
     bool canUpdate = false;
+    bool haveMerge = false;
+    int currentBranchHeads = 0;
+
     if (currentParents.size() == 1) {
-        Changeset *parent = currentParents[0];
-        int currentBranchHeads = 0;
         bool parentIsHead = false;
+        Changeset *parent = currentParents[0];
         foreach (Changeset *head, currentHeads) {
             DEBUG << "head branch " << head->branch() << ", current branch " << currentBranch << endl;
             if (head->isOnBranch(currentBranch)) {
@@ -1614,7 +1623,10 @@ void MainWindow::enableDisableActions()
                 DEBUG << "head id = " << h->id() << endl;
             }
         }
+    } else {
+        haveMerge = true;
     }
+        
     hgMergeAct->setEnabled(localRepoActionsEnabled && canMerge);
     hgUpdateAct->setEnabled(localRepoActionsEnabled && canUpdate);
 
@@ -1626,15 +1638,20 @@ void MainWindow::enableDisableActions()
     } else {
         branchText = tr("branch \"%1\"").arg(currentBranch);
     }
-    if (canUpdate) {
-        hgTabs->setState(tr("On %1. Not at the head of the branch: consider updating").arg(branchText));
-    } else if (canMerge) {
+
+    //!!! Want "merge failed" report
+
+    if (canMerge) {
         hgTabs->setState(tr("<b>Awaiting merge</b> on %1").arg(branchText));
+    } else if (haveMerge) {
+        hgTabs->setState(tr("Have merged but not committed on %1").arg(branchText));
+    } else if (canUpdate) {
+        hgTabs->setState(tr("On %1. Not at the head of the branch: consider updating").arg(branchText));
+    } else if (currentBranchHeads > 1) {
+        hgTabs->setState(tr("At one of %n heads of %1", "", currentBranchHeads).arg(branchText));
     } else {
         hgTabs->setState(tr("At the head of %1").arg(branchText));
     }
-
-    hgTabs->updateHistory();
 }
 
 void MainWindow::createActions()
