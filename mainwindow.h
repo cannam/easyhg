@@ -104,7 +104,7 @@ private:
     void hgQueryHeads();
     void hgQueryParents();
     void hgLog();
-    void hgLogIncremental();
+    void hgLogIncremental(QStringList prune);
     void createActions();
     void connectActions();
     void connectTabsSignals();

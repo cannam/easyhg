@@ -198,14 +198,13 @@ void MainWindow::hgLog()
     runner->requestAction(HgAction(ACT_LOG, workFolderPath, params));
 }
 
-void MainWindow::hgLogIncremental()
+void MainWindow::hgLogIncremental(QStringList prune)
 {
     QStringList params;
     params << "log";
 
-    foreach (Changeset *head, currentHeads) {
-        int n = head->number();
-        params << "--prune" << QString("%1").arg(n);
+    foreach (QString p, prune) {
+        params << "--prune" << p;
     }
         
     params << "--template";
@@ -1182,17 +1181,38 @@ void MainWindow::commandFailed(HgAction action, QString output)
              : "");
 
     QMessageBox::warning(this, tr("Command failed"), message);
+
+/* todo:
+if ((runningAction == ACT_MERGE) && (exitCode != 0))
+            {
+                // If we had a failed merge, offer to retry
+                if (QMessageBox::Ok == QMessageBox::information(this, tr("Retry merge ?"), tr("Merge attempt failed. retry ?"), QMessageBox::Ok | QMessageBox::Cancel))
+                {
+                    runningAction = ACT_NONE;
+                    hgRetryMerge();
+                }
+                else
+                {
+                    runningAction = ACT_NONE;
+                    hgStat();
+                }
+            }
+            else
+            {
+*/
 }
 
 void MainWindow::commandCompleted(HgAction completedAction, QString output)
 {
-    bool shouldHgStat = false;
-
     HGACTIONS action = completedAction.action;
 
     if (action == ACT_NONE) return;
 
-    switch(action) {
+    bool shouldHgStat = false;
+    bool headsChanged = false;
+    QStringList oldHeadIds;
+
+    switch (action) {
 
     case ACT_QUERY_PATHS:
     {
@@ -1270,8 +1290,17 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
         
     case ACT_QUERY_HEADS:
-        foreach (Changeset *cs, currentHeads) delete cs;
-        currentHeads = Changeset::parseChangesets(output);
+    {
+        oldHeadIds = Changeset::getIds(currentHeads);
+        Changesets newHeads = Changeset::parseChangesets(output);
+        QStringList newHeadIds = Changeset::getIds(newHeads);
+        if (oldHeadIds != newHeadIds) {
+            DEBUG << "Heads changed, will prompt an incremental log if appropriate" << endl;
+            headsChanged = true;
+            foreach (Changeset *cs, currentHeads) delete cs;
+            currentHeads = newHeads;
+        }
+    }
         break;
 
     case ACT_COMMIT:
@@ -1307,7 +1336,8 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
         
     case ACT_RETRY_MERGE:
-        QMessageBox::information(this, tr("Merge retry"), tr("Merge retry successful."));
+        QMessageBox::information(this, tr("Merge retry"),
+                                 tr("Merge retry successful."));
         shouldHgStat = true;
         justMerged = true;
         break;
@@ -1316,52 +1346,63 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
     }
 
-    enableDisableActions();
-
     // Sequence when no full log required:
-    //   paths -> branch -> stat -> incremental-log -> heads -> parents
+    //   paths -> branch -> stat -> heads ->
+    //     incremental-log (only if heads changed) -> parents
+    // 
     // Sequence when full log required:
     //   paths -> branch -> stat -> heads -> parents -> log
-    if (action == ACT_QUERY_PATHS) {
+    //
+    // Note we want to call enableDisableActions only once, at the end
+    // of whichever sequence is in use.
+
+    switch (action) {
+        
+    case ACT_QUERY_PATHS:
         hgQueryBranch();
-    } else if (action == ACT_QUERY_BRANCH) {
+        break;
+
+    case ACT_QUERY_BRANCH:
         hgStat();
-    } else if (action == ACT_STAT) {
-        if (!needNewLog) {
-            hgLogIncremental();
-        } else {
-            hgQueryHeads();
-        }
-    } else if (action == ACT_LOG_INCREMENTAL) {
+        break;
+        
+    case ACT_STAT:
         hgQueryHeads();
-    } else if (action == ACT_QUERY_HEADS) {
+        break;
+
+    case ACT_QUERY_HEADS:
+        if (headsChanged && !needNewLog) {
+            hgLogIncremental(oldHeadIds);
+        } else {
+            hgQueryParents();
+        }
+        break;
+
+    case ACT_LOG_INCREMENTAL:
         hgQueryParents();
-    } else if (action == ACT_QUERY_PARENTS) {
+        break;
+
+    case ACT_QUERY_PARENTS:
         if (needNewLog) {
             hgLog();
+        } else {
+            // we're done
+            enableDisableActions();
         }
-    } else 
-/* Move to commandFailed
-if ((runningAction == ACT_MERGE) && (exitCode != 0))
-            {
-                // If we had a failed merge, offer to retry
-                if (QMessageBox::Ok == QMessageBox::information(this, tr("Retry merge ?"), tr("Merge attempt failed. retry ?"), QMessageBox::Ok | QMessageBox::Cancel))
-                {
-                    runningAction = ACT_NONE;
-                    hgRetryMerge();
-                }
-                else
-                {
-                    runningAction = ACT_NONE;
-                    hgStat();
-                }
-            }
-            else
-            {
-*/
+        break;
+
+    case ACT_LOG:
+        // we're done
+        enableDisableActions();
+
+    default:
         if (shouldHgStat) {
             hgQueryPaths();
+        } else {
+            enableDisableActions();
         }
+        break;
+    }
 }
 
 void MainWindow::connectActions()
