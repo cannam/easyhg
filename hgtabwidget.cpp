@@ -81,6 +81,11 @@ void HgTabWidget::setCurrent(QStringList ids, QString branch)
     m_historyWidget->setCurrent(ids, branch, canCommit());
 }
 
+void HgTabWidget::updateHistory()
+{
+    m_historyWidget->update();
+}
+
 bool HgTabWidget::canCommit() const
 {
     if (!m_fileStatusWidget->getSelectedAddableFiles().empty()) return false;

@@ -43,6 +43,8 @@ public:
 
     bool haveNewItems() const { return !m_newIds.empty(); }
 
+    void update();
+
 signals:
     void commit();
     void revert();
@@ -61,6 +63,7 @@ private:
     QString m_currentBranch;
     QSet<QString> m_newIds;
     bool m_showUncommitted;
+    bool m_refreshNeeded;
 
     Panned *m_panned;
     Panner *m_panner;

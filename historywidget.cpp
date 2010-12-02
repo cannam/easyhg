@@ -28,7 +28,9 @@
 
 #include <QGridLayout>
 
-HistoryWidget::HistoryWidget()
+HistoryWidget::HistoryWidget() :
+    m_showUncommitted(false),
+    m_refreshNeeded(false)
 {
     m_panned = new Panned;
     m_panner = new Panner;
@@ -78,7 +80,7 @@ void HistoryWidget::setCurrent(QStringList ids, QString branch,
         m_currentIds.push_back(id);
     }
 
-    layoutAll();
+    m_refreshNeeded = true;
 }
     
 void HistoryWidget::parseNewLog(QString log)
@@ -87,7 +89,7 @@ void HistoryWidget::parseNewLog(QString log)
     Changesets csets = Changeset::parseChangesets(log);
     DEBUG << "HistoryWidget::parseNewLog: log has " << csets.size() << " changesets" << endl;
     replaceChangesets(csets);
-    layoutAll();
+    m_refreshNeeded = true;
 }
     
 void HistoryWidget::parseIncrementalLog(QString log)
@@ -97,8 +99,8 @@ void HistoryWidget::parseIncrementalLog(QString log)
     DEBUG << "HistoryWidget::parseIncrementalLog: log has " << csets.size() << " changesets" << endl;
     if (!csets.empty()) {
         addChangesets(csets);
-        layoutAll();
     }
+    m_refreshNeeded = true;
 }
 
 void HistoryWidget::replaceChangesets(Changesets csets)
@@ -142,8 +144,17 @@ void HistoryWidget::addChangesets(Changesets csets)
     m_changesets = csets;
 }
 
+void HistoryWidget::update()
+{
+    if (m_refreshNeeded) {
+        layoutAll();
+    }
+}
+
 void HistoryWidget::layoutAll()
 {
+    m_refreshNeeded = false;
+
     setChangesetParents();
 
     ChangesetScene *scene = new ChangesetScene();

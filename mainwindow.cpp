@@ -632,7 +632,7 @@ void MainWindow::hgPush()
          QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Ok) {
 
         QStringList params;
-        params << "push" << remoteRepoPath;
+        params << "push" << "--new-branch" << remoteRepoPath;
         runner->requestAction(HgAction(ACT_PUSH, workFolderPath, params));
     }
 }
@@ -1625,6 +1625,8 @@ void MainWindow::enableDisableActions()
     } else {
         hgTabs->setState(tr("At the head of %1").arg(branchText));
     }
+
+    hgTabs->updateHistory();
 }
 
 void MainWindow::createActions()
