@@ -62,7 +62,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 
     ++row;
     m_noModificationsLabel = new QLabel
-        (tr("You have made no changes."));
+        (tr("You have no uncommitted changes."));
     layout->addWidget(m_noModificationsLabel, row, 1, 1, 2);
 
     m_simpleLabels[FileStates::Clean] = tr("Unmodified:");

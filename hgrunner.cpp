@@ -330,22 +330,6 @@ void HgRunner::startCommand(HgAction action)
         }            
 
         //!!! want an option to use the mercurial_keyring extension as well
-
-/*
-#ifdef Q_OS_WIN32
-        // This at least means we won't block on the non-working password prompt
-        params.push_front("--noninteractive");
-#else
-        // password prompt should work here
-        if (action.mayBeInteractive()) {
-            params.push_front("ui.interactive=true");
-            params.push_front("--config");
-            interactive = true;
-        } else {
-            params.push_front("--noninteractive");
-        }
-#endif
-*/
     }
 
     m_isRunning = true;

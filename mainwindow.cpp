@@ -291,22 +291,6 @@ void MainWindow::hgRemove()
         params << "remove" << "--after" << "--force" << "--" << files;
         runner->requestAction(HgAction(ACT_REMOVE, workFolderPath, params));
     }
-
-/*!!!
-        QString currentFile;//!!! = hgTabs -> getCurrentFileListLine();
-
-        if (!currentFile.isEmpty())
-        {
-            if (QMessageBox::Ok == QMessageBox::warning(this, "Remove file", "Really remove file " + currentFile.mid(2) + "?",
-                QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel))
-            {
-                params << "remove" << "--after" << "--force" << "--" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
-
-                runner -> startHgCommand(workFolderPath, params);
-                runningAction = ACT_REMOVE;
-            }
-        }
-        */
 }
 
 void MainWindow::hgCommit()
@@ -439,23 +423,6 @@ void MainWindow::findDiffBinaryName()
     }
     diffBinaryName = diff;
 }
-
-void MainWindow::hgFileDiff()
-{
-        QStringList params;
-/*!!!
-        QString currentFile = hgTabs -> getCurrentFileListLine();
-
-        if (!currentFile.isEmpty())
-        {
-            //Diff parent file against working folder file
-            params << "kdiff3" << "--" << currentFile.mid(2);
-            runner -> startHgCommand(workFolderPath, params);
-            runningAction = ACT_FILEDIFF;
-        }
-    */
-}
-
 
 void MainWindow::hgFolderDiff()
 {
@@ -1195,8 +1162,14 @@ void MainWindow::commandFailed(HgAction action, QString output)
         // are no changes pending
         if (output.trimmed() == "") showIncoming("");
         return;
+    case ACT_QUERY_HEADS:
+        // fails if repo is empty; we don't care (if there's a genuine
+        // problem, something else will fail too).  Need to do this,
+        // otherwise empty repo state will not be reflected properly
+        // (since heads/log procedure never completes for empty repo)
+        enableDisableActions();
+        return;
     case ACT_FOLDERDIFF:
-    case ACT_FILEDIFF:
     case ACT_CHGSETDIFF:
         // external program, unlikely to be anything useful in stderr
         // and some return with failure codes when something as basic
@@ -1364,7 +1337,6 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         shouldHgStat = true;
         break;
 
-    case ACT_FILEDIFF:
     case ACT_FOLDERDIFF:
     case ACT_CHGSETDIFF:
     case ACT_SERVE:
@@ -1374,12 +1346,12 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
         
     case ACT_UPDATE:
-        QMessageBox::information(this, tr("Update"), output);
+        QMessageBox::information(this, tr("Update"), tr("<qt><h3>Update successful</h3><p>%1</p>").arg(xmlEncode(output)));
         shouldHgStat = true;
         break;
         
     case ACT_MERGE:
-        QMessageBox::information(this, tr("Merge"), output);
+        QMessageBox::information(this, tr("Update"), tr("<qt><h3>Merge successful</h3><p>%1</p>").arg(xmlEncode(output)));
         shouldHgStat = true;
         justMerged = true;
         break;
@@ -1471,7 +1443,6 @@ void MainWindow::connectActions()
     connect(hgRemoveAct, SIGNAL(triggered()), this, SLOT(hgRemove()));
     connect(hgAddAct, SIGNAL(triggered()), this, SLOT(hgAdd()));
     connect(hgCommitAct, SIGNAL(triggered()), this, SLOT(hgCommit()));
-    connect(hgFileDiffAct, SIGNAL(triggered()), this, SLOT(hgFileDiff()));
     connect(hgFolderDiffAct, SIGNAL(triggered()), this, SLOT(hgFolderDiff()));
 //    connect(hgChgSetDiffAct, SIGNAL(triggered()), this, SLOT(hgChgSetDiff()));
     connect(hgUpdateAct, SIGNAL(triggered()), this, SLOT(hgUpdate()));
@@ -1584,7 +1555,6 @@ void MainWindow::enableDisableActions()
 
     hgInitAct -> setEnabled((localRepoExist == false) && (workFolderExist==true));
     hgRefreshAct -> setEnabled(localRepoActionsEnabled);
-    hgFileDiffAct -> setEnabled(localRepoActionsEnabled && haveDiff);
     hgFolderDiffAct -> setEnabled(localRepoActionsEnabled && haveDiff);
     hgRevertAct -> setEnabled(localRepoActionsEnabled);
     hgAddAct -> setEnabled(localRepoActionsEnabled);
@@ -1624,6 +1594,7 @@ void MainWindow::enableDisableActions()
     bool canMerge = false;
     bool canUpdate = false;
     bool haveMerge = false;
+    bool emptyRepo = false;
     int currentBranchHeads = 0;
 
     if (currentParents.size() == 1) {
@@ -1649,6 +1620,8 @@ void MainWindow::enableDisableActions()
                 DEBUG << "head id = " << h->id() << endl;
             }
         }
+    } else if (currentParents.size() == 0) {
+        emptyRepo = true;
     } else {
         haveMerge = true;
     }
@@ -1667,7 +1640,9 @@ void MainWindow::enableDisableActions()
 
     //!!! Want "merge failed" report
 
-    if (canMerge) {
+    if (emptyRepo) {
+        hgTabs->setState(tr("Nothing committed to this repository yet"));
+    } else if (canMerge) {
         hgTabs->setState(tr("<b>Awaiting merge</b> on %1").arg(branchText));
     } else if (haveMerge) {
         hgTabs->setState(tr("Have merged but not yet committed on %1").arg(branchText));
@@ -1716,9 +1691,6 @@ void MainWindow::createActions()
     hgPushAct->setStatusTip(tr("Push local changesets to remote repository"));
 
     //Workfolder actions
-    hgFileDiffAct   = new QAction(QIcon(":/images/diff.png"), tr("Diff"), this);
-    hgFileDiffAct->setStatusTip(tr("Filediff: View differences between selected working folder file and local repository file"));
-
     hgFolderDiffAct   = new QAction(QIcon(":/images/folderdiff.png"), tr("Diff"), this);
     hgFolderDiffAct->setStatusTip(tr("Folderdiff: View all differences between working folder files and local repository files"));
 
@@ -1835,8 +1807,6 @@ void MainWindow::createToolBars()
     workFolderToolBar = addToolBar(tr(WORKFOLDERMENU_TITLE));
     addToolBar(Qt::LeftToolBarArea, workFolderToolBar);
     workFolderToolBar -> setIconSize(QSize(MY_ICON_SIZE, MY_ICON_SIZE));
-//    workFolderToolBar->addSeparator();
-//    workFolderToolBar->addAction(hgFileDiffAct);
     workFolderToolBar->addAction(hgFolderDiffAct);
     workFolderToolBar->addSeparator();
     workFolderToolBar->addAction(hgRevertAct);
