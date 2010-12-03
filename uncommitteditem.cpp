@@ -68,7 +68,7 @@ void
 UncommittedItem::activateMenu()
 {
     QMenu *menu = new QMenu;
-    QLabel *label = new QLabel(tr("<qt>&nbsp;<b>Uncommitted changes</b></qt>"));
+    QLabel *label = new QLabel(tr("<qt><b>&nbsp;Uncommitted changes</b></qt>"));
     QWidgetAction *wa = new QWidgetAction(menu);
     wa->setDefaultWidget(label);
     menu->addAction(wa);
