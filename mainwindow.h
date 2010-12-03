@@ -74,7 +74,6 @@ private slots:
     void hgRemove();
     void hgAdd();
     void hgCommit();
-    void hgFileDiff();
     void hgFolderDiff();
     void hgDiffToCurrent(QString);
     void hgDiffToParent(QString, QString);
@@ -165,7 +164,6 @@ private:
     QAction *hgPushAct;
     QAction *hgPullAct;
     QAction *hgRefreshAct;
-    QAction *hgFileDiffAct;
     QAction *hgFolderDiffAct;
     QAction *hgChgSetDiffAct;
     QAction *hgRevertAct;
