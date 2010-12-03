@@ -54,11 +54,12 @@ public:
 
     FileStates getFileStates() { return m_fileStates; }
 
+    bool canDiff() const;
     bool canCommit() const;
     bool canRevert() const;
     bool canAdd() const;
     bool canRemove() const;
-    bool canDoDiff() const;
+    bool canResolve() const;
 
     QStringList getAllSelectedFiles() const;
 
@@ -73,6 +74,9 @@ public:
 
     QStringList getSelectedRemovableFiles() const;
     QStringList getAllRemovableFiles() const;
+
+    QStringList getSelectedUnresolvedFiles() const;
+    QStringList getAllUnresolvedFiles() const;
 
 signals:
     void selectionChanged();

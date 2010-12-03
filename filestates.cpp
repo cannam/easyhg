@@ -38,17 +38,19 @@ void FileStates::clearBuckets()
 FileStates::State FileStates::charToState(QChar c, bool *ok)
 {
     // Note that InConflict does not correspond to a stat char -- it's
-    // reported separately, by resolve --list -- stat reports files in
-    // conflict as M which means they will appear in more than one bin
-    // if we handle them naively.
+    // reported separately, by resolve --list, which shows U for
+    // Unresolved -- stat reports files in conflict as M, which means
+    // they will appear in more than one bin if we handle them
+    // naively.  'u' is also used by stat as the command option for
+    // Unknown, but the stat output uses ? for these so there's no
+    // ambiguity in parsing.
 
-    //!!! -- but InConflict isn't actually handled elsewhere, it's
-    //!!! -- only a placeholder really at the moment
     if (ok) *ok = true;
     if (c == 'M') return Modified;
     if (c == 'A') return Added;
     if (c == 'R') return Removed;
     if (c == '!') return Missing;
+    if (c == 'U') return InConflict;
     if (c == '?') return Unknown;
     if (c == 'C') return Clean;
     if (ok) *ok = false;
@@ -73,6 +75,7 @@ void FileStates::parseStates(QString text)
     text.replace("\r\n", "\n");
 
     clearBuckets();
+    m_stateMap.clear();
 
     QStringList lines = text.split("\n", QString::SkipEmptyParts);
 
@@ -88,9 +91,13 @@ void FileStates::parseStates(QString text)
         if (!ok) continue;
 
         QString file = line.right(line.length() - 2);
-        QStringList *bucket = stateToBucket(s);
-        bucket->push_back(file);
         m_stateMap[file] = s;
+    }
+
+    foreach (QString file, m_stateMap.keys()) {
+
+        QStringList *bucket = stateToBucket(m_stateMap[file]);
+        bucket->push_back(file);
     }
 
     DEBUG << "FileStates: " << m_modified.size() << " modified, " << m_added.size()

@@ -80,6 +80,7 @@ private slots:
     void hgUpdate();
     void hgRevert();
     void hgMerge();
+    void hgMarkResolved(QStringList);
     void hgRetryMerge();
     void hgCloneFromRemote();
     void hgInit();
@@ -90,7 +91,6 @@ private slots:
     void hgMergeFrom(QString);
     void hgAnnotate();
     void hgResolveList();
-    void hgResolveMark();
     void hgTag();
     void hgServe();
     void hgIgnore();
@@ -172,11 +172,8 @@ private:
     QAction *hgUpdateAct;
     QAction *hgCommitAct;
     QAction *hgMergeAct;
-    QAction *hgRetryMergeAct;
     QAction *hgUpdateToRevAct;
     QAction *hgAnnotateAct;
-    QAction *hgResolveListAct;
-    QAction *hgResolveMarkAct;
     QAction *hgTagAct;
     QAction *hgIgnoreAct;
     QAction *hgServeAct;
@@ -199,12 +196,21 @@ private:
 
     HgRunner *runner;
 
-    void findDiffBinaryName();
+    bool shouldHgStat;
+
     QString diffBinaryName;
+    QString mergeBinaryName;
+
+    void findDiffBinaryName();
+    void findMergeBinaryName();
 
     QFileSystemWatcher *fsWatcher;
 
+    QString lastStatOutput;
+    QStringList lastRevertedFiles;
+
     bool justMerged;
+    QString mergeTargetRevision;
     QString mergeCommitComment;
 };
 
