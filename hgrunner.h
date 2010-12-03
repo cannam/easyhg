@@ -65,6 +65,8 @@ private:
     void openTerminal();
     void closeTerminal();
 
+    bool unbundleExtension();
+
     int m_ptyMasterFd;
     int m_ptySlaveFd;
     QString m_ptySlaveFilename;
@@ -77,6 +79,8 @@ private:
 
     QString m_userName;
     QString m_realm;
+    
+    QString m_extensionPath;
 
     typedef std::deque<HgAction> ActionQueue;
     ActionQueue m_queue;

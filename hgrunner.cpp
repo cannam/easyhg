@@ -26,6 +26,7 @@
 #include <QVBoxLayout>
 #include <QSettings>
 #include <QInputDialog>
+#include <QDir>
 
 #include <iostream>
 #include <errno.h>
@@ -45,6 +46,8 @@ HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
     setTextVisible(false);
     setVisible(false);
     m_isRunning = false;
+
+    unbundleExtension();
 }
 
 HgRunner::~HgRunner()
@@ -55,6 +58,27 @@ HgRunner::~HgRunner()
         m_proc->deleteLater();
     }
 }
+
+bool HgRunner::unbundleExtension()
+{
+    QString bundled = ":easyhg.py";
+    QString home = QProcessEnvironment::systemEnvironment().value("HOME");
+    QString target = QString("%1/.easyhg").arg(home);
+    if (!QDir().mkpath(target)) {
+        DEBUG << "Failed to make unbundle path " << target << endl;
+        std::cerr << "Failed to make unbundle path " << target.toStdString() << std::endl;
+        return false; 
+    }
+    QFile bf(bundled);
+    m_extensionPath = QString("%1/easyhg.py").arg(target);
+    if (!bf.copy(m_extensionPath)) {
+        DEBUG << "Failed to unbundle extension to " << target << endl;
+        std::cerr << "Failed to unbundle extension to " << m_extensionPath.toStdString() << std::endl;
+        return false;
+    }
+    DEBUG << "Unbundled extension to " << m_extensionPath << endl;
+    return true;
+}        
 
 void HgRunner::requestAction(HgAction action)
 {
@@ -296,6 +320,18 @@ void HgRunner::startCommand(HgAction action)
     if (executable == "") {
         // This is a Hg command
         executable = getHgBinaryName();
+
+        if (action.mayBeInteractive()) {
+            params.push_front("ui.interactive=true");
+            params.push_front("--config");
+            params.push_front(QString("extensions.easyhg=%1").arg(m_extensionPath));
+            params.push_front("--config");
+            interactive = true;
+        }            
+
+        //!!! want an option to use the mercurial_keyring extension as well
+
+/*
 #ifdef Q_OS_WIN32
         // This at least means we won't block on the non-working password prompt
         params.push_front("--noninteractive");
@@ -309,6 +345,7 @@ void HgRunner::startCommand(HgAction action)
             params.push_front("--noninteractive");
         }
 #endif
+*/
     }
 
     m_isRunning = true;

@@ -35,7 +35,7 @@ public:
         Unknown,
         Removed,
         Missing,
-        InConflict
+        InConflict,
 
         FirstState = Clean,
         LastState = InConflict
