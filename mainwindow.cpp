@@ -341,7 +341,7 @@ QString MainWindow::filterTag(QString tag)
 }
 
 
-void MainWindow::hgTag()
+void MainWindow::hgTag(QString id)
 {
     QStringList params;
     QString tag;
@@ -351,9 +351,10 @@ void MainWindow::hgTag()
          tr("Tag"),
          tr("Enter tag:"),
          tag)) {
-        if (!tag.isEmpty()) //!!! do something better if it is empty
-        {
-            params << "tag" << "--user" << getUserInfo() << filterTag(tag);
+        if (!tag.isEmpty()) {//!!! do something better if it is empty
+
+            params << "tag" << "--user" << getUserInfo();
+            params << "--rev" << Changeset::hashOf(id) << filterTag(tag);
             
             runner->requestAction(HgAction(ACT_TAG, workFolderPath, params));
         }
@@ -419,7 +420,7 @@ void MainWindow::findMergeBinaryName()
     QString merge = settings.value("mergebinary", "").toString();
     if (merge == "") {
         QStringList bases;
-        bases << "fmdiff3" << "kdiff3" << "meld" << "diffuse";
+        bases << "fmdiff3" << "meld" << "diffuse" << "kdiff3";
         bool found = false;
         foreach (QString base, bases) {
             merge = findExecutable(base);
@@ -531,7 +532,7 @@ void MainWindow::hgRevert()
         if (files.empty()) {
             params << "revert" << "--no-backup";
         } else {
-            params << "revert" << "--no-backup" << "--" << files;
+            params << "revert" << "--" << files;
         }
 
         //!!! This is problematic.  If you've got an uncommitted
@@ -562,7 +563,7 @@ void MainWindow::hgMarkResolved(QStringList files)
     if (files.empty()) {
         params << "--all";
     } else {
-        params << files;
+        params << "--" << files;
     }
 
     runner->requestAction(HgAction(ACT_RESOLVE_MARK, workFolderPath, params));
@@ -583,7 +584,7 @@ void MainWindow::hgRetryMerge()
     if (files.empty()) {
         params << "--all";
     } else {
-        params << files;
+        params << "--" << files;
     }
 
     runner->requestAction(HgAction(ACT_RETRY_MERGE, workFolderPath, params));
@@ -1425,10 +1426,14 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         shouldHgStat = true;
         break;
 
+    case ACT_TAG:
+        needNewLog = true;
+        shouldHgStat = true;
+        break;
+
     case ACT_FOLDERDIFF:
     case ACT_CHGSETDIFF:
     case ACT_SERVE:
-    case ACT_TAG:
     case ACT_HG_IGNORE:
         shouldHgStat = true;
         break;
@@ -1541,7 +1546,7 @@ void MainWindow::connectActions()
     connect(hgUpdateAct, SIGNAL(triggered()), this, SLOT(hgUpdate()));
     connect(hgRevertAct, SIGNAL(triggered()), this, SLOT(hgRevert()));
     connect(hgMergeAct, SIGNAL(triggered()), this, SLOT(hgMerge()));
-    connect(hgTagAct, SIGNAL(triggered()), this, SLOT(hgTag()));
+//    connect(hgTagAct, SIGNAL(triggered()), this, SLOT(hgTag()));
     connect(hgIgnoreAct, SIGNAL(triggered()), this, SLOT(hgIgnore()));
 
     connect(settingsAct, SIGNAL(triggered()), this, SLOT(settings()));
@@ -1583,10 +1588,9 @@ void MainWindow::connectTabsSignals()
 
     connect(hgTabs, SIGNAL(mergeFrom(QString)),
             this, SLOT(hgMergeFrom(QString)));
-/*
+
     connect(hgTabs, SIGNAL(tag(QString)),
             this, SLOT(hgTag(QString)));
-*/
 }    
 
 /*!!!
