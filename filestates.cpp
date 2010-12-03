@@ -31,11 +31,19 @@ void FileStates::clearBuckets()
     m_added.clear();
     m_removed.clear();
     m_missing.clear();
+    m_inConflict.clear();
     m_unknown.clear();
 }
 
 FileStates::State FileStates::charToState(QChar c, bool *ok)
 {
+    // Note that InConflict does not correspond to a stat char -- it's
+    // reported separately, by resolve --list -- stat reports files in
+    // conflict as M which means they will appear in more than one bin
+    // if we handle them naively.
+
+    //!!! -- but InConflict isn't actually handled elsewhere, it's
+    //!!! -- only a placeholder really at the moment
     if (ok) *ok = true;
     if (c == 'M') return Modified;
     if (c == 'A') return Added;
@@ -56,6 +64,7 @@ QStringList *FileStates::stateToBucket(State s)
     case Unknown: return &m_unknown;
     case Removed: return &m_removed;
     case Missing: return &m_missing;
+    case InConflict: return &m_inConflict;
     }
 }
 
@@ -85,8 +94,9 @@ void FileStates::parseStates(QString text)
     }
 
     DEBUG << "FileStates: " << m_modified.size() << " modified, " << m_added.size()
-            << " added, " << m_removed.size() << " removed, " << m_missing.size()
-            << " missing, " << m_unknown.size() << " unknown" << endl;
+          << " added, " << m_removed.size() << " removed, " << m_missing.size()
+          << " missing, " << m_inConflict.size() << " in conflict, "
+          << m_unknown.size() << " unknown" << endl;
 }
 
 QStringList FileStates::getFilesInState(State s) const

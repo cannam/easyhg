@@ -35,9 +35,10 @@ public:
         Unknown,
         Removed,
         Missing,
+        InConflict
 
         FirstState = Clean,
-        LastState = Missing
+        LastState = InConflict
     };
 
     void parseStates(QString text);
@@ -51,6 +52,7 @@ public:
     QStringList unknown() const { return m_unknown; }
     QStringList removed() const { return m_removed; }
     QStringList missing() const { return m_missing; }
+    QStringList inConflict() const { return m_inConflict; }
 
     State getStateOfFile(QString file) const;
 
@@ -60,6 +62,7 @@ private:
     QStringList m_unknown;
     QStringList m_removed;
     QStringList m_missing;
+    QStringList m_inConflict;
     QMap<QString, State> m_stateMap;
 
     State charToState(QChar, bool * = 0);
