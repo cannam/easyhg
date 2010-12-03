@@ -29,16 +29,19 @@ public:
 
     enum State {
 
-        Clean,
+        // These are in the order in which they want to be listed in
+        // the interface
+
         Modified,
         Added,
-        Unknown,
         Removed,
-        Missing,
         InConflict,
+        Missing,
+        Clean,
+        Unknown,
 
-        FirstState = Clean,
-        LastState = InConflict
+        FirstState = Modified,
+        LastState = Unknown
     };
 
     void parseStates(QString text);

@@ -78,7 +78,9 @@ void HgTabWidget::clearSelections()
 
 void HgTabWidget::setCurrent(QStringList ids, QString branch)
 {
-    m_historyWidget->setCurrent(ids, branch, canCommit());
+    bool showUncommitted = false;
+    if (canRevert()) showUncommitted = true;
+    m_historyWidget->setCurrent(ids, branch, showUncommitted);
 }
 
 void HgTabWidget::updateHistory()
@@ -86,16 +88,25 @@ void HgTabWidget::updateHistory()
     m_historyWidget->update();
 }
 
+bool HgTabWidget::canDiff() const
+{
+    if (!m_fileStatusWidget->getSelectedAddableFiles().empty()) return false;
+    return m_fileStatusWidget->haveChangesToCommit() ||
+        !m_fileStatusWidget->getAllUnresolvedFiles().empty();
+}
+
 bool HgTabWidget::canCommit() const
 {
     if (!m_fileStatusWidget->getSelectedAddableFiles().empty()) return false;
-    return m_fileStatusWidget->haveChangesToCommit();
+    return m_fileStatusWidget->haveChangesToCommit() &&
+        m_fileStatusWidget->getAllUnresolvedFiles().empty();
 }
 
 bool HgTabWidget::canRevert() const
 {
+    if (!m_fileStatusWidget->getSelectedAddableFiles().empty()) return false;
     return m_fileStatusWidget->haveChangesToCommit() ||
-        !m_fileStatusWidget->getSelectedRevertableFiles().empty();
+        !m_fileStatusWidget->getAllUnresolvedFiles().empty();
 }
 
 bool HgTabWidget::canAdd() const
@@ -113,9 +124,9 @@ bool HgTabWidget::canRemove() const
     return true;
 }
 
-bool HgTabWidget::canDoDiff() const
+bool HgTabWidget::canResolve() const
 {
-    return canCommit();
+    return !m_fileStatusWidget->getSelectedUnresolvedFiles().empty();
 }
 
 QStringList HgTabWidget::getAllSelectedFiles() const
@@ -156,6 +167,16 @@ QStringList HgTabWidget::getAllRemovableFiles() const
 QStringList HgTabWidget::getSelectedRemovableFiles() const
 {
     return m_fileStatusWidget->getSelectedRemovableFiles();
+}
+
+QStringList HgTabWidget::getAllUnresolvedFiles() const
+{
+    return m_fileStatusWidget->getAllUnresolvedFiles();
+}
+
+QStringList HgTabWidget::getSelectedUnresolvedFiles() const
+{
+    return m_fileStatusWidget->getSelectedUnresolvedFiles();
 }
 
 void HgTabWidget::updateWorkFolderFileList(QString fileList)

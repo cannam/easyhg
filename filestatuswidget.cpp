@@ -70,6 +70,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_simpleLabels[FileStates::Added] = tr("Added:");
     m_simpleLabels[FileStates::Removed] = tr("Removed:");
     m_simpleLabels[FileStates::Missing] = tr("Missing:");
+    m_simpleLabels[FileStates::InConflict] = tr("In Conflict:");
     m_simpleLabels[FileStates::Unknown] = tr("Untracked:");
 
     m_descriptions[FileStates::Clean] = tr("You have not changed these files.");
@@ -80,6 +81,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_descriptions[FileStates::Missing] = tr("These files are recorded in the version control, but absent from your working folder.<br>"
                                              "If you intended to delete them, select them and use Remove to tell the version control system about it.<br>"
                                              "If you deleted them by accident, select them and use Revert to restore their previous contents.");
+    m_descriptions[FileStates::InConflict] = tr("These files are unresolved following an incomplete merge.<br>Select a file and use Merge to try to resolve the merge again.");
     m_descriptions[FileStates::Unknown] = tr("These files are in your working folder but are not under version control.<br>"
                                              "Select a file and use Add to place it under version control or Ignore to remove it from this list.");
 
@@ -87,7 +89,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
                                 "have appeared since your most recent commit or update.");
 
     for (int i = int(FileStates::FirstState);
-             i <= int(FileStates::LastState); ++i) {
+         i <= int(FileStates::LastState); ++i) {
 
         FileStates::State s = FileStates::State(i);
 
@@ -222,6 +224,7 @@ QStringList FileStatusWidget::getSelectedRevertableFiles() const
         case FileStates::Modified:
         case FileStates::Removed:
         case FileStates::Missing:
+        case FileStates::InConflict:
             files.push_back(f);
             break;
         default: break;
@@ -237,6 +240,28 @@ QStringList FileStatusWidget::getAllRevertableFiles() const
     files << m_fileStates.getFilesInState(FileStates::Added);
     files << m_fileStates.getFilesInState(FileStates::Removed);
     files << m_fileStates.getFilesInState(FileStates::Missing);
+    files << m_fileStates.getFilesInState(FileStates::InConflict);
+    return files;
+}
+
+QStringList FileStatusWidget::getSelectedUnresolvedFiles() const
+{
+    QStringList files;
+    foreach (QString f, m_selectedFiles) {
+        switch (m_fileStates.getStateOfFile(f)) {
+        case FileStates::InConflict:
+            files.push_back(f);
+            break;
+        default: break;
+        }
+    }
+    return files;
+}
+
+QStringList FileStatusWidget::getAllUnresolvedFiles() const
+{
+    QStringList files;
+    files << m_fileStates.getFilesInState(FileStates::InConflict);
     return files;
 }
 
@@ -272,6 +297,7 @@ QStringList FileStatusWidget::getSelectedRemovableFiles() const
         case FileStates::Added:
         case FileStates::Modified:
         case FileStates::Missing:
+        case FileStates::InConflict:
             files.push_back(f);
             break;
         default: break;
@@ -287,6 +313,7 @@ QStringList FileStatusWidget::getAllRemovableFiles() const
     files << m_fileStates.getFilesInState(FileStates::Added);
     files << m_fileStates.getFilesInState(FileStates::Modified);
     files << m_fileStates.getFilesInState(FileStates::Missing);
+    files << m_fileStates.getFilesInState(FileStates::InConflict);
     return files;
 }
 

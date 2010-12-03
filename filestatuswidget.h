@@ -64,6 +64,9 @@ public:
     QStringList getSelectedRemovableFiles() const;
     QStringList getAllRemovableFiles() const;
 
+    QStringList getSelectedUnresolvedFiles() const;
+    QStringList getAllUnresolvedFiles() const;
+    
 signals:
     void selectionChanged();
 

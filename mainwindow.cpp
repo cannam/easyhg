@@ -47,6 +47,7 @@ MainWindow::MainWindow()
 
     fsWatcher = 0;
     commitsSincePush = 0;
+    shouldHgStat = true;
 
     createActions();
     createMenus();
@@ -85,6 +86,7 @@ MainWindow::MainWindow()
     }
 
     findDiffBinaryName();
+    findMergeBinaryName();
 
     ColourSet *cs = ColourSet::instance();
     cs->clearDefaultNames();
@@ -160,6 +162,8 @@ void MainWindow::hgStat()
 {
     QStringList params;
     params << "stat" << "-ardum";
+
+    lastStatOutput = "";
 
     // annoyingly, hg stat actually modifies the working directory --
     // it creates files called hg-checklink and hg-checkexec to test
@@ -237,19 +241,6 @@ void MainWindow::hgAnnotate()
         params << "annotate" << "--" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
 
         runner->requestAction(HgAction(ACT_ANNOTATE, workFolderPath, params));
-    }
-}
-
-void MainWindow::hgResolveMark()
-{
-    QStringList params;
-    QString currentFile;//!!! = hgTabs -> getCurrentFileListLine();
-
-    if (!currentFile.isEmpty())
-    {
-        params << "resolve" << "--mark" << "--" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
-
-        runner->requestAction(HgAction(ACT_RESOLVE_MARK, workFolderPath, params));
     }
 }
 
@@ -331,8 +322,6 @@ void MainWindow::hgCommit()
         
         runner->requestAction(HgAction(ACT_COMMIT, workFolderPath, params));
     }
-    
-    justMerged = false;
 }
 
 QString MainWindow::filterTag(QString tag)
@@ -424,6 +413,30 @@ void MainWindow::findDiffBinaryName()
     diffBinaryName = diff;
 }
 
+void MainWindow::findMergeBinaryName()
+{
+    QSettings settings;
+    QString merge = settings.value("mergebinary", "").toString();
+    if (merge == "") {
+        QStringList bases;
+        bases << "fmdiff3" << "kdiff3" << "meld" << "diffuse";
+        bool found = false;
+        foreach (QString base, bases) {
+            merge = findExecutable(base);
+            if (merge != base) {
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            settings.setValue("mergebinary", merge);
+        } else {
+            merge = "";
+        }
+    }
+    mergeBinaryName = merge;
+}
+
 void MainWindow::hgFolderDiff()
 {
     if (diffBinaryName == "") return;
@@ -443,6 +456,8 @@ void MainWindow::hgFolderDiff()
 
 void MainWindow::hgDiffToCurrent(QString id)
 {
+    if (diffBinaryName == "") return;
+
     QStringList params;
 
     // Diff given revision against working folder
@@ -457,6 +472,8 @@ void MainWindow::hgDiffToCurrent(QString id)
 
 void MainWindow::hgDiffToParent(QString child, QString parent)
 {
+    if (diffBinaryName == "") return;
+
     QStringList params;
 
     // Diff given revision against working folder
@@ -508,32 +525,92 @@ void MainWindow::hgRevert()
          tr("<h3>%1</h3><p>%2").arg(rf)
          .arg(tr("You are about to <b>revert</b> %n file(s).<br><br>This will <b>throw away any changes</b> that you have made to these files but have not committed.", "", files.size())),
          files)) {
+
+        lastRevertedFiles = files;
         
         if (files.empty()) {
             params << "revert" << "--no-backup";
         } else {
             params << "revert" << "--no-backup" << "--" << files;
         }
+
+        //!!! This is problematic.  If you've got an uncommitted
+        //!!! merge, you can't revert it without declaring which
+        //!!! parent of the merge you want to revert to (reasonably
+        //!!! enough).  We're OK if we just did the merge in easyhg a
+        //!!! moment ago, because we have a record of which parent was
+        //!!! the target -- but if you exit and restart, we've lost
+        //!!! that record and it doesn't appear to be possible to get
+        //!!! it back from Hg.  Even if you just switched from one
+        //!!! repo to another, the record is lost.  What to do?
+
+        if (justMerged && mergeTargetRevision != "") {
+            params << "--rev" << mergeTargetRevision;
+        }
         
         runner->requestAction(HgAction(ACT_REVERT, workFolderPath, params));
     }
 }
 
+
+void MainWindow::hgMarkResolved(QStringList files)
+{
+    QStringList params;
+
+    params << "resolve" << "--mark";
+
+    if (files.empty()) {
+        params << "--all";
+    } else {
+        params << files;
+    }
+
+    runner->requestAction(HgAction(ACT_RESOLVE_MARK, workFolderPath, params));
+}
+
+
 void MainWindow::hgRetryMerge()
 {
     QStringList params;
 
-    params << "resolve" << "--all";
+    params << "resolve";
+
+    if (mergeBinaryName != "") {
+        params << "--tool" << mergeBinaryName;
+    }
+
+    QStringList files = hgTabs->getSelectedUnresolvedFiles();
+    if (files.empty()) {
+        params << "--all";
+    } else {
+        params << files;
+    }
+
     runner->requestAction(HgAction(ACT_RETRY_MERGE, workFolderPath, params));
+
+    mergeCommitComment = tr("Merge");
 }
 
 
 void MainWindow::hgMerge()
 {
+    if (hgTabs->canResolve()) {
+        hgRetryMerge();
+        return;
+    }
+
     QStringList params;
 
     params << "merge";
-    
+
+    if (mergeBinaryName != "") {
+        params << "--tool" << mergeBinaryName;
+    }
+
+    if (currentParents.size() == 1) {
+        mergeTargetRevision = currentParents[0]->id();
+    }
+
     runner->requestAction(HgAction(ACT_MERGE, workFolderPath, params));
 
     mergeCommitComment = tr("Merge");
@@ -546,6 +623,10 @@ void MainWindow::hgMergeFrom(QString id)
 
     params << "merge";
     params << "--rev" << Changeset::hashOf(id);
+
+    if (mergeBinaryName != "") {
+        params << "--tool" << mergeBinaryName;
+    }
     
     runner->requestAction(HgAction(ACT_MERGE, workFolderPath, params));
 
@@ -673,6 +754,10 @@ void MainWindow::clearState()
     foreach (Changeset *cs, currentHeads) delete cs;
     currentHeads.clear();
     currentBranch = "";
+    lastStatOutput = "";
+    lastRevertedFiles.clear();
+    mergeTargetRevision = "";
+    mergeCommitComment = "";
     needNewLog = true;
 }
 
@@ -1198,25 +1283,6 @@ void MainWindow::commandFailed(HgAction action, QString output)
              : "");
 
     QMessageBox::warning(this, tr("Command failed"), message);
-
-/* todo:
-if ((runningAction == ACT_MERGE) && (exitCode != 0))
-            {
-                // If we had a failed merge, offer to retry
-                if (QMessageBox::Ok == QMessageBox::information(this, tr("Retry merge ?"), tr("Merge attempt failed. retry ?"), QMessageBox::Ok | QMessageBox::Cancel))
-                {
-                    runningAction = ACT_NONE;
-                    hgRetryMerge();
-                }
-                else
-                {
-                    runningAction = ACT_NONE;
-                    hgStat();
-                }
-            }
-            else
-            {
-*/
 }
 
 void MainWindow::commandCompleted(HgAction completedAction, QString output)
@@ -1225,7 +1291,6 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
 
     if (action == ACT_NONE) return;
 
-    bool shouldHgStat = false;
     bool headsChanged = false;
     QStringList oldHeadIds;
 
@@ -1253,8 +1318,28 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
 
     case ACT_STAT:
         if (fsWatcher) fsWatcher->blockSignals(false);
-        hgTabs->updateWorkFolderFileList(output);
+        lastStatOutput = output;
         updateFileSystemWatcher();
+        break;
+
+    case ACT_RESOLVE_LIST:
+        if (output != "") {
+            // Remove lines beginning with R (they are resolved,
+            // and the file stat parser treats R as removed)
+            QStringList outList = output.split('\n');
+            QStringList winnowed;
+            foreach (QString line, outList) {
+                if (!line.startsWith("R ")) winnowed.push_back(line);
+            }
+            output = winnowed.join("\n");
+        }
+        DEBUG << "lastStatOutput = " << lastStatOutput << endl;
+        DEBUG << "output = " << output << endl;
+        hgTabs->updateWorkFolderFileList(lastStatOutput + output);
+        break;
+
+    case ACT_RESOLVE_MARK:
+        shouldHgStat = true;
         break;
         
     case ACT_INCOMING:
@@ -1262,8 +1347,6 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
 
     case ACT_ANNOTATE:
-    case ACT_RESOLVE_LIST:
-    case ACT_RESOLVE_MARK:
         presentLongStdoutToUser(output);
         shouldHgStat = true;
         break;
@@ -1327,12 +1410,17 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
 
     case ACT_COMMIT:
         hgTabs->clearSelections();
+        justMerged = false;
         shouldHgStat = true;
+        break;
+
+    case ACT_REVERT:
+        hgMarkResolved(lastRevertedFiles);
+        justMerged = false;
         break;
         
     case ACT_REMOVE:
     case ACT_ADD:
-    case ACT_REVERT:
         hgTabs->clearSelections();
         shouldHgStat = true;
         break;
@@ -1357,8 +1445,8 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
         
     case ACT_RETRY_MERGE:
-        QMessageBox::information(this, tr("Merge retry"),
-                                 tr("Merge retry successful."));
+        QMessageBox::information(this, tr("Resolved"),
+                                 tr("<qt><h3>Merge resolved</h3><p>Merge resolved successfully.</p>"));
         shouldHgStat = true;
         justMerged = true;
         break;
@@ -1368,11 +1456,11 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     }
 
     // Sequence when no full log required:
-    //   paths -> branch -> stat -> heads ->
+    //   paths -> branch -> stat -> resolve-list -> heads ->
     //     incremental-log (only if heads changed) -> parents
     // 
     // Sequence when full log required:
-    //   paths -> branch -> stat -> heads -> parents -> log
+    //   paths -> branch -> stat -> resolve-list -> heads -> parents -> log
     //
     // Note we want to call enableDisableActions only once, at the end
     // of whichever sequence is in use.
@@ -1390,6 +1478,10 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
         
     case ACT_STAT:
+        hgResolveList();
+        break;
+
+    case ACT_RESOLVE_LIST:
         hgQueryHeads();
         break;
 
@@ -1420,6 +1512,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
 
     default:
         if (shouldHgStat) {
+            shouldHgStat = false;
             hgQueryPaths();
         } else {
             noMore = true;
@@ -1448,7 +1541,6 @@ void MainWindow::connectActions()
     connect(hgUpdateAct, SIGNAL(triggered()), this, SLOT(hgUpdate()));
     connect(hgRevertAct, SIGNAL(triggered()), this, SLOT(hgRevert()));
     connect(hgMergeAct, SIGNAL(triggered()), this, SLOT(hgMerge()));
-    connect(hgRetryMergeAct, SIGNAL(triggered()), this, SLOT(hgRetryMerge()));
     connect(hgTagAct, SIGNAL(triggered()), this, SLOT(hgTag()));
     connect(hgIgnoreAct, SIGNAL(triggered()), this, SLOT(hgIgnore()));
 
@@ -1465,8 +1557,6 @@ void MainWindow::connectActions()
 
 //    connect(hgUpdateToRevAct, SIGNAL(triggered()), this, SLOT(hgUpdateToRev()));
     connect(hgAnnotateAct, SIGNAL(triggered()), this, SLOT(hgAnnotate()));
-    connect(hgResolveListAct, SIGNAL(triggered()), this, SLOT(hgResolveList()));
-    connect(hgResolveMarkAct, SIGNAL(triggered()), this, SLOT(hgResolveMark()));
     connect(hgServeAct, SIGNAL(triggered()), this, SLOT(hgServe()));
     connect(clearSelectionsAct, SIGNAL(triggered()), this, SLOT(clearSelections()));
 }
@@ -1562,9 +1652,6 @@ void MainWindow::enableDisableActions()
     hgUpdateAct -> setEnabled(localRepoActionsEnabled);
     hgCommitAct -> setEnabled(localRepoActionsEnabled);
     hgMergeAct -> setEnabled(localRepoActionsEnabled);
-    hgRetryMergeAct -> setEnabled(localRepoActionsEnabled);
-    hgResolveListAct -> setEnabled(localRepoActionsEnabled);
-    hgResolveMarkAct -> setEnabled(localRepoActionsEnabled);
     hgAnnotateAct -> setEnabled(localRepoActionsEnabled);
     hgServeAct -> setEnabled(localRepoActionsEnabled);
     hgTagAct -> setEnabled(localRepoActionsEnabled);
@@ -1579,8 +1666,8 @@ void MainWindow::enableDisableActions()
     hgAddAct->setEnabled(localRepoActionsEnabled && hgTabs->canAdd());
     hgRemoveAct->setEnabled(localRepoActionsEnabled && hgTabs->canRemove());
     hgCommitAct->setEnabled(localRepoActionsEnabled && hgTabs->canCommit());
-    hgRevertAct->setEnabled(localRepoActionsEnabled && hgTabs->canCommit());
-    hgFolderDiffAct->setEnabled(localRepoActionsEnabled && hgTabs->canDoDiff());
+    hgRevertAct->setEnabled(localRepoActionsEnabled && hgTabs->canRevert());
+    hgFolderDiffAct->setEnabled(localRepoActionsEnabled && hgTabs->canDiff());
 
     // A default merge makes sense if:
     //  * there is only one parent (if there are two, we have an uncommitted merge) and
@@ -1624,10 +1711,13 @@ void MainWindow::enableDisableActions()
         emptyRepo = true;
     } else {
         haveMerge = true;
+        justMerged = true;
     }
         
-    hgMergeAct->setEnabled(localRepoActionsEnabled && canMerge);
-    hgUpdateAct->setEnabled(localRepoActionsEnabled && canUpdate);
+    hgMergeAct->setEnabled(localRepoActionsEnabled &&
+                           (canMerge || hgTabs->canResolve()));
+    hgUpdateAct->setEnabled(localRepoActionsEnabled &&
+                            (canUpdate && !hgTabs->canRevert()));
 
     // Set the state field on the file status widget
 
@@ -1644,10 +1734,18 @@ void MainWindow::enableDisableActions()
         hgTabs->setState(tr("Nothing committed to this repository yet"));
     } else if (canMerge) {
         hgTabs->setState(tr("<b>Awaiting merge</b> on %1").arg(branchText));
+    } else if (!hgTabs->getAllUnresolvedFiles().empty()) {
+        hgTabs->setState(tr("Have unresolved files following merge on %1").arg(branchText));
     } else if (haveMerge) {
         hgTabs->setState(tr("Have merged but not yet committed on %1").arg(branchText));
     } else if (canUpdate) {
-        hgTabs->setState(tr("On %1. Not at the head of the branch: consider updating").arg(branchText));
+        if (hgTabs->canRevert()) {
+            // have uncommitted changes
+            hgTabs->setState(tr("On %1. Not at the head of the branch").arg(branchText));
+        } else {
+            // no uncommitted changes
+            hgTabs->setState(tr("On %1. Not at the head of the branch: consider updating").arg(branchText));
+        }
     } else if (currentBranchHeads > 1) {
         hgTabs->setState(tr("At one of %n heads of %1", "", currentBranchHeads).arg(branchText));
     } else {
@@ -1721,15 +1819,6 @@ void MainWindow::createActions()
 */
     hgAnnotateAct = new QAction(tr("Annotate"), this);
     hgAnnotateAct -> setStatusTip(tr("Show line-by-line version information for selected file"));
-
-    hgResolveListAct = new QAction(tr("Resolve (list)"), this);
-    hgResolveListAct -> setStatusTip(tr("Resolve (list): Show list of files needing merge"));
-
-    hgResolveMarkAct = new QAction(tr("Resolve (mark)"), this);
-    hgResolveMarkAct -> setStatusTip(tr("Resolve (mark): Mark selected file status as resolved"));
-
-    hgRetryMergeAct = new QAction(tr("Retry merge"), this);
-    hgRetryMergeAct -> setStatusTip(tr("Retry merge after failed merge attempt."));
 
     hgTagAct = new QAction(tr("Tag revision"), this);
     hgTagAct -> setStatusTip(tr("Give decsriptive name (tag) to current workfolder parent revision."));
