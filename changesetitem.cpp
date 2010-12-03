@@ -108,8 +108,8 @@ ChangesetItem::activateMenu()
     m_parentDiffActions.clear();
 
     QMenu *menu = new QMenu;
-    QLabel *label = new QLabel(tr("<qt>&nbsp;<b>Revision: </b>%1</qt>")
-                               .arg(m_changeset->id()));
+    QLabel *label = new QLabel(tr("<qt><b>&nbsp;Revision: </b>%1</qt>")
+                               .arg(Changeset::hashOf(m_changeset->id())));
     QWidgetAction *wa = new QWidgetAction(menu);
     wa->setDefaultWidget(label);
     menu->addAction(wa);
@@ -124,7 +124,8 @@ ChangesetItem::activateMenu()
 
         foreach (QString parentId, m_changeset->parents()) {
             QAction *diffParent =
-                menu->addAction(tr("Diff to parent %1").arg(parentId));
+                menu->addAction(tr("Diff to parent %1")
+                                .arg(Changeset::hashOf(parentId)));
             connect(diffParent, SIGNAL(triggered()),
                     this, SLOT(diffToParentActivated()));
             m_parentDiffActions[diffParent] = parentId;

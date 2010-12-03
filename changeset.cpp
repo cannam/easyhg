@@ -69,17 +69,19 @@ QString Changeset::formatHtml()
 	      << "tags"
 	      << "comment";
 
-    propTexts << QObject::tr("Identifier")
-	      << QObject::tr("Author")
-	      << QObject::tr("Date")
-	      << QObject::tr("Branch")
-	      << QObject::tr("Tag")
-	      << QObject::tr("Comment");
+    propTexts << QObject::tr("Identifier:")
+	      << QObject::tr("Author:")
+	      << QObject::tr("Date:")
+	      << QObject::tr("Branch:")
+	      << QObject::tr("Tag:")
+	      << QObject::tr("Comment:");
 
     for (int i = 0; i < propNames.size(); ++i) {
 	QString prop = propNames[i];
 	QString value;
-	if (prop == "comment") {
+        if (prop == "id") {
+            value = hashOf(id());
+        } else if (prop == "comment") {
             value = c;
         } else if (prop == "tags") {
             value = tags().join(" ");
