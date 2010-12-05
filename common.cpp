@@ -27,6 +27,7 @@
 
 #ifdef Q_OS_WIN32
 #define _WIN32_WINNT 0x0500
+#define SECURITY_WIN32 
 #include <windows.h>
 #include <security.h>
 #else
