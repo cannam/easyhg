@@ -62,7 +62,7 @@ HgRunner::~HgRunner()
 bool HgRunner::unbundleExtension()
 {
     QString bundled = ":easyhg.py";
-    QString home = QProcessEnvironment::systemEnvironment().value("HOME");
+    QString home = QDir::homePath();
     QString target = QString("%1/.easyhg").arg(home);
     if (!QDir().mkpath(target)) {
         DEBUG << "Failed to make unbundle path " << target << endl;
