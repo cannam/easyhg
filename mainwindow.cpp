@@ -1552,25 +1552,20 @@ void MainWindow::connectActions()
 {
     connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
-    connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
     connect(hgRefreshAct, SIGNAL(triggered()), this, SLOT(hgRefresh()));
     connect(hgRemoveAct, SIGNAL(triggered()), this, SLOT(hgRemove()));
     connect(hgAddAct, SIGNAL(triggered()), this, SLOT(hgAdd()));
     connect(hgCommitAct, SIGNAL(triggered()), this, SLOT(hgCommit()));
     connect(hgFolderDiffAct, SIGNAL(triggered()), this, SLOT(hgFolderDiff()));
-//    connect(hgChgSetDiffAct, SIGNAL(triggered()), this, SLOT(hgChgSetDiff()));
     connect(hgUpdateAct, SIGNAL(triggered()), this, SLOT(hgUpdate()));
     connect(hgRevertAct, SIGNAL(triggered()), this, SLOT(hgRevert()));
     connect(hgMergeAct, SIGNAL(triggered()), this, SLOT(hgMerge()));
-//    connect(hgTagAct, SIGNAL(triggered()), this, SLOT(hgTag()));
     connect(hgIgnoreAct, SIGNAL(triggered()), this, SLOT(hgIgnore()));
 
     connect(settingsAct, SIGNAL(triggered()), this, SLOT(settings()));
     connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
 
-    connect(hgInitAct, SIGNAL(triggered()), this, SLOT(hgInit()));
-    connect(hgCloneFromRemoteAct, SIGNAL(triggered()), this, SLOT(hgCloneFromRemote()));
     connect(hgIncomingAct, SIGNAL(triggered()), this, SLOT(hgIncoming()));
     connect(hgPullAct, SIGNAL(triggered()), this, SLOT(hgPull()));
     connect(hgPushAct, SIGNAL(triggered()), this, SLOT(hgPush()));
@@ -1655,19 +1650,12 @@ void MainWindow::enableDisableActions()
         localRepoExist = false;
     }
 
-    hgCloneFromRemoteAct -> setEnabled(remoteRepoActionsEnabled);
     hgIncomingAct -> setEnabled(remoteRepoActionsEnabled && remoteRepoActionsEnabled);
     hgPullAct -> setEnabled(remoteRepoActionsEnabled && remoteRepoActionsEnabled);
     hgPushAct -> setEnabled(remoteRepoActionsEnabled && remoteRepoActionsEnabled);
-/*
-    if (tabPage != WORKTAB)
-    {
-        localRepoActionsEnabled = false;
-    }
-*/
+
     bool haveDiff = (diffBinaryName != "");
 
-    hgInitAct -> setEnabled((localRepoExist == false) && (workFolderExist==true));
     hgRefreshAct -> setEnabled(localRepoActionsEnabled);
     hgFolderDiffAct -> setEnabled(localRepoActionsEnabled && haveDiff);
     hgRevertAct -> setEnabled(localRepoActionsEnabled);
@@ -1678,15 +1666,11 @@ void MainWindow::enableDisableActions()
     hgMergeAct -> setEnabled(localRepoActionsEnabled);
     hgAnnotateAct -> setEnabled(localRepoActionsEnabled);
     hgServeAct -> setEnabled(localRepoActionsEnabled);
-    hgTagAct -> setEnabled(localRepoActionsEnabled);
     hgIgnoreAct -> setEnabled(localRepoActionsEnabled);
-
-    //!!!hgTabs -> enableDisableOtherTabs(tabPage);
 
     DEBUG << "localRepoActionsEnabled = " << localRepoActionsEnabled << endl;
     DEBUG << "canCommit = " << hgTabs->canCommit() << endl;
 
-    //!!! new stuff:
     hgAddAct->setEnabled(localRepoActionsEnabled && hgTabs->canAdd());
     hgRemoveAct->setEnabled(localRepoActionsEnabled && hgTabs->canRemove());
     hgCommitAct->setEnabled(localRepoActionsEnabled && hgTabs->canCommit());
@@ -1752,8 +1736,6 @@ void MainWindow::enableDisableActions()
         branchText = tr("branch \"%1\"").arg(currentBranch);
     }
 
-    //!!! Want "merge failed" report
-
     if (emptyRepo) {
         hgTabs->setState(tr("Nothing committed to this repository yet"));
     } else if (canMerge) {
@@ -1780,85 +1762,66 @@ void MainWindow::enableDisableActions()
 void MainWindow::createActions()
 {
     //File actions
-    hgInitAct = new QAction(tr("Init local repository"), this);
-    hgInitAct->setStatusTip(tr("Create an empty local repository in selected folder"));
-
-    hgCloneFromRemoteAct = new QAction(tr("Clone from remote"), this);
-    hgCloneFromRemoteAct->setStatusTip(tr("Clone from remote repository into local repository in selected folder"));
-
     openAct = new QAction(QIcon(":/images/fileopen.png"), tr("Open..."), this);
-    openAct -> setStatusTip(tr("Open repository"));
-    openAct -> setIconVisibleInMenu(true);
+    openAct -> setStatusTip(tr("Open a repository"));
 
     settingsAct = new QAction(QIcon(":/images/settings.png"), tr("Settings..."), this);
     settingsAct -> setStatusTip(tr("View and change application settings"));
-    settingsAct -> setIconVisibleInMenu(true);
 
-    exitAct = new QAction(QIcon(":/images/exit.png"), tr("Exit"), this);
+    exitAct = new QAction(QIcon(":/images/exit.png"), tr("Quit"), this);
     exitAct->setShortcuts(QKeySequence::Quit);
-    exitAct->setStatusTip(tr("Exit application"));
-    exitAct -> setIconVisibleInMenu(true);
+    exitAct->setStatusTip(tr("Quit EasyMercurial"));
 
     //Repository actions
     hgRefreshAct = new QAction(QIcon(":/images/status.png"), tr("Refresh"), this);
-    hgRefreshAct->setStatusTip(tr("Refresh (info of) status of workfolder files"));
+    hgRefreshAct->setStatusTip(tr("Update the window to show the current state of the working folder"));
 
     hgIncomingAct = new QAction(QIcon(":/images/incoming.png"), tr("Preview"), this);
-    hgIncomingAct -> setStatusTip(tr("View info of changesets incoming to us from remote repository (on pull operation)"));
+    hgIncomingAct -> setStatusTip(tr("See what changes are available in the remote repository waiting to be pulled"));
 
     hgPullAct = new QAction(QIcon(":/images/pull.png"), tr("Pull"), this);
-    hgPullAct -> setStatusTip(tr("Pull changesets from remote repository to local repository"));
+    hgPullAct -> setStatusTip(tr("Pull changes from the remote repository to the local repository"));
 
     hgPushAct = new QAction(QIcon(":/images/push.png"), tr("Push"), this);
-    hgPushAct->setStatusTip(tr("Push local changesets to remote repository"));
+    hgPushAct->setStatusTip(tr("Push changes from the local repository to the remote repository"));
 
     //Workfolder actions
     hgFolderDiffAct   = new QAction(QIcon(":/images/folderdiff.png"), tr("Diff"), this);
-    hgFolderDiffAct->setStatusTip(tr("Folderdiff: View all differences between working folder files and local repository files"));
-
-    hgChgSetDiffAct   = new QAction(QIcon(":/images/chgsetdiff.png"), tr("View changesetdiff"), this);
-    hgChgSetDiffAct->setStatusTip(tr("Change set diff: View differences between all files of 2 repository changesets"));
+    hgFolderDiffAct->setStatusTip(tr("See what has changed in the working folder compared with the last committed state"));
 
     hgRevertAct = new QAction(QIcon(":/images/undo.png"), tr("Revert"), this);
-    hgRevertAct->setStatusTip(tr("Undo selected working folder file changes (return to local repository version)"));
+    hgRevertAct->setStatusTip(tr("Throw away your changes and return to the last committed state"));
 
     hgAddAct = new QAction(QIcon(":/images/add.png"), tr("Add"), this);
-    hgAddAct -> setStatusTip(tr("Add working folder file(s) (selected or all yet untracked) to local repository (on next commit)"));
+    hgAddAct -> setStatusTip(tr("Mark the selected file(s) to be added on the next commit"));
 
+    //!!! needs to be modified for number
     hgRemoveAct = new QAction(QIcon(":/images/remove.png"), tr("Remove"), this);
-    hgRemoveAct -> setStatusTip(tr("Remove selected working folder file from local repository (on next commit)"));
+    hgRemoveAct -> setStatusTip(tr("Mark the selected file(s) to be removed from version control on the next commit"));
 
     hgUpdateAct = new QAction(QIcon(":/images/update.png"), tr("Update"), this);
-    hgUpdateAct->setStatusTip(tr("Update working folder from local repository"));
+    hgUpdateAct->setStatusTip(tr("Update the working folder to the head of the current repository branch"));
 
+    //!!! needs to be modified when files selected
     hgCommitAct = new QAction(QIcon(":/images/commit.png"), tr("Commit"), this);
-    hgCommitAct->setStatusTip(tr("Save selected file(s) or all changed files in working folder (and all subfolders) to local repository"));
+    hgCommitAct->setStatusTip(tr("Commit your changes to the local repository"));
 
     hgMergeAct = new QAction(QIcon(":/images/merge.png"), tr("Merge"), this);
-    hgMergeAct->setStatusTip(tr("Merge two local repository changesets to working folder"));
+    hgMergeAct->setStatusTip(tr("Merge the two independent sets of changes in the local repository into the working folder"));
 
     //Advanced actions
-/*    hgUpdateToRevAct = new QAction(tr("Update to revision"), this);
-    hgUpdateToRevAct -> setStatusTip(tr("Update working folder to version selected from history list"));
-*/
+    //!!! needs to be modified for number
     hgAnnotateAct = new QAction(tr("Annotate"), this);
     hgAnnotateAct -> setStatusTip(tr("Show line-by-line version information for selected file"));
 
-    hgTagAct = new QAction(tr("Tag revision"), this);
-    hgTagAct -> setStatusTip(tr("Give decsriptive name (tag) to current workfolder parent revision."));
-
     hgIgnoreAct = new QAction(tr("Edit .hgignore"), this);
-    hgIgnoreAct -> setStatusTip(tr("Edit .hgignore file (file contains names of files that should be ignored by mercurial)"));
+    hgIgnoreAct -> setStatusTip(tr("Edit the .hgignore file, containing the names of files that should be ignored by Mercurial"));
 
     hgServeAct = new QAction(tr("Serve (via http)"), this);
     hgServeAct -> setStatusTip(tr("Serve local repository via http for workgroup access"));
 
     //Help actions
     aboutAct = new QAction(tr("About"), this);
-    aboutAct->setStatusTip(tr("Show the application's About box"));
-
-    aboutQtAct = new QAction(tr("About Qt"), this);
-    aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
 
     // Miscellaneous
     clearSelectionsAct = new QAction(tr("Clear selections"), this);
@@ -1868,36 +1831,20 @@ void MainWindow::createActions()
 void MainWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("File"));
-/*    fileMenu -> addAction(hgInitAct);
-    fileMenu -> addAction(hgCloneFromRemoteAct);
-    fileMenu->addAction(clearSelectionsAct); //!!! can't live here!
-    fileMenu -> addSeparator();
-*/
+
     fileMenu -> addAction(openAct);
     fileMenu -> addAction(settingsAct);
     fileMenu -> addSeparator();
     fileMenu -> addAction(exitAct);
 
     advancedMenu = menuBar()->addMenu(tr("Advanced"));
-/*
-    advancedMenu -> addAction(hgUpdateToRevAct);
-    advancedMenu -> addSeparator();
-    advancedMenu -> addAction(hgAnnotateAct);
-    advancedMenu -> addSeparator();
-    advancedMenu -> addAction(hgRetryMergeAct);
-    advancedMenu -> addAction(hgResolveListAct);
-    advancedMenu -> addAction(hgResolveMarkAct);
-    advancedMenu -> addSeparator();
-    advancedMenu -> addAction(hgTagAct);
-    advancedMenu -> addSeparator();
-*/
+
     advancedMenu -> addAction(hgIgnoreAct);
     advancedMenu -> addSeparator();
     advancedMenu -> addAction(hgServeAct);
 
     helpMenu = menuBar()->addMenu(tr("Help"));
     helpMenu->addAction(aboutAct);
-//!!!    helpMenu->addAction(aboutQtAct);
 }
 
 void MainWindow::createToolBars()
@@ -1907,7 +1854,6 @@ void MainWindow::createToolBars()
     fileToolBar -> addAction(openAct);
     fileToolBar -> addAction(hgRefreshAct);
     fileToolBar -> addSeparator();
-//    fileToolBar -> addAction(hgChgSetDiffAct);
     fileToolBar -> setMovable(false);
 
     repoToolBar = addToolBar(tr(REPOMENU_TITLE));
