@@ -154,8 +154,6 @@ private:
     bool localRepoActionsEnabled;
 
     //File menu actions
-    QAction *hgInitAct;
-    QAction *hgCloneFromRemoteAct;
     QAction *openAct;
     QAction *settingsAct;
     QAction *exitAct;
@@ -175,7 +173,6 @@ private:
     QAction *hgMergeAct;
     QAction *hgUpdateToRevAct;
     QAction *hgAnnotateAct;
-    QAction *hgTagAct;
     QAction *hgIgnoreAct;
     QAction *hgServeAct;
 
@@ -186,7 +183,6 @@ private:
 
     //Help menu actions
     QAction *aboutAct;
-    QAction *aboutQtAct;
 
     // Other actions
     QAction *clearSelectionsAct;

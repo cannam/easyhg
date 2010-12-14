@@ -77,7 +77,7 @@ UncommittedItem::activateMenu()
 
     QAction *dif = menu->addAction(tr("Diff"));
     connect(dif, SIGNAL(triggered()), this, SIGNAL(diff()));
-    QAction *stat = menu->addAction(tr("Show summary"));
+    QAction *stat = menu->addAction(tr("Summarise changes"));
     connect(stat, SIGNAL(triggered()), this, SIGNAL(showSummary()));
     
     menu->addSeparator();
