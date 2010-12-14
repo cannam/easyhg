@@ -35,6 +35,7 @@ UncommittedItem::UncommittedItem() :
     m_font.setPixelSize(11);
     m_font.setBold(false);
     m_font.setItalic(false);
+    setCursor(Qt::ArrowCursor);
 }
 
 QRectF
@@ -76,6 +77,8 @@ UncommittedItem::activateMenu()
 
     QAction *dif = menu->addAction(tr("Diff"));
     connect(dif, SIGNAL(triggered()), this, SIGNAL(diff()));
+    QAction *stat = menu->addAction(tr("Show summary"));
+    connect(stat, SIGNAL(triggered()), this, SIGNAL(showSummary()));
     
     menu->addSeparator();
 

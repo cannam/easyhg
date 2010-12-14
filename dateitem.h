@@ -18,15 +18,14 @@
 #ifndef DATEITEM_H
 #define DATEITEM_H
 
-#include <QGraphicsRectItem>
+#include <QGraphicsObject>
 
-class DateItem : public QGraphicsItem
+class DateItem : public QGraphicsObject
 {
+    Q_OBJECT
+
 public:
-    DateItem() :
-	m_minrow(0), m_maxrow(0),
-	m_mincol(0), m_maxcol(0),
-	m_even(false) {}
+    DateItem();
 
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter *, const QStyleOptionGraphicsItem *, QWidget *);
@@ -38,6 +37,12 @@ public:
 
     QString dateString() const { return m_dateString; }
     void setDateString(QString s) { m_dateString = s; }
+
+signals:
+    void clicked();
+
+protected:
+    virtual void mousePressEvent(QGraphicsSceneMouseEvent *);
 
 private:
     QString m_dateString;

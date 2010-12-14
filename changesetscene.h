@@ -22,6 +22,7 @@
 
 class ChangesetItem;
 class UncommittedItem;
+class DateItem;
 
 class ChangesetScene : public QGraphicsScene
 {
@@ -32,11 +33,13 @@ public:
 
     void addChangesetItem(ChangesetItem *item);
     void addUncommittedItem(UncommittedItem *item);
+    void addDateItem(DateItem *item);
 
 signals:
     void commit();
     void revert();
     void diffWorkingFolder();
+    void showSummary();
     void showWork();
 
     void updateTo(QString id);
@@ -45,8 +48,10 @@ signals:
     void mergeFrom(QString id);
     void tag(QString id);
 
-public slots:
+private slots:
     void changesetDetailShown();
+    void changesetDetailHidden();
+    void dateItemClicked();
 
 private:
     ChangesetItem *m_detailShown;

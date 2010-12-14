@@ -49,6 +49,9 @@ HgTabWidget::HgTabWidget(QWidget *parent,
     connect(m_historyWidget, SIGNAL(revert()),
             this, SIGNAL(revert()));
     
+    connect(m_historyWidget, SIGNAL(showSummary()),
+            this, SIGNAL(showSummary()));
+    
     connect(m_historyWidget, SIGNAL(diffWorkingFolder()),
             this, SIGNAL(diffWorkingFolder()));
 

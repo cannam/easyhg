@@ -546,7 +546,7 @@ void Grapher::layout(Changesets csets,
                 item->setRows(changeRow, n);
                 item->setEven(even);
                 item->setZValue(-1);
-                m_scene->addItem(item);
+                m_scene->addDateItem(item);
                 even = !even;
             }
             prevDate = date;
@@ -562,7 +562,7 @@ void Grapher::layout(Changesets csets,
         item->setRows(changeRow, n+1);
         item->setEven(even);
         item->setZValue(-1);
-        m_scene->addItem(item);
+        m_scene->addDateItem(item);
         even = !even;
     }
 }

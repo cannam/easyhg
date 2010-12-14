@@ -18,6 +18,7 @@
 #include "changesetscene.h"
 #include "changesetitem.h"
 #include "uncommitteditem.h"
+#include "dateitem.h"
 
 ChangesetScene::ChangesetScene()
     : QGraphicsScene(), m_detailShown(0)
@@ -31,6 +32,9 @@ ChangesetScene::addChangesetItem(ChangesetItem *item)
 
     connect(item, SIGNAL(detailShown()),
             this, SLOT(changesetDetailShown()));
+
+    connect(item, SIGNAL(detailHidden()),
+            this, SLOT(changesetDetailHidden()));
 
     connect(item, SIGNAL(updateTo(QString)),
             this, SIGNAL(updateTo(QString)));
@@ -62,8 +66,20 @@ ChangesetScene::addUncommittedItem(UncommittedItem *item)
     connect(item, SIGNAL(diff()),
             this, SIGNAL(diffWorkingFolder()));
 
+    connect(item, SIGNAL(showSummary()),
+            this, SIGNAL(showSummary()));
+
     connect(item, SIGNAL(showWork()),
             this, SIGNAL(showWork()));
+}
+
+void
+ChangesetScene::addDateItem(DateItem *item)
+{
+    addItem(item);
+
+    connect(item, SIGNAL(clicked()),
+            this, SLOT(dateItemClicked()));
 }
 
 void
@@ -76,5 +92,19 @@ ChangesetScene::changesetDetailShown()
 	m_detailShown->hideDetail();
     }
     m_detailShown = csi;
+}
+
+void
+ChangesetScene::changesetDetailHidden()
+{
+    m_detailShown = 0;
+}
+
+void
+ChangesetScene::dateItemClicked()
+{
+    if (m_detailShown) {
+        m_detailShown->hideDetail();
+    }
 }
 

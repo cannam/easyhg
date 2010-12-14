@@ -49,6 +49,7 @@ signals:
     void commit();
     void revert();
     void diffWorkingFolder();
+    void showSummary();
     void showWork();
 
     void updateTo(QString id);
