@@ -18,7 +18,7 @@
 #ifndef CHANGESETITEM_H
 #define CHANGESETITEM_H
 
-#include <QGraphicsItem>
+#include <QGraphicsObject>
 #include <QFont>
 
 class Changeset;
@@ -26,10 +26,9 @@ class ChangesetDetailItem;
 
 class QAction;
 
-class ChangesetItem : public QObject, public QGraphicsItem
+class ChangesetItem : public QGraphicsObject
 {
     Q_OBJECT
-    Q_INTERFACES(QGraphicsItem)
 
 public:
     ChangesetItem(Changeset *cs);

@@ -17,9 +17,19 @@
 
 #include "dateitem.h"
 
+#include "debug.h"
+
 #include <QPainter>
 #include <QBrush>
 #include <QFont>
+#include <QGraphicsSceneMouseEvent>
+
+DateItem::DateItem() :
+    m_minrow(0), m_maxrow(0),
+    m_mincol(0), m_maxcol(0),
+    m_even(false)
+{
+}
 
 void
 DateItem::setRows(int minrow, int n)
@@ -35,6 +45,16 @@ DateItem::setCols(int mincol, int n)
     m_mincol = mincol;
     m_maxcol = mincol + n - 1;
     setX(m_mincol * 100);
+}
+
+void
+DateItem::mousePressEvent(QGraphicsSceneMouseEvent *e)
+{
+    DEBUG << "DateItem::mousePressEvent" << endl;
+    if (e->button() == Qt::LeftButton) {
+        emit clicked();
+    }
+    e->ignore();
 }
 
 QRectF

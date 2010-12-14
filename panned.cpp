@@ -20,11 +20,18 @@
 
 #include <QScrollBar>
 #include <QWheelEvent>
+#include <QTimer>
+
+#include <cmath>
 
 #include <iostream>
 
-Panned::Panned()
+Panned::Panned() :
+    m_dragging(false)
 {
+    m_dragTimer = new QTimer(this);
+    m_dragTimerMs = 50;
+    connect(m_dragTimer, SIGNAL(timeout()), this, SLOT(dragTimerTimeout()));
     setRenderHints(QPainter::Antialiasing |
                    QPainter::TextAntialiasing);
 }
@@ -146,6 +153,93 @@ void
 Panned::slotEmulateWheelEvent(QWheelEvent *ev)
 {
     QGraphicsView::wheelEvent(ev);
+}
+
+void
+Panned::mousePressEvent(QMouseEvent *ev)
+{
+    if (dragMode() != QGraphicsView::ScrollHandDrag ||
+        ev->button() != Qt::LeftButton) {
+        QGraphicsView::mousePressEvent(ev);
+        return;
+    }
+
+    DEBUG << "Panned::mousePressEvent: have left button in drag mode" << endl;
+
+    setDragMode(QGraphicsView::NoDrag);
+    QGraphicsView::mousePressEvent(ev);
+    setDragMode(QGraphicsView::ScrollHandDrag);
+
+    if (!ev->isAccepted()) {
+        ev->accept();
+        m_dragging = true;
+        m_lastDragPos = ev->pos();
+        m_lastOrigin = QPoint(horizontalScrollBar()->value(),
+                              verticalScrollBar()->value());
+        m_velocity = QPointF(0, 0);
+        m_dragTimer->start(m_dragTimerMs);
+    }
+
+}
+
+void
+Panned::mouseMoveEvent(QMouseEvent *ev)
+{
+    if (!m_dragging) {
+        QGraphicsView::mouseMoveEvent(ev);
+        return;
+    }
+    DEBUG << "Panned::mouseMoveEvent: dragging" << endl;
+    ev->accept();
+    QScrollBar *hBar = horizontalScrollBar();
+    QScrollBar *vBar = verticalScrollBar();
+    QPoint delta = ev->pos() - m_lastDragPos;
+    hBar->setValue(hBar->value() + (isRightToLeft() ? delta.x() : -delta.x()));
+    vBar->setValue(vBar->value() - delta.y());
+    m_lastDragPos = ev->pos();
+}
+
+void
+Panned::mouseReleaseEvent(QMouseEvent *ev)
+{
+    if (!m_dragging) {
+        QGraphicsView::mouseReleaseEvent(ev);
+        return;
+    }
+    DEBUG << "Panned::mouseReleaseEvent: dragging" << endl;
+    ev->accept();
+    m_dragging = false;
+}
+
+void
+Panned::dragTimerTimeout()
+{
+    QPoint origin = QPoint(horizontalScrollBar()->value(),
+                           verticalScrollBar()->value());
+    if (m_dragging) {
+        m_velocity = QPointF
+            (float(origin.x() - m_lastOrigin.x()) / m_dragTimerMs,
+             float(origin.y() - m_lastOrigin.y()) / m_dragTimerMs);
+        m_lastOrigin = origin;
+        DEBUG << "Panned::dragTimerTimeout: velocity = " << m_velocity << endl;
+    } else {
+        if (origin == m_lastOrigin) {
+            m_dragTimer->stop();
+        }
+        float x = m_velocity.x(), y = m_velocity.y();
+        if (fabsf(x) > 1.0/m_dragTimerMs) x = x * 0.9f;
+        else x = 0.f;
+        if (fabsf(y) > 1.0/m_dragTimerMs) y = y * 0.9f;
+        else y = 0.f;
+        m_velocity = QPointF(x, y);
+        DEBUG << "Panned::dragTimerTimeout: velocity adjusted to " << m_velocity << endl;
+        m_lastOrigin = origin;
+        //!!! need to store origin in floats
+        horizontalScrollBar()->setValue(m_lastOrigin.x() +
+                                        m_velocity.x() * m_dragTimerMs);
+        verticalScrollBar()->setValue(m_lastOrigin.y() +
+                                      m_velocity.y() * m_dragTimerMs);
+    }
 }
 
 void

@@ -18,13 +18,12 @@
 #ifndef UNCOMMITTEDITEM_H
 #define UNCOMMITTEDITEM_H
 
-#include <QGraphicsItem>
+#include <QGraphicsObject>
 #include <QFont>
 
-class UncommittedItem : public QObject, public QGraphicsItem
+class UncommittedItem : public QGraphicsObject
 {
     Q_OBJECT
-    Q_INTERFACES(QGraphicsItem)
 
 public:
     UncommittedItem();
@@ -50,6 +49,7 @@ signals:
     void commit();
     void revert();
     void diff();
+    void showSummary();
     void showWork();
 
 protected:

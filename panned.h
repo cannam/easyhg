@@ -22,6 +22,7 @@
 
 class QWheelEvent;
 class QEvent;
+class QTimer;
 
 class Panned : public QGraphicsView
 {
@@ -46,8 +47,22 @@ public slots:
     void zoomIn();
     void zoomOut();
 
+private slots:
+    void dragTimerTimeout();
+
 protected:
     QRectF m_pannedRect;
+
+    QPoint m_lastDragPos;
+    QPoint m_lastOrigin;
+    QPointF m_velocity;
+    bool m_dragging;
+    int m_dragTimerMs;
+    QTimer *m_dragTimer;
+
+    virtual void mousePressEvent(QMouseEvent *);
+    virtual void mouseMoveEvent(QMouseEvent *);
+    virtual void mouseReleaseEvent(QMouseEvent *);
 
     virtual void paintEvent(QPaintEvent *);
     virtual void resizeEvent(QResizeEvent *);

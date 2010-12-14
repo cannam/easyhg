@@ -84,6 +84,7 @@ signals:
     void commit();
     void revert();
     void diffWorkingFolder();
+    void showSummary();
 
     void updateTo(QString id);
     void diffToParent(QString id, QString parent);

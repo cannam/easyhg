@@ -41,6 +41,7 @@ ChangesetItem::ChangesetItem(Changeset *cs) :
     m_font.setPixelSize(11);
     m_font.setBold(false);
     m_font.setItalic(false);
+    setCursor(Qt::ArrowCursor);
 }
 
 QString

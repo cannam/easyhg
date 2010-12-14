@@ -35,6 +35,8 @@ HistoryWidget::HistoryWidget() :
     m_panned = new Panned;
     m_panner = new Panner;
 
+    m_panned->setDragMode(QGraphicsView::ScrollHandDrag);
+
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(m_panned, 0, 0);
     layout->addWidget(m_panner, 0, 1);
@@ -258,6 +260,9 @@ void HistoryWidget::connectSceneSignals()
     
     connect(scene, SIGNAL(diffWorkingFolder()),
             this, SIGNAL(diffWorkingFolder()));
+
+    connect(scene, SIGNAL(showSummary()),
+            this, SIGNAL(showSummary()));
 
     connect(scene, SIGNAL(showWork()),
             this, SIGNAL(showWork()));

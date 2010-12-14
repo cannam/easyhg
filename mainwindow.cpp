@@ -305,7 +305,7 @@ void MainWindow::hgCommit()
          tr("<h3>%1</h3><p>%2").arg(cf)
          .arg(tr("You are about to commit the following files:")),
          tr("<h3>%1</h3><p>%2").arg(cf)
-         .arg(tr("You are about to commit %n file(s):", "", reportFiles.size())),
+         .arg(tr("You are about to commit %n file(s).", "", reportFiles.size())),
          reportFiles,
          comment)) {
 
@@ -436,6 +436,15 @@ void MainWindow::findMergeBinaryName()
         }
     }
     mergeBinaryName = merge;
+}
+
+void MainWindow::hgShowSummary()
+{
+    QStringList params;
+    
+    params << "diff" << "--stat";
+
+    runner->requestAction(HgAction(ACT_DIFF_SUMMARY, workFolderPath, params));
 }
 
 void MainWindow::hgFolderDiff()
@@ -1166,15 +1175,16 @@ void MainWindow::fsFileChanged(QString f)
 
 QString MainWindow::format3(QString head, QString intro, QString code)
 {
+    code = xmlEncode(code).replace("\n", "<br>").replace(" ", "&nbsp;");
     if (intro == "") {
-        return QString("<qt><h3>%1</h3><code>%2</code>")
-            .arg(head).arg(xmlEncode(code).replace("\n", "<br>"));
+        return QString("<qt><h3>%1</h3><p><code>%2</code></p>")
+            .arg(head).arg(code);
     } else if (code == "") {
         return QString("<qt><h3>%1</h3><p>%2</p>")
             .arg(head).arg(intro);
     } else {
-        return QString("<qt><h3>%1</h3><p>%2</p><code>%3</code>")
-            .arg(head).arg(intro).arg(xmlEncode(code).replace("\n", "<br>"));
+        return QString("<qt><h3>%1</h3><p>%2</p><p><code>%3</code></p>")
+            .arg(head).arg(intro).arg(code);
     }
 }
 
@@ -1431,6 +1441,13 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         shouldHgStat = true;
         break;
 
+    case ACT_DIFF_SUMMARY:
+        QMessageBox::information(this, tr("Change summary"),
+                                 format3(tr("Summary of uncommitted changes"),
+                                         "",
+                                         output));
+        break;
+
     case ACT_FOLDERDIFF:
     case ACT_CHGSETDIFF:
     case ACT_SERVE:
@@ -1576,6 +1593,9 @@ void MainWindow::connectTabsSignals()
     
     connect(hgTabs, SIGNAL(diffWorkingFolder()),
             this, SLOT(hgFolderDiff()));
+    
+    connect(hgTabs, SIGNAL(showSummary()),
+            this, SLOT(hgShowSummary()));
 
     connect(hgTabs, SIGNAL(updateTo(QString)),
             this, SLOT(hgUpdateToRev(QString)));
