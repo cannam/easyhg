@@ -33,7 +33,7 @@ class HgRunner : public QProgressBar
     Q_OBJECT
 
 public:
-    HgRunner(QWidget * parent = 0);
+    HgRunner(QString myDirPath, QWidget * parent = 0);
     ~HgRunner();
 
     void requestAction(HgAction action);
@@ -65,6 +65,7 @@ private:
     void openTerminal();
     void closeTerminal();
 
+    void findExtension();
     bool unbundleExtension();
 
     int m_ptyMasterFd;
@@ -79,7 +80,8 @@ private:
 
     QString m_userName;
     QString m_realm;
-    
+
+    QString m_myDirPath;
     QString m_extensionPath;
 
     typedef std::deque<HgAction> ActionQueue;

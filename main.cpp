@@ -44,7 +44,11 @@ int main(int argc, char *argv[])
     app.installTranslator(&translator);
 
     QStringList args = app.arguments();
-    MainWindow mainWin;
+
+    QString myDirPath = QFileInfo(QDir::current().absoluteFilePath(args[0]))
+        .canonicalPath();
+
+    MainWindow mainWin(myDirPath);
     mainWin.show();
 
     if (args.size() == 2) {

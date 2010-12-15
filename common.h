@@ -25,7 +25,7 @@
 #define REPOMENU_TITLE                  "Repository actions"
 #define WORKFOLDERMENU_TITLE            "Workfolder actions"
 
-extern QString findExecutable(QString name);
+extern QString findInPath(QString name, QString installPath, bool executable);
 
 extern QString getSystem();
 extern QString getHgDirName();

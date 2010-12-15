@@ -39,7 +39,9 @@
 #include <fcntl.h>
 #endif
 
-HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
+HgRunner::HgRunner(QString myDirPath, QWidget * parent) :
+    QProgressBar(parent),
+    m_myDirPath(myDirPath)
 {
     m_proc = 0;
 
@@ -47,7 +49,7 @@ HgRunner::HgRunner(QWidget * parent): QProgressBar(parent)
     setVisible(false);
     m_isRunning = false;
 
-    unbundleExtension();
+    findExtension();
 }
 
 HgRunner::~HgRunner()
@@ -58,6 +60,16 @@ HgRunner::~HgRunner()
         m_proc->deleteLater();
     }
 }
+
+void HgRunner::findExtension()
+{
+    m_extensionPath = findInPath("easyhg.py", m_myDirPath, false);
+    if (m_extensionPath == "easyhg.py") {
+        if (!unbundleExtension()) {
+            m_extensionPath = "";
+        }
+    }
+}   
 
 bool HgRunner::unbundleExtension()
 {
@@ -108,7 +120,7 @@ QString HgRunner::getHgBinaryName()
     QSettings settings;
     QString hg = settings.value("hgbinary", "").toString();
     if (hg == "") {
-        hg = findExecutable("hg");
+        hg = findInPath("hg", m_myDirPath, true);
     }
     if (hg != "hg") {
         settings.setValue("hgbinary", hg);
@@ -343,6 +355,13 @@ void HgRunner::startCommand(HgAction action)
     m_proc = new QProcess;
 
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+
+#ifdef Q_OS_WIN32
+    if (m_myDirPath != "") {
+        env.insert("PATH", m_myDirPath + ";" + env.value("PATH"));
+    }
+#endif
+
     env.insert("LANG", "en_US.utf8");
     env.insert("LC_ALL", "en_US.utf8");
     env.insert("HGPLAIN", "1");

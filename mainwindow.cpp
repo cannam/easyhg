@@ -41,7 +41,8 @@
 #include "incomingdialog.h"
 
 
-MainWindow::MainWindow()
+MainWindow::MainWindow(QString myDirPath) :
+    m_myDirPath(myDirPath)
 {
     QString wndTitle;
 
@@ -54,7 +55,7 @@ MainWindow::MainWindow()
     createToolBars();
     createStatusBar();
 
-    runner = new HgRunner(this);
+    runner = new HgRunner(myDirPath, this);
     connect(runner, SIGNAL(commandCompleted(HgAction, QString)),
             this, SLOT(commandCompleted(HgAction, QString)));
     connect(runner, SIGNAL(commandFailed(HgAction, QString)),
@@ -399,7 +400,7 @@ void MainWindow::findDiffBinaryName()
         bases << "opendiff" << "kompare" << "kdiff3" << "meld";
         bool found = false;
         foreach (QString base, bases) {
-            diff = findExecutable(base);
+            diff = findInPath(base, m_myDirPath, true);
             if (diff != base) {
                 found = true;
                 break;
@@ -423,7 +424,7 @@ void MainWindow::findMergeBinaryName()
         bases << "fmdiff3" << "meld" << "diffuse" << "kdiff3";
         bool found = false;
         foreach (QString base, bases) {
-            merge = findExecutable(base);
+            merge = findInPath(base, m_myDirPath, true);
             if (merge != base) {
                 found = true;
                 break;
@@ -1570,9 +1571,6 @@ void MainWindow::connectActions()
     connect(hgPullAct, SIGNAL(triggered()), this, SLOT(hgPull()));
     connect(hgPushAct, SIGNAL(triggered()), this, SLOT(hgPush()));
 
-//    connect(hgTabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
-
-//    connect(hgUpdateToRevAct, SIGNAL(triggered()), this, SLOT(hgUpdateToRev()));
     connect(hgAnnotateAct, SIGNAL(triggered()), this, SLOT(hgAnnotate()));
     connect(hgServeAct, SIGNAL(triggered()), this, SLOT(hgServe()));
     connect(clearSelectionsAct, SIGNAL(triggered()), this, SLOT(clearSelections()));
@@ -1608,13 +1606,6 @@ void MainWindow::connectTabsSignals()
             this, SLOT(hgTag(QString)));
 }    
 
-/*!!!
-void MainWindow::tabChanged(int currTab)
-{
-    tabPage = currTab;
-
-}
-*/
 void MainWindow::enableDisableActions()
 {
     DEBUG << "MainWindow::enableDisableActions" << endl;
@@ -1725,7 +1716,7 @@ void MainWindow::enableDisableActions()
     hgMergeAct->setEnabled(localRepoActionsEnabled &&
                            (canMerge || hgTabs->canResolve()));
     hgUpdateAct->setEnabled(localRepoActionsEnabled &&
-                            (canUpdate && !hgTabs->canRevert()));
+                            (canUpdate && !hgTabs->haveChangesToCommit()));
 
     // Set the state field on the file status widget
 
@@ -1745,7 +1736,7 @@ void MainWindow::enableDisableActions()
     } else if (haveMerge) {
         hgTabs->setState(tr("Have merged but not yet committed on %1").arg(branchText));
     } else if (canUpdate) {
-        if (hgTabs->canRevert()) {
+        if (hgTabs->haveChangesToCommit()) {
             // have uncommitted changes
             hgTabs->setState(tr("On %1. Not at the head of the branch").arg(branchText));
         } else {

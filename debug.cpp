@@ -40,7 +40,7 @@ getEasyHgDebug()
         prefix = new char[20];
         sprintf(prefix, "[%lu]", (unsigned long)QCoreApplication::applicationPid());
         logFile = new QFile(QDir::homePath() + "/.easyhg.log");
-        if (logFile->open(QIODevice::WriteOnly)) {
+        if (logFile->open(QIODevice::WriteOnly | QIODevice::Truncate)) {
             QDebug(QtDebugMsg) << (const char *)prefix
                                << "Opened debug log file "
                                << logFile->fileName();

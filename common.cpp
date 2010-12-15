@@ -22,6 +22,7 @@
 #include <QProcessEnvironment>
 #include <QStringList>
 #include <QDir>
+#include <QRegExp>
 
 #include <sys/types.h>
 
@@ -41,11 +42,15 @@
 #include <signal.h>
 #endif
 
-QString findExecutable(QString name)
+QString findInPath(QString name, QString installPath, bool executableRequired)
 {
     bool found = false;
     if (name != "") {
-        if (name[0] != '/') {
+        if (name[0] != '/'
+#ifdef Q_OS_WIN32
+			&& (QRegExp("^[a-zA-Z]:").indexIn(name) != 0)
+#endif
+			) {
 #ifdef Q_OS_WIN32
             QChar pathSep = ';';
 #else
@@ -56,7 +61,14 @@ QString findExecutable(QString name)
                 QProcessEnvironment::systemEnvironment().value("PATH");
             DEBUG << "findExecutable: seeking location for binary " << name
                   << ": system path is " << path << endl;
+            if (installPath != "") {   
+                DEBUG << "findExecutable: install path is " << installPath
+                      << ", adding to system path" << endl;
+                //!!! path = path + pathSep + installPath;
+                path = installPath + pathSep + path;
+            }
 #ifndef Q_OS_WIN32
+			//!!!
             path = path + ":/usr/local/bin";
             DEBUG << "... adding /usr/local/bin just in case (fix and add settings dlg please)"
                     << endl;
@@ -65,10 +77,15 @@ QString findExecutable(QString name)
             foreach (QString element, elements) {
                 QString full = QDir(element).filePath(name);
                 QFileInfo fi(full);
-                if (fi.exists() && fi.isFile() && fi.isExecutable()) {
-                    name = full;
-                    found = true;
-                    break;
+                DEBUG << "findExecutable: looking at " << full << endl;
+                if (fi.exists() && fi.isFile()) {
+                    DEBUG << "findExecutable: it's a file" << endl;
+                    if (!executableRequired || fi.isExecutable()) {
+                        name = full;
+                        DEBUG << "findExecutable: found at " << name << endl;
+                        found = true;
+                        break;
+                    }
                 }
             }
         }
@@ -76,7 +93,7 @@ QString findExecutable(QString name)
 #ifdef Q_OS_WIN32
     if (!found) {
         if (!name.endsWith(".exe")) {
-            return findExecutable(name + ".exe");
+            return findInPath(name + ".exe", installPath, executableRequired);
         }
     }
 #endif
