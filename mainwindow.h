@@ -38,7 +38,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow();
+    MainWindow(QString myDirPath);
     HgTabWidget *hgTabs;
     void writeSettings();
 
@@ -152,6 +152,8 @@ private:
     //Actions enabled flags
     bool remoteRepoActionsEnabled;
     bool localRepoActionsEnabled;
+
+    QString m_myDirPath;
 
     //File menu actions
     QAction *openAct;

@@ -81,8 +81,7 @@ void HgTabWidget::clearSelections()
 
 void HgTabWidget::setCurrent(QStringList ids, QString branch)
 {
-    bool showUncommitted = false;
-    if (canRevert()) showUncommitted = true;
+    bool showUncommitted = haveChangesToCommit();
     m_historyWidget->setCurrent(ids, branch, showUncommitted);
 }
 
@@ -130,6 +129,11 @@ bool HgTabWidget::canRemove() const
 bool HgTabWidget::canResolve() const
 {
     return !m_fileStatusWidget->getSelectedUnresolvedFiles().empty();
+}
+
+bool HgTabWidget::haveChangesToCommit() const
+{
+    return m_fileStatusWidget->haveChangesToCommit();
 }
 
 QStringList HgTabWidget::getAllSelectedFiles() const

@@ -86,8 +86,8 @@ win* {
 
 # ! [0]
 RESOURCES = easyhg.qrc
-win32 {
-    RC_FILE = easyhg.rc
-}
+#win32 {
+#    RC_FILE = easyhg.rc
+#}
 
 QT += network
