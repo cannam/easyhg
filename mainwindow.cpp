@@ -376,26 +376,51 @@ void MainWindow::hgIgnore()
 {
     QString hgIgnorePath;
     QStringList params;
-    QString editorName;
-
+    
     hgIgnorePath = workFolderPath;
-    hgIgnorePath += ".hgignore";
+    hgIgnorePath += "/.hgignore";
     
     params << hgIgnorePath;
 
-//!!!    
-#ifdef Q_OS_LINUX
-
-        editorName = "gedit";
-
+    QSettings settings;
+    settings.beginGroup("Locations");
+    QString editor = settings.value("editorbinary", "").toString();
+    if (editor == "") {
+        QStringList bases;
+        bases
+#if defined Q_OS_WIN32
+            << "wordpad.exe"
+            << "C:\\Program Files\\Windows NT\\Accessories\\wordpad.exe"
+            << "notepad.exe"
+#elif defined Q_OS_MAC
+            << "textedit"
 #else
-
-        editorName = """C:\\Program Files\\Windows NT\\Accessories\\wordpad.exe""";
-
+            << "gedit" << "kate"
 #endif
+            ;
+        bool found = false;
+        foreach (QString base, bases) {
+            editor = findInPath(base, m_myDirPath, true);
+            if (editor != base && editor != base + ".exe") {
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            settings.setValue("editorbinary", editor);
+        } else {
+            editor = "";
+        }
+    }
+
+    if (editor == "") {
+        DEBUG << "Failed to find a text editor" << endl;
+        //!!! visible error!
+        return;
+    }
 
     HgAction action(ACT_HG_IGNORE, workFolderPath, params);
-    action.executable = editorName;
+    action.executable = editor;
 
     runner->requestAction(action);
 }
@@ -1829,7 +1854,7 @@ void MainWindow::createActions()
 
     //Repository actions
     hgRefreshAct = new QAction(QIcon(":/images/status.png"), tr("Refresh"), this);
-    hgRefreshAct->setStatusTip(tr("Update the window to show the current state of the working folder"));
+    hgRefreshAct->setStatusTip(tr("Refresh the window to show the current state of the working folder"));
 
     hgIncomingAct = new QAction(QIcon(":/images/incoming.png"), tr("Preview"), this);
     hgIncomingAct -> setStatusTip(tr("See what changes are available in the remote repository waiting to be pulled"));

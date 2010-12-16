@@ -40,8 +40,8 @@ private slots:
     void diffPathBrowse();
     void mergePathChanged(const QString &);
     void mergePathBrowse();
-    void editorPathChanged(const QString &);
-    void editorPathBrowse();
+    void editPathChanged(const QString &);
+    void editPathBrowse();
     void extensionPathChanged(const QString &);
     void extensionPathBrowse();
 
@@ -53,7 +53,7 @@ private:
     QLineEdit *m_hgPathEdit;
     QLineEdit *m_diffPathEdit;
     QLineEdit *m_mergePathEdit;
-    QLineEdit *m_editorPathEdit;
+    QLineEdit *m_editPathEdit;
 
     QCheckBox *m_useExtension;
     QLineEdit *m_extensionPathEdit;

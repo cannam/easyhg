@@ -94,7 +94,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     browse = new QPushButton(tr("Browse..."));
     pathsLayout->addWidget(browse, row++, 2);
     connect(browse, SIGNAL(clicked()), this, SLOT(diffPathBrowse()));
-
+    
     pathsLayout->addWidget(new QLabel(tr("External file-merge program:")), row, 0);
 
     m_mergePathEdit = new QLineEdit();
@@ -106,6 +106,18 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     browse = new QPushButton(tr("Browse..."));
     pathsLayout->addWidget(browse, row++, 2);
     connect(browse, SIGNAL(clicked()), this, SLOT(mergePathBrowse()));
+
+    pathsLayout->addWidget(new QLabel(tr("External text editor:")), row, 0);
+
+    m_editPathEdit = new QLineEdit();
+    m_editPathEdit->setText(settings.value("editorbinary").toString());
+    connect(m_editPathEdit, SIGNAL(textChanged(const QString &)),
+	    this, SLOT(editPathChanged(const QString &)));
+    pathsLayout->addWidget(m_editPathEdit, row, 1);
+
+    browse = new QPushButton(tr("Browse..."));
+    pathsLayout->addWidget(browse, row++, 2);
+    connect(browse, SIGNAL(clicked()), this, SLOT(editPathBrowse()));
 
     settings.endGroup();
     
@@ -186,12 +198,12 @@ SettingsDialog::mergePathBrowse()
 }
 
 void
-SettingsDialog::editorPathChanged(const QString &s)
+SettingsDialog::editPathChanged(const QString &s)
 {
 }
 
 void
-SettingsDialog::editorPathBrowse()
+SettingsDialog::editPathBrowse()
 {
 }
 
