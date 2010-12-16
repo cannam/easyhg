@@ -39,6 +39,7 @@
 #include "logparser.h"
 #include "confirmcommentdialog.h"
 #include "incomingdialog.h"
+#include "settingsdialog.h"
 
 
 MainWindow::MainWindow(QString myDirPath) :
@@ -99,7 +100,7 @@ MainWindow::MainWindow(QString myDirPath) :
         open();
     }
 
-    hgQueryPaths();
+    hgTest();
 }
 
 
@@ -157,6 +158,13 @@ void MainWindow::hgRefresh()
 {
     clearState();
     hgQueryPaths();
+}
+
+void MainWindow::hgTest()
+{
+    QStringList params;
+    params << "--version";
+    runner->requestAction(HgAction(ACT_TEST_HG, m_myDirPath, params));
 }
 
 void MainWindow::hgStat()
@@ -395,6 +403,7 @@ void MainWindow::hgIgnore()
 void MainWindow::findDiffBinaryName()
 {
     QSettings settings;
+    settings.beginGroup("Locations");
     QString diff = settings.value("extdiffbinary", "").toString();
     if (diff == "") {
         QStringList bases;
@@ -419,6 +428,7 @@ void MainWindow::findDiffBinaryName()
 void MainWindow::findMergeBinaryName()
 {
     QSettings settings;
+    settings.beginGroup("Locations");
     QString merge = settings.value("mergebinary", "").toString();
     if (merge == "") {
         QStringList bases;
@@ -1084,14 +1094,8 @@ bool MainWindow::openInit(QString local)
 
 void MainWindow::settings()
 {
-/*!!!
     SettingsDialog *settingsDlg = new SettingsDialog(this);
-    settingsDlg->setModal(true);
     settingsDlg->exec();
-    hgTabs -> clearLists();
-    enableDisableActions();
-    hgStat();
-*/
 }
 
 #define STDOUT_NEEDS_BIG_WINDOW 512
@@ -1178,7 +1182,7 @@ void MainWindow::fsFileChanged(QString f)
 
 QString MainWindow::format3(QString head, QString intro, QString code)
 {
-    code = xmlEncode(code).replace("\n", "<br>").replace(" ", "&nbsp;");
+    code = xmlEncode(code).replace("\n", "<br>").replace("-", "&#8209;").replace(" ", "&nbsp;");
     if (intro == "") {
         return QString("<qt><h3>%1</h3><p><code>%2</code></p>")
             .arg(head).arg(code);
@@ -1292,6 +1296,14 @@ void MainWindow::commandFailed(HgAction action, QString output)
     case ACT_NONE:
         // uh huh
         return;
+    case ACT_TEST_HG:
+        QMessageBox::warning
+            (this, tr("Failed to run Mercurial"),
+             format3(tr("Failed to run Mercurial"),
+                     tr("The Mercurial program either could not be found or failed to run.<br>This may indicate a problem with the Mercurial installation, or with the EasyHg interaction extension.<br><br>The test command said:"),
+                     output));
+        settings();
+        return;
     case ACT_INCOMING:
         // returns non-zero code if the check was successful but there
         // are no changes pending
@@ -1349,6 +1361,9 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     QStringList oldHeadIds;
 
     switch (action) {
+
+    case ACT_TEST_HG:
+        break;
 
     case ACT_QUERY_PATHS:
     {
@@ -1533,6 +1548,10 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     bool noMore = false;
 
     switch (action) {
+
+    case ACT_TEST_HG:
+        hgQueryPaths();
+        break;
         
     case ACT_QUERY_PATHS:
         hgQueryBranch();

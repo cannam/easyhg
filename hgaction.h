@@ -24,6 +24,7 @@
 enum HGACTIONS
 {
     ACT_NONE,
+    ACT_TEST_HG,
     ACT_QUERY_PATHS,
     ACT_QUERY_BRANCH,
     ACT_STAT,
@@ -77,6 +78,7 @@ struct HgAction
         case ACT_QUERY_PATHS:
         case ACT_QUERY_BRANCH:
         case ACT_STAT:
+        case ACT_RESOLVE_LIST:
         case ACT_QUERY_HEADS:
         case ACT_QUERY_PARENTS:
         case ACT_LOG_INCREMENTAL:
@@ -88,6 +90,7 @@ struct HgAction
     
     bool mayBeInteractive() const {
 	switch (action) {
+        case ACT_TEST_HG: // so we force the module load to be tested
 	case ACT_INCOMING:
 	case ACT_PUSH:
 	case ACT_PULL:

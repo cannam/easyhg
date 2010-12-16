@@ -40,7 +40,8 @@ HEADERS = mainwindow.h \
     historywidget.h \
     changesetscene.h \
     incomingdialog.h \
-    uncommitteditem.h
+    uncommitteditem.h \
+    settingsdialog.h
 SOURCES = main.cpp \
     mainwindow.cpp \
     hgtabwidget.cpp \
@@ -69,7 +70,8 @@ SOURCES = main.cpp \
     historywidget.cpp \
     changesetscene.cpp \
     incomingdialog.cpp \
-    uncommitteditem.cpp
+    uncommitteditem.cpp \
+    settingsdialog.cpp
 
 macx-* {
     SOURCES += common_osx.mm

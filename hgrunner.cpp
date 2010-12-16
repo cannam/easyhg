@@ -50,6 +50,7 @@ HgRunner::HgRunner(QString myDirPath, QWidget * parent) :
     m_isRunning = false;
 
     findExtension();
+    (void)getHgBinaryName();
 }
 
 HgRunner::~HgRunner()
@@ -118,6 +119,7 @@ void HgRunner::requestAction(HgAction action)
 QString HgRunner::getHgBinaryName()
 {
     QSettings settings;
+    settings.beginGroup("Locations");
     QString hg = settings.value("hgbinary", "").toString();
     if (hg == "") {
         hg = findInPath("hg", m_myDirPath, true);
