@@ -411,7 +411,7 @@ void MainWindow::findDiffBinaryName()
         bool found = false;
         foreach (QString base, bases) {
             diff = findInPath(base, m_myDirPath, true);
-            if (diff != base) {
+            if (diff != base && diff != base + ".exe") {
                 found = true;
                 break;
             }
