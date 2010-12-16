@@ -50,6 +50,7 @@ public:
     Changesets currentHeads;
     Changesets currentParents;
     int commitsSincePush;
+    bool stateUnknown;
     bool needNewLog;
 
 protected:

@@ -322,6 +322,7 @@ void MainWindow::hgCommit()
         }
         
         runner->requestAction(HgAction(ACT_COMMIT, workFolderPath, params));
+        mergeCommitComment = "";
     }
 }
 
@@ -769,6 +770,7 @@ void MainWindow::clearState()
     lastRevertedFiles.clear();
     mergeTargetRevision = "";
     mergeCommitComment = "";
+    stateUnknown = true;
     needNewLog = true;
 }
 
@@ -1544,6 +1546,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     }
 
     if (noMore) {
+        stateUnknown = false;
         enableDisableActions();
         hgTabs->updateHistory();
     }
@@ -1727,7 +1730,9 @@ void MainWindow::enableDisableActions()
         branchText = tr("branch \"%1\"").arg(currentBranch);
     }
 
-    if (emptyRepo) {
+    if (stateUnknown) {
+        hgTabs->setState(tr("(Examining repository)"));
+    } else if (emptyRepo) {
         hgTabs->setState(tr("Nothing committed to this repository yet"));
     } else if (canMerge) {
         hgTabs->setState(tr("<b>Awaiting merge</b> on %1").arg(branchText));
