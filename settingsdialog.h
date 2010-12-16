@@ -22,6 +22,7 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QPushButton>
+#include <QCheckBox>
 
 class SettingsDialog : public QDialog
 {
@@ -41,6 +42,8 @@ private slots:
     void mergePathBrowse();
     void editorPathChanged(const QString &);
     void editorPathBrowse();
+    void extensionPathChanged(const QString &);
+    void extensionPathBrowse();
 
     void accept();
 
@@ -51,6 +54,9 @@ private:
     QLineEdit *m_diffPathEdit;
     QLineEdit *m_mergePathEdit;
     QLineEdit *m_editorPathEdit;
+
+    QCheckBox *m_useExtension;
+    QLineEdit *m_extensionPathEdit;
 
     QPushButton *m_ok;
 };

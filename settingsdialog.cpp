@@ -107,6 +107,32 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     connect(browse, SIGNAL(clicked()), this, SLOT(mergePathBrowse()));
 
     settings.endGroup();
+    
+    settings.beginGroup("Locations");
+
+    pathsLayout->addWidget(new QLabel(tr("EasyHg Mercurial extension:")), row, 0);
+
+    m_extensionPathEdit = new QLineEdit();
+    m_extensionPathEdit->setText(settings.value("extensionpath").toString());
+    connect(m_extensionPathEdit, SIGNAL(textChanged(const QString &)),
+	    this, SLOT(extensionPathChanged(const QString &)));
+    pathsLayout->addWidget(m_extensionPathEdit, row, 1);
+
+    browse = new QPushButton(tr("Browse..."));
+    pathsLayout->addWidget(browse, row++, 2);
+    connect(browse, SIGNAL(clicked()), this, SLOT(extensionPathBrowse()));
+
+    settings.endGroup();
+
+    settings.beginGroup("General");
+
+    //!!! more info plz
+    m_useExtension = new QCheckBox(tr("Use EasyHg Mercurial extension"));
+    m_useExtension->setChecked(settings.value("useextension", true).toBool());
+    pathsLayout->addWidget(m_useExtension, row++, 1);
+
+    settings.endGroup();
+
 
     QDialogButtonBox *bbox = new QDialogButtonBox(QDialogButtonBox::Ok);
     connect(bbox, SIGNAL(accepted()), this, SLOT(accept()));
@@ -169,6 +195,16 @@ SettingsDialog::editorPathBrowse()
 }
 
 void
+SettingsDialog::extensionPathChanged(const QString &s)
+{
+}
+
+void
+SettingsDialog::extensionPathBrowse()
+{
+}
+
+void
 SettingsDialog::accept()
 {
     QSettings settings;
@@ -180,6 +216,10 @@ SettingsDialog::accept()
     settings.setValue("hgbinary", m_hgPathEdit->text());
     settings.setValue("extdiffbinary", m_diffPathEdit->text());
     settings.setValue("mergebinary", m_mergePathEdit->text());
+    settings.setValue("extensionpath", m_extensionPathEdit->text());
+    settings.endGroup();
+    settings.beginGroup("General");
+    settings.setValue("useextension", m_useExtension->isChecked());
     settings.endGroup();
     QDialog::accept();
 }
