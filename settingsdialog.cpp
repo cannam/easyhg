@@ -17,6 +17,7 @@
 
 #include "settingsdialog.h"
 #include "common.h"
+#include "debug.h"
 
 #include <QGridLayout>
 #include <QGroupBox>
@@ -207,6 +208,7 @@ SettingsDialog::extensionPathBrowse()
 void
 SettingsDialog::accept()
 {
+    DEBUG << "SettingsDialog::accept" << endl;
     QSettings settings;
     settings.beginGroup("User Information");
     settings.setValue("name", m_nameEdit->text());
