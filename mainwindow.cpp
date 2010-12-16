@@ -1246,6 +1246,42 @@ void MainWindow::showPullResult(QString output)
     QMessageBox::information(this, "Pull complete", report);
 }
 
+void MainWindow::reportNewRemoteHeads(QString output)
+{
+    bool headsAreLocal = false;
+
+    if (currentParents.size() == 1) {
+        int currentBranchHeads = 0;
+        bool parentIsHead = false;
+        Changeset *parent = currentParents[0];
+        foreach (Changeset *head, currentHeads) {
+            if (head->isOnBranch(currentBranch)) {
+                ++currentBranchHeads;
+            }
+            if (parent->id() == head->id()) {
+                parentIsHead = true;
+            }
+        }
+        if (currentBranchHeads == 2 && parentIsHead) {
+            headsAreLocal = true;
+        }
+    }
+
+    if (headsAreLocal) {
+        QMessageBox::warning
+            (this, tr("Push failed"),
+             format3(tr("Push failed"),
+                     tr("Your local repository could not be pushed to the remote repository.<br><br>You may need to merge the changes locally first.<br><br>The output of the push command was:"),
+                     output));
+    } else {
+        QMessageBox::warning
+            (this, tr("Push failed"),
+             format3(tr("Push failed"),
+                     tr("Your local repository could not be pushed to the remote repository.<br><br>The remote repository may have been changed by someone else since you last pushed. Try pulling and merging their changes into your local repository first.<br><br>The output of the push command was:"),
+                     output));
+    }
+}
+
 void MainWindow::commandFailed(HgAction action, QString output)
 {
     DEBUG << "MainWindow::commandFailed" << endl;
@@ -1274,7 +1310,11 @@ void MainWindow::commandFailed(HgAction action, QString output)
         // and some return with failure codes when something as basic
         // as the user closing the window via the wm happens
         return;
-
+    case ACT_PUSH:
+        if (output.contains("creates new remote heads")) {
+            reportNewRemoteHeads(output);
+            return;
+        }
     default:
         break;
     }
