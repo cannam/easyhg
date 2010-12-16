@@ -51,6 +51,7 @@ public:
     Changesets currentParents;
     int commitsSincePush;
     bool stateUnknown;
+    bool hgIsOK;
     bool needNewLog;
 
 protected:
@@ -70,6 +71,7 @@ private slots:
     void startupDialog();
     void clearSelections();
 
+    void hgTest();
     void hgQueryPaths();
     void hgStat();
     void hgRemove();
