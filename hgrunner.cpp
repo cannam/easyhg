@@ -64,12 +64,20 @@ HgRunner::~HgRunner()
 
 void HgRunner::findExtension()
 {
+    QSettings settings;
+    settings.beginGroup("Locations");
+    m_extensionPath = settings.value("extensionpath", "").toString();
+    if (m_extensionPath != "") return;
     m_extensionPath = findInPath("easyhg.py", m_myDirPath, false);
     if (m_extensionPath == "easyhg.py") {
         if (!unbundleExtension()) {
-            m_extensionPath = "";
+            // might have failed because the file already existed
+            if (!QFile(m_extensionPath).exists()) {
+                m_extensionPath = "";
+            }
         }
     }
+    settings.setValue("extensionpath", m_extensionPath);
 }   
 
 bool HgRunner::unbundleExtension()
@@ -338,8 +346,13 @@ void HgRunner::startCommand(HgAction action)
         if (action.mayBeInteractive()) {
             params.push_front("ui.interactive=true");
             params.push_front("--config");
-            params.push_front(QString("extensions.easyhg=%1").arg(m_extensionPath));
-            params.push_front("--config");
+
+            QSettings settings;
+            settings.beginGroup("General");
+            if (settings.value("useextension", true).toBool()) {
+                params.push_front(QString("extensions.easyhg=%1").arg(m_extensionPath));
+                params.push_front("--config");
+            }
             interactive = true;
         }            
 
