@@ -48,9 +48,9 @@ QString findInPath(QString name, QString installPath, bool executableRequired)
     if (name != "") {
         if (name[0] != '/'
 #ifdef Q_OS_WIN32
-			&& (QRegExp("^[a-zA-Z]:").indexIn(name) != 0)
+            && (QRegExp("^\\w:").indexIn(name) != 0)
 #endif
-			) {
+            ) {
 #ifdef Q_OS_WIN32
             QChar pathSep = ';';
 #else
@@ -68,7 +68,7 @@ QString findInPath(QString name, QString installPath, bool executableRequired)
                 path = installPath + pathSep + path;
             }
 #ifndef Q_OS_WIN32
-			//!!!
+            //!!!
             path = path + ":/usr/local/bin";
             DEBUG << "... adding /usr/local/bin just in case (fix and add settings dlg please)"
                     << endl;
