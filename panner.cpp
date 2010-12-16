@@ -227,7 +227,7 @@ Panner::mouseMoveEvent(QMouseEvent *e)
     QPointF delta = mp - cp;
     QRectF nr = m_clickedRect;
     nr.translate(delta);
-    slotSetPannedRect(nr);
+    m_pannedRect = nr;
     emit pannedRectChanged(m_pannedRect);
     viewport()->update();
 }
