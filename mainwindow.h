@@ -114,6 +114,7 @@ private:
     void createStatusBar();
     void readSettings();
     void splitChangeSets(QStringList *list, QString hgLogOutput);
+    void reportNewRemoteHeads(QString);
     void presentLongStdoutToUser(QString stdo);
 
     QString listAllUpIpV4Addresses();
