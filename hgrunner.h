@@ -52,7 +52,6 @@ private slots:
 private:
     void checkQueue();
     void startCommand(HgAction action);
-    QString getHgBinaryName();
     void closeProcInput();
     void killCurrentCommand();
 
@@ -65,8 +64,9 @@ private:
     void openTerminal();
     void closeTerminal();
 
-    void findExtension();
-    bool unbundleExtension();
+    QString findExtension();
+    QString findHgBinaryName();
+    QString unbundleExtension();
 
     int m_ptyMasterFd;
     int m_ptySlaveFd;
