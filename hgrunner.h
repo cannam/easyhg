@@ -37,6 +37,7 @@ public:
     ~HgRunner();
 
     void requestAction(HgAction action);
+    void killCurrentActions(); // kill anything running; clear the queue
 
 signals:
     void commandCompleted(HgAction action, QString stdOut);

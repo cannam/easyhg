@@ -779,27 +779,19 @@ void MainWindow::hgPush()
     }
 }
 
-QString MainWindow::listAllUpIpV4Addresses()
+QStringList MainWindow::listAllUpIpV4Addresses()
 {
-    QString ret;
+    QStringList ret;
     QList<QNetworkInterface> ifaces = QNetworkInterface::allInterfaces();
 
-    for (int i = 0; i < ifaces.count(); i++)
-    {
+    for (int i = 0; i < ifaces.count(); i++) {
         QNetworkInterface iface = ifaces.at(i);
-
-        if (iface.flags().testFlag(QNetworkInterface::IsUp) && !iface.flags().testFlag(QNetworkInterface::IsLoopBack))
-        {
-            for (int j=0; j<iface.addressEntries().count(); j++)
-            {
+        if (iface.flags().testFlag(QNetworkInterface::IsUp)
+            && !iface.flags().testFlag(QNetworkInterface::IsLoopBack)) {
+            for (int j=0; j<iface.addressEntries().count(); j++) {
                 QHostAddress tmp = iface.addressEntries().at(j).ip();
-                if (QAbstractSocket::IPv4Protocol == tmp.protocol())
-                {
-                    if (!ret.isEmpty())
-                    {
-                        ret += " ";
-                    }
-                    ret += tmp.toString();
+                if (QAbstractSocket::IPv4Protocol == tmp.protocol()) {
+                    ret.push_back(tmp.toString());
                 }
             }
         }
@@ -827,14 +819,32 @@ void MainWindow::hgServe()
     QStringList params;
     QString msg;
 
-    QString addrs = listAllUpIpV4Addresses();
-    QTextStream(&msg) << "Server running on address(es) (" << addrs << "), port 8000";
+    QStringList addrs = listAllUpIpV4Addresses();
+
+    if (addrs.empty()) {
+        QMessageBox::critical
+            (this, tr("Serve"), tr("Failed to identify an active IPv4 address"));
+        return;
+    }
+
+    //!!! should find available port as well
+
+    QTextStream ts(&msg);
+    ts << QString("<qt><p>%1</p>")
+        .arg(tr("Running temporary server at %n address(es):", "", addrs.size()));
+    foreach (QString addr, addrs) {
+        ts << QString("<pre>&nbsp;&nbsp;http://%1:8000</pre>").arg(xmlEncode(addr));
+    }
+    ts << tr("<p>Press Close to stop the server and return.</p>");
+    ts.flush();
+             
     params << "serve";
 
     runner->requestAction(HgAction(ACT_SERVE, workFolderPath, params));
     
-    QMessageBox::information(this, "Serve", msg, QMessageBox::Close);
-//!!!    runner -> killCurrentCommand();
+    QMessageBox::information(this, tr("Serve"), msg, QMessageBox::Close);
+
+    runner->killCurrentActions();
 }
 
 void MainWindow::startupDialog()
@@ -901,6 +911,11 @@ void MainWindow::open()
 
         delete d;
     }
+}
+
+void MainWindow::changeRemoteRepo()
+{
+    //!!! so we want a "multi-choice" thingy but with remote only? and then we rewrite the local hgrc??
 }
 
 void MainWindow::open(QString local)
@@ -1666,6 +1681,7 @@ void MainWindow::connectActions()
 
     connect(settingsAct, SIGNAL(triggered()), this, SLOT(settings()));
     connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
+    connect(changeRemoteRepoAct, SIGNAL(triggered()), this, SLOT(changeRemoteRepo()));
 
     connect(hgIncomingAct, SIGNAL(triggered()), this, SLOT(hgIncoming()));
     connect(hgPullAct, SIGNAL(triggered()), this, SLOT(hgPull()));
@@ -1864,6 +1880,9 @@ void MainWindow::createActions()
     openAct = new QAction(QIcon(":/images/fileopen.png"), tr("Open..."), this);
     openAct -> setStatusTip(tr("Open a repository"));
 
+    changeRemoteRepoAct = new QAction(tr("Change Remote Location..."), this);
+    changeRemoteRepoAct->setStatusTip(tr("Change the default remote repository for pull and push actions"));
+
     settingsAct = new QAction(QIcon(":/images/settings.png"), tr("Settings..."), this);
     settingsAct -> setStatusTip(tr("View and change application settings"));
 
@@ -1913,10 +1932,10 @@ void MainWindow::createActions()
     hgAnnotateAct = new QAction(tr("Annotate"), this);
     hgAnnotateAct -> setStatusTip(tr("Show line-by-line version information for selected file"));
 
-    hgIgnoreAct = new QAction(tr("Edit .hgignore"), this);
+    hgIgnoreAct = new QAction(tr("Edit .hgignore File"), this);
     hgIgnoreAct -> setStatusTip(tr("Edit the .hgignore file, containing the names of files that should be ignored by Mercurial"));
 
-    hgServeAct = new QAction(tr("Serve (via http)"), this);
+    hgServeAct = new QAction(tr("Serve via HTTP"), this);
     hgServeAct -> setStatusTip(tr("Serve local repository via http for workgroup access"));
 
     //Help actions
@@ -1932,6 +1951,7 @@ void MainWindow::createMenus()
     fileMenu = menuBar()->addMenu(tr("File"));
 
     fileMenu -> addAction(openAct);
+    fileMenu -> addAction(changeRemoteRepoAct);
     fileMenu -> addAction(settingsAct);
     fileMenu -> addSeparator();
     fileMenu -> addAction(exitAct);

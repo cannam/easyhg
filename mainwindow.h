@@ -68,6 +68,7 @@ private slots:
     void about();
     void settings();
     void open();
+    void changeRemoteRepo();
     void startupDialog();
     void clearSelections();
 
@@ -119,7 +120,7 @@ private:
     void reportNewRemoteHeads(QString);
     void presentLongStdoutToUser(QString stdo);
 
-    QString listAllUpIpV4Addresses();
+    QStringList listAllUpIpV4Addresses();
     QString filterTag(QString tag);
 
     QString getUserInfo() const;
@@ -161,6 +162,7 @@ private:
 
     //File menu actions
     QAction *openAct;
+    QAction *changeRemoteRepoAct;
     QAction *settingsAct;
     QAction *exitAct;
 
