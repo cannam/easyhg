@@ -32,17 +32,10 @@ public:
     SettingsDialog(QWidget *parent = 0);
     
 private slots:
-    void realNameChanged(const QString &);
-    void emailChanged(const QString &);
-    void hgPathChanged(const QString &);
     void hgPathBrowse();
-    void diffPathChanged(const QString &);
     void diffPathBrowse();
-    void mergePathChanged(const QString &);
     void mergePathBrowse();
-    void editPathChanged(const QString &);
     void editPathBrowse();
-    void extensionPathChanged(const QString &);
     void extensionPathBrowse();
 
     void accept();
@@ -50,15 +43,17 @@ private slots:
 private:
     QLineEdit *m_nameEdit;
     QLineEdit *m_emailEdit;
-    QLineEdit *m_hgPathEdit;
-    QLineEdit *m_diffPathEdit;
-    QLineEdit *m_mergePathEdit;
-    QLineEdit *m_editPathEdit;
+    QLabel *m_hgPathLabel;
+    QLabel *m_diffPathLabel;
+    QLabel *m_mergePathLabel;
+    QLabel *m_editPathLabel;
 
     QCheckBox *m_useExtension;
-    QLineEdit *m_extensionPathEdit;
+    QLabel *m_extensionPathLabel;
 
     QPushButton *m_ok;
+
+    void browseFor(QString, QLabel *);
 };
 
 #endif

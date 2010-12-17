@@ -23,6 +23,8 @@
 #include <QGroupBox>
 #include <QDialogButtonBox>
 #include <QSettings>
+#include <QDir>
+#include <QFileDialog>
 
 SettingsDialog::SettingsDialog(QWidget *parent) :
     QDialog(parent)
@@ -35,7 +37,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     QGridLayout *mainLayout = new QGridLayout;
     setLayout(mainLayout);
 
-    QGroupBox *meBox = new QGroupBox(tr("About me"));
+    QGroupBox *meBox = new QGroupBox(tr("User details"));
     mainLayout->addWidget(meBox, 0, 0);
     QGridLayout *meLayout = new QGridLayout;
     meBox->setLayout(meLayout);
@@ -48,16 +50,12 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 
     m_nameEdit = new QLineEdit();
     m_nameEdit->setText(settings.value("name", getUserRealName()).toString());
-    connect(m_nameEdit, SIGNAL(textChanged(const QString &)),
-	    this, SLOT(realNameChanged(const QString &)));
     meLayout->addWidget(m_nameEdit, row++, 1);
     
     meLayout->addWidget(new QLabel(tr("Email address:")), row, 0);
 
     m_emailEdit = new QLineEdit();
     m_emailEdit->setText(settings.value("email").toString());
-    connect(m_emailEdit, SIGNAL(textChanged(const QString &)),
-	    this, SLOT(emailChanged(const QString &)));
     meLayout->addWidget(m_emailEdit, row++, 1);
 
     settings.endGroup();
@@ -73,50 +71,42 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 
     pathsLayout->addWidget(new QLabel(tr("Mercurial (hg) program:")), row, 0);
 
-    m_hgPathEdit = new QLineEdit();
-    m_hgPathEdit->setText(settings.value("hgbinary").toString());
-    connect(m_hgPathEdit, SIGNAL(textChanged(const QString &)),
-	    this, SLOT(hgPathChanged(const QString &)));
-    pathsLayout->addWidget(m_hgPathEdit, row, 1);
+    m_hgPathLabel = new QLabel();
+    m_hgPathLabel->setText(settings.value("hgbinary").toString());
+    pathsLayout->addWidget(m_hgPathLabel, row, 2);
 
     QPushButton *browse = new QPushButton(tr("Browse..."));
-    pathsLayout->addWidget(browse, row++, 2);
+    pathsLayout->addWidget(browse, row++, 1);
     connect(browse, SIGNAL(clicked()), this, SLOT(hgPathBrowse()));
 
     pathsLayout->addWidget(new QLabel(tr("External diff program:")), row, 0);
 
-    m_diffPathEdit = new QLineEdit();
-    m_diffPathEdit->setText(settings.value("extdiffbinary").toString());
-    connect(m_diffPathEdit, SIGNAL(textChanged(const QString &)),
-	    this, SLOT(diffPathChanged(const QString &)));
-    pathsLayout->addWidget(m_diffPathEdit, row, 1);
+    m_diffPathLabel = new QLabel();
+    m_diffPathLabel->setText(settings.value("extdiffbinary").toString());
+    pathsLayout->addWidget(m_diffPathLabel, row, 2);
 
     browse = new QPushButton(tr("Browse..."));
-    pathsLayout->addWidget(browse, row++, 2);
+    pathsLayout->addWidget(browse, row++, 1);
     connect(browse, SIGNAL(clicked()), this, SLOT(diffPathBrowse()));
     
     pathsLayout->addWidget(new QLabel(tr("External file-merge program:")), row, 0);
 
-    m_mergePathEdit = new QLineEdit();
-    m_mergePathEdit->setText(settings.value("mergebinary").toString());
-    connect(m_mergePathEdit, SIGNAL(textChanged(const QString &)),
-	    this, SLOT(mergePathChanged(const QString &)));
-    pathsLayout->addWidget(m_mergePathEdit, row, 1);
+    m_mergePathLabel = new QLabel();
+    m_mergePathLabel->setText(settings.value("mergebinary").toString());
+    pathsLayout->addWidget(m_mergePathLabel, row, 2);
 
     browse = new QPushButton(tr("Browse..."));
-    pathsLayout->addWidget(browse, row++, 2);
+    pathsLayout->addWidget(browse, row++, 1);
     connect(browse, SIGNAL(clicked()), this, SLOT(mergePathBrowse()));
 
     pathsLayout->addWidget(new QLabel(tr("External text editor:")), row, 0);
 
-    m_editPathEdit = new QLineEdit();
-    m_editPathEdit->setText(settings.value("editorbinary").toString());
-    connect(m_editPathEdit, SIGNAL(textChanged(const QString &)),
-	    this, SLOT(editPathChanged(const QString &)));
-    pathsLayout->addWidget(m_editPathEdit, row, 1);
+    m_editPathLabel = new QLabel();
+    m_editPathLabel->setText(settings.value("editorbinary").toString());
+    pathsLayout->addWidget(m_editPathLabel, row, 2);
 
     browse = new QPushButton(tr("Browse..."));
-    pathsLayout->addWidget(browse, row++, 2);
+    pathsLayout->addWidget(browse, row++, 1);
     connect(browse, SIGNAL(clicked()), this, SLOT(editPathBrowse()));
 
     settings.endGroup();
@@ -125,14 +115,12 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 
     pathsLayout->addWidget(new QLabel(tr("EasyHg Mercurial extension:")), row, 0);
 
-    m_extensionPathEdit = new QLineEdit();
-    m_extensionPathEdit->setText(settings.value("extensionpath").toString());
-    connect(m_extensionPathEdit, SIGNAL(textChanged(const QString &)),
-	    this, SLOT(extensionPathChanged(const QString &)));
-    pathsLayout->addWidget(m_extensionPathEdit, row, 1);
+    m_extensionPathLabel = new QLabel();
+    m_extensionPathLabel->setText(settings.value("extensionpath").toString());
+    pathsLayout->addWidget(m_extensionPathLabel, row, 2);
 
     browse = new QPushButton(tr("Browse..."));
-    pathsLayout->addWidget(browse, row++, 2);
+    pathsLayout->addWidget(browse, row++, 1);
     connect(browse, SIGNAL(clicked()), this, SLOT(extensionPathBrowse()));
 
     settings.endGroup();
@@ -142,7 +130,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     //!!! more info plz
     m_useExtension = new QCheckBox(tr("Use EasyHg Mercurial extension"));
     m_useExtension->setChecked(settings.value("useextension", true).toBool());
-    pathsLayout->addWidget(m_useExtension, row++, 1);
+    pathsLayout->addWidget(m_useExtension, row++, 2);
 
     settings.endGroup();
 
@@ -158,63 +146,52 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 }
 
 void
-SettingsDialog::realNameChanged(const QString &s)
-{
-}
-
-void
-SettingsDialog::emailChanged(const QString &s)
-{
-}
-
-void
-SettingsDialog::hgPathChanged(const QString &s)
-{
-}
-
-void
 SettingsDialog::hgPathBrowse()
 {
-}
-
-void
-SettingsDialog::diffPathChanged(const QString &s)
-{
+    browseFor(tr("Mercurial program"), m_hgPathLabel);
 }
 
 void
 SettingsDialog::diffPathBrowse()
 {
-}
-
-void
-SettingsDialog::mergePathChanged(const QString &s)
-{
+    browseFor(tr("External diff program"), m_diffPathLabel);
 }
 
 void
 SettingsDialog::mergePathBrowse()
 {
-}
-
-void
-SettingsDialog::editPathChanged(const QString &s)
-{
+    browseFor(tr("External file-merge program"), m_mergePathLabel);
 }
 
 void
 SettingsDialog::editPathBrowse()
 {
-}
-
-void
-SettingsDialog::extensionPathChanged(const QString &s)
-{
+    browseFor(tr("External text editor"), m_editPathLabel);
 }
 
 void
 SettingsDialog::extensionPathBrowse()
 {
+    browseFor(tr("EasyHg Mercurial extension"), m_extensionPathLabel);
+}
+
+void
+SettingsDialog::browseFor(QString title, QLabel *edit)
+{
+    QString origin = edit->text();
+
+    if (origin == "") {
+#ifdef Q_OS_WIN32
+        origin = "c:";
+#else
+        origin = QDir::homePath();
+#endif
+    }
+    
+    QString path = QFileDialog::getOpenFileName(this, title, origin);
+    if (path != QString()) {
+        edit->setText(path);
+    }
 }
 
 void
@@ -227,10 +204,10 @@ SettingsDialog::accept()
     settings.setValue("email", m_emailEdit->text());
     settings.endGroup();
     settings.beginGroup("Locations");
-    settings.setValue("hgbinary", m_hgPathEdit->text());
-    settings.setValue("extdiffbinary", m_diffPathEdit->text());
-    settings.setValue("mergebinary", m_mergePathEdit->text());
-    settings.setValue("extensionpath", m_extensionPathEdit->text());
+    settings.setValue("hgbinary", m_hgPathLabel->text());
+    settings.setValue("extdiffbinary", m_diffPathLabel->text());
+    settings.setValue("mergebinary", m_mergePathLabel->text());
+    settings.setValue("extensionpath", m_extensionPathLabel->text());
     settings.endGroup();
     settings.beginGroup("General");
     settings.setValue("useextension", m_useExtension->isChecked());
