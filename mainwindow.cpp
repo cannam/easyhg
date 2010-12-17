@@ -87,8 +87,9 @@ MainWindow::MainWindow(QString myDirPath) :
         startupDialog();
     }
 
-    findDiffBinaryName();
-    findMergeBinaryName();
+    (void)findDiffBinaryName();
+    (void)findMergeBinaryName();
+    (void)findEditorBinaryName();
 
     ColourSet *cs = ColourSet::instance();
     cs->clearDefaultNames();
@@ -381,7 +382,73 @@ void MainWindow::hgIgnore()
     hgIgnorePath += "/.hgignore";
     
     params << hgIgnorePath;
+    
+    QString editor = findEditorBinaryName();
 
+    if (editor == "") {
+        DEBUG << "Failed to find a text editor" << endl;
+        //!!! visible error!
+        return;
+    }
+
+    HgAction action(ACT_HG_IGNORE, workFolderPath, params);
+    action.executable = editor;
+
+    runner->requestAction(action);
+}
+
+QString MainWindow::findDiffBinaryName()
+{
+    QSettings settings;
+    settings.beginGroup("Locations");
+    QString diff = settings.value("extdiffbinary", "").toString();
+    if (diff == "") {
+        QStringList bases;
+        bases << "opendiff" << "kompare" << "kdiff3" << "meld";
+        bool found = false;
+        foreach (QString base, bases) {
+            diff = findInPath(base, m_myDirPath, true);
+            if (diff != base && diff != base + ".exe") {
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            settings.setValue("extdiffbinary", diff);
+        } else {
+            diff = "";
+        }
+    }
+    return diff;
+}
+
+QString MainWindow::findMergeBinaryName()
+{
+    QSettings settings;
+    settings.beginGroup("Locations");
+    QString merge = settings.value("mergebinary", "").toString();
+    if (merge == "") {
+        QStringList bases;
+        bases << "fmdiff3" << "meld" << "diffuse" << "kdiff3";
+        bool found = false;
+        foreach (QString base, bases) {
+            merge = findInPath(base, m_myDirPath, true);
+            if (merge != base) {
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            settings.setValue("mergebinary", merge);
+        } else {
+            merge = "";
+        }
+    }
+    return merge;
+}
+
+QString MainWindow::findEditorBinaryName()
+{
     QSettings settings;
     settings.beginGroup("Locations");
     QString editor = settings.value("editorbinary", "").toString();
@@ -412,67 +479,7 @@ void MainWindow::hgIgnore()
             editor = "";
         }
     }
-
-    if (editor == "") {
-        DEBUG << "Failed to find a text editor" << endl;
-        //!!! visible error!
-        return;
-    }
-
-    HgAction action(ACT_HG_IGNORE, workFolderPath, params);
-    action.executable = editor;
-
-    runner->requestAction(action);
-}
-
-void MainWindow::findDiffBinaryName()
-{
-    QSettings settings;
-    settings.beginGroup("Locations");
-    QString diff = settings.value("extdiffbinary", "").toString();
-    if (diff == "") {
-        QStringList bases;
-        bases << "opendiff" << "kompare" << "kdiff3" << "meld";
-        bool found = false;
-        foreach (QString base, bases) {
-            diff = findInPath(base, m_myDirPath, true);
-            if (diff != base && diff != base + ".exe") {
-                found = true;
-                break;
-            }
-        }
-        if (found) {
-            settings.setValue("extdiffbinary", diff);
-        } else {
-            diff = "";
-        }
-    }
-    diffBinaryName = diff;
-}
-
-void MainWindow::findMergeBinaryName()
-{
-    QSettings settings;
-    settings.beginGroup("Locations");
-    QString merge = settings.value("mergebinary", "").toString();
-    if (merge == "") {
-        QStringList bases;
-        bases << "fmdiff3" << "meld" << "diffuse" << "kdiff3";
-        bool found = false;
-        foreach (QString base, bases) {
-            merge = findInPath(base, m_myDirPath, true);
-            if (merge != base) {
-                found = true;
-                break;
-            }
-        }
-        if (found) {
-            settings.setValue("mergebinary", merge);
-        } else {
-            merge = "";
-        }
-    }
-    mergeBinaryName = merge;
+    return editor;
 }
 
 void MainWindow::hgShowSummary()
@@ -486,14 +493,15 @@ void MainWindow::hgShowSummary()
 
 void MainWindow::hgFolderDiff()
 {
-    if (diffBinaryName == "") return;
+    QString diff = findDiffBinaryName();
+    if (diff == "") return;
 
     QStringList params;
 
     // Diff parent against working folder (folder diff)
 
     params << "--config" << "extensions.extdiff=" << "extdiff";
-    params << "--program" << diffBinaryName;
+    params << "--program" << diff;
 
     params << hgTabs->getSelectedCommittableFiles(); // may be none: whole dir
 
@@ -503,14 +511,15 @@ void MainWindow::hgFolderDiff()
 
 void MainWindow::hgDiffToCurrent(QString id)
 {
-    if (diffBinaryName == "") return;
+    QString diff = findDiffBinaryName();
+    if (diff == "") return;
 
     QStringList params;
 
     // Diff given revision against working folder
 
     params << "--config" << "extensions.extdiff=" << "extdiff";
-    params << "--program" << diffBinaryName;
+    params << "--program" << diff;
     params << "--rev" << Changeset::hashOf(id);
 
     runner->requestAction(HgAction(ACT_FOLDERDIFF, workFolderPath, params));
@@ -519,14 +528,15 @@ void MainWindow::hgDiffToCurrent(QString id)
 
 void MainWindow::hgDiffToParent(QString child, QString parent)
 {
-    if (diffBinaryName == "") return;
+    QString diff = findDiffBinaryName();
+    if (diff == "") return;
 
     QStringList params;
 
     // Diff given revision against working folder
 
     params << "--config" << "extensions.extdiff=" << "extdiff";
-    params << "--program" << diffBinaryName;
+    params << "--program" << diff;
     params << "--rev" << Changeset::hashOf(parent)
            << "--rev" << Changeset::hashOf(child);
 
@@ -622,8 +632,9 @@ void MainWindow::hgRetryMerge()
 
     params << "resolve";
 
-    if (mergeBinaryName != "") {
-        params << "--tool" << mergeBinaryName;
+    QString merge = findMergeBinaryName();
+    if (merge != "") {
+        params << "--tool" << merge;
     }
 
     QStringList files = hgTabs->getSelectedUnresolvedFiles();
@@ -650,8 +661,9 @@ void MainWindow::hgMerge()
 
     params << "merge";
 
-    if (mergeBinaryName != "") {
-        params << "--tool" << mergeBinaryName;
+    QString merge = findMergeBinaryName();
+    if (merge != "") {
+        params << "--tool" << merge;
     }
 
     if (currentParents.size() == 1) {
@@ -671,8 +683,9 @@ void MainWindow::hgMergeFrom(QString id)
     params << "merge";
     params << "--rev" << Changeset::hashOf(id);
 
-    if (mergeBinaryName != "") {
-        params << "--tool" << mergeBinaryName;
+    QString merge = findMergeBinaryName();
+    if (merge != "") {
+        params << "--tool" << merge;
     }
     
     runner->requestAction(HgAction(ACT_MERGE, workFolderPath, params));
@@ -1732,7 +1745,13 @@ void MainWindow::enableDisableActions()
     hgPullAct -> setEnabled(remoteRepoActionsEnabled && remoteRepoActionsEnabled);
     hgPushAct -> setEnabled(remoteRepoActionsEnabled && remoteRepoActionsEnabled);
 
-    bool haveDiff = (diffBinaryName != "");
+    bool haveDiff = false;
+    QSettings settings;
+    settings.beginGroup("Locations");
+    if (settings.value("extdiffbinary", "").toString() != "") {
+        haveDiff = true;
+    }
+    settings.endGroup();
 
     hgRefreshAct -> setEnabled(localRepoActionsEnabled);
     hgFolderDiffAct -> setEnabled(localRepoActionsEnabled && haveDiff);
