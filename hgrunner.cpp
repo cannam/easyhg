@@ -49,8 +49,8 @@ HgRunner::HgRunner(QString myDirPath, QWidget * parent) :
     setVisible(false);
     m_isRunning = false;
 
-    findExtension();
-    (void)getHgBinaryName();
+    (void)findExtension();
+    (void)findHgBinaryName();
 }
 
 HgRunner::~HgRunner()
@@ -62,25 +62,21 @@ HgRunner::~HgRunner()
     }
 }
 
-void HgRunner::findExtension()
+QString HgRunner::findExtension()
 {
     QSettings settings;
     settings.beginGroup("Locations");
-    m_extensionPath = settings.value("extensionpath", "").toString();
-    if (m_extensionPath != "") return;
-    m_extensionPath = findInPath("easyhg.py", m_myDirPath, false);
-    if (m_extensionPath == "easyhg.py") {
-        if (!unbundleExtension()) {
-            // might have failed because the file already existed
-            if (!QFile(m_extensionPath).exists()) {
-                m_extensionPath = "";
-            }
-        }
+    QString extpath = settings.value("extensionpath", "").toString();
+    if (extpath != "") return extpath;
+    extpath = findInPath("easyhg.py", m_myDirPath, false);
+    if (extpath == "easyhg.py") {
+        extpath = unbundleExtension();
     }
-    settings.setValue("extensionpath", m_extensionPath);
+    settings.setValue("extensionpath", extpath);
+    return extpath;
 }   
 
-bool HgRunner::unbundleExtension()
+QString HgRunner::unbundleExtension()
 {
     QString bundled = ":easyhg.py";
     QString home = QDir::homePath();
@@ -88,17 +84,24 @@ bool HgRunner::unbundleExtension()
     if (!QDir().mkpath(target)) {
         DEBUG << "Failed to make unbundle path " << target << endl;
         std::cerr << "Failed to make unbundle path " << target.toStdString() << std::endl;
-        return false; 
+        return ""; 
     }
     QFile bf(bundled);
-    m_extensionPath = QString("%1/easyhg.py").arg(target);
-    if (!bf.copy(m_extensionPath)) {
-        DEBUG << "Failed to unbundle extension to " << target << endl;
-        std::cerr << "Failed to unbundle extension to " << m_extensionPath.toStdString() << std::endl;
-        return false;
+    if (!bf.exists()) {
+        DEBUG << "Bundled extension is missing!" << endl;
+        return "";
     }
-    DEBUG << "Unbundled extension to " << m_extensionPath << endl;
-    return true;
+    QString extpath = QString("%1/easyhg.py").arg(target);
+    if (QFile(extpath).exists()) {
+        QFile(extpath).remove();
+    }
+    if (!bf.copy(extpath)) {
+        DEBUG << "Failed to unbundle extension to " << target << endl;
+        std::cerr << "Failed to unbundle extension to " << extpath.toStdString() << std::endl;
+        return "";
+    }
+    DEBUG << "Unbundled extension to " << extpath << endl;
+    return extpath;
 }        
 
 void HgRunner::requestAction(HgAction action)
@@ -124,7 +127,7 @@ void HgRunner::requestAction(HgAction action)
     checkQueue();
 }
 
-QString HgRunner::getHgBinaryName()
+QString HgRunner::findHgBinaryName()
 {
     QSettings settings;
     settings.beginGroup("Locations");
@@ -341,7 +344,7 @@ void HgRunner::startCommand(HgAction action)
 
     if (executable == "") {
         // This is a Hg command
-        executable = getHgBinaryName();
+        executable = findHgBinaryName();
 
         if (action.mayBeInteractive()) {
             params.push_front("ui.interactive=true");
@@ -350,7 +353,8 @@ void HgRunner::startCommand(HgAction action)
             QSettings settings;
             settings.beginGroup("General");
             if (settings.value("useextension", true).toBool()) {
-                params.push_front(QString("extensions.easyhg=%1").arg(m_extensionPath));
+                QString extpath = findExtension();
+                params.push_front(QString("extensions.easyhg=%1").arg(extpath));
                 params.push_front("--config");
             }
             interactive = true;
