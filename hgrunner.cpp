@@ -313,6 +313,12 @@ void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
     checkQueue();
 }
 
+void HgRunner::killCurrentActions()
+{
+    m_queue.clear();
+    killCurrentCommand();
+}
+
 void HgRunner::killCurrentCommand()
 {
     if (m_isRunning) {

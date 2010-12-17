@@ -139,10 +139,6 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     connect(bbox, SIGNAL(accepted()), this, SLOT(accept()));
     mainLayout->addWidget(bbox, 2, 0);
     m_ok = bbox->button(QDialogButtonBox::Ok);
-//    m_ok->setEnabled(false);
-    
-//!!!    m_ok->setEnabled(m_name != "");
-//    updateExample();
 }
 
 void
