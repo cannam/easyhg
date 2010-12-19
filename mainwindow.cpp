@@ -915,7 +915,32 @@ void MainWindow::open()
 
 void MainWindow::changeRemoteRepo()
 {
-    //!!! so we want a "multi-choice" thingy but with remote only? and then we rewrite the local hgrc??
+    // This will involve rewriting the local .hgrc
+
+    QFileInfo hgrc(workFolderPath + "/.hg/hgrc");
+    if (!hgrc.exists() || !hgrc.isWritable()) {
+        //!!! visible error!
+        return;
+    }
+
+    MultiChoiceDialog *d = new MultiChoiceDialog
+        (tr("Change Remote Location"),
+         tr("<qt><big>Change the remote location</big></qt>"),
+         this);
+
+    d->addChoice("remote",
+                 tr("<qt><center><img src=\":images/browser-64.png\"><br>Remote repository</center></qt>"),
+                 tr("Provide a new URL to use for push and pull actions from the current local repository."),
+                 MultiChoiceDialog::UrlArg);
+
+    if (d->exec() == QDialog::Accepted) {
+        QSettings s(hgrc.canonicalFilePath(), QSettings::IniFormat);
+        s.beginGroup("paths");
+        s.setValue("default", d->getArgument());
+        hgQueryPaths();
+    }
+
+    delete d;
 }
 
 void MainWindow::open(QString local)
