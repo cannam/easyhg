@@ -917,8 +917,14 @@ void MainWindow::changeRemoteRepo()
 {
     // This will involve rewriting the local .hgrc
 
+    QDir hgDir(workFolderPath + "/.hg");
+    if (!hgDir.exists()) {
+        //!!! visible error!
+        return;
+    }
+
     QFileInfo hgrc(workFolderPath + "/.hg/hgrc");
-    if (!hgrc.exists() || !hgrc.isWritable()) {
+    if (hgrc.exists() && !hgrc.isWritable()) {
         //!!! visible error!
         return;
     }
