@@ -152,6 +152,7 @@ MultiChoiceDialog::addChoice(QString id, QString text,
     SelectableLabel *cb = new SelectableLabel;
     cb->setSelectedText(text);
     cb->setUnselectedText(text);
+    cb->setMaximumWidth(270);
 
     m_choiceLayout->addWidget(cb);
     m_choiceButtons[cb] = id;
@@ -307,6 +308,7 @@ MultiChoiceDialog::choiceChanged()
     case UrlArg:
         m_urlLabel->show();
         m_urlCombo->show();
+        m_urlCombo->addItems(rf->getRecent());
         break;
 
     case UrlToDirectoryArg:
