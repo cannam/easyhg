@@ -23,7 +23,10 @@
 
 #include <iostream>
 
-int Grapher::findAvailableColumn(int row, int parent, bool preferParentCol)
+#include <QMultiMap>
+
+int Grapher::findAvailableColumn(int row, int parent, int sign,
+                                 bool preferParentCol)
 {
     int col = parent;
     if (preferParentCol) {
@@ -36,7 +39,9 @@ int Grapher::findAvailableColumn(int row, int parent, bool preferParentCol)
         if (isAvailable(row, ++col)) return col;
     }
     col = parent;
-    int sign = (col < 0 ? -1 : 1);
+    if (sign == 0) {
+        sign = (col < 0 ? -1 : 1);
+    }
     while (1) {
         col += sign;
         if (isAvailable(row, col)) return col;
@@ -142,6 +147,7 @@ void Grapher::layoutCol(QString id)
     int col = 0;
     int row = item->row();
     QString branch = cs->branch();
+    int branchHome = m_branchHomes[branch];
 
     int nparents = cs->parents().size();
     QString parentId;
@@ -150,8 +156,7 @@ void Grapher::layoutCol(QString id)
     switch (nparents) {
 
     case 0:
-        col = m_branchHomes[cs->branch()];
-        col = findAvailableColumn(row, col, true);
+        col = findAvailableColumn(row, branchHome, 0, true);
         break;
 
     case 1:
@@ -165,7 +170,7 @@ void Grapher::layoutCol(QString id)
             col = m_items[parentId]->column();
         }
 
-        col = findAvailableColumn(row, col, true);
+        col = findAvailableColumn(row, col, branchHome - col, true);
         break;
 
     case 2:
@@ -185,9 +190,9 @@ void Grapher::layoutCol(QString id)
 
         if (parentsOnSameBranch > 0) {
             col /= parentsOnSameBranch;
-            col = findAvailableColumn(item->row(), col, true);
+            col = findAvailableColumn(item->row(), col, 0, true);
         } else {
-            col = findAvailableColumn(item->row(), col, false);
+            col = findAvailableColumn(item->row(), col, 0, false);
         }
         break;
     }
@@ -204,7 +209,7 @@ void Grapher::layoutCol(QString id)
 
     if (m_uncommittedParents.contains(id)) {
         if (m_uncommittedParents[0] == id) {
-            int ucol = findAvailableColumn(row-1, col, true);
+            int ucol = findAvailableColumn(row-1, col, branchHome - col, true);
             m_uncommitted->setColumn(ucol);
             m_haveAllocatedUncommittedColumn = true;
         }
@@ -258,7 +263,7 @@ void Grapher::layoutCol(QString id)
             for (int i = 0; i < 2; ++i) {
                 int off = i * 2 - 1; // 0 -> -1, 1 -> 1
                 ChangesetItem *it = m_items[special[i]];
-                it->setColumn(findAvailableColumn(it->row(), col + off, true));
+                it->setColumn(findAvailableColumn(it->row(), col + off, 0, true));
                 for (int r = row-1; r >= it->row(); --r) {
                     m_alloc[r].insert(it->column());
                 }
@@ -282,10 +287,34 @@ bool Grapher::rangesConflict(const Range &r1, const Range &r2)
 
 void Grapher::allocateBranchHomes(Changesets csets)
 {
+    QMap<QString, int> branchCounts;
+    QMap<QString, QString> branchParents;
+
+    QStringList branches;
+
     foreach (Changeset *cs, csets) {
+
         QString branch = cs->branch();
+
+        if (!branchCounts.contains(branch)) {
+            // Guess at the parent branch for this one which we
+            // haven't seen before. This is not entirely reliable, but
+            // it doesn't need to be
+            if (!cs->parents().empty()) {
+                QString firstParentId = cs->parents()[0];
+                if (m_changesets.contains(firstParentId)) {
+                    Changeset *firstParent = m_changesets[firstParentId];
+                    branchParents[branch] = firstParent->branch();
+                }
+            }
+            branches.push_back(branch);
+        }
+
+        branchCounts[branch]++;
+        
         ChangesetItem *item = m_items[cs->id()];
         if (!item) continue;
+
         int row = item->row();
         if (!m_branchRanges.contains(branch)) {
             m_branchRanges[branch] = Range(row, row);
@@ -299,8 +328,20 @@ void Grapher::allocateBranchHomes(Changesets csets)
 
     m_branchHomes[""] = 0;
     m_branchHomes["default"] = 0;
+/*
+    QStringList orderedBranches; // will be ordered by "popularity"
 
-    foreach (QString branch, m_branchRanges.keys()) {
+    QMultiMap<int, QString> branchesByCount;
+    foreach (QString branch, branchCounts.keys()) {
+        branchesByCount.insert(branchCounts[branch], branch);
+    }
+    foreach (QString branch, branchesByCount) {
+        orderedBranches.push_front(branch);
+    }
+*/
+    int sign = -1;
+    
+    foreach (QString branch, branches) {
         if (branch == "") continue;
         QSet<int> taken;
         taken.insert(0);
@@ -315,26 +356,23 @@ void Grapher::allocateBranchHomes(Changesets csets)
             }
         }
         int home = 2;
+        QString parent = branchParents[branch];
+        if (parent != "" && parent != "default" &&
+            m_branchHomes.contains(parent)) {
+            home = m_branchHomes[parent];
+            if (home > 0) sign = 1;
+            else sign = -1;
+        } else {
+            sign = -sign;
+        }
         while (taken.contains(home)) {
-            if (home > 0) {
-                if (home % 2 == 1) {
-                    home = -home;
-                } else {
-                    home = home + 1;
-                }
-            } else {
-                if ((-home) % 2 == 1) {
-                    home = home + 1;
-                } else {
-                    home = -(home-2);
-                }
-            }
+            home = home + 2 * sign;
         }
         m_branchHomes[branch] = home;
     }
 
-    foreach (QString branch, m_branchRanges.keys()) {
-        DEBUG << branch.toStdString() << ": " << m_branchRanges[branch].first << " - " << m_branchRanges[branch].second << ", home " << m_branchHomes[branch] << endl;
+    foreach (QString branch, branches) {
+        DEBUG << branch << ": pop " << branchCounts[branch] << ", parent " << branchParents[branch] << ", range " << m_branchRanges[branch].first << " - " << m_branchRanges[branch].second << ", home " << m_branchHomes[branch] << endl;
     }
 }
 
