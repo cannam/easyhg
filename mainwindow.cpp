@@ -1398,7 +1398,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
         QMessageBox::warning
             (this, tr("Failed to run Mercurial"),
              format3(tr("Failed to run Mercurial"),
-                     tr("The Mercurial program either could not be found or failed to run.<br>This may indicate a problem with the Mercurial installation, or with the EasyHg interaction extension.<br><br>The test command said:"),
+                     tr("The Mercurial program either could not be found or failed to run.<br>This may indicate a problem with the Mercurial installation, or with the EasyHg interaction extension.<br><br>%1").arg(output == "" ? QString("") : tr("The test command said:")),
                      output));
         settings();
         return;

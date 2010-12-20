@@ -45,6 +45,7 @@ signals:
 
 private slots:
     void started();
+    void error(QProcess::ProcessError);
     void finished(int procExitCode, QProcess::ExitStatus procExitStatus);
     void dataReadyStdout();
     void dataReadyStderr();
