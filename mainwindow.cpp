@@ -762,14 +762,31 @@ void MainWindow::hgIncoming()
     runner->requestAction(HgAction(ACT_INCOMING, workFolderPath, params));
 }
 
+static QMessageBox::StandardButton confirm(QWidget *parent,
+                                           QString title,
+                                           QString text,
+                                           QString okButtonText)
+{
+    QMessageBox box(QMessageBox::Question,
+                    title,
+                    text,
+                    QMessageBox::Cancel,
+                    parent);
+
+    QPushButton *ok = box.addButton(QMessageBox::Ok);
+    ok->setText(okButtonText);
+    if (box.exec() == -1) return QMessageBox::Cancel;
+    return box.standardButton(box.clickedButton());
+}
+
 void MainWindow::hgPull()
 {
-    if (QMessageBox::question
+    if (confirm
         (this, tr("Confirm pull"),
          format3(tr("Confirm pull from remote repository"),
-                 tr("You are about to pull from the following remote repository:"),
+                 tr("You are about to pull changes from the following remote repository:"),
                  remoteRepoPath),
-         QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Ok) {
+         tr("Pull")) == QMessageBox::Ok) {
 
         QStringList params;
         params << "pull" << remoteRepoPath;
@@ -779,12 +796,12 @@ void MainWindow::hgPull()
 
 void MainWindow::hgPush()
 {
-    if (QMessageBox::question
+    if (confirm
         (this, tr("Confirm push"),
          format3(tr("Confirm push to remote repository"),
-                 tr("You are about to push to the following remote repository:"),
+                 tr("You are about to push your changes to the following remote repository:"),
                  remoteRepoPath),
-         QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Ok) {
+         tr("Push")) == QMessageBox::Ok) {
 
         QStringList params;
         params << "push" << "--new-branch" << remoteRepoPath;
