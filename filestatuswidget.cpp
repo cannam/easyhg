@@ -18,6 +18,7 @@
 #include "filestatuswidget.h"
 #include "debug.h"
 #include "multichoicedialog.h"
+#include "clickablelabel.h"
 
 #include <QLabel>
 #include <QListWidget>
@@ -26,6 +27,9 @@
 #include <QApplication>
 #include <QDateTime>
 #include <QPushButton>
+#include <QToolButton>
+#include <QDir>
+#include <QProcess>
 
 FileStatusWidget::FileStatusWidget(QWidget *parent) :
     QWidget(parent),
@@ -40,16 +44,19 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 
     ++row;
     layout->addWidget(new QLabel(tr("Local:")), row, 0);
-    m_localPathLabel = new QLabel;
-    QFont f(m_localPathLabel->font());
+
+    m_openButton = new ClickableLabel;
+    QFont f(m_openButton->font());
     f.setBold(true);
-    m_localPathLabel->setFont(f);
-    layout->addWidget(m_localPathLabel, row, 1);
+    m_openButton->setFont(f);
+    m_openButton->setMouseUnderline(true);
+    connect(m_openButton, SIGNAL(clicked()), this, SLOT(openButtonClicked()));
+    layout->addWidget(m_openButton, row, 1, 1, 2);
 
     ++row;
     layout->addWidget(new QLabel(tr("Remote:")), row, 0);
     m_remoteURLLabel = new QLabel;
-    layout->addWidget(m_remoteURLLabel, row, 1);
+    layout->addWidget(m_remoteURLLabel, row, 1, 1, 2);
 
     ++row;
     layout->addWidget(new QLabel(tr("State:")), row, 0);
@@ -83,7 +90,8 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
                                              "If you deleted them by accident, select them and use Revert to restore their previous contents.");
     m_descriptions[FileStates::InConflict] = tr("These files are unresolved following an incomplete merge.<br>Select a file and use Merge to try to resolve the merge again.");
     m_descriptions[FileStates::Unknown] = tr("These files are in your working folder but are not under version control.<br>"
-                                             "Select a file and use Add to place it under version control or Ignore to remove it from this list.");
+//                                             "Select a file and use Add to place it under version control or Ignore to remove it from this list.");
+                                             "Select a file and use Add to place it under version control.");
 
     m_highlightExplanation = tr("Files highlighted <font color=#d40000>in red</font> "
                                 "have appeared since your most recent commit or update.");
@@ -115,11 +123,30 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     }
 
     layout->setRowStretch(++row, 20);
+
 }
 
 FileStatusWidget::~FileStatusWidget()
 {
     delete m_dateReference;
+}
+
+void FileStatusWidget::openButtonClicked()
+{
+    QDir d(m_localPath);
+    if (d.exists()) {
+        QStringList args;
+        args << d.canonicalPath();
+        QProcess::execute(
+#if defined Q_OS_WIN32
+            "c:/windows/explorer.exe",
+#elif defined Q_OS_MAC
+            "/usr/bin/open",
+#else
+            "/usr/bin/xdg-open",
+#endif
+            args);
+    }
 }
 
 QString FileStatusWidget::labelFor(FileStates::State s, bool addHighlightExplanation)
@@ -321,7 +348,7 @@ void
 FileStatusWidget::setLocalPath(QString p)
 {
     m_localPath = p;
-    m_localPathLabel->setText(p);
+    m_openButton->setText(p);
     delete m_dateReference;
     m_dateReference = new QFileInfo(p + "/.hg/dirstate");
     if (!m_dateReference->exists() ||
@@ -334,6 +361,7 @@ FileStatusWidget::setLocalPath(QString p)
         delete m_dateReference;
         m_dateReference = 0;
     }
+    m_openButton->setEnabled(QDir(m_localPath).exists());
 }
 
 void

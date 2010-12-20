@@ -135,19 +135,32 @@ void MainWindow::about()
    QMessageBox::about(this, tr("About EasyMercurial"),
                       tr("<qt><h2>About EasyMercurial</h2>"
                          "<p>EasyMercurial is a simple user interface for the "
-                         "Mercurial version control system.</p>"
-                         "<p>EasyMercurial is based on hgExplorer by "
-                         "Jari Korhonen, with thanks.<br>EasyMercurial development carried out by "
-                         "Chris Cannam for soundsoftware.ac.uk at the Centre for Digital Music, Queen Mary, University of London."
-                         "<ul><li>Copyright &copy; 2010 Jari Korhonen</li>"
-                         "<li>Copyright &copy; 2010 Chris Cannam</li>"
-                         "<li>Copyright &copy; 2010 Queen Mary, University of London</li>"
-                         "</ul>"
-                         "<p> This program is free software; you can redistribute it and/or "
+                         "Mercurial</a> version control system.</p>"
+                         "<h4>Credits and Copyright</h4>"
+                         "<p>Development carried out by Chris Cannam for "
+                         "SoundSoftware.ac.uk at the Centre for Digital Music, "
+                         "Queen Mary, University of London.</p>"
+                         "<p>EasyMercurial is based on HgExplorer by "
+                         "Jari Korhonen, with thanks.</p>"
+                         "<p style=\"margin-left: 2em;\">"
+                         "Copyright &copy; 2010 Queen Mary, University of London.<br>"
+                         "Copyright &copy; 2010 Jari Korhonen.<br>"
+                         "Copyright &copy; 2010 Chris Cannam."
+                         "</p>"
+                         "<p style=\"margin-left: 2em;\">"
+                         "This program requires Mercurial, by Matt Mackall and others.<br>"
+                         "This program uses Qt by Nokia.<br>"
+                         "This program uses Nuvola icons by David Vignoni.<br>"
+                         "This program may use KDiff3 by Joachim Eibl.<br>"
+                         "This program may use PyQt by River Bank Computing.<br>"
+                         "Packaging for Mercurial and other dependencies on Windows is derived from TortoiseHg by Steve Borho and others."
+                         "</p>"
+                         "<h4>License</h4>"
+                         "<p>This program is free software; you can redistribute it and/or "
                          "modify it under the terms of the GNU General Public License as "
                          "published by the Free Software Foundation; either version 2 of the "
                          "License, or (at your option) any later version.  See the file "
-                         "COPYING included with this distribution for more information."));
+                         "COPYING included with this distribution for more information.</p>"));
 }
 
 void MainWindow::clearSelections()
@@ -943,6 +956,7 @@ void MainWindow::changeRemoteRepo()
         QSettings s(hgrc.canonicalFilePath(), QSettings::IniFormat);
         s.beginGroup("paths");
         s.setValue("default", d->getArgument());
+        stateUnknown = true;
         hgQueryPaths();
     }
 
