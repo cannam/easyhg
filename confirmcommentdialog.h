@@ -30,41 +30,57 @@ class ConfirmCommentDialog : public QDialog
     Q_OBJECT
 
 public:
+    static bool confirm(QWidget *parent,
+                        QString title,
+                        QString text,
+                        QString okButtonText);
+    
+    static bool confirmDangerous(QWidget *parent,
+                                 QString title,
+                                 QString text,
+                                 QString okButtonText);
+    
     static bool confirmFilesAction(QWidget *parent,
                                    QString title,
                                    QString introText,
                                    QString introTextWithCount,
-                                   QStringList files);
+                                   QStringList files,
+                                   QString okButtonText);
 
     static bool confirmDangerousFilesAction(QWidget *parent,
                                             QString title,
                                             QString introText,
                                             QString introTextWithCount,
-                                            QStringList files);
+                                            QStringList files,
+                                            QString okButtonText);
 
     static bool confirmAndGetShortComment(QWidget *parent,
                                           QString title,
                                           QString introText,
                                           QString introTextWithCount,
                                           QStringList files,
-                                          QString &comment);
+                                          QString &comment,
+                                          QString okButtonText);
 
     static bool confirmAndGetLongComment(QWidget *parent,
                                          QString title,
                                          QString introText,
                                          QString introTextWithCount,
                                          QStringList files,
-                                         QString &comment);
+                                         QString &comment,
+                                         QString okButtonText);
 
     static bool confirmAndGetShortComment(QWidget *parent,
                                           QString title,
                                           QString introText,
-                                          QString &comment);
+                                          QString &comment,
+                                          QString okButtonText);
 
     static bool confirmAndGetLongComment(QWidget *parent,
                                          QString title,
                                          QString introText,
-                                         QString &comment);
+                                         QString &comment,
+                                         QString okButtonText);
 
 private slots:
     void commentChanged();
@@ -73,7 +89,8 @@ private:
     ConfirmCommentDialog(QWidget *parent,
                          QString title,
                          QString introText,
-                         QString initialComment);
+                         QString initialComment,
+                         QString okButtonText);
 
     static bool confirmAndComment(QWidget *parent,
                                   QString title,
@@ -81,13 +98,15 @@ private:
                                   QString introTextWithCount,
                                   QStringList files,
                                   QString &comment,
-                                  bool longComment);
+                                  bool longComment,
+                                  QString okButtonText);
 
     static bool confirmAndComment(QWidget *parent,
                                   QString title,
                                   QString introText,
                                   QString &comment,
-                                  bool longComment);
+                                  bool longComment,
+                                  QString okButtonText);
 
     static QString buildFilesText(QString intro, QStringList files);
 

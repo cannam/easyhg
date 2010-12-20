@@ -28,7 +28,8 @@
 ConfirmCommentDialog::ConfirmCommentDialog(QWidget *parent,
                                            QString title,
                                            QString introText,
-                                           QString initialComment) :
+                                           QString initialComment,
+                                           QString okButtonText) :
     QDialog(parent)
 {
     setWindowTitle(title);
@@ -50,6 +51,7 @@ ConfirmCommentDialog::ConfirmCommentDialog(QWidget *parent,
     layout->addWidget(bbox, 2, 0);
     m_ok = bbox->button(QDialogButtonBox::Ok);
     m_ok->setEnabled(initialComment != "");
+    m_ok->setText(okButtonText);
 
     connect(bbox, SIGNAL(accepted()), this, SLOT(accept()));
     connect(bbox, SIGNAL(rejected()), this, SLOT(reject()));
@@ -77,11 +79,46 @@ QString ConfirmCommentDialog::buildFilesText(QString intro, QStringList files)
     return text;
 }
 
+bool ConfirmCommentDialog::confirm(QWidget *parent,
+                                   QString title,
+                                   QString text,
+                                   QString okButtonText)
+{
+    QMessageBox box(QMessageBox::Question,
+                    title,
+                    text,
+                    QMessageBox::Cancel,
+                    parent);
+
+    QPushButton *ok = box.addButton(QMessageBox::Ok);
+    ok->setText(okButtonText);
+    if (box.exec() == -1) return QMessageBox::Cancel;
+    return box.standardButton(box.clickedButton());
+}
+
+bool ConfirmCommentDialog::confirmDangerous(QWidget *parent,
+                                            QString title,
+                                            QString text,
+                                            QString okButtonText)
+{
+    QMessageBox box(QMessageBox::Warning,
+                    title,
+                    text,
+                    QMessageBox::Cancel,
+                    parent);
+
+    QPushButton *ok = box.addButton(QMessageBox::Ok);
+    ok->setText(okButtonText);
+    if (box.exec() == -1) return QMessageBox::Cancel;
+    return box.standardButton(box.clickedButton());
+}
+
 bool ConfirmCommentDialog::confirmFilesAction(QWidget *parent,
                                               QString title,
                                               QString introText,
                                               QString introTextWithCount,
-                                              QStringList files)
+                                              QStringList files,
+                                              QString okButtonText)
 {
     QString text;
     if (files.size() <= 10) {
@@ -89,19 +126,15 @@ bool ConfirmCommentDialog::confirmFilesAction(QWidget *parent,
     } else {
         text = "<qt>" + introTextWithCount + "</qt>";
     }
-    return (QMessageBox::information(parent,
-                                     title,
-                                     text,
-                                     QMessageBox::Ok | QMessageBox::Cancel,
-                                     QMessageBox::Ok)
-            == QMessageBox::Ok);
+    return confirm(parent, title, text, okButtonText);
 }
 
 bool ConfirmCommentDialog::confirmDangerousFilesAction(QWidget *parent,
                                                        QString title,
                                                        QString introText,
                                                        QString introTextWithCount,
-                                                       QStringList files)
+                                                       QStringList files,
+                                                       QString okButtonText)
 {
     QString text;
     if (files.size() <= 10) {
@@ -109,12 +142,7 @@ bool ConfirmCommentDialog::confirmDangerousFilesAction(QWidget *parent,
     } else {
         text = "<qt>" + introTextWithCount + "</qt>";
     }
-    return (QMessageBox::warning(parent,
-                                 title,
-                                 text,
-                                 QMessageBox::Ok | QMessageBox::Cancel,
-                                 QMessageBox::Cancel)
-            == QMessageBox::Ok);
+    return confirmDangerous(parent, title, text, okButtonText);
 }
 
 bool ConfirmCommentDialog::confirmAndGetShortComment(QWidget *parent,
@@ -122,10 +150,12 @@ bool ConfirmCommentDialog::confirmAndGetShortComment(QWidget *parent,
                                                      QString introText,
                                                      QString introTextWithCount,
                                                      QStringList files,
-                                                     QString &comment)
+                                                     QString &comment,
+                                                     QString okButtonText)
 {
     return confirmAndComment(parent, title, introText,
-                             introTextWithCount, files, comment, false);
+                             introTextWithCount, files, comment, false,
+                             okButtonText);
 }
 
 bool ConfirmCommentDialog::confirmAndGetLongComment(QWidget *parent,
@@ -133,10 +163,12 @@ bool ConfirmCommentDialog::confirmAndGetLongComment(QWidget *parent,
                                                     QString introText,
                                                     QString introTextWithCount,
                                                     QStringList files,
-                                                    QString &comment)
+                                                    QString &comment,
+                                                    QString okButtonText)
 {
     return confirmAndComment(parent, title, introText,
-                             introTextWithCount, files, comment, true);
+                             introTextWithCount, files, comment, true,
+                             okButtonText);
 }
 
 bool ConfirmCommentDialog::confirmAndComment(QWidget *parent,
@@ -145,7 +177,8 @@ bool ConfirmCommentDialog::confirmAndComment(QWidget *parent,
                                              QString introTextWithCount,
                                              QStringList files,
                                              QString &comment,
-                                             bool longComment)
+                                             bool longComment, 
+                                             QString okButtonText)
 {
     QString text;
     if (files.size() <= 10) {
@@ -154,44 +187,56 @@ bool ConfirmCommentDialog::confirmAndComment(QWidget *parent,
         text = "<qt>" + introTextWithCount;
     }
     text += tr("<p>Please enter your comment:</qt>");
-    return confirmAndComment(parent, title, text, comment, longComment);
+    return confirmAndComment(parent, title, text, comment, longComment,
+                             okButtonText);
 }
 
 bool ConfirmCommentDialog::confirmAndGetShortComment(QWidget *parent,
                                                      QString title,
                                                      QString introText,
-                                                     QString &comment)
+                                                     QString &comment,
+                                                     QString okButtonText)
 {
-    return confirmAndComment(parent, title, introText, comment, false);
+    return confirmAndComment(parent, title, introText, comment, false,
+                             okButtonText);
 }
 
 bool ConfirmCommentDialog::confirmAndGetLongComment(QWidget *parent,
                                                     QString title,
                                                     QString introText,
-                                                    QString &comment)
+                                                    QString &comment,
+                                                    QString okButtonText)
 {
-    return confirmAndComment(parent, title, introText, comment, true);
+    return confirmAndComment(parent, title, introText, comment, true,
+                             okButtonText);
 }
 
 bool ConfirmCommentDialog::confirmAndComment(QWidget *parent,
                                              QString title,
                                              QString introText,
                                              QString &comment,
-                                             bool longComment)
+                                             bool longComment,
+                                             QString okButtonText)
 {
     bool ok = false;
     if (!longComment) {
-        comment = QInputDialog::getText(parent, title, introText,
-                                        QLineEdit::Normal, comment, &ok);
+        QInputDialog d(parent);
+        d.setWindowTitle(title);
+        d.setLabelText(introText);
+        d.setTextValue(comment);
+        d.setOkButtonText(okButtonText);
+        d.setTextEchoMode(QLineEdit::Normal);
+        if (d.exec() == QDialog::Accepted) {
+            comment = d.textValue();
+            ok = true;
+        }
     } else {
-        ConfirmCommentDialog *d = new ConfirmCommentDialog(parent,
-                                                           title,
-                                                           introText,
-                                                           comment);
-        if (d->exec() == QDialog::Accepted) {
-            comment = d->getComment();
+        ConfirmCommentDialog d(parent, title, introText, comment, okButtonText);
+        if (d.exec() == QDialog::Accepted) {
+            comment = d.getComment();
             ok = true;
         }
     }
+
     return ok;
 }

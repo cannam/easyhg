@@ -330,7 +330,8 @@ void MainWindow::hgCommit()
          tr("<h3>%1</h3><p>%2").arg(cf)
          .arg(tr("You are about to commit %n file(s).", "", reportFiles.size())),
          reportFiles,
-         comment)) {
+         comment,
+         tr("Commit"))) {
 
         if (!justMerged && !files.empty()) {
             // User wants to commit selected file(s) (and this is not
@@ -374,7 +375,8 @@ void MainWindow::hgTag(QString id)
         (this,
          tr("Tag"),
          tr("Enter tag:"),
-         tag)) {
+         tag,
+         tr("Add Tag"))) {
         if (!tag.isEmpty()) {//!!! do something better if it is empty
 
             params << "tag" << "--user" << getUserInfo();
@@ -594,7 +596,8 @@ void MainWindow::hgRevert()
          .arg(tr("You are about to <b>revert</b> the following files to their previous committed state.<br><br>This will <b>throw away any changes</b> that you have made to these files but have not committed:")),
          tr("<h3>%1</h3><p>%2").arg(rf)
          .arg(tr("You are about to <b>revert</b> %n file(s).<br><br>This will <b>throw away any changes</b> that you have made to these files but have not committed.", "", files.size())),
-         files)) {
+         files,
+         tr("Revert"))) {
 
         lastRevertedFiles = files;
         
@@ -762,26 +765,9 @@ void MainWindow::hgIncoming()
     runner->requestAction(HgAction(ACT_INCOMING, workFolderPath, params));
 }
 
-static QMessageBox::StandardButton confirm(QWidget *parent,
-                                           QString title,
-                                           QString text,
-                                           QString okButtonText)
-{
-    QMessageBox box(QMessageBox::Question,
-                    title,
-                    text,
-                    QMessageBox::Cancel,
-                    parent);
-
-    QPushButton *ok = box.addButton(QMessageBox::Ok);
-    ok->setText(okButtonText);
-    if (box.exec() == -1) return QMessageBox::Cancel;
-    return box.standardButton(box.clickedButton());
-}
-
 void MainWindow::hgPull()
 {
-    if (confirm
+    if (ConfirmCommentDialog::confirm
         (this, tr("Confirm pull"),
          format3(tr("Confirm pull from remote repository"),
                  tr("You are about to pull changes from the following remote repository:"),
@@ -796,7 +782,7 @@ void MainWindow::hgPull()
 
 void MainWindow::hgPush()
 {
-    if (confirm
+    if (ConfirmCommentDialog::confirm
         (this, tr("Confirm push"),
          format3(tr("Confirm push to remote repository"),
                  tr("You are about to push your changes to the following remote repository:"),
