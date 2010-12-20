@@ -41,7 +41,8 @@ HEADERS = mainwindow.h \
     changesetscene.h \
     incomingdialog.h \
     uncommitteditem.h \
-    settingsdialog.h
+    settingsdialog.h \
+    clickablelabel.h
 SOURCES = main.cpp \
     mainwindow.cpp \
     hgtabwidget.cpp \

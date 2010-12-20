@@ -26,6 +26,7 @@ class QLabel;
 class QListWidget;
 class QPushButton;
 class QFileInfo;
+class ClickableLabel;
 
 class FileStatusWidget : public QWidget
 {
@@ -75,10 +76,11 @@ public slots:
 
 private slots:
     void itemSelectionChanged();
+    void openButtonClicked();
 
 private:
     QString m_localPath;
-    QLabel *m_localPathLabel;
+    ClickableLabel *m_openButton;
 
     QString m_remoteURL;
     QLabel *m_remoteURLLabel;
