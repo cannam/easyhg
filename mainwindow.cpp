@@ -1997,14 +1997,16 @@ void MainWindow::createMenus()
 
     fileMenu -> addAction(openAct);
     fileMenu -> addAction(changeRemoteRepoAct);
+    fileMenu -> addSeparator();
+
+    advancedMenu = fileMenu->addMenu(tr("Advanced"));
+
     fileMenu -> addAction(settingsAct);
+
     fileMenu -> addSeparator();
     fileMenu -> addAction(exitAct);
 
-    advancedMenu = menuBar()->addMenu(tr("Advanced"));
-
     advancedMenu -> addAction(hgIgnoreAct);
-    advancedMenu -> addSeparator();
     advancedMenu -> addAction(hgServeAct);
 
     helpMenu = menuBar()->addMenu(tr("Help"));
