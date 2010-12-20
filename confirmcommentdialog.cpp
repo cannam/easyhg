@@ -92,8 +92,8 @@ bool ConfirmCommentDialog::confirm(QWidget *parent,
 
     QPushButton *ok = box.addButton(QMessageBox::Ok);
     ok->setText(okButtonText);
-    if (box.exec() == -1) return QMessageBox::Cancel;
-    return box.standardButton(box.clickedButton());
+    if (box.exec() == -1) return false;
+    return box.standardButton(box.clickedButton()) == QMessageBox::Ok;
 }
 
 bool ConfirmCommentDialog::confirmDangerous(QWidget *parent,
@@ -109,8 +109,8 @@ bool ConfirmCommentDialog::confirmDangerous(QWidget *parent,
 
     QPushButton *ok = box.addButton(QMessageBox::Ok);
     ok->setText(okButtonText);
-    if (box.exec() == -1) return QMessageBox::Cancel;
-    return box.standardButton(box.clickedButton());
+    if (box.exec() == -1) return false;
+    return box.standardButton(box.clickedButton()) == QMessageBox::Ok;
 }
 
 bool ConfirmCommentDialog::confirmFilesAction(QWidget *parent,
