@@ -68,8 +68,9 @@ QString HgRunner::findExtension()
     // If we haven't unbundled an extension, always do that (so that
     // it's available in case someone wants to use it later, e.g. to
     // fix a malfunctioning setup).  But the path we actually prefer
-    // is the one in the settings first; then the unbundled one; then
-    // anything in the path if for some reason unbundling failed
+    // is the one in the settings first, if it exists; then the
+    // unbundled one; then anything in the path if for some reason
+    // unbundling failed
 
     QSettings settings;
     settings.beginGroup("Locations");
@@ -80,7 +81,7 @@ QString HgRunner::findExtension()
     }
 
     QString extpath = settings.value("extensionpath", "").toString();
-    if (extpath != "") return extpath;
+    if (extpath != "" && QFile(extpath).exists()) return extpath;
 
     extpath = unbundled;
     if (extpath == "") {
@@ -330,6 +331,11 @@ void HgRunner::dataReadyPty()
     }
 }
 
+void HgRunner::error(QProcess::ProcessError)
+{
+    finished(-1, QProcess::CrashExit);
+}
+
 void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
 {
     // Save the current action and reset m_currentAction before we
@@ -343,7 +349,7 @@ void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
     m_currentAction = HgAction();
 
     closeProcInput();
-    delete m_proc;
+    m_proc->deleteLater();
     m_proc = 0;
 
     if (completedAction.action == ACT_NONE) {
@@ -446,6 +452,8 @@ void HgRunner::startCommand(HgAction action)
     m_proc->setProcessEnvironment(env);
 
     connect(m_proc, SIGNAL(started()), this, SLOT(started()));
+    connect(m_proc, SIGNAL(error(QProcess::ProcessError)),
+            this, SLOT(error(QProcess::ProcessError)));
     connect(m_proc, SIGNAL(finished(int, QProcess::ExitStatus)),
             this, SLOT(finished(int, QProcess::ExitStatus)));
     connect(m_proc, SIGNAL(readyReadStandardOutput()),
