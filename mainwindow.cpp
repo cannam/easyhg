@@ -1984,7 +1984,7 @@ void MainWindow::createActions()
     hgServeAct -> setStatusTip(tr("Serve local repository via http for workgroup access"));
 
     //Help actions
-    aboutAct = new QAction(tr("About"), this);
+    aboutAct = new QAction(tr("About EasyMercurial"), this);
 
     // Miscellaneous
     clearSelectionsAct = new QAction(tr("Clear selections"), this);
