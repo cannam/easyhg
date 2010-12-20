@@ -772,7 +772,7 @@ void MainWindow::hgPull()
          format3(tr("Confirm pull from remote repository"),
                  tr("You are about to pull changes from the following remote repository:"),
                  remoteRepoPath),
-         tr("Pull")) == QMessageBox::Ok) {
+         tr("Pull"))) {
 
         QStringList params;
         params << "pull" << remoteRepoPath;
@@ -787,7 +787,7 @@ void MainWindow::hgPush()
          format3(tr("Confirm push to remote repository"),
                  tr("You are about to push your changes to the following remote repository:"),
                  remoteRepoPath),
-         tr("Push")) == QMessageBox::Ok) {
+         tr("Push"))) {
 
         QStringList params;
         params << "push" << "--new-branch" << remoteRepoPath;
