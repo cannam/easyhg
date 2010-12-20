@@ -51,7 +51,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_openButton->setFont(f);
     m_openButton->setMouseUnderline(true);
     connect(m_openButton, SIGNAL(clicked()), this, SLOT(openButtonClicked()));
-    layout->addWidget(m_openButton, row, 1, 1, 2);
+    layout->addWidget(m_openButton, row, 1, 1, 2, Qt::AlignLeft);
 
     ++row;
     layout->addWidget(new QLabel(tr("Remote:")), row, 0);

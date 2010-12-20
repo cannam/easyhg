@@ -50,7 +50,10 @@ public:
 
     void setMouseUnderline(bool mu) {
 	m_mouseUnderline = mu;
-	if (mu) setTextFormat(Qt::RichText);
+	if (mu) {
+	    setTextFormat(Qt::RichText);
+	    setCursor(Qt::PointingHandCursor);
+	}
     }
 
 signals:
