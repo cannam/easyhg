@@ -67,6 +67,7 @@ private:
 
     QString findExtension();
     QString findHgBinaryName();
+    QString getUnbundledFileName();
     QString unbundleExtension();
 
     int m_ptyMasterFd;

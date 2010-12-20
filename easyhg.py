@@ -16,6 +16,16 @@
 import sys
 from mercurial import ui, getpass, util
 from mercurial.i18n import _
+
+# The value assigned here may be modified during installation, by
+# replacing its default value with another one.  We can't compare
+# against its default value, because then the comparison text would
+# get modified as well.  So, compare using prefix only.
+#
+easyhg_import_path = 'NO_EASYHG_IMPORT_PATH'
+if not easyhg_import_path.startswith('NO_'):
+    sys.path.append(easyhg_import_path)
+
 from PyQt4 import QtGui
 
 easyhg_qtapp = None

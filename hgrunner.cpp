@@ -26,6 +26,7 @@
 #include <QVBoxLayout>
 #include <QSettings>
 #include <QInputDialog>
+#include <QTemporaryFile>
 #include <QDir>
 
 #include <iostream>
@@ -64,44 +65,96 @@ HgRunner::~HgRunner()
 
 QString HgRunner::findExtension()
 {
+    // If we haven't unbundled an extension, always do that (so that
+    // it's available in case someone wants to use it later, e.g. to
+    // fix a malfunctioning setup).  But the path we actually prefer
+    // is the one in the settings first; then the unbundled one; then
+    // anything in the path if for some reason unbundling failed
+
     QSettings settings;
     settings.beginGroup("Locations");
+
+    QString unbundled = getUnbundledFileName();
+    if (!QFile(unbundled).exists()) {
+        unbundled = unbundleExtension();
+    }
+
     QString extpath = settings.value("extensionpath", "").toString();
     if (extpath != "") return extpath;
-    extpath = findInPath("easyhg.py", m_myDirPath, false);
-    if (extpath == "easyhg.py") {
-        extpath = unbundleExtension();
+
+    extpath = unbundled;
+    if (extpath == "") {
+        extpath = findInPath("easyhg.py", m_myDirPath, false);
+        if (extpath == "easyhg.py") {
+            extpath = "";
+        }
     }
+
     settings.setValue("extensionpath", extpath);
     return extpath;
 }   
 
-QString HgRunner::unbundleExtension()
+QString HgRunner::getUnbundledFileName()
 {
-    QString bundled = ":easyhg.py";
     QString home = QDir::homePath();
     QString target = QString("%1/.easyhg").arg(home);
+    QString extpath = QString("%1/easyhg.py").arg(target);
+    return extpath;
+}
+
+QString HgRunner::unbundleExtension()
+{
+    // Pull out the bundled Python file into a temporary file, and
+    // copy it to our known extension location, replacing the magic
+    // text NO_EASYHG_IMPORT_PATH with our installation location
+
+    QString bundled = ":easyhg.py";
+    QString unbundled = getUnbundledFileName();
+
+    QString target = QFileInfo(unbundled).path();
     if (!QDir().mkpath(target)) {
         DEBUG << "Failed to make unbundle path " << target << endl;
-        std::cerr << "Failed to make unbundle path " << target.toStdString() << std::endl;
+        std::cerr << "Failed to make unbundle path " << target << std::endl;
         return ""; 
     }
+
     QFile bf(bundled);
-    if (!bf.exists()) {
+    DEBUG << "unbundle: bundled file will be " << bundled << endl;
+    if (!bf.exists() || !bf.open(QIODevice::ReadOnly)) {
         DEBUG << "Bundled extension is missing!" << endl;
         return "";
     }
-    QString extpath = QString("%1/easyhg.py").arg(target);
-    if (QFile(extpath).exists()) {
-        QFile(extpath).remove();
-    }
-    if (!bf.copy(extpath)) {
-        DEBUG << "Failed to unbundle extension to " << target << endl;
-        std::cerr << "Failed to unbundle extension to " << extpath.toStdString() << std::endl;
+
+    QTemporaryFile tmpfile(QString("%1/easyhg.py.XXXXXX").arg(target));
+    tmpfile.setAutoRemove(false);
+    DEBUG << "unbundle: temp file will be " << tmpfile.fileName() << endl;
+    if (!tmpfile.open()) {
+        DEBUG << "Failed to open temporary file " << tmpfile.fileName() << endl;
+        std::cerr << "Failed to open temporary file " << tmpfile.fileName() << std::endl;
         return "";
     }
-    DEBUG << "Unbundled extension to " << extpath << endl;
-    return extpath;
+
+    QString all = QString::fromUtf8(bf.readAll());
+    all.replace("NO_EASYHG_IMPORT_PATH", m_myDirPath);
+    tmpfile.write(all.toUtf8());
+    DEBUG << "unbundle: wrote " << all.length() << " characters" << endl;
+
+    tmpfile.close();
+
+    QFile ef(unbundled);
+    if (ef.exists()) {
+        DEBUG << "unbundle: removing old file " << unbundled << endl;
+        ef.remove();
+    }
+    DEBUG << "unbundle: renaming " << tmpfile.fileName() << " to " << unbundled << endl;
+    if (!tmpfile.rename(unbundled)) {
+        DEBUG << "Failed to move temporary file to target file " << unbundled << endl;
+        std::cerr << "Failed to move temporary file to target file " << unbundled << std::endl;
+        return "";
+    }
+    
+    DEBUG << "Unbundled extension to " << unbundled << endl;
+    return unbundled;
 }        
 
 void HgRunner::requestAction(HgAction action)
