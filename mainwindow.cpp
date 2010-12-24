@@ -441,23 +441,25 @@ QString MainWindow::findMergeBinaryName()
 {
     QSettings settings;
     settings.beginGroup("Locations");
-    QString merge = settings.value("mergebinary", "").toString();
-    if (merge == "") {
-        QStringList bases;
-        bases << "fmdiff3" << "meld" << "diffuse" << "kdiff3";
-        bool found = false;
-        foreach (QString base, bases) {
-            merge = findInPath(base, m_myDirPath, true);
-            if (merge != base) {
-                found = true;
-                break;
-            }
+    QVariant v = settings.value("mergebinary");
+    if (v != QVariant()) {
+        return v.toString(); // even if empty: user may have specified no external tool
+    }
+    QString merge;
+    QStringList bases;
+    bases << "fmdiff3" << "meld" << "diffuse" << "kdiff3";
+    bool found = false;
+    foreach (QString base, bases) {
+        merge = findInPath(base, m_myDirPath, true);
+        if (merge != base && merge != base + ".exe") {
+            found = true;
+            break;
         }
-        if (found) {
-            settings.setValue("mergebinary", merge);
-        } else {
-            merge = "";
-        }
+    }
+    if (found) {
+        settings.setValue("mergebinary", merge);
+    } else {
+        merge = "";
     }
     return merge;
 }

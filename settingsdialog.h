@@ -43,17 +43,17 @@ private slots:
 private:
     QLineEdit *m_nameEdit;
     QLineEdit *m_emailEdit;
-    QLabel *m_hgPathLabel;
-    QLabel *m_diffPathLabel;
-    QLabel *m_mergePathLabel;
-    QLabel *m_editPathLabel;
+    QLineEdit *m_hgPathLabel;
+    QLineEdit *m_diffPathLabel;
+    QLineEdit *m_mergePathLabel;
+    QLineEdit *m_editPathLabel;
 
     QCheckBox *m_useExtension;
-    QLabel *m_extensionPathLabel;
+    QLineEdit *m_extensionPathLabel;
 
     QPushButton *m_ok;
 
-    void browseFor(QString, QLabel *);
+    void browseFor(QString, QLineEdit *);
 };
 
 #endif

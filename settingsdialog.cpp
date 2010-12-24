@@ -71,7 +71,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 
     pathsLayout->addWidget(new QLabel(tr("Mercurial (hg) program:")), row, 0);
 
-    m_hgPathLabel = new QLabel();
+    m_hgPathLabel = new QLineEdit();
     m_hgPathLabel->setText(settings.value("hgbinary").toString());
     pathsLayout->addWidget(m_hgPathLabel, row, 2);
 
@@ -81,7 +81,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 
     pathsLayout->addWidget(new QLabel(tr("External diff program:")), row, 0);
 
-    m_diffPathLabel = new QLabel();
+    m_diffPathLabel = new QLineEdit();
     m_diffPathLabel->setText(settings.value("extdiffbinary").toString());
     pathsLayout->addWidget(m_diffPathLabel, row, 2);
 
@@ -91,7 +91,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     
     pathsLayout->addWidget(new QLabel(tr("External file-merge program:")), row, 0);
 
-    m_mergePathLabel = new QLabel();
+    m_mergePathLabel = new QLineEdit();
     m_mergePathLabel->setText(settings.value("mergebinary").toString());
     pathsLayout->addWidget(m_mergePathLabel, row, 2);
 
@@ -101,7 +101,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 
     pathsLayout->addWidget(new QLabel(tr("External text editor:")), row, 0);
 
-    m_editPathLabel = new QLabel();
+    m_editPathLabel = new QLineEdit();
     m_editPathLabel->setText(settings.value("editorbinary").toString());
     pathsLayout->addWidget(m_editPathLabel, row, 2);
 
@@ -115,7 +115,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 
     pathsLayout->addWidget(new QLabel(tr("EasyHg Mercurial extension:")), row, 0);
 
-    m_extensionPathLabel = new QLabel();
+    m_extensionPathLabel = new QLineEdit();
     m_extensionPathLabel->setText(settings.value("extensionpath").toString());
     pathsLayout->addWidget(m_extensionPathLabel, row, 2);
 
@@ -172,7 +172,7 @@ SettingsDialog::extensionPathBrowse()
 }
 
 void
-SettingsDialog::browseFor(QString title, QLabel *edit)
+SettingsDialog::browseFor(QString title, QLineEdit *edit)
 {
     QString origin = edit->text();
 
