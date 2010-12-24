@@ -348,7 +348,7 @@ void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
     m_isRunning = false;
     m_currentAction = HgAction();
 
-    closeProcInput();
+    //closeProcInput();
     m_proc->deleteLater();
     m_proc = 0;
 
