@@ -1285,7 +1285,12 @@ void MainWindow::fsFileChanged(QString f)
 
 QString MainWindow::format3(QString head, QString intro, QString code)
 {
-    code = xmlEncode(code).replace("\n", "<br>").replace("-", "&#8209;").replace(" ", "&nbsp;");
+    code = xmlEncode(code).replace("\n", "<br>")
+#ifndef Q_OS_WIN32
+           // The hard hyphen comes out funny on Windows
+           .replace("-", "&#8209;")
+#endif
+           .replace(" ", "&nbsp;");
     if (intro == "") {
         return QString("<qt><h3>%1</h3><p><code>%2</code></p>")
             .arg(head).arg(code);
@@ -1622,7 +1627,8 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
         
     case ACT_MERGE:
-        QMessageBox::information(this, tr("Update"), tr("<qt><h3>Merge successful</h3><p>%1</p>").arg(xmlEncode(output)));
+        //!!! use format3?
+        QMessageBox::information(this, tr("Merge"), tr("<qt><h3>Merge successful</h3><pre>%1</pre>").arg(xmlEncode(output)));
         shouldHgStat = true;
         justMerged = true;
         break;
