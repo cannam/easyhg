@@ -84,7 +84,7 @@ MultiChoiceDialog::MultiChoiceDialog(QString title, QString heading, QWidget *pa
     outer->addWidget(bbox, 5, 0, 1, 3);
 
     m_okButton = bbox->button(QDialogButtonBox::Ok);
-    m_okButton->setEnabled(false);
+    updateOkButton();
 
     setMinimumWidth(480);
 }
@@ -203,6 +203,18 @@ MultiChoiceDialog::browse()
 void
 MultiChoiceDialog::urlChanged(const QString &s)
 {
+    updateOkButton();
+}
+
+void
+MultiChoiceDialog::fileChanged(const QString &s)
+{
+    updateOkButton();
+}
+
+void
+MultiChoiceDialog::updateOkButton()
+{
 /* This doesn't work well
     if (m_argTypes[m_currentChoice] != UrlToDirectoryArg) {
         return;
@@ -222,17 +234,6 @@ MultiChoiceDialog::urlChanged(const QString &s)
     }
     m_fileCombo->lineEdit()->setText(dirPath.filePath(urlDirName));
 */
-    if (m_argTypes[m_currentChoice] == UrlToDirectoryArg) {
-        m_okButton->setEnabled(getArgument() != "" &&
-                               getAdditionalArgument() != "");
-    } else {
-        m_okButton->setEnabled(getArgument() != "");
-    }
-}
-
-void
-MultiChoiceDialog::fileChanged(const QString &s)
-{
     if (m_argTypes[m_currentChoice] == UrlToDirectoryArg) {
         m_okButton->setEnabled(getArgument() != "" &&
                                getAdditionalArgument() != "");
@@ -323,6 +324,7 @@ MultiChoiceDialog::choiceChanged()
         break;
     }
 
+    updateOkButton();
     adjustSize();
 }
 

@@ -81,6 +81,7 @@ public:
 
 signals:
     void selectionChanged();
+    void showAllChanged(bool);
 
     void commit();
     void revert();

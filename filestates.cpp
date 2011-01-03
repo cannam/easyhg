@@ -27,12 +27,14 @@ FileStates::FileStates()
 
 void FileStates::clearBuckets()
 {
+    m_clean.clear();
     m_modified.clear();
     m_added.clear();
     m_removed.clear();
     m_missing.clear();
     m_inConflict.clear();
     m_unknown.clear();
+    m_ignored.clear();
 }
 
 FileStates::State FileStates::charToState(QChar c, bool *ok)
@@ -53,6 +55,7 @@ FileStates::State FileStates::charToState(QChar c, bool *ok)
     if (c == 'U') return InConflict;
     if (c == '?') return Unknown;
     if (c == 'C') return Clean;
+    if (c == 'I') return Ignored;
     if (ok) *ok = false;
     return Unknown;
 }
@@ -60,13 +63,14 @@ FileStates::State FileStates::charToState(QChar c, bool *ok)
 QStringList *FileStates::stateToBucket(State s)
 {
     switch (s) {
-    case Clean: default: return 0; // not implemented yet
+    case Clean: return &m_clean; // not implemented yet
     case Modified: return &m_modified;
     case Added: return &m_added;
     case Unknown: return &m_unknown;
     case Removed: return &m_removed;
     case Missing: return &m_missing;
     case InConflict: return &m_inConflict;
+    case Ignored: return &m_ignored;
     }
 }
 
@@ -95,12 +99,12 @@ void FileStates::parseStates(QString text)
     }
 
     foreach (QString file, m_stateMap.keys()) {
-
         QStringList *bucket = stateToBucket(m_stateMap[file]);
-        bucket->push_back(file);
+        if (bucket) bucket->push_back(file);
     }
 
-    DEBUG << "FileStates: " << m_modified.size() << " modified, " << m_added.size()
+    DEBUG << "FileStates: "
+          << m_modified.size() << " modified, " << m_added.size()
           << " added, " << m_removed.size() << " removed, " << m_missing.size()
           << " missing, " << m_inConflict.size() << " in conflict, "
           << m_unknown.size() << " unknown" << endl;
