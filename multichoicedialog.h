@@ -65,6 +65,8 @@ private slots:
     void browse();
 
 private:
+    void updateOkButton();
+    
     QMap<QString, QString> m_texts;
     QMap<QString, QString> m_descriptions;
     QMap<QString, ArgType> m_argTypes;

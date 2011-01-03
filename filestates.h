@@ -39,9 +39,10 @@ public:
         Missing,
         Clean,
         Unknown,
+        Ignored,
 
         FirstState = Modified,
-        LastState = Unknown
+        LastState = Ignored
     };
 
     void parseStates(QString text);
@@ -56,6 +57,8 @@ public:
     QStringList removed() const { return m_removed; }
     QStringList missing() const { return m_missing; }
     QStringList inConflict() const { return m_inConflict; }
+    QStringList clean() const { return m_clean; }
+    QStringList ignored() const { return m_ignored; }
 
     State getStateOfFile(QString file) const;
 
@@ -66,6 +69,8 @@ private:
     QStringList m_removed;
     QStringList m_missing;
     QStringList m_inConflict;
+    QStringList m_clean;
+    QStringList m_ignored;
     QMap<QString, State> m_stateMap;
 
     State charToState(QChar, bool * = 0);

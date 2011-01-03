@@ -71,6 +71,7 @@ private slots:
     void changeRemoteRepo();
     void startupDialog();
     void clearSelections();
+    void showAllChanged(bool);
 
     void hgTest();
     void hgQueryPaths();
@@ -154,6 +155,8 @@ private:
 
     bool firstStart;
 
+    bool showAllFiles;
+
     //Actions enabled flags
     bool remoteRepoActionsEnabled;
     bool localRepoActionsEnabled;
@@ -191,9 +194,6 @@ private:
 
     //Help menu actions
     QAction *aboutAct;
-
-    // Other actions
-    QAction *clearSelectionsAct;
 
     QToolBar *fileToolBar;
     QToolBar *repoToolBar;

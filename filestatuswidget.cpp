@@ -30,6 +30,7 @@
 #include <QToolButton>
 #include <QDir>
 #include <QProcess>
+#include <QCheckBox>
 
 FileStatusWidget::FileStatusWidget(QWidget *parent) :
     QWidget(parent),
@@ -79,6 +80,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_simpleLabels[FileStates::Missing] = tr("Missing:");
     m_simpleLabels[FileStates::InConflict] = tr("In Conflict:");
     m_simpleLabels[FileStates::Unknown] = tr("Untracked:");
+    m_simpleLabels[FileStates::Ignored] = tr("Ignored:");
 
     m_descriptions[FileStates::Clean] = tr("You have not changed these files.");
     m_descriptions[FileStates::Modified] = tr("You have changed these files since you last committed them.");
@@ -92,6 +94,8 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_descriptions[FileStates::Unknown] = tr("These files are in your working folder but are not under version control.<br>"
 //                                             "Select a file and use Add to place it under version control or Ignore to remove it from this list.");
                                              "Select a file and use Add to place it under version control.");
+    m_descriptions[FileStates::Ignored] = tr("These files have names that match entries in the working folder's .hgignore file,<br>"
+                                             "and so will be ignored by the version control system.");
 
     m_highlightExplanation = tr("Files highlighted <font color=#d40000>in red</font> "
                                 "have appeared since your most recent commit or update.");
@@ -124,6 +128,12 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 
     layout->setRowStretch(++row, 20);
 
+    layout->addItem(new QSpacerItem(1, 1), ++row, 0);
+
+    m_showAllFiles = new QCheckBox(tr("Show all files"), this);
+    layout->addWidget(m_showAllFiles, ++row, 0, 1, 3, Qt::AlignLeft);
+    connect(m_showAllFiles, SIGNAL(toggled(bool)),
+            this, SIGNAL(showAllChanged(bool)));
 }
 
 FileStatusWidget::~FileStatusWidget()

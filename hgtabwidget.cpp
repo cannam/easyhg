@@ -37,6 +37,8 @@ HgTabWidget::HgTabWidget(QWidget *parent,
     m_fileStatusWidget->setRemoteURL(remoteRepo);
     connect(m_fileStatusWidget, SIGNAL(selectionChanged()),
             this, SIGNAL(selectionChanged()));
+    connect(m_fileStatusWidget, SIGNAL(showAllChanged(bool)),
+            this, SIGNAL(showAllChanged(bool)));
     addTab(m_fileStatusWidget, tr("My work"));
 
     // History graph page

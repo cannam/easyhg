@@ -27,6 +27,7 @@ class QListWidget;
 class QPushButton;
 class QFileInfo;
 class ClickableLabel;
+class QCheckBox;
 
 class FileStatusWidget : public QWidget
 {
@@ -70,6 +71,7 @@ public:
     
 signals:
     void selectionChanged();
+    void showAllChanged(bool);
 
 public slots:
     void clearSelections();
@@ -90,6 +92,8 @@ private:
     
     QLabel *m_noModificationsLabel;
 
+    QCheckBox *m_showAllFiles;
+    
     FileStates m_fileStates;
     QMap<FileStates::State, QString> m_simpleLabels;
     QMap<FileStates::State, QString> m_descriptions;

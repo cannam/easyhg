@@ -30,6 +30,7 @@
 #include <QSettings>
 #include <QInputDialog>
 #include <QRegExp>
+#include <QShortcut>
 
 #include "mainwindow.h"
 #include "multichoicedialog.h"
@@ -48,6 +49,8 @@ MainWindow::MainWindow(QString myDirPath) :
     setWindowIcon(QIcon(":images/easyhg-icon.png"));
 
     QString wndTitle;
+
+    showAllFiles = false;
 
     fsWatcher = 0;
     commitsSincePush = 0;
@@ -79,6 +82,8 @@ MainWindow::MainWindow(QString myDirPath) :
 
     connect(hgTabs, SIGNAL(selectionChanged()),
             this, SLOT(enableDisableActions()));
+    connect(hgTabs, SIGNAL(showAllChanged(bool)),
+            this, SLOT(showAllChanged(bool)));
 
     setUnifiedTitleAndToolBarOnMac(true);
     connectActions();
@@ -170,6 +175,12 @@ void MainWindow::clearSelections()
     hgTabs->clearSelections();
 }
 
+void MainWindow::showAllChanged(bool s)
+{
+    showAllFiles = s;
+    hgQueryPaths();
+}
+
 void MainWindow::hgRefresh()
 {
     clearState();
@@ -186,7 +197,12 @@ void MainWindow::hgTest()
 void MainWindow::hgStat()
 {
     QStringList params;
-    params << "stat" << "-ardum";
+
+    if (showAllFiles) {
+        params << "stat" << "-A";
+    } else {
+        params << "stat" << "-ardum";
+    }
 
     lastStatOutput = "";
 
@@ -867,6 +883,10 @@ void MainWindow::clearState()
     mergeCommitComment = "";
     stateUnknown = true;
     needNewLog = true;
+    if (fsWatcher) {
+        delete fsWatcher;
+        fsWatcher = 0;
+    }
 }
 
 void MainWindow::hgServe()
@@ -1283,29 +1303,51 @@ void MainWindow::presentLongStdoutToUser(QString stdo)
 
 void MainWindow::updateFileSystemWatcher()
 {
-    delete fsWatcher;
-    fsWatcher = new QFileSystemWatcher();
+    bool justCreated = false;
+    if (!fsWatcher) {
+        fsWatcher = new QFileSystemWatcher();
+        justCreated = true;
+    }
+
+    // QFileSystemWatcher will refuse to add a file or directory to
+    // its watch list that it is already watching -- fine, that's what
+    // we want -- but it prints a warning when this happens, which is
+    // annoying because it would be the normal case for us.  So we'll
+    // check for duplicates ourselves.
+    QSet<QString> alreadyWatched;
+    QStringList dl(fsWatcher->directories());
+    foreach (QString d, dl) alreadyWatched.insert(d);
+    
     std::deque<QString> pending;
     pending.push_back(workFolderPath);
+
     while (!pending.empty()) {
+
         QString path = pending.front();
         pending.pop_front();
-        fsWatcher->addPath(path);
-        DEBUG << "Added to file system watcher: " << path << endl;
+        if (!alreadyWatched.contains(path)) {
+            fsWatcher->addPath(path);
+            DEBUG << "Added to file system watcher: " << path << endl;
+        }
+
         QDir d(path);
         if (d.exists()) {
-            d.setFilter(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Readable);
+            d.setFilter(QDir::Dirs | QDir::NoDotAndDotDot |
+                        QDir::Readable | QDir::NoSymLinks);
             foreach (QString entry, d.entryList()) {
-                if (entry == ".hg") continue;
+                if (entry.startsWith('.')) continue;
                 QString entryPath = d.absoluteFilePath(entry);
                 pending.push_back(entryPath);
             }
         }
     }
-    connect(fsWatcher, SIGNAL(directoryChanged(QString)),
-            this, SLOT(fsDirectoryChanged(QString)));
-    connect(fsWatcher, SIGNAL(fileChanged(QString)),
-            this, SLOT(fsFileChanged(QString)));
+
+    if (justCreated) {
+        connect(fsWatcher, SIGNAL(directoryChanged(QString)),
+                this, SLOT(fsDirectoryChanged(QString)));
+        connect(fsWatcher, SIGNAL(fileChanged(QString)),
+                this, SLOT(fsFileChanged(QString)));
+    }
 }
 
 void MainWindow::fsDirectoryChanged(QString d)
@@ -1434,7 +1476,6 @@ void MainWindow::reportNewRemoteHeads(QString output)
 void MainWindow::commandFailed(HgAction action, QString output)
 {
     DEBUG << "MainWindow::commandFailed" << endl;
-    if (fsWatcher) fsWatcher->blockSignals(false);
 
     // Some commands we just have to ignore bad return values from:
 
@@ -1473,6 +1514,9 @@ void MainWindow::commandFailed(HgAction action, QString output)
             reportNewRemoteHeads(output);
             return;
         }
+    case ACT_STAT:
+        if (fsWatcher) fsWatcher->blockSignals(false);
+        break; // go on and report
     default:
         break;
     }
@@ -1500,7 +1544,6 @@ void MainWindow::commandFailed(HgAction action, QString output)
 void MainWindow::commandCompleted(HgAction completedAction, QString output)
 {
     HGACTIONS action = completedAction.action;
-    if (fsWatcher) fsWatcher->blockSignals(false);
 
     if (action == ACT_NONE) return;
 
@@ -1535,6 +1578,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     case ACT_STAT:
         lastStatOutput = output;
         updateFileSystemWatcher();
+        if (fsWatcher) fsWatcher->blockSignals(false);
         break;
 
     case ACT_RESOLVE_LIST:
@@ -1549,7 +1593,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
             output = winnowed.join("\n");
         }
         DEBUG << "lastStatOutput = " << lastStatOutput << endl;
-        DEBUG << "output = " << output << endl;
+        DEBUG << "resolve output = " << output << endl;
         hgTabs->updateWorkFolderFileList(lastStatOutput + output);
         break;
 
@@ -1784,7 +1828,6 @@ void MainWindow::connectActions()
 
     connect(hgAnnotateAct, SIGNAL(triggered()), this, SLOT(hgAnnotate()));
     connect(hgServeAct, SIGNAL(triggered()), this, SLOT(hgServe()));
-    connect(clearSelectionsAct, SIGNAL(triggered()), this, SLOT(clearSelections()));
 }
 
 void MainWindow::connectTabsSignals()
@@ -1973,7 +2016,7 @@ void MainWindow::createActions()
 {
     //File actions
     openAct = new QAction(QIcon(":/images/fileopen.png"), tr("Open..."), this);
-    openAct -> setStatusTip(tr("Open a repository"));
+    openAct -> setStatusTip(tr("Open an existing repository or working folder"));
 
     changeRemoteRepoAct = new QAction(tr("Change Remote Location..."), this);
     changeRemoteRepoAct->setStatusTip(tr("Change the default remote repository for pull and push actions"));
@@ -2037,8 +2080,9 @@ void MainWindow::createActions()
     aboutAct = new QAction(tr("About EasyMercurial"), this);
 
     // Miscellaneous
-    clearSelectionsAct = new QAction(tr("Clear selections"), this);
-    clearSelectionsAct->setShortcut(Qt::Key_Escape);
+    QShortcut *clearSelectionsShortcut = new QShortcut(Qt::Key_Escape, this);
+    connect(clearSelectionsShortcut, SIGNAL(activated()),
+            this, SLOT(clearSelections()));
 }
 
 void MainWindow::createMenus()
@@ -2057,6 +2101,7 @@ void MainWindow::createMenus()
     fileMenu -> addAction(exitAct);
 
     advancedMenu -> addAction(hgIgnoreAct);
+    advancedMenu -> addSeparator();
     advancedMenu -> addAction(hgServeAct);
 
     helpMenu = menuBar()->addMenu(tr("Help"));
