@@ -45,6 +45,8 @@
 MainWindow::MainWindow(QString myDirPath) :
     m_myDirPath(myDirPath)
 {
+    setWindowIcon(QIcon(":images/easyhg-icon.png"));
+
     QString wndTitle;
 
     fsWatcher = 0;
