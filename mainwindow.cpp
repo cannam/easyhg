@@ -200,6 +200,26 @@ void MainWindow::hgStat()
 
 void MainWindow::hgQueryPaths()
 {
+    // Quickest is to just read the file -- but fall back on hg
+    // command if we get confused
+
+    QFileInfo hgrc(workFolderPath + "/.hg/hgrc");
+
+    if (hgrc.exists()) {
+
+        QSettings s(hgrc.canonicalFilePath(), QSettings::IniFormat);
+        s.beginGroup("paths");
+        remoteRepoPath = s.value("default").toString();
+
+        // We have to do this here, because commandCompleted won't be called
+        MultiChoiceDialog::addRecentArgument("local", workFolderPath);
+        MultiChoiceDialog::addRecentArgument("remote", remoteRepoPath);
+        hgTabs->setWorkFolderAndRepoNames(workFolderPath, remoteRepoPath);
+
+        hgQueryBranch();
+        return;
+    }
+
     QStringList params;
     params << "paths";
     runner->requestAction(HgAction(ACT_QUERY_PATHS, workFolderPath, params));
@@ -207,6 +227,21 @@ void MainWindow::hgQueryPaths()
 
 void MainWindow::hgQueryBranch()
 {
+    // Quickest is to just read the file -- but fall back on hg
+    // command if we get confused
+
+    QFile hgbr(workFolderPath + "/.hg/branch");
+
+    if (hgbr.exists() && hgbr.open(QFile::ReadOnly)) {
+
+        QByteArray ba = hgbr.readLine();
+        currentBranch = QString::fromUtf8(ba).trimmed();
+        
+        // We have to do this here, because commandCompleted won't be called
+        hgStat();
+        return;
+    }
+
     QStringList params;
     params << "branch";
     runner->requestAction(HgAction(ACT_QUERY_BRANCH, workFolderPath, params));
@@ -1399,6 +1434,7 @@ void MainWindow::reportNewRemoteHeads(QString output)
 void MainWindow::commandFailed(HgAction action, QString output)
 {
     DEBUG << "MainWindow::commandFailed" << endl;
+    if (fsWatcher) fsWatcher->blockSignals(false);
 
     // Some commands we just have to ignore bad return values from:
 
@@ -1464,6 +1500,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
 void MainWindow::commandCompleted(HgAction completedAction, QString output)
 {
     HGACTIONS action = completedAction.action;
+    if (fsWatcher) fsWatcher->blockSignals(false);
 
     if (action == ACT_NONE) return;
 
@@ -1496,7 +1533,6 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
 
     case ACT_STAT:
-        if (fsWatcher) fsWatcher->blockSignals(false);
         lastStatOutput = output;
         updateFileSystemWatcher();
         break;
@@ -1704,6 +1740,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     case ACT_LOG:
         // we're done
         noMore = true;
+        break;
 
     default:
         if (shouldHgStat) {
