@@ -49,7 +49,7 @@ MultiChoiceDialog::MultiChoiceDialog(QString title, QString heading, QWidget *pa
     outer->addWidget(m_descriptionLabel, 2, 0, 1, 3);
 
     QFont f = m_descriptionLabel->font();
-    f.setPointSize(f.pointSize() * 0.9);
+    f.setPointSize(f.pointSize() * 0.95);
     m_descriptionLabel->setFont(f);
 
     m_urlLabel = new QLabel(tr("&URL:"));

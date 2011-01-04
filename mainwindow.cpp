@@ -1513,10 +1513,10 @@ void MainWindow::commandFailed(HgAction action, QString output)
         return;
     case ACT_QUERY_HEADS:
         // fails if repo is empty; we don't care (if there's a genuine
-        // problem, something else will fail too).  Need to do this,
-        // otherwise empty repo state will not be reflected properly
-        // (since heads/log procedure never completes for empty repo)
-        enableDisableActions();
+        // problem, something else will fail too).  Pretend it
+        // succeeded, so that any further actions that are contingent
+        // on the success of the heads query get carried out properly.
+        commandCompleted(action, "");
         return;
     case ACT_FOLDERDIFF:
     case ACT_CHGSETDIFF:
@@ -1885,6 +1885,13 @@ void MainWindow::connectTabsSignals()
 void MainWindow::enableDisableActions()
 {
     DEBUG << "MainWindow::enableDisableActions" << endl;
+
+    QString dirname = QDir(workFolderPath).dirName();
+    if (dirname != "") {
+        setWindowTitle(tr("EasyMercurial: %1").arg(dirname));
+    } else {
+        setWindowTitle(tr("EasyMercurial"));
+    }
 
     //!!! should also do things like set the status texts for the
     //!!! actions appropriately by context
