@@ -155,16 +155,24 @@ void FileStatusWidget::openButtonClicked()
     QDir d(m_localPath);
     if (d.exists()) {
         QStringList args;
-        args << d.canonicalPath();
-        QProcess::execute(
+        QString path = d.canonicalPath();
 #if defined Q_OS_WIN32
-            "c:/windows/explorer.exe",
-#elif defined Q_OS_MAC
+        // Although the Win32 API is quite happy to have
+        // forward slashes as directory separators, Windows
+        // Explorer is not
+        path = path.replace('/', '\\');
+        args << path;
+        QProcess::execute("c:/windows/explorer.exe", args);
+#else
+        args << path;
+        QProcess::execute(
+#if defined Q_OS_MAC
             "/usr/bin/open",
 #else
             "/usr/bin/xdg-open",
 #endif
             args);
+#endif
     }
 }
 
