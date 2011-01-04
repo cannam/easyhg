@@ -115,10 +115,17 @@ bool HgTabWidget::canRevert() const
 
 bool HgTabWidget::canAdd() const
 {
-    if (m_fileStatusWidget->getSelectedAddableFiles().empty()) return false;
-    if (!m_fileStatusWidget->getSelectedCommittableFiles().empty()) return false;
-    if (!m_fileStatusWidget->getSelectedRemovableFiles().empty()) return false;
-    return true;
+    QStringList addable = m_fileStatusWidget->getSelectedAddableFiles();
+    if (addable.empty()) return false;
+
+    QStringList removable = m_fileStatusWidget->getSelectedRemovableFiles();
+    if (!removable.empty()) return false;
+
+    QStringList committable = m_fileStatusWidget->getSelectedCommittableFiles();
+    // "Removed" files are both committable and addable; don't return
+    // a false positive if the selection only contains these
+    if (committable == addable || committable.empty()) return true;
+    return false;
 }
 
 bool HgTabWidget::canRemove() const
