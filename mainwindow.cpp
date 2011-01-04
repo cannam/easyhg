@@ -190,6 +190,8 @@ void MainWindow::hgRefresh()
 void MainWindow::hgTest()
 {
     QStringList params;
+    //!!! should we test version output? Really we want at least 1.7.x
+    //!!! for options such as merge --tool
     params << "--version";
     runner->requestAction(HgAction(ACT_TEST_HG, m_myDirPath, params));
 }
