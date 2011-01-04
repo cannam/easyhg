@@ -74,6 +74,7 @@ private slots:
     void showAllChanged(bool);
 
     void hgTest();
+    void hgTestExtension();
     void hgQueryPaths();
     void hgStat();
     void hgRemove();
