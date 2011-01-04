@@ -71,6 +71,8 @@ QStringList *FileStates::stateToBucket(State s)
     case Missing: return &m_missing;
     case InConflict: return &m_inConflict;
     case Ignored: return &m_ignored;
+
+    default: return &m_clean;
     }
 }
 
