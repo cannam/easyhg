@@ -194,6 +194,13 @@ void MainWindow::hgTest()
     runner->requestAction(HgAction(ACT_TEST_HG, m_myDirPath, params));
 }
 
+void MainWindow::hgTestExtension()
+{
+    QStringList params;
+    params << "--version";
+    runner->requestAction(HgAction(ACT_TEST_HG_EXT, m_myDirPath, params));
+}
+
 void MainWindow::hgStat()
 {
     QStringList params;
@@ -1487,7 +1494,15 @@ void MainWindow::commandFailed(HgAction action, QString output)
         QMessageBox::warning
             (this, tr("Failed to run Mercurial"),
              format3(tr("Failed to run Mercurial"),
-                     tr("The Mercurial program either could not be found or failed to run.<br>This may indicate a problem with the Mercurial installation, or with the EasyHg interaction extension.<br><br>%1").arg(output == "" ? QString("") : tr("The test command said:")),
+                     tr("The Mercurial program either could not be found or failed to run.<br>Check that the Mercurial program path is correct in Settings.<br><br>%1").arg(output == "" ? QString("") : tr("The test command said:")),
+                     output));
+        settings();
+        return;
+    case ACT_TEST_HG_EXT:
+        QMessageBox::warning
+            (this, tr("Failed to run Mercurial"),
+             format3(tr("Failed to run Mercurial with extension enabled"),
+                     tr("The Mercurial program failed to run with the EasyMercurial interaction extension enabled.<br>This may indicate an installation problem with EasyMercurial.<br><br>You may be able to continue working if you switch off &ldquo;Use EasyHg Mercurial Extension&rdquo; in Settings.  Note that remote repositories that require authentication may not work if you do this.<br><br>%1").arg(output == "" ? QString("") : tr("The test command said:")),
                      output));
         settings();
         return;
@@ -1553,6 +1568,9 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     switch (action) {
 
     case ACT_TEST_HG:
+        break;
+
+    case ACT_TEST_HG_EXT:
         break;
 
     case ACT_QUERY_PATHS:
@@ -1741,6 +1759,10 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     switch (action) {
 
     case ACT_TEST_HG:
+        hgTestExtension();
+        break;
+        
+    case ACT_TEST_HG_EXT:
         hgQueryPaths();
         break;
         
