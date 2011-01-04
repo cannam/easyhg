@@ -37,8 +37,8 @@ public:
         Removed,
         InConflict,
         Missing,
-        Clean,
         Unknown,
+        Clean,
         Ignored,
 
         FirstState = Modified,

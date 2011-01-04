@@ -70,8 +70,17 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 
     ++row;
     m_noModificationsLabel = new QLabel
-        (tr("You have no uncommitted changes."));
+        (tr("<qt>This area will list files in your working folder that you have changed.<br>At the moment you have no uncommitted changes.<br><br>To see changes made to the repository previously,<br>switch to the History tab.<br><br>%1</qt>")
+#if defined Q_OS_MAC
+         .arg(tr("To open the working folder in Finder,<br>click on the &ldquo;Local&rdquo; folder path shown above."))
+#elif defined Q_OS_WIN32
+         .arg(tr("To open the working folder in Windows Explorer,<br>click on the &ldquo;Local&rdquo; folder path shown above."))
+#else
+         .arg(tr("To open the working folder in your system file manager,<br>click the &ldquo;Local&rdquo; folder path shown above."))
+#endif
+            );
     layout->addWidget(m_noModificationsLabel, row, 1, 1, 2);
+    m_noModificationsLabel->hide();
 
     m_simpleLabels[FileStates::Clean] = tr("Unmodified:");
     m_simpleLabels[FileStates::Modified] = tr("Modified:");
