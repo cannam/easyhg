@@ -76,9 +76,23 @@ MainWindow::MainWindow(QString myDirPath) :
     readSettings();
 
     justMerged = false;
-    hgTabs = new HgTabWidget((QWidget *) this, remoteRepoPath, workFolderPath);
+
+    QWidget *central = new QWidget(this);
+    setCentralWidget(central);
+
+    hgTabs = new HgTabWidget(central, remoteRepoPath, workFolderPath);
     connectTabsSignals();
-    setCentralWidget(hgTabs);
+
+    // Instead of setting the tab widget as our central widget
+    // directly, put it in a layout, so that we can have some space
+    // around it on the Mac where it looks very strange without
+
+    QGridLayout *cl = new QGridLayout(central);
+    cl->addWidget(hgTabs, 0, 0);
+
+#ifndef Q_OS_MAC
+    cl->setMargin(0);
+#endif
 
     connect(hgTabs, SIGNAL(selectionChanged()),
             this, SLOT(enableDisableActions()));
@@ -225,51 +239,61 @@ void MainWindow::hgStat()
 
 void MainWindow::hgQueryPaths()
 {
-    // Quickest is to just read the file -- but fall back on hg
-    // command if we get confused
+    // Quickest is to just read the file
 
     QFileInfo hgrc(workFolderPath + "/.hg/hgrc");
 
-    if (hgrc.exists()) {
+    QString path;
 
+    if (hgrc.exists()) {
         QSettings s(hgrc.canonicalFilePath(), QSettings::IniFormat);
         s.beginGroup("paths");
-        remoteRepoPath = s.value("default").toString();
-
-        // We have to do this here, because commandCompleted won't be called
-        MultiChoiceDialog::addRecentArgument("local", workFolderPath);
-        MultiChoiceDialog::addRecentArgument("remote", remoteRepoPath);
-        hgTabs->setWorkFolderAndRepoNames(workFolderPath, remoteRepoPath);
-
-        hgQueryBranch();
-        return;
+        path = s.value("default").toString();
     }
+
+    remoteRepoPath = path;
+
+    // We have to do this here, because commandCompleted won't be called
+    MultiChoiceDialog::addRecentArgument("local", workFolderPath);
+    MultiChoiceDialog::addRecentArgument("remote", remoteRepoPath);
+    hgTabs->setWorkFolderAndRepoNames(workFolderPath, remoteRepoPath);
+    
+    hgQueryBranch();
+    return;
+
+/* The classic method!
 
     QStringList params;
     params << "paths";
     runner->requestAction(HgAction(ACT_QUERY_PATHS, workFolderPath, params));
+*/
 }
 
 void MainWindow::hgQueryBranch()
 {
-    // Quickest is to just read the file -- but fall back on hg
-    // command if we get confused
+    // Quickest is to just read the file
 
     QFile hgbr(workFolderPath + "/.hg/branch");
 
-    if (hgbr.exists() && hgbr.open(QFile::ReadOnly)) {
+    QString br = "default";
 
+    if (hgbr.exists() && hgbr.open(QFile::ReadOnly)) {
         QByteArray ba = hgbr.readLine();
-        currentBranch = QString::fromUtf8(ba).trimmed();
-        
-        // We have to do this here, because commandCompleted won't be called
-        hgStat();
-        return;
+        br = QString::fromUtf8(ba).trimmed();
     }
+    
+    currentBranch = br;
+    
+    // We have to do this here, because commandCompleted won't be called
+    hgStat();
+    return;
+
+/* The classic method!
 
     QStringList params;
     params << "branch";
     runner->requestAction(HgAction(ACT_QUERY_BRANCH, workFolderPath, params));
+*/
 }
 
 void MainWindow::hgQueryHeads()
@@ -481,7 +505,7 @@ QString MainWindow::findDiffBinaryName()
     QString diff = settings.value("extdiffbinary", "").toString();
     if (diff == "") {
         QStringList bases;
-        bases << "opendiff" << "kompare" << "kdiff3" << "meld";
+        bases << "easyhg-extdiff-osx.sh" << "kompare" << "kdiff3" << "meld";
         bool found = false;
         foreach (QString base, bases) {
             diff = findInPath(base, m_myDirPath, true);
@@ -1024,9 +1048,18 @@ void MainWindow::changeRemoteRepo()
                  MultiChoiceDialog::UrlArg);
 
     if (d->exec() == QDialog::Accepted) {
-        QSettings s(hgrc.canonicalFilePath(), QSettings::IniFormat);
-        s.beginGroup("paths");
-        s.setValue("default", d->getArgument());
+
+        // New block to ensure QSettings is deleted before
+        // hgQueryPaths called.  NB use of absoluteFilePath instead of
+        // canonicalFilePath, which would fail if the file did not yet
+        // exist
+
+        {
+            QSettings s(hgrc.absoluteFilePath(), QSettings::IniFormat);
+            s.beginGroup("paths");
+            s.setValue("default", d->getArgument());
+        }
+
         stateUnknown = true;
         hgQueryPaths();
     }
@@ -1486,6 +1519,13 @@ void MainWindow::commandFailed(HgAction action, QString output)
 {
     DEBUG << "MainWindow::commandFailed" << endl;
 
+    QString setstr;
+#ifdef Q_OS_MAC
+    setstr = tr("Preferences");
+#else
+    setstr = tr("Settings");
+#endif
+
     // Some commands we just have to ignore bad return values from:
 
     switch(action.action) {
@@ -1496,7 +1536,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
         QMessageBox::warning
             (this, tr("Failed to run Mercurial"),
              format3(tr("Failed to run Mercurial"),
-                     tr("The Mercurial program either could not be found or failed to run.<br>Check that the Mercurial program path is correct in Settings.<br><br>%1").arg(output == "" ? QString("") : tr("The test command said:")),
+                     tr("The Mercurial program either could not be found or failed to run.<br>Check that the Mercurial program path is correct in %1.<br><br>%2").arg(setstr).arg(output == "" ? QString("") : tr("The test command said:")),
                      output));
         settings();
         return;
@@ -1504,7 +1544,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
         QMessageBox::warning
             (this, tr("Failed to run Mercurial"),
              format3(tr("Failed to run Mercurial with extension enabled"),
-                     tr("The Mercurial program failed to run with the EasyMercurial interaction extension enabled.<br>This may indicate an installation problem with EasyMercurial.<br><br>You may be able to continue working if you switch off &ldquo;Use EasyHg Mercurial Extension&rdquo; in Settings.  Note that remote repositories that require authentication may not work if you do this.<br><br>%1").arg(output == "" ? QString("") : tr("The test command said:")),
+                     tr("The Mercurial program failed to run with the EasyMercurial interaction extension enabled.<br>This may indicate an installation problem with EasyMercurial.<br><br>You may be able to continue working if you switch off &ldquo;Use EasyHg Mercurial Extension&rdquo; in %1.  Note that remote repositories that require authentication may not work if you do this.<br><br>%2").arg(setstr).arg(output == "" ? QString("") : tr("The test command said:")),
                      output));
         settings();
         return;
@@ -1584,6 +1624,8 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         if (!ll.empty()) {
             remoteRepoPath = lp.parse()[0]["default"].trimmed();
             DEBUG << "Set remote path to " << remoteRepoPath << endl;
+        } else {
+            remoteRepoPath = "";
         }
         MultiChoiceDialog::addRecentArgument("local", workFolderPath);
         MultiChoiceDialog::addRecentArgument("remote", remoteRepoPath);

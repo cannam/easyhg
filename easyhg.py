@@ -26,11 +26,24 @@ easyhg_import_path = 'NO_EASYHG_IMPORT_PATH'
 if not easyhg_import_path.startswith('NO_'):
     sys.path.append(easyhg_import_path)
 
-from PyQt4 import QtGui
+# Try to load the PyQt4 module that we need.  If this fails, we should
+# bail out later (in uisetup), because if we bail out now, Mercurial
+# will just continue without us and report success.  The invoking
+# application needs to be able to discover whether the module load
+# succeeded or not, so we need to ensure that Mercurial itself returns
+# failure if it didn't.
+#
+easyhg_pyqt_ok = True
+try:
+    from PyQt4 import QtGui
+except ImportError as err:
+    easyhg_pyqt_ok = False
 
 easyhg_qtapp = None
 
 def uisetup(ui):
+    if not easyhg_pyqt_ok:
+        raise util.Abort(_('Failed to load PyQt4 module required by easyhg.py'))
     ui.__class__.prompt = easyhg_prompt
     ui.__class__.getpass = easyhg_getpass
     global easyhg_qtapp
