@@ -512,7 +512,7 @@ QString MainWindow::findDiffBinaryName()
         bool found = false;
         foreach (QString base, bases) {
             diff = findInPath(base, m_myDirPath, true);
-            if (diff != base && diff != base + ".exe") {
+            if (diff != "") {
                 found = true;
                 break;
             }
@@ -543,7 +543,7 @@ QString MainWindow::findMergeBinaryName()
     bool found = false;
     foreach (QString base, bases) {
         merge = findInPath(base, m_myDirPath, true);
-        if (merge != base && merge != base + ".exe") {
+        if (merge != "") {
             found = true;
             break;
         }
@@ -577,7 +577,7 @@ QString MainWindow::findEditorBinaryName()
         bool found = false;
         foreach (QString base, bases) {
             editor = findInPath(base, m_myDirPath, true);
-            if (editor != base && editor != base + ".exe") {
+            if (editor != "") {
                 found = true;
                 break;
             }
