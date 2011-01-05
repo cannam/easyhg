@@ -59,10 +59,10 @@ QString findInPath(QString name, QString installPath, bool executableRequired)
             name = QFileInfo(name).fileName();
             QString path =
                 QProcessEnvironment::systemEnvironment().value("PATH");
-            DEBUG << "findExecutable: seeking location for binary " << name
+            DEBUG << "findInPath: seeking location for binary " << name
                   << ": system path is " << path << endl;
             if (installPath != "") {   
-                DEBUG << "findExecutable: install path is " << installPath
+                DEBUG << "findInPath: install path is " << installPath
                       << ", adding to system path" << endl;
                 //!!! path = path + pathSep + installPath;
                 path = installPath + pathSep + path;
@@ -77,15 +77,26 @@ QString findInPath(QString name, QString installPath, bool executableRequired)
             foreach (QString element, elements) {
                 QString full = QDir(element).filePath(name);
                 QFileInfo fi(full);
-                DEBUG << "findExecutable: looking at " << full << endl;
+                DEBUG << "findInPath: looking at " << full << endl;
                 if (fi.exists() && fi.isFile()) {
-                    DEBUG << "findExecutable: it's a file" << endl;
+                    DEBUG << "findInPath: it's a file" << endl;
                     if (!executableRequired || fi.isExecutable()) {
                         name = full;
-                        DEBUG << "findExecutable: found at " << name << endl;
+                        DEBUG << "findInPath: found at " << name << endl;
                         found = true;
                         break;
                     }
+                }
+            }
+        } else {
+            // absolute path given
+            QFileInfo fi(name);
+            DEBUG << "findInPath: looking at absolute path " << name << endl;
+            if (fi.exists() && fi.isFile()) {
+                DEBUG << "findInPath: it's a file" << endl;
+                if (!executableRequired || fi.isExecutable()) {
+                    DEBUG << "findInPath: found at " << name << endl;
+                    found = true;
                 }
             }
         }
