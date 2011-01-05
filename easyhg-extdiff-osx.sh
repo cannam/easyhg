@@ -6,4 +6,4 @@ fi
 while [ $# -gt 2 ]; do
     shift
 done
-/usr/bin/opendiff "$1" "$2"
+/usr/bin/opendiff "$1" "$2" | cat
