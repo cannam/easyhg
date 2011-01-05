@@ -40,10 +40,12 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     setLayout(layout);
 
     int row = 0;
-    
-    layout->addItem(new QSpacerItem(1, 1), row, 0);
 
+#ifndef Q_OS_MAC    
+    layout->addItem(new QSpacerItem(1, 1), row, 0);
     ++row;
+#endif
+
     layout->addWidget(new QLabel(tr("Local:")), row, 0);
 
     m_openButton = new ClickableLabel;
@@ -120,7 +122,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
         boxlayout->setMargin(0);
         box->setLayout(boxlayout);
 
-        boxlayout->addItem(new QSpacerItem(5, 5), 0, 0);
+        boxlayout->addItem(new QSpacerItem(3, 3), 0, 0);
 
         boxlayout->addWidget(new QLabel(labelFor(s)), 1, 0);
 
@@ -132,13 +134,15 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
         connect(w, SIGNAL(itemSelectionChanged()),
                 this, SLOT(itemSelectionChanged()));
 
+        boxlayout->addItem(new QSpacerItem(2, 2), 3, 0);
+
         layout->addWidget(box, ++row, 0, 1, 3);
         box->hide();
     }
 
     layout->setRowStretch(++row, 20);
 
-    layout->addItem(new QSpacerItem(1, 1), ++row, 0);
+    layout->addItem(new QSpacerItem(8, 8), ++row, 0);
 
     m_showAllFiles = new QCheckBox(tr("Show all files"), this);
     layout->addWidget(m_showAllFiles, ++row, 0, 1, 3, Qt::AlignLeft);

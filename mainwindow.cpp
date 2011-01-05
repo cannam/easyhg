@@ -1549,10 +1549,13 @@ void MainWindow::commandFailed(HgAction action, QString output)
         settings();
         return;
     case ACT_INCOMING:
-        // returns non-zero code if the check was successful but there
-        // are no changes pending
-        if (output.trimmed() == "") showIncoming("");
-        return;
+        // returns non-zero code and no output if the check was
+        // successful but there are no changes pending
+        if (output.trimmed() == "") {
+            showIncoming("");
+            return;
+        }
+        break;
     case ACT_QUERY_HEADS:
         // fails if repo is empty; we don't care (if there's a genuine
         // problem, something else will fail too).  Pretend it
