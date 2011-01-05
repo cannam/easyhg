@@ -83,9 +83,6 @@ QString HgRunner::findExtension()
     extpath = unbundled;
     if (extpath == "") {
         extpath = findInPath("easyhg.py", m_myDirPath, false);
-        if (extpath == "easyhg.py") {
-            extpath = "";
-        }
     }
 
     settings.setValue("extensionpath", extpath);
@@ -186,7 +183,7 @@ QString HgRunner::findHgBinaryName()
     if (hg == "") {
         hg = findInPath("hg", m_myDirPath, true);
     }
-    if (hg != "hg") {
+    if (hg != "") {
         settings.setValue("hgbinary", hg);
     }
     return hg;
