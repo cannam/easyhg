@@ -2,7 +2,8 @@
 CONFIG += debug
 
 TEMPLATE = app
-TARGET = easyhg
+TARGET = EasyMercurial
+
 unix {
     DESTDIR = .
 }
