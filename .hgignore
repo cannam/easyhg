@@ -22,3 +22,5 @@ object_script.hgexplorer.exe.Release
 object_script.hgexplorer.exe.Debug
 *.app/*
 .DS_Store
+EasyMercurial
+
