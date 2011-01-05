@@ -69,8 +69,9 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     layout->addWidget(new QLabel("<qt><hr></qt>"), ++row, 0, 1, 3);
 
     ++row;
+    //!!! option to be less verbose -> shorten this
     m_noModificationsLabel = new QLabel
-        (tr("<qt>This area will list files in your working folder that you have changed.<br>At the moment you have no uncommitted changes.<br><br>To see changes made to the repository previously,<br>switch to the History tab.<br><br>%1</qt>")
+        (tr("<qt>This area will list files in your working folder that you have changed.<br><br>At the moment you have no uncommitted changes.<br><br>To see changes previously made to the repository,<br>switch to the History tab.<br><br>%1</qt>")
 #if defined Q_OS_MAC
          .arg(tr("To open the working folder in Finder,<br>click on the &ldquo;Local&rdquo; folder path shown above."))
 #elif defined Q_OS_WIN32

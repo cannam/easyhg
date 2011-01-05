@@ -65,21 +65,18 @@ HgRunner::~HgRunner()
 
 QString HgRunner::findExtension()
 {
-    // If we haven't unbundled an extension, always do that (so that
-    // it's available in case someone wants to use it later, e.g. to
-    // fix a malfunctioning setup).  But the path we actually prefer
-    // is the one in the settings first, if it exists; then the
+    // Always unbundle the extension: even if it already exists (in
+    // case we're upgrading) and even if we're not going to use it (so
+    // that it's available in case someone wants to use it later,
+    // e.g. to fix a malfunctioning setup).  But the path we actually
+    // prefer is the one in the settings first, if it exists; then the
     // unbundled one; then anything in the path if for some reason
     // unbundling failed
 
     QSettings settings;
     settings.beginGroup("Locations");
 
-    QString unbundled = getUnbundledFileName();
-    if (!QFile(unbundled).exists()) {
-        unbundled = unbundleExtension();
-    }
-
+    QString unbundled = unbundleExtension();
     QString extpath = settings.value("extensionpath", "").toString();
     if (extpath != "" && QFile(extpath).exists()) return extpath;
 
