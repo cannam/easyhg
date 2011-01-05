@@ -97,7 +97,11 @@ QString findInPath(QString name, QString installPath, bool executableRequired)
         }
     }
 #endif
-    return name;
+    if (found) {
+        return name;
+    } else {
+        return "";
+    }
 }
 
 #ifdef Q_OS_WIN32
