@@ -37,6 +37,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_dateReference(0)
 {
     QGridLayout *layout = new QGridLayout;
+    layout->setMargin(10);
     setLayout(layout);
 
     int row = 0;

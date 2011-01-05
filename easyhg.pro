@@ -1,5 +1,10 @@
 
-CONFIG += debug
+CONFIG += release
+
+macx-* {
+    QMAKE_MAC_SDK=/Developer/SDKs/MacOSX10.4u.sdk
+    CONFIG += x86 ppc
+}
 
 TEMPLATE = app
 TARGET = EasyMercurial
@@ -78,6 +83,7 @@ SOURCES = main.cpp \
 macx-* {
     SOURCES += common_osx.mm
     LIBS += -framework Foundation
+    ICON = easyhg.icns
 }
 
 linux* {
