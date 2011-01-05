@@ -505,7 +505,10 @@ QString MainWindow::findDiffBinaryName()
     QString diff = settings.value("extdiffbinary", "").toString();
     if (diff == "") {
         QStringList bases;
-        bases << "easyhg-extdiff-osx.sh" << "kompare" << "kdiff3" << "meld";
+#ifdef Q_OS_MAC
+        bases << "easyhg-extdiff-osx.sh";
+#endif 
+        bases << "kompare" << "kdiff3" << "meld";
         bool found = false;
         foreach (QString base, bases) {
             diff = findInPath(base, m_myDirPath, true);
@@ -533,7 +536,10 @@ QString MainWindow::findMergeBinaryName()
     }
     QString merge;
     QStringList bases;
-    bases << "fmdiff3" << "meld" << "diffuse" << "kdiff3";
+#ifdef Q_OS_MAC
+    bases << "easyhg-merge-osx.sh";
+#endif
+    bases << "meld" << "diffuse" << "kdiff3";
     bool found = false;
     foreach (QString base, bases) {
         merge = findInPath(base, m_myDirPath, true);
@@ -563,7 +569,7 @@ QString MainWindow::findEditorBinaryName()
             << "C:\\Program Files\\Windows NT\\Accessories\\wordpad.exe"
             << "notepad.exe"
 #elif defined Q_OS_MAC
-            << "textedit"
+            << "/Applications/TextEdit.app/Contents/MacOS/TextEdit"
 #else
             << "gedit" << "kate"
 #endif
