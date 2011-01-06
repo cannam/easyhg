@@ -41,6 +41,7 @@
 #include "confirmcommentdialog.h"
 #include "incomingdialog.h"
 #include "settingsdialog.h"
+#include "version.h"
 
 
 MainWindow::MainWindow(QString myDirPath) :
@@ -154,7 +155,7 @@ QString MainWindow::getUserInfo() const
 void MainWindow::about()
 {
    QMessageBox::about(this, tr("About EasyMercurial"),
-                      tr("<qt><h2>About EasyMercurial</h2>"
+                      tr("<qt><h2>EasyMercurial v%1</h2>"
 #ifdef Q_OS_MAC
                          "<font size=-1>"
 #endif
@@ -188,7 +189,7 @@ void MainWindow::about()
 #ifdef Q_OS_MAC
                          "</font>"
 #endif
-                          ));
+                          ).arg(EASYHG_VERSION));
 }
 
 void MainWindow::clearSelections()
