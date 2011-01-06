@@ -181,7 +181,8 @@ void MainWindow::about()
                          "modify it under the terms of the GNU General Public License as "
                          "published by the Free Software Foundation; either version 2 of the "
                          "License, or (at your option) any later version.  See the file "
-                         "COPYING included with this distribution for more information.</p>"));
+                         "COPYING included with this distribution for more information.</p>"
+                          ));
 }
 
 void MainWindow::clearSelections()
@@ -2023,6 +2024,7 @@ void MainWindow::enableDisableActions()
     bool canUpdate = false;
     bool haveMerge = false;
     bool emptyRepo = false;
+    bool noWorkingCopy = false;
     int currentBranchHeads = 0;
 
     if (currentParents.size() == 1) {
@@ -2049,7 +2051,16 @@ void MainWindow::enableDisableActions()
             }
         }
     } else if (currentParents.size() == 0) {
-        emptyRepo = true;
+        if (currentHeads.size() == 0) {
+            // No heads -> empty repo
+            emptyRepo = true;
+        } else {
+            // Heads, but no parents -> no working copy, e.g. we have
+            // just converted this repo but haven't updated in it yet.
+            // Uncommon but confusing; probably merits a special case
+            noWorkingCopy = true;
+            canUpdate = true;
+        }
     } else {
         haveMerge = true;
         justMerged = true;
@@ -2073,6 +2084,8 @@ void MainWindow::enableDisableActions()
         hgTabs->setState(tr("(Examining repository)"));
     } else if (emptyRepo) {
         hgTabs->setState(tr("Nothing committed to this repository yet"));
+    } else if (noWorkingCopy) {
+        hgTabs->setState(tr("No working copy yet: consider updating"));
     } else if (canMerge) {
         hgTabs->setState(tr("<b>Awaiting merge</b> on %1").arg(branchText));
     } else if (!hgTabs->getAllUnresolvedFiles().empty()) {
