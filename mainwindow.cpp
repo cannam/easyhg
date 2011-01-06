@@ -155,6 +155,9 @@ void MainWindow::about()
 {
    QMessageBox::about(this, tr("About EasyMercurial"),
                       tr("<qt><h2>About EasyMercurial</h2>"
+#ifdef Q_OS_MAC
+                         "<font size=-1>"
+#endif
                          "<p>EasyMercurial is a simple user interface for the "
                          "Mercurial</a> version control system.</p>"
                          "<h4>Credits and Copyright</h4>"
@@ -182,6 +185,9 @@ void MainWindow::about()
                          "published by the Free Software Foundation; either version 2 of the "
                          "License, or (at your option) any later version.  See the file "
                          "COPYING included with this distribution for more information.</p>"
+#ifdef Q_OS_MAC
+                         "</font>"
+#endif
                           ));
 }
 
