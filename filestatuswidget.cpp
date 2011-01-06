@@ -97,8 +97,8 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 
     m_descriptions[FileStates::Clean] = tr("You have not changed these files.");
     m_descriptions[FileStates::Modified] = tr("You have changed these files since you last committed them.");
-    m_descriptions[FileStates::Added] = tr("These files will be added to version control next time you commit.");
-    m_descriptions[FileStates::Removed] = tr("These files will be removed from version control next time you commit.<br>"
+    m_descriptions[FileStates::Added] = tr("These files will be added to version control next time you commit them.");
+    m_descriptions[FileStates::Removed] = tr("These files will be removed from version control next time you commit them.<br>"
                                              "They will not be deleted from the local folder.");
     m_descriptions[FileStates::Missing] = tr("These files are recorded in the version control, but absent from your working folder.<br>"
                                              "If you intended to delete them, select them and use Remove to tell the version control system about it.<br>"
