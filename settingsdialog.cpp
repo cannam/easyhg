@@ -203,6 +203,7 @@ SettingsDialog::accept()
     settings.setValue("hgbinary", m_hgPathLabel->text());
     settings.setValue("extdiffbinary", m_diffPathLabel->text());
     settings.setValue("mergebinary", m_mergePathLabel->text());
+    settings.setValue("editorbinary", m_editPathLabel->text());
     settings.setValue("extensionpath", m_extensionPathLabel->text());
     settings.endGroup();
     settings.beginGroup("General");
