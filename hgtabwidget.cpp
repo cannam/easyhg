@@ -87,6 +87,11 @@ void HgTabWidget::setCurrent(QStringList ids, QString branch)
     m_historyWidget->setCurrent(ids, branch, showUncommitted);
 }
 
+void HgTabWidget::updateFileStates()
+{
+    m_fileStatusWidget->updateWidgets();
+}
+
 void HgTabWidget::updateHistory()
 {
     m_historyWidget->update();

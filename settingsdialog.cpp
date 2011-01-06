@@ -27,7 +27,8 @@
 #include <QFileDialog>
 
 SettingsDialog::SettingsDialog(QWidget *parent) :
-    QDialog(parent)
+    QDialog(parent),
+    m_presentationChanged(false)
 {
     setModal(true);
     setWindowTitle(tr("Settings"));
@@ -36,6 +37,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     
     QGridLayout *mainLayout = new QGridLayout;
     setLayout(mainLayout);
+
+
 
     QGroupBox *meBox = new QGroupBox(tr("User details"));
     mainLayout->addWidget(meBox, 0, 0);
@@ -60,8 +63,31 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 
     settings.endGroup();
 
+
+
+    QGroupBox *lookBox = new QGroupBox(tr("Presentation"));
+    mainLayout->addWidget(lookBox, 1, 0);
+    QGridLayout *lookLayout = new QGridLayout;
+    lookBox->setLayout(lookLayout);
+
+    settings.beginGroup("Presentation");
+
+    row = 0;
+
+    m_showIconLabels = new QCheckBox(tr("Show labels on toolbar icons"));
+    m_showIconLabels->setChecked(settings.value("showiconlabels", true).toBool());
+    lookLayout->addWidget(m_showIconLabels, row++, 0);
+
+    m_showExtraText = new QCheckBox(tr("Show long descriptions for file status headings"));
+    m_showExtraText->setChecked(settings.value("showhelpfultext", true).toBool());
+    lookLayout->addWidget(m_showExtraText, row++, 0);
+
+    settings.endGroup();
+
+
+
     QGroupBox *pathsBox = new QGroupBox(tr("System application locations"));
-    mainLayout->addWidget(pathsBox, 1, 0);
+    mainLayout->addWidget(pathsBox, 2, 0);
     QGridLayout *pathsLayout = new QGridLayout;
     pathsBox->setLayout(pathsLayout);
 
@@ -135,9 +161,10 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     settings.endGroup();
 
 
+
     QDialogButtonBox *bbox = new QDialogButtonBox(QDialogButtonBox::Ok);
     connect(bbox, SIGNAL(accepted()), this, SLOT(accept()));
-    mainLayout->addWidget(bbox, 2, 0);
+    mainLayout->addWidget(bbox, 3, 0);
     m_ok = bbox->button(QDialogButtonBox::Ok);
 }
 
@@ -198,6 +225,19 @@ SettingsDialog::accept()
     settings.beginGroup("User Information");
     settings.setValue("name", m_nameEdit->text());
     settings.setValue("email", m_emailEdit->text());
+    settings.endGroup();
+    settings.beginGroup("Presentation");
+    bool b;
+    b = m_showIconLabels->isChecked();
+    if (b != settings.value("showiconlabels", true)) {
+        settings.setValue("showiconlabels", b);
+        m_presentationChanged = true;
+    }
+    b = m_showExtraText->isChecked();
+    if (b != settings.value("showhelpfultext", true)) {
+        settings.setValue("showhelpfultext", b);
+        m_presentationChanged = true;
+    }
     settings.endGroup();
     settings.beginGroup("Locations");
     settings.setValue("hgbinary", m_hgPathLabel->text());

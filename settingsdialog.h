@@ -30,6 +30,10 @@ class SettingsDialog : public QDialog
 
 public:
     SettingsDialog(QWidget *parent = 0);
+
+    bool presentationChanged() {
+        return m_presentationChanged;
+    }
     
 private slots:
     void hgPathBrowse();
@@ -51,7 +55,12 @@ private:
     QCheckBox *m_useExtension;
     QLineEdit *m_extensionPathLabel;
 
+    QCheckBox *m_showIconLabels;
+    QCheckBox *m_showExtraText;
+
     QPushButton *m_ok;
+
+    bool m_presentationChanged;
 
     void browseFor(QString, QLineEdit *);
 };

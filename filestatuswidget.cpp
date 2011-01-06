@@ -31,6 +31,7 @@
 #include <QDir>
 #include <QProcess>
 #include <QCheckBox>
+#include <QSettings>
 
 FileStatusWidget::FileStatusWidget(QWidget *parent) :
     QWidget(parent),
@@ -72,17 +73,9 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     layout->addWidget(new QLabel("<qt><hr></qt>"), ++row, 0, 1, 3);
 
     ++row;
-    //!!! option to be less verbose -> shorten this
-    m_noModificationsLabel = new QLabel
-        (tr("<qt>This area will list files in your working folder that you have changed.<br><br>At the moment you have no uncommitted changes.<br><br>To see changes previously made to the repository,<br>switch to the History tab.<br><br>%1</qt>")
-#if defined Q_OS_MAC
-         .arg(tr("To open the working folder in Finder,<br>click on the &ldquo;Local&rdquo; folder path shown above."))
-#elif defined Q_OS_WIN32
-         .arg(tr("To open the working folder in Windows Explorer,<br>click on the &ldquo;Local&rdquo; folder path shown above."))
-#else
-         .arg(tr("To open the working folder in your system file manager,<br>click the &ldquo;Local&rdquo; folder path shown above."))
-#endif
-            );
+
+    m_noModificationsLabel = new QLabel;
+    setNoModificationsLabelText();
     layout->addWidget(m_noModificationsLabel, row, 1, 1, 2);
     m_noModificationsLabel->hide();
 
@@ -113,19 +106,29 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_highlightExplanation = tr("Files highlighted <font color=#d40000>in red</font> "
                                 "have appeared since your most recent commit or update.");
 
+    m_boxesParent = new QWidget(this);
+    layout->addWidget(m_boxesParent, ++row, 0, 1, 3);
+
+    QGridLayout *boxesLayout = new QGridLayout;
+    boxesLayout->setMargin(0);
+    m_boxesParent->setLayout(boxesLayout);
+    int boxRow = 0;
+
     for (int i = int(FileStates::FirstState);
          i <= int(FileStates::LastState); ++i) {
 
         FileStates::State s = FileStates::State(i);
 
-        QWidget *box = new QWidget;
+        QWidget *box = new QWidget(m_boxesParent);
         QGridLayout *boxlayout = new QGridLayout;
         boxlayout->setMargin(0);
         box->setLayout(boxlayout);
 
         boxlayout->addItem(new QSpacerItem(3, 3), 0, 0);
 
-        boxlayout->addWidget(new QLabel(labelFor(s)), 1, 0);
+        QLabel *label = new QLabel(labelFor(s));
+        label->setWordWrap(true);
+        boxlayout->addWidget(label, 1, 0);
 
         QListWidget *w = new QListWidget;
         m_stateListMap[s] = w;
@@ -137,9 +140,12 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 
         boxlayout->addItem(new QSpacerItem(2, 2), 3, 0);
 
-        layout->addWidget(box, ++row, 0, 1, 3);
+        boxesLayout->addWidget(box, ++boxRow, 0);
+        m_boxes.push_back(box);
         box->hide();
     }
+
+    m_gridlyLayout = false;
 
     layout->setRowStretch(++row, 20);
 
@@ -184,15 +190,44 @@ void FileStatusWidget::openButtonClicked()
 
 QString FileStatusWidget::labelFor(FileStates::State s, bool addHighlightExplanation)
 {
-    if (addHighlightExplanation) {
-        return QString("<qt><b>%1</b><br>%2<br>%3</qt>")
-                       .arg(m_simpleLabels[s])
-                       .arg(m_descriptions[s])
-                       .arg(m_highlightExplanation);
+    QSettings settings;
+    settings.beginGroup("Presentation");
+    if (settings.value("showhelpfultext", true).toBool()) {
+        if (addHighlightExplanation) {
+            return QString("<qt><b>%1</b><br>%2<br>%3</qt>")
+                .arg(m_simpleLabels[s])
+                .arg(m_descriptions[s])
+                .arg(m_highlightExplanation);
+        } else {
+            return QString("<qt><b>%1</b><br>%2</qt>")
+                .arg(m_simpleLabels[s])
+                .arg(m_descriptions[s]);
+        }
     } else {
-        return QString("<qt><b>%1</b><br>%2</qt>")
-                       .arg(m_simpleLabels[s])
-                       .arg(m_descriptions[s]);
+        return QString("<qt><b>%1</b></qt>")
+            .arg(m_simpleLabels[s]);
+    }
+    settings.endGroup();
+}
+
+void FileStatusWidget::setNoModificationsLabelText()
+{
+    QSettings settings;
+    settings.beginGroup("Presentation");
+    if (settings.value("showhelpfultext", true).toBool()) {
+        m_noModificationsLabel->setText
+            (tr("<qt>This area will list files in your working folder that you have changed.<br><br>At the moment you have no uncommitted changes.<br><br>To see changes previously made to the repository,<br>switch to the History tab.<br><br>%1</qt>")
+#if defined Q_OS_MAC
+             .arg(tr("To open the working folder in Finder,<br>click on the &ldquo;Local&rdquo; folder path shown above."))
+#elif defined Q_OS_WIN32
+             .arg(tr("To open the working folder in Windows Explorer,<br>click on the &ldquo;Local&rdquo; folder path shown above."))
+#else
+             .arg(tr("To open the working folder in your system file manager,<br>click the &ldquo;Local&rdquo; folder path shown above."))
+#endif
+                );
+    } else {
+        m_noModificationsLabel->setText
+            (tr("<qt>You have no uncommitted changes.</qt>"));
     }
 }
 
@@ -430,7 +465,7 @@ FileStatusWidget::updateWidgets()
     QSet<QString> selectedFiles;
     foreach (QString f, m_selectedFiles) selectedFiles.insert(f);
 
-    bool haveAnything = false;
+    int visibleCount = 0;
 
     foreach (FileStates::State s, m_stateListMap.keys()) {
 
@@ -483,13 +518,72 @@ FileStatusWidget::updateWidgets()
             w->parentWidget()->hide();
         } else {
             w->parentWidget()->show();
-            haveAnything = true;
+            ++visibleCount;
         }
     }
 
-    m_noModificationsLabel->setVisible(!haveAnything);
+    m_noModificationsLabel->setVisible(visibleCount == 0);
+
+    if (visibleCount > 3) {
+        layoutBoxesGridly(visibleCount);
+    } else {
+        layoutBoxesLinearly();
+    }
 
     updateStateLabel();
+    setNoModificationsLabelText();
+}
+
+void FileStatusWidget::layoutBoxesGridly(int visibleCount)
+{
+    if (m_gridlyLayout && m_lastGridlyCount == visibleCount) return;
+
+    delete m_boxesParent->layout();
+    
+    QGridLayout *layout = new QGridLayout;
+    layout->setMargin(0);
+    m_boxesParent->setLayout(layout);
+
+    int row = 0;
+    int col = 0;
+
+    DEBUG << "FileStatusWidget::layoutBoxesGridly: visibleCount = "
+          << visibleCount << endl;
+
+    for (int i = 0; i < m_boxes.size(); ++i) {
+
+        if (!m_boxes[i]->isVisible()) continue;
+
+        if (col == 0 && row >= (visibleCount+1)/2) {
+            layout->addItem(new QSpacerItem(10, 5), 0, 1);
+            col = 2;
+            row = 0;
+        }
+
+        layout->addWidget(m_boxes[i], row, col);
+
+        ++row;
+    }
+
+    m_gridlyLayout = true;
+    m_lastGridlyCount = visibleCount;
+}
+
+void FileStatusWidget::layoutBoxesLinearly()
+{
+    if (!m_gridlyLayout) return;
+
+    delete m_boxesParent->layout();
+    
+    QGridLayout *layout = new QGridLayout;
+    layout->setMargin(0);
+    m_boxesParent->setLayout(layout);
+
+    for (int i = 0; i < m_boxes.size(); ++i) {
+        layout->addWidget(m_boxes[i], i, 0);
+    }
+
+    m_gridlyLayout = false;
 }
 
 void FileStatusWidget::setLabelFor(QWidget *w, FileStates::State s, bool addHighlight)
