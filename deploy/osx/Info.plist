@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>EasyMercurial</string>
 	<key>CFBundleIconFile</key>
-	<string>easyhg-icon.icns</string>
+	<string>easyhg.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string>org.easymercurial.EasyMercurial</string>
 	<key>CFBundleShortVersionString</key>
