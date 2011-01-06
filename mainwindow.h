@@ -116,6 +116,7 @@ private:
     void connectTabsSignals();
     void createMenus();
     void createToolBars();
+    void updateToolBarStyle();
     void createStatusBar();
     void readSettings();
     void splitChangeSets(QStringList *list, QString hgLogOutput);

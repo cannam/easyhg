@@ -1312,6 +1312,11 @@ void MainWindow::settings()
 {
     SettingsDialog *settingsDlg = new SettingsDialog(this);
     settingsDlg->exec();
+
+    if (settingsDlg->presentationChanged()) {
+        hgTabs->updateFileStates();
+        updateToolBarStyle();
+    }
 }
 
 #define STDOUT_NEEDS_BIG_WINDOW 512
@@ -2240,11 +2245,22 @@ void MainWindow::createToolBars()
     workFolderToolBar->addAction(hgRemoveAct);
     workFolderToolBar -> setMovable(false);
 
-    foreach (QToolButton *tb, findChildren<QToolButton *>()) {
-        tb->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    }
+    updateToolBarStyle();
 }
 
+void MainWindow::updateToolBarStyle()
+{
+    QSettings settings;
+    settings.beginGroup("Presentation");
+    bool showText = settings.value("showiconlabels", true).toBool();
+    settings.endGroup();
+    
+    foreach (QToolButton *tb, findChildren<QToolButton *>()) {
+        tb->setToolButtonStyle(showText ?
+                               Qt::ToolButtonTextUnderIcon :
+                               Qt::ToolButtonIconOnly);
+    }
+}    
 
 void MainWindow::createStatusBar()
 {

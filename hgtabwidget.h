@@ -50,6 +50,7 @@ public:
 
     void setCurrent(QStringList ids, QString branch);
 
+    void updateFileStates();
     void updateHistory();
 
     FileStates getFileStates() { return m_fileStates; }

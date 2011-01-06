@@ -21,6 +21,7 @@
 #include "filestates.h"
 
 #include <QWidget>
+#include <QList>
 
 class QLabel;
 class QListWidget;
@@ -75,6 +76,7 @@ signals:
 
 public slots:
     void clearSelections();
+    void updateWidgets();
 
 private slots:
     void itemSelectionChanged();
@@ -103,8 +105,15 @@ private:
     QFileInfo *m_dateReference;
     QStringList m_selectedFiles;
 
-    void updateWidgets();
+    bool m_gridlyLayout;
+    int m_lastGridlyCount;
+    QList<QWidget *> m_boxes;
+    QWidget *m_boxesParent;
+
+    void layoutBoxesGridly(int count);
+    void layoutBoxesLinearly();
     void updateStateLabel();
+    void setNoModificationsLabelText();
     QString labelFor(FileStates::State, bool addHighlightExplanation = false);
     void setLabelFor(QWidget *w, FileStates::State, bool addHighlightExplanation);
 };
