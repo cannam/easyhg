@@ -2037,6 +2037,7 @@ void MainWindow::enableDisableActions()
     bool haveMerge = false;
     bool emptyRepo = false;
     bool noWorkingCopy = false;
+    bool newBranch = false;
     int currentBranchHeads = 0;
 
     if (currentParents.size() == 1) {
@@ -2046,13 +2047,17 @@ void MainWindow::enableDisableActions()
             DEBUG << "head branch " << head->branch() << ", current branch " << currentBranch << endl;
             if (head->isOnBranch(currentBranch)) {
                 ++currentBranchHeads;
-                if (parent->id() == head->id()) {
-                    parentIsHead = true;
-                }
+            }
+            if (parent->id() == head->id()) {
+                parentIsHead = true;
             }
         }
         if (currentBranchHeads == 2 && parentIsHead) {
             canMerge = true;
+        }
+        if (currentBranchHeads == 0 && parentIsHead) {
+            // Just created a new branch
+            newBranch = true;
         }
         if (!parentIsHead) {
             canUpdate = true;
@@ -2104,6 +2109,8 @@ void MainWindow::enableDisableActions()
         hgTabs->setState(tr("Have unresolved files following merge on %1").arg(branchText));
     } else if (haveMerge) {
         hgTabs->setState(tr("Have merged but not yet committed on %1").arg(branchText));
+    } else if (newBranch) {
+        hgTabs->setState(tr("On %1.  New branch: has not yet been committed").arg(branchText));
     } else if (canUpdate) {
         if (hgTabs->haveChangesToCommit()) {
             // have uncommitted changes
