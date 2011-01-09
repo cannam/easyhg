@@ -36,7 +36,7 @@ if not easyhg_import_path.startswith('NO_'):
 easyhg_pyqt_ok = True
 try:
     from PyQt4 import QtGui
-except ImportError as err:
+except ImportError:
     easyhg_pyqt_ok = False
 
 easyhg_qtapp = None

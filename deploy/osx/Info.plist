@@ -14,7 +14,5 @@
 	<string>org.easymercurial.EasyMercurial</string>
 	<key>CFBundleShortVersionString</key>
 	<string>EASYHG_VERSION</string>
-	<key>CFBundleExecutable</key>
-	<string>EasyMercurial</string>
 </dict>
 </plist>
