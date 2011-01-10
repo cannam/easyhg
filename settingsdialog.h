@@ -36,6 +36,7 @@ public:
     }
 
     static void findDefaultLocations(QString installPath = m_installPath);
+    static QString getUnbundledExtensionFileName();
     
 private slots:
     void hgPathBrowse();

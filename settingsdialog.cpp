@@ -225,6 +225,15 @@ SettingsDialog::findHgBinaryName()
     }
 }
 
+QString
+SettingsDialog::getUnbundledExtensionFileName()
+{
+    QString home = QDir::homePath();
+    QString target = QString("%1/.easyhg").arg(home);
+    QString extpath = QString("%1/easyhg.py").arg(target);
+    return extpath;
+}
+
 void
 SettingsDialog::findExtension()
 {
@@ -234,11 +243,7 @@ SettingsDialog::findExtension()
     QString extpath = settings.value("extensionpath", "").toString();
     if (extpath != "" || !QFile(extpath).exists()) {
 
-        //!!! bad: this is a dupe with hgrunner
-
-        QString home = QDir::homePath();
-        QString target = QString("%1/.easyhg").arg(home);
-        extpath = QString("%1/easyhg.py").arg(target);
+        extpath = getUnbundledExtensionFileName();
 
         if (!QFile(extpath).exists()) {
             extpath = findInPath("easyhg.py", m_installPath, false);
