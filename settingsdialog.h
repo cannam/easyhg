@@ -34,6 +34,8 @@ public:
     bool presentationChanged() {
         return m_presentationChanged;
     }
+
+    static void findDefaultLocations(QString installPath = m_installPath);
     
 private slots:
     void hgPathBrowse();
@@ -43,6 +45,9 @@ private slots:
     void extensionPathBrowse();
 
     void accept();
+    void reset();
+    void clear();
+    void restoreDefaults();
 
 private:
     QLineEdit *m_nameEdit;
@@ -63,6 +68,14 @@ private:
     bool m_presentationChanged;
 
     void browseFor(QString, QLineEdit *);
+
+    static void findHgBinaryName();
+    static void findExtension();
+    static void findDiffBinaryName();
+    static void findMergeBinaryName();
+    static void findEditorBinaryName();
+
+    static QString m_installPath;
 };
 
 #endif

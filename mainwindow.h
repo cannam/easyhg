@@ -211,9 +211,9 @@ private:
 
     bool shouldHgStat;
 
-    QString findDiffBinaryName();
-    QString findMergeBinaryName();
-    QString findEditorBinaryName();
+    QString getDiffBinaryName();
+    QString getMergeBinaryName();
+    QString getEditorBinaryName();
 
     QFileSystemWatcher *fsWatcher;
     QTimer *m_fsWatcherGeneralTimer;

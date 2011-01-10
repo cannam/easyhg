@@ -46,12 +46,18 @@ HgRunner::HgRunner(QString myDirPath, QWidget * parent) :
 {
     m_proc = 0;
 
+    // Always unbundle the extension: even if it already exists (in
+    // case we're upgrading) and even if we're not going to use it (so
+    // that it's available in case someone wants to use it later,
+    // e.g. to fix a malfunctioning setup).  But the path we actually
+    // prefer is the one in the settings first, if it exists; then the
+    // unbundled one; then anything in the path if for some reason
+    // unbundling failed
+    unbundleExtension();
+
     setTextVisible(false);
     setVisible(false);
     m_isRunning = false;
-
-    (void)findExtension();
-    (void)findHgBinaryName();
 }
 
 HgRunner::~HgRunner()
@@ -62,32 +68,6 @@ HgRunner::~HgRunner()
         m_proc->deleteLater();
     }
 }
-
-QString HgRunner::findExtension()
-{
-    // Always unbundle the extension: even if it already exists (in
-    // case we're upgrading) and even if we're not going to use it (so
-    // that it's available in case someone wants to use it later,
-    // e.g. to fix a malfunctioning setup).  But the path we actually
-    // prefer is the one in the settings first, if it exists; then the
-    // unbundled one; then anything in the path if for some reason
-    // unbundling failed
-
-    QSettings settings;
-    settings.beginGroup("Locations");
-
-    QString unbundled = unbundleExtension();
-    QString extpath = settings.value("extensionpath", "").toString();
-    if (extpath != "" && QFile(extpath).exists()) return extpath;
-
-    extpath = unbundled;
-    if (extpath == "") {
-        extpath = findInPath("easyhg.py", m_myDirPath, false);
-    }
-
-    settings.setValue("extensionpath", extpath);
-    return extpath;
-}   
 
 QString HgRunner::getUnbundledFileName()
 {
@@ -175,19 +155,21 @@ void HgRunner::requestAction(HgAction action)
     checkQueue();
 }
 
-QString HgRunner::findHgBinaryName()
+QString HgRunner::getHgBinaryName()
 {
     QSettings settings;
     settings.beginGroup("Locations");
-    QString hg = settings.value("hgbinary", "").toString();
-    if (hg == "") {
-        hg = findInPath("hg", m_myDirPath, true);
-    }
-    if (hg != "") {
-        settings.setValue("hgbinary", hg);
-    }
-    return hg;
+    return settings.value("hgbinary", "").toString();
 }
+
+QString HgRunner::getExtensionLocation()
+{
+    QSettings settings;
+    settings.beginGroup("Locations");
+    QString extpath = settings.value("extensionpath", "").toString();
+    if (extpath != "" && QFile(extpath).exists()) return extpath;
+    return "";
+}   
 
 void HgRunner::started()
 {
@@ -403,7 +385,7 @@ void HgRunner::startCommand(HgAction action)
 
     if (executable == "") {
         // This is a Hg command
-        executable = findHgBinaryName();
+        executable = getHgBinaryName();
 
         if (action.mayBeInteractive()) {
             params.push_front("ui.interactive=true");
@@ -412,7 +394,7 @@ void HgRunner::startCommand(HgAction action)
             QSettings settings;
             settings.beginGroup("General");
             if (settings.value("useextension", true).toBool()) {
-                QString extpath = findExtension();
+                QString extpath = getExtensionLocation();
                 params.push_front(QString("extensions.easyhg=%1").arg(extpath));
                 params.push_front("--config");
             }

@@ -67,8 +67,9 @@ private:
     void openTerminal();
     void closeTerminal();
 
-    QString findExtension();
-    QString findHgBinaryName();
+    QString getHgBinaryName();
+    QString getExtensionLocation();
+
     QString getUnbundledFileName();
     QString unbundleExtension();
 
