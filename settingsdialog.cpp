@@ -26,6 +26,9 @@
 #include <QDir>
 #include <QFileDialog>
 
+QString
+SettingsDialog::m_installPath;
+
 SettingsDialog::SettingsDialog(QWidget *parent) :
     QDialog(parent),
     m_presentationChanged(false)
@@ -33,8 +36,6 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     setModal(true);
     setWindowTitle(tr("Settings"));
 
-    QSettings settings;
-    
     QGridLayout *mainLayout = new QGridLayout;
     setLayout(mainLayout);
 
@@ -45,23 +46,17 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     QGridLayout *meLayout = new QGridLayout;
     meBox->setLayout(meLayout);
 
-    settings.beginGroup("User Information");
-
     int row = 0;
 
     meLayout->addWidget(new QLabel(tr("Name:")), row, 0);
 
     m_nameEdit = new QLineEdit();
-    m_nameEdit->setText(settings.value("name", getUserRealName()).toString());
     meLayout->addWidget(m_nameEdit, row++, 1);
     
     meLayout->addWidget(new QLabel(tr("Email address:")), row, 0);
 
     m_emailEdit = new QLineEdit();
-    m_emailEdit->setText(settings.value("email").toString());
     meLayout->addWidget(m_emailEdit, row++, 1);
-
-    settings.endGroup();
 
 
 
@@ -70,19 +65,13 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     QGridLayout *lookLayout = new QGridLayout;
     lookBox->setLayout(lookLayout);
 
-    settings.beginGroup("Presentation");
-
     row = 0;
 
     m_showIconLabels = new QCheckBox(tr("Show labels on toolbar icons"));
-    m_showIconLabels->setChecked(settings.value("showiconlabels", true).toBool());
     lookLayout->addWidget(m_showIconLabels, row++, 0);
 
     m_showExtraText = new QCheckBox(tr("Show long descriptions for file status headings"));
-    m_showExtraText->setChecked(settings.value("showhelpfultext", true).toBool());
     lookLayout->addWidget(m_showExtraText, row++, 0);
-
-    settings.endGroup();
 
 
 
@@ -91,14 +80,11 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     QGridLayout *pathsLayout = new QGridLayout;
     pathsBox->setLayout(pathsLayout);
 
-    settings.beginGroup("Locations");
-
     row = 0;
 
     pathsLayout->addWidget(new QLabel(tr("Mercurial (hg) program:")), row, 0);
 
     m_hgPathLabel = new QLineEdit();
-    m_hgPathLabel->setText(settings.value("hgbinary").toString());
     pathsLayout->addWidget(m_hgPathLabel, row, 2);
 
     QPushButton *browse = new QPushButton(tr("Browse..."));
@@ -108,7 +94,6 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     pathsLayout->addWidget(new QLabel(tr("External diff program:")), row, 0);
 
     m_diffPathLabel = new QLineEdit();
-    m_diffPathLabel->setText(settings.value("extdiffbinary").toString());
     pathsLayout->addWidget(m_diffPathLabel, row, 2);
 
     browse = new QPushButton(tr("Browse..."));
@@ -118,7 +103,6 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     pathsLayout->addWidget(new QLabel(tr("External file-merge program:")), row, 0);
 
     m_mergePathLabel = new QLineEdit();
-    m_mergePathLabel->setText(settings.value("mergebinary").toString());
     pathsLayout->addWidget(m_mergePathLabel, row, 2);
 
     browse = new QPushButton(tr("Browse..."));
@@ -128,41 +112,32 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     pathsLayout->addWidget(new QLabel(tr("External text editor:")), row, 0);
 
     m_editPathLabel = new QLineEdit();
-    m_editPathLabel->setText(settings.value("editorbinary").toString());
     pathsLayout->addWidget(m_editPathLabel, row, 2);
 
     browse = new QPushButton(tr("Browse..."));
     pathsLayout->addWidget(browse, row++, 1);
     connect(browse, SIGNAL(clicked()), this, SLOT(editPathBrowse()));
 
-    settings.endGroup();
-    
-    settings.beginGroup("Locations");
-
     pathsLayout->addWidget(new QLabel(tr("EasyHg Mercurial extension:")), row, 0);
 
     m_extensionPathLabel = new QLineEdit();
-    m_extensionPathLabel->setText(settings.value("extensionpath").toString());
     pathsLayout->addWidget(m_extensionPathLabel, row, 2);
 
     browse = new QPushButton(tr("Browse..."));
     pathsLayout->addWidget(browse, row++, 1);
     connect(browse, SIGNAL(clicked()), this, SLOT(extensionPathBrowse()));
 
-    settings.endGroup();
-
-    settings.beginGroup("General");
-
     //!!! more info plz
     m_useExtension = new QCheckBox(tr("Use EasyHg Mercurial extension"));
-    m_useExtension->setChecked(settings.value("useextension", true).toBool());
     pathsLayout->addWidget(m_useExtension, row++, 2);
 
-    settings.endGroup();
 
+    reset(); // loads current defaults from settings
 
 
     QDialogButtonBox *bbox = new QDialogButtonBox(QDialogButtonBox::Ok);
+    connect(bbox->addButton(tr("Restore defaults"), QDialogButtonBox::ResetRole),
+            SIGNAL(clicked()), this, SLOT(restoreDefaults()));
     connect(bbox, SIGNAL(accepted()), this, SLOT(accept()));
     mainLayout->addWidget(bbox, 3, 0);
     m_ok = bbox->button(QDialogButtonBox::Ok);
@@ -215,6 +190,198 @@ SettingsDialog::browseFor(QString title, QLineEdit *edit)
     if (path != QString()) {
         edit->setText(path);
     }
+}
+
+void
+SettingsDialog::restoreDefaults()
+{
+    clear();
+    findDefaultLocations();
+    reset();
+}
+
+void
+SettingsDialog::findDefaultLocations(QString installPath)
+{
+    m_installPath = installPath;
+    findHgBinaryName();
+    findExtension();
+    findDiffBinaryName();
+    findMergeBinaryName();
+    findEditorBinaryName();
+}
+
+void
+SettingsDialog::findHgBinaryName()
+{
+    QSettings settings;
+    settings.beginGroup("Locations");
+    QString hg = settings.value("hgbinary", "").toString();
+    if (hg == "") {
+        hg = findInPath("hg", m_installPath, true);
+    }
+    if (hg != "") {
+        settings.setValue("hgbinary", hg);
+    }
+}
+
+void
+SettingsDialog::findExtension()
+{
+    QSettings settings;
+    settings.beginGroup("Locations");
+
+    QString extpath = settings.value("extensionpath", "").toString();
+    if (extpath != "" || !QFile(extpath).exists()) {
+
+        //!!! bad: this is a dupe with hgrunner
+
+        QString home = QDir::homePath();
+        QString target = QString("%1/.easyhg").arg(home);
+        extpath = QString("%1/easyhg.py").arg(target);
+
+        if (!QFile(extpath).exists()) {
+            extpath = findInPath("easyhg.py", m_installPath, false);
+        }
+    }
+
+    settings.setValue("extensionpath", extpath);
+}   
+
+void
+SettingsDialog::findDiffBinaryName()
+{
+    QSettings settings;
+    settings.beginGroup("Locations");
+    QString diff = settings.value("extdiffbinary", "").toString();
+    if (diff == "") {
+        QStringList bases;
+#ifdef Q_OS_MAC
+        bases << "easyhg-extdiff-osx.sh";
+#endif 
+        bases << "kompare" << "kdiff3" << "meld";
+        bool found = false;
+        foreach (QString base, bases) {
+            diff = findInPath(base, m_installPath, true);
+            if (diff != "") {
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            settings.setValue("extdiffbinary", diff);
+        }
+    }
+}
+
+void
+SettingsDialog::findMergeBinaryName()
+{
+    QSettings settings;
+    settings.beginGroup("Locations");
+    if (settings.contains("mergebinary")) {
+        return;
+    }
+    QString merge;
+    QStringList bases;
+#ifdef Q_OS_MAC
+    bases << "easyhg-merge-osx.sh";
+#endif
+    // I think this is too dangerous, given command line ordering
+    // differences and suchlike.  Need to make sure the hg
+    // installation is configured OK instead
+//    bases << "meld" << "diffuse" << "kdiff3";
+    bool found = false;
+    foreach (QString base, bases) {
+        merge = findInPath(base, m_installPath, true);
+        if (merge != "") {
+            found = true;
+            break;
+        }
+    }
+    if (found) {
+        settings.setValue("mergebinary", merge);
+    }
+}
+
+void
+SettingsDialog::findEditorBinaryName()
+{
+    QSettings settings;
+    settings.beginGroup("Locations");
+    QString editor = settings.value("editorbinary", "").toString();
+    if (editor == "") {
+        QStringList bases;
+        bases
+#if defined Q_OS_WIN32
+            << "wordpad.exe"
+            << "C:\\Program Files\\Windows NT\\Accessories\\wordpad.exe"
+            << "notepad.exe"
+#elif defined Q_OS_MAC
+            << "/Applications/TextEdit.app/Contents/MacOS/TextEdit"
+#else
+            << "gedit" << "kate"
+#endif
+            ;
+        bool found = false;
+        foreach (QString base, bases) {
+            editor = findInPath(base, m_installPath, true);
+            if (editor != "") {
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            settings.setValue("editorbinary", editor);
+        }
+    }
+}
+
+void
+SettingsDialog::clear()
+{
+    // Clear everything that has a default setting
+    DEBUG << "SettingsDialog::clear" << endl;
+    QSettings settings;
+    settings.beginGroup("Presentation");
+    settings.remove("showiconlabels");
+    settings.remove("showhelpfultext");
+    settings.endGroup();
+    settings.beginGroup("Locations");
+    settings.remove("hgbinary");
+    settings.remove("extdiffbinary");
+    settings.remove("mergebinary");
+    settings.remove("editorbinary");
+    settings.remove("extensionpath");
+    settings.endGroup();
+    settings.beginGroup("General");
+    settings.remove("useextension");
+    settings.endGroup();
+}
+
+void
+SettingsDialog::reset()
+{
+    DEBUG << "SettingsDialog::reset" << endl;
+    QSettings settings;
+    settings.beginGroup("User Information");
+    m_nameEdit->setText(settings.value("name", getUserRealName()).toString());
+    m_emailEdit->setText(settings.value("email").toString());
+    settings.endGroup();
+    settings.beginGroup("Presentation");
+    m_showIconLabels->setChecked(settings.value("showiconlabels", true).toBool());
+    m_showExtraText->setChecked(settings.value("showhelpfultext", true).toBool());
+    settings.endGroup();
+    settings.beginGroup("Locations");
+    m_hgPathLabel->setText(settings.value("hgbinary").toString());
+    m_diffPathLabel->setText(settings.value("extdiffbinary").toString());
+    m_mergePathLabel->setText(settings.value("mergebinary").toString());
+    m_editPathLabel->setText(settings.value("editorbinary").toString());
+    m_extensionPathLabel->setText(settings.value("extensionpath").toString());
+    settings.endGroup();
+    settings.beginGroup("General");
+    m_useExtension->setChecked(settings.value("useextension", true).toBool());
+    settings.endGroup();
 }
 
 void

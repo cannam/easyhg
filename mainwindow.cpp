@@ -113,9 +113,7 @@ MainWindow::MainWindow(QString myDirPath) :
         startupDialog();
     }
 
-    (void)findDiffBinaryName();
-    (void)findMergeBinaryName();
-    (void)findEditorBinaryName();
+    SettingsDialog::findDefaultLocations(m_myDirPath);
 
     ColourSet *cs = ColourSet::instance();
     cs->clearDefaultNames();
@@ -497,7 +495,7 @@ void MainWindow::hgIgnore()
     
     params << hgIgnorePath;
     
-    QString editor = findEditorBinaryName();
+    QString editor = getEditorBinaryName();
 
     if (editor == "") {
         DEBUG << "Failed to find a text editor" << endl;
@@ -511,102 +509,25 @@ void MainWindow::hgIgnore()
     runner->requestAction(action);
 }
 
-QString MainWindow::findDiffBinaryName()
+QString MainWindow::getDiffBinaryName()
 {
     QSettings settings;
     settings.beginGroup("Locations");
-    QString diff = settings.value("extdiffbinary", "").toString();
-    if (diff == "") {
-        QStringList bases;
-#ifdef Q_OS_MAC
-        bases << "easyhg-extdiff-osx.sh";
-#endif 
-        bases << "kompare" << "kdiff3" << "meld";
-        bool found = false;
-        foreach (QString base, bases) {
-            diff = findInPath(base, m_myDirPath, true);
-            if (diff != "") {
-                found = true;
-                break;
-            }
-        }
-        if (found) {
-            settings.setValue("extdiffbinary", diff);
-        } else {
-            diff = "";
-        }
-    }
-    return diff;
+    return settings.value("extdiffbinary", "").toString();
 }
 
-QString MainWindow::findMergeBinaryName()
+QString MainWindow::getMergeBinaryName()
 {
     QSettings settings;
     settings.beginGroup("Locations");
-    if (settings.contains("mergebinary")) {
-        // use it even if empty: user may have specified no external tool
-        QVariant v = settings.value("mergebinary");
-        DEBUG << "v = " << v << endl;
-        return v.toString();
-    }
-    QString merge;
-    QStringList bases;
-#ifdef Q_OS_MAC
-    bases << "easyhg-merge-osx.sh";
-#endif
-    // I think this is too dangerous, given command line ordering
-    // differences and suchlike.  Need to make sure the hg
-    // installation is configured OK instead
-//    bases << "meld" << "diffuse" << "kdiff3";
-    bool found = false;
-    foreach (QString base, bases) {
-        merge = findInPath(base, m_myDirPath, true);
-        if (merge != "") {
-            found = true;
-            break;
-        }
-    }
-    if (found) {
-        settings.setValue("mergebinary", merge);
-    } else {
-        merge = "";
-    }
-    return merge;
+    return settings.value("mergebinary", "").toString();
 }
 
-QString MainWindow::findEditorBinaryName()
+QString MainWindow::getEditorBinaryName()
 {
     QSettings settings;
     settings.beginGroup("Locations");
-    QString editor = settings.value("editorbinary", "").toString();
-    if (editor == "") {
-        QStringList bases;
-        bases
-#if defined Q_OS_WIN32
-            << "wordpad.exe"
-            << "C:\\Program Files\\Windows NT\\Accessories\\wordpad.exe"
-            << "notepad.exe"
-#elif defined Q_OS_MAC
-            << "/Applications/TextEdit.app/Contents/MacOS/TextEdit"
-#else
-            << "gedit" << "kate"
-#endif
-            ;
-        bool found = false;
-        foreach (QString base, bases) {
-            editor = findInPath(base, m_myDirPath, true);
-            if (editor != "") {
-                found = true;
-                break;
-            }
-        }
-        if (found) {
-            settings.setValue("editorbinary", editor);
-        } else {
-            editor = "";
-        }
-    }
-    return editor;
+    return settings.value("editorbinary", "").toString();
 }
 
 void MainWindow::hgShowSummary()
@@ -620,7 +541,7 @@ void MainWindow::hgShowSummary()
 
 void MainWindow::hgFolderDiff()
 {
-    QString diff = findDiffBinaryName();
+    QString diff = getDiffBinaryName();
     if (diff == "") return;
 
     QStringList params;
@@ -638,7 +559,7 @@ void MainWindow::hgFolderDiff()
 
 void MainWindow::hgDiffToCurrent(QString id)
 {
-    QString diff = findDiffBinaryName();
+    QString diff = getDiffBinaryName();
     if (diff == "") return;
 
     QStringList params;
@@ -655,7 +576,7 @@ void MainWindow::hgDiffToCurrent(QString id)
 
 void MainWindow::hgDiffToParent(QString child, QString parent)
 {
-    QString diff = findDiffBinaryName();
+    QString diff = getDiffBinaryName();
     if (diff == "") return;
 
     QStringList params;
@@ -786,7 +707,7 @@ void MainWindow::hgRetryMerge()
 
     params << "resolve";
 
-    QString merge = findMergeBinaryName();
+    QString merge = getMergeBinaryName();
     if (merge != "") {
         params << "--tool" << merge;
     }
@@ -819,7 +740,7 @@ void MainWindow::hgMerge()
 
     params << "merge";
 
-    QString merge = findMergeBinaryName();
+    QString merge = getMergeBinaryName();
     if (merge != "") {
         params << "--tool" << merge;
     }
@@ -841,7 +762,7 @@ void MainWindow::hgMergeFrom(QString id)
     params << "merge";
     params << "--rev" << Changeset::hashOf(id);
 
-    QString merge = findMergeBinaryName();
+    QString merge = getMergeBinaryName();
     if (merge != "") {
         params << "--tool" << merge;
     }
