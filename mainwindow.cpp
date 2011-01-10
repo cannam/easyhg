@@ -31,6 +31,7 @@
 #include <QInputDialog>
 #include <QRegExp>
 #include <QShortcut>
+#include <QUrl>
 
 #include "mainwindow.h"
 #include "multichoicedialog.h"
@@ -391,10 +392,6 @@ void MainWindow::hgRemove()
 
     QStringList files = hgTabs->getSelectedRemovableFiles();
 
-    //!!! todo: confirmation dialog (with file list in it) (or do we
-    // need that? all it does is move the files to the removed
-    // list... doesn't it?)
-
     if (!files.empty()) {
         params << "remove" << "--after" << "--force" << "--" << files;
         runner->requestAction(HgAction(ACT_REMOVE, workFolderPath, params));
@@ -411,18 +408,28 @@ void MainWindow::hgCommit()
     }
 
     QStringList files = hgTabs->getSelectedCommittableFiles();
+    QStringList allFiles = hgTabs->getAllCommittableFiles();
     QStringList reportFiles = files;
-    if (reportFiles.empty()) reportFiles = hgTabs->getAllCommittableFiles();
+    if (reportFiles.empty()) {
+        reportFiles = allFiles;
+    }
 
+    QString subsetNote;
+    if (reportFiles != allFiles) {
+        subsetNote = tr("<p><b>Note:</b> you are committing only the files you have selected, not all of the files that have been changed!");
+    }
+    
     QString cf(tr("Commit files"));
 
     if (ConfirmCommentDialog::confirmAndGetLongComment
         (this,
          cf,
-         tr("<h3>%1</h3><p>%2").arg(cf)
-         .arg(tr("You are about to commit the following files:")),
-         tr("<h3>%1</h3><p>%2").arg(cf)
-         .arg(tr("You are about to commit %n file(s).", "", reportFiles.size())),
+         tr("<h3>%1</h3><p>%2%3").arg(cf)
+         .arg(tr("You are about to commit the following files."))
+         .arg(subsetNote),
+         tr("<h3>%1</h3><p>%2%3").arg(cf)
+         .arg(tr("You are about to commit %n file(s).", "", reportFiles.size()))
+         .arg(subsetNote),
          reportFiles,
          comment,
          tr("Commit"))) {
@@ -538,16 +545,21 @@ QString MainWindow::findMergeBinaryName()
 {
     QSettings settings;
     settings.beginGroup("Locations");
-    QVariant v = settings.value("mergebinary");
-    if (v != QVariant()) {
-        return v.toString(); // even if empty: user may have specified no external tool
+    if (settings.contains("mergebinary")) {
+        // use it even if empty: user may have specified no external tool
+        QVariant v = settings.value("mergebinary");
+        DEBUG << "v = " << v << endl;
+        return v.toString();
     }
     QString merge;
     QStringList bases;
 #ifdef Q_OS_MAC
     bases << "easyhg-merge-osx.sh";
 #endif
-    bases << "meld" << "diffuse" << "kdiff3";
+    // I think this is too dangerous, given command line ordering
+    // differences and suchlike.  Need to make sure the hg
+    // installation is configured OK instead
+//    bases << "meld" << "diffuse" << "kdiff3";
     bool found = false;
     foreach (QString base, bases) {
         merge = findInPath(base, m_myDirPath, true);
@@ -685,43 +697,69 @@ void MainWindow::hgRevert()
 {
     QStringList params;
     QString comment;
+    bool all = false;
 
     QStringList files = hgTabs->getSelectedRevertableFiles();
-    if (files.empty()) files = hgTabs->getAllRevertableFiles();
+    QStringList allFiles = hgTabs->getAllRevertableFiles();
+    if (files.empty() || files == allFiles) {
+        files = allFiles;
+        all = true;
+    }
+    
+    QString subsetNote;
+    if (!all) {
+        subsetNote = tr("<p><b>Note:</b> you are reverting only the files you have selected, not all of the files that have been changed!");
+    }
 
     QString rf(tr("Revert files"));
-    
+
+    // Set up params before asking for confirmation, because there is
+    // a failure case here that we would need to report on early
+
+    DEBUG << "hgRevert: justMerged = " << justMerged << ", mergeTargetRevision = " << mergeTargetRevision << endl;
+
+    if (justMerged) {
+
+        // This is a little fiddly.  The proper way to "revert" the
+        // whole of an uncommitted merge is with "hg update --clean ."
+        // But if the user has selected only some files, we're sort of
+        // promising to revert only those, which means we need to
+        // specify which parent to revert to.  We can only do that if
+        // we have a record of it, which we do if you just did the
+        // merge from within easyhg but don't if you've exited and
+        // restarted, or changed repository, since then.  Hmmm.
+
+        if (all) {
+            params << "update" << "--clean" << ".";
+        } else {
+            if (mergeTargetRevision != "") {
+                params << "revert" << "--rev"
+                       << Changeset::hashOf(mergeTargetRevision)
+                       << "--" << files;
+            } else {
+                QMessageBox::information
+                    (this, tr("Unable to revert"),
+                     tr("<qt><b>Sorry, unable to revert these files</b><br><br>EasyMercurial can only revert a subset of files during a merge if it still has a record of which parent was the original merge target; that information is no longer available.<br><br>This is a limitation of EasyMercurial.  Consider reverting all files, or using hg revert with a specific revision at the command-line instead.</qt>"));
+                return;
+            }
+        }
+    } else {
+        params << "revert" << "--" << files;
+    }
+
     if (ConfirmCommentDialog::confirmDangerousFilesAction
         (this,
          rf,
-         tr("<h3>%1</h3><p>%2").arg(rf)
-         .arg(tr("You are about to <b>revert</b> the following files to their previous committed state.<br><br>This will <b>throw away any changes</b> that you have made to these files but have not committed:")),
-         tr("<h3>%1</h3><p>%2").arg(rf)
-         .arg(tr("You are about to <b>revert</b> %n file(s).<br><br>This will <b>throw away any changes</b> that you have made to these files but have not committed.", "", files.size())),
+         tr("<h3>%1</h3><p>%2%3").arg(rf)
+         .arg(tr("You are about to <b>revert</b> the following files to their previous committed state.<br><br>This will <b>throw away any changes</b> that you have made to these files but have not committed."))
+         .arg(subsetNote),
+         tr("<h3>%1</h3><p>%2%3").arg(rf)
+         .arg(tr("You are about to <b>revert</b> %n file(s).<br><br>This will <b>throw away any changes</b> that you have made to these files but have not committed.", "", files.size()))
+         .arg(subsetNote),
          files,
          tr("Revert"))) {
 
         lastRevertedFiles = files;
-        
-        if (files.empty()) {
-            params << "revert" << "--no-backup";
-        } else {
-            params << "revert" << "--" << files;
-        }
-
-        //!!! This is problematic.  If you've got an uncommitted
-        //!!! merge, you can't revert it without declaring which
-        //!!! parent of the merge you want to revert to (reasonably
-        //!!! enough).  We're OK if we just did the merge in easyhg a
-        //!!! moment ago, because we have a record of which parent was
-        //!!! the target -- but if you exit and restart, we've lost
-        //!!! that record and it doesn't appear to be possible to get
-        //!!! it back from Hg.  Even if you just switched from one
-        //!!! repo to another, the record is lost.  What to do?
-
-        if (justMerged && mergeTargetRevision != "") {
-            params << "--rev" << mergeTargetRevision;
-        }
         
         runner->requestAction(HgAction(ACT_REVERT, workFolderPath, params));
     }
@@ -760,6 +798,10 @@ void MainWindow::hgRetryMerge()
         params << "--all";
     } else {
         params << "--" << files;
+    }
+
+    if (currentParents.size() == 1) {
+        mergeTargetRevision = currentParents[0]->id();
     }
 
     runner->requestAction(HgAction(ACT_RETRY_MERGE, workFolderPath, params));
@@ -806,6 +848,10 @@ void MainWindow::hgMergeFrom(QString id)
         params << "--tool" << merge;
     }
     
+    if (currentParents.size() == 1) {
+        mergeTargetRevision = currentParents[0]->id();
+    }
+
     runner->requestAction(HgAction(ACT_MERGE, workFolderPath, params));
 
     mergeCommitComment = "";
@@ -1126,7 +1172,7 @@ bool MainWindow::complainAboutCloneToExisting(QString arg)
 {
     QMessageBox::critical
         (this, tr("Path is in existing repository"),
-         tr("<qt><b>Local path is in an existing repository</b><br><br>You asked to open a remote repository by cloning it to the local path \"%1\".<br>This path is already inside an existing repository.<br>Please provide a new folder name for the local repository.</qt>").arg(xmlEncode(arg)));
+         tr("<qt><b>Local path is in an existing repository</b><br><br>You asked to open a remote repository by cloning it to the local path \"%1\".<br>This path is already inside an existing repository.<br>Please provide a different folder name for the local repository.</qt>").arg(xmlEncode(arg)));
     return false;
 }
 
@@ -1138,12 +1184,43 @@ bool MainWindow::complainAboutCloneToFile(QString arg)
     return false;
 }
 
-bool MainWindow::complainAboutCloneToExistingFolder(QString arg)
+QString MainWindow::complainAboutCloneToExistingFolder(QString arg, QString remote)
 {
+    // If the directory "arg" exists but "arg" plus the last path
+    // component of "remote" does not, then offer the latter as an
+    // alternative path
+
+    QString offer;
+
+    QDir d(arg);
+    if (d.exists()) {
+        if (QRegExp("^\\w+://").indexIn(remote) >= 0) {
+            QString rpath = QUrl(remote).path();
+            if (rpath != "") {
+                rpath = QDir(rpath).dirName();
+                if (rpath != "" && !d.exists(rpath)) {
+                    offer = d.filePath(rpath);
+                }
+            }
+        }
+    }
+
+    if (offer != "") {
+        bool result = (QMessageBox::question
+                       (this, tr("Folder exists"),
+                        tr("<qt><b>Local folder already exists</b><br><br>You asked to open a remote repository by cloning it to \"%1\", but this folder already exists and so cannot be cloned to.<br><br>Would you like to create the new folder \"%2\" instead?</qt>")
+                        .arg(xmlEncode(arg)).arg(xmlEncode(offer)),
+                        QMessageBox::Ok | QMessageBox::Cancel,
+                        QMessageBox::Cancel)
+                       == QMessageBox::Ok);
+        if (result) return offer;
+        else return "";
+    }
+
     QMessageBox::critical
         (this, tr("Folder exists"),
-         tr("<qt><b>Local folder already exists</b><br><br>You asked to open a remote repository by cloning it to the local path \"%1\".<br>This is the path of an existing folder.<br>Please provide a new folder name for the local repository.</qt>").arg(xmlEncode(arg)));
-    return false;
+         tr("<qt><b>Local folder already exists</b><br><br>You asked to open a remote repository by cloning it to \"%1\", but this file or folder already exists and so cannot be cloned to.<br>Please provide a different folder name for the local repository.</qt>").arg(xmlEncode(arg)));
+    return "";
 }
 
 bool MainWindow::askToOpenParentRepo(QString arg, QString parent)
@@ -1266,8 +1343,8 @@ bool MainWindow::openRemote(QString remote, QString local)
     }
 
     if (status == FolderExists) {
-        //!!! we can do better than this surely?
-        return complainAboutCloneToExistingFolder(local);
+        local = complainAboutCloneToExistingFolder(local, remote);
+        if (local == "") return false;
     }
 
     workFolderPath = local;
@@ -1714,7 +1791,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         MultiChoiceDialog::addRecentArgument("local", workFolderPath);
         MultiChoiceDialog::addRecentArgument("remote", remoteRepoPath);
         MultiChoiceDialog::addRecentArgument("remote", workFolderPath, true);
-        QMessageBox::information(this, "Clone", output);
+        QMessageBox::information(this, tr("Clone"), tr("<qt><h3>Clone successful</h3><pre>%1</pre>").arg(xmlEncode(output)));
         enableDisableActions();
         shouldHgStat = true;
         break;
@@ -2067,6 +2144,7 @@ void MainWindow::enableDisableActions()
                 DEBUG << "head id = " << h->id() << endl;
             }
         }
+        justMerged = false;
     } else if (currentParents.size() == 0) {
         if (currentHeads.size() == 0) {
             // No heads -> empty repo
@@ -2078,6 +2156,7 @@ void MainWindow::enableDisableActions()
             noWorkingCopy = true;
             canUpdate = true;
         }
+        justMerged = false;
     } else {
         haveMerge = true;
         justMerged = true;

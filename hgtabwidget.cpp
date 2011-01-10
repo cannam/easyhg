@@ -99,23 +99,40 @@ void HgTabWidget::updateHistory()
 
 bool HgTabWidget::canDiff() const
 {
-    if (!m_fileStatusWidget->getSelectedAddableFiles().empty()) return false;
-    return m_fileStatusWidget->haveChangesToCommit() ||
-        !m_fileStatusWidget->getAllUnresolvedFiles().empty();
+    return canRevert();
 }
 
 bool HgTabWidget::canCommit() const
 {
-    if (!m_fileStatusWidget->getSelectedAddableFiles().empty()) return false;
-    return m_fileStatusWidget->haveChangesToCommit() &&
-        m_fileStatusWidget->getAllUnresolvedFiles().empty();
+    if (!m_fileStatusWidget->haveChangesToCommit()) return false;
+    if (!m_fileStatusWidget->getAllUnresolvedFiles().empty()) return false;
+
+    QStringList addable = m_fileStatusWidget->getSelectedAddableFiles();
+    if (addable.empty()) return true;
+
+    QStringList committable = m_fileStatusWidget->getSelectedCommittableFiles();
+
+    // "Removed" files are both committable and addable; don't return
+    // a false negative if the selection only contains these
+    if (committable == addable) return true;
+    return false;
 }
 
 bool HgTabWidget::canRevert() const
 {
-    if (!m_fileStatusWidget->getSelectedAddableFiles().empty()) return false;
-    return m_fileStatusWidget->haveChangesToCommit() ||
-        !m_fileStatusWidget->getAllUnresolvedFiles().empty();
+    // Not the same as canCommit() -- we can revert (and diff)
+    // unresolved files, but we can't commit them
+    if (!m_fileStatusWidget->haveChangesToCommit() &&
+        m_fileStatusWidget->getAllUnresolvedFiles().empty()) return false;
+
+    // The rest of this logic is as in canCommit though
+
+    QStringList addable = m_fileStatusWidget->getSelectedAddableFiles();
+    if (addable.empty()) return true;
+
+    QStringList committable = m_fileStatusWidget->getSelectedCommittableFiles();
+    if (committable == addable) return true;
+    return false;
 }
 
 bool HgTabWidget::canAdd() const
@@ -127,8 +144,9 @@ bool HgTabWidget::canAdd() const
     if (!removable.empty()) return false;
 
     QStringList committable = m_fileStatusWidget->getSelectedCommittableFiles();
+
     // "Removed" files are both committable and addable; don't return
-    // a false positive if the selection only contains these
+    // a false negative if the selection only contains these
     if (committable == addable || committable.empty()) return true;
     return false;
 }
