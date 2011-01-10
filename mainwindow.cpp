@@ -49,7 +49,8 @@
 MainWindow::MainWindow(QString myDirPath) :
     m_myDirPath(myDirPath),
     m_fsWatcherGeneralTimer(0),
-    m_fsWatcherRestoreTimer(0)
+    m_fsWatcherRestoreTimer(0),
+    m_fsWatcherSuspended(false)
 {
     setWindowIcon(QIcon(":images/easyhg-icon.png"));
 
@@ -67,6 +68,8 @@ MainWindow::MainWindow(QString myDirPath) :
     createStatusBar();
 
     runner = new HgRunner(myDirPath, this);
+    connect(runner, SIGNAL(commandStarting(HgAction)),
+            this, SLOT(commandStarting(HgAction)));
     connect(runner, SIGNAL(commandCompleted(HgAction, QString)),
             this, SLOT(commandCompleted(HgAction, QString)));
     connect(runner, SIGNAL(commandFailed(HgAction, QString)),
@@ -896,6 +899,10 @@ void MainWindow::clearState()
     stateUnknown = true;
     needNewLog = true;
     if (fsWatcher) {
+        delete m_fsWatcherGeneralTimer;
+        m_fsWatcherGeneralTimer = 0;
+        delete m_fsWatcherRestoreTimer;
+        m_fsWatcherRestoreTimer = 0;
         delete fsWatcher;
         fsWatcher = 0;
     }
@@ -1421,9 +1428,12 @@ void MainWindow::suspendFileSystemWatcher()
 {
     DEBUG << "MainWindow::suspendFileSystemWatcher" << endl;
     if (fsWatcher) {
-        m_fsWatcherRestoreTimer->stop();
+        m_fsWatcherSuspended = true;
+        if (m_fsWatcherRestoreTimer) {
+            delete m_fsWatcherRestoreTimer;
+            m_fsWatcherRestoreTimer = 0;
+        }
         m_fsWatcherGeneralTimer->stop();
-        fsWatcher->blockSignals(true);
     }
 }
 
@@ -1449,7 +1459,10 @@ void MainWindow::restoreFileSystemWatcher()
 void MainWindow::actuallyRestoreFileSystemWatcher()
 {
     DEBUG << "MainWindow::actuallyRestoreFileSystemWatcher" << endl;
-    if (fsWatcher) fsWatcher->blockSignals(false);
+    if (fsWatcher) {
+        m_fsWatcherSuspended = false;
+        m_fsWatcherGeneralTimer->start();
+    }
 }
 
 void MainWindow::checkFilesystem()
@@ -1461,13 +1474,17 @@ void MainWindow::checkFilesystem()
 void MainWindow::fsDirectoryChanged(QString d)
 {
     DEBUG << "MainWindow::fsDirectoryChanged " << d << endl;
-    hgStat();
+    if (!m_fsWatcherSuspended) {
+        hgStat();
+    }
 }
 
 void MainWindow::fsFileChanged(QString f)
 {
     DEBUG << "MainWindow::fsFileChanged " << f << endl;
-    hgStat();
+    if (!m_fsWatcherSuspended) {
+        hgStat();
+    }
 }
 
 QString MainWindow::format3(QString head, QString intro, QString code)
