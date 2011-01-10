@@ -138,7 +138,7 @@ private:
     bool complainAboutInitFile(QString);
     bool complainAboutCloneToExisting(QString);
     bool complainAboutCloneToFile(QString);
-    bool complainAboutCloneToExistingFolder(QString); //!!! not sure about this one
+    QString complainAboutCloneToExistingFolder(QString local, QString remote); // returns new location, or empty string for cancel
 
     bool askToInitExisting(QString);
     bool askToInitNew(QString);

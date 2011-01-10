@@ -37,6 +37,7 @@ ConfirmCommentDialog::ConfirmCommentDialog(QWidget *parent,
     QGridLayout *layout = new QGridLayout;
     setLayout(layout);
     QLabel *label = new QLabel(introText);
+    label->setWordWrap(true);
     layout->addWidget(label, 0, 0);
 
     m_textEdit = new QTextEdit;
