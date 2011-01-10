@@ -40,6 +40,7 @@ public:
     void killCurrentActions(); // kill anything running; clear the queue
 
 signals:
+    void commandStarting(HgAction action);
     void commandCompleted(HgAction action, QString stdOut);
     void commandFailed(HgAction action, QString stdErr);
 

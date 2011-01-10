@@ -482,6 +482,8 @@ void HgRunner::startCommand(HgAction action)
 
     DEBUG << "set current action to " << m_currentAction.action << endl;
     
+    emit commandStarting(action);
+
     m_proc->start(executable, params);
 }
 
