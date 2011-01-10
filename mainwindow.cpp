@@ -5,8 +5,8 @@
 
     Based on hgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
-    Copyright (c) 2010 Chris Cannam
-    Copyright (c) 2010 Queen Mary, University of London
+    Copyright (c) 2011 Chris Cannam
+    Copyright (c) 2011 Queen Mary, University of London
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -173,9 +173,9 @@ void MainWindow::about()
                          "<p>EasyMercurial is based on HgExplorer by "
                          "Jari Korhonen, with thanks.</p>"
                          "<p style=\"margin-left: 2em;\">"
-                         "Copyright &copy; 2010 Queen Mary, University of London.<br>"
+                         "Copyright &copy; 2011 Queen Mary, University of London.<br>"
                          "Copyright &copy; 2010 Jari Korhonen.<br>"
-                         "Copyright &copy; 2010 Chris Cannam."
+                         "Copyright &copy; 2011 Chris Cannam."
                          "</p>"
                          "<p style=\"margin-left: 2em;\">"
                          "This program requires Mercurial, by Matt Mackall and others.<br>"
