@@ -18,6 +18,7 @@
 #include "hgrunner.h"
 #include "common.h"
 #include "debug.h"
+#include "settingsdialog.h"
 
 #include <QPushButton>
 #include <QListWidget>
@@ -71,10 +72,7 @@ HgRunner::~HgRunner()
 
 QString HgRunner::getUnbundledFileName()
 {
-    QString home = QDir::homePath();
-    QString target = QString("%1/.easyhg").arg(home);
-    QString extpath = QString("%1/easyhg.py").arg(target);
-    return extpath;
+    return SettingsDialog::getUnbundledExtensionFileName();
 }
 
 QString HgRunner::unbundleExtension()
