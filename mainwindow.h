@@ -218,6 +218,7 @@ private:
     QFileSystemWatcher *fsWatcher;
     QTimer *m_fsWatcherGeneralTimer;
     QTimer *m_fsWatcherRestoreTimer;
+    bool m_fsWatcherSuspended;
 
     QString lastStatOutput;
     QStringList lastRevertedFiles;
