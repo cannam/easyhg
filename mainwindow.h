@@ -31,6 +31,7 @@
 QT_BEGIN_NAMESPACE
 class QAction;
 class QMenu;
+class QTimer;
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow
@@ -60,6 +61,7 @@ protected:
 public slots:
     void open(QString local);
     void hgRefresh();
+    void commandStarting(HgAction);
     void commandCompleted(HgAction action, QString stdOut);
     void commandFailed(HgAction action, QString stdErr);
     void enableDisableActions();
@@ -104,6 +106,8 @@ private slots:
 
     void fsDirectoryChanged(QString);
     void fsFileChanged(QString);
+    void checkFilesystem();
+    void actuallyRestoreFileSystemWatcher();
 
 private:
     void hgQueryBranch();
@@ -154,6 +158,8 @@ private:
     void clearState();
 
     void updateFileSystemWatcher();
+    void suspendFileSystemWatcher();
+    void restoreFileSystemWatcher();
 
     bool firstStart;
 
@@ -210,6 +216,8 @@ private:
     QString findEditorBinaryName();
 
     QFileSystemWatcher *fsWatcher;
+    QTimer *m_fsWatcherGeneralTimer;
+    QTimer *m_fsWatcherRestoreTimer;
 
     QString lastStatOutput;
     QStringList lastRevertedFiles;

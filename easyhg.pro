@@ -1,5 +1,5 @@
 
-CONFIG += release
+CONFIG += debug
 
 macx-* {
     QMAKE_MAC_SDK=/Developer/SDKs/MacOSX10.4u.sdk

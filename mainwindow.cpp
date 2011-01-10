@@ -32,6 +32,7 @@
 #include <QRegExp>
 #include <QShortcut>
 #include <QUrl>
+#include <QTimer>
 
 #include "mainwindow.h"
 #include "multichoicedialog.h"
@@ -46,7 +47,9 @@
 
 
 MainWindow::MainWindow(QString myDirPath) :
-    m_myDirPath(myDirPath)
+    m_myDirPath(myDirPath),
+    m_fsWatcherGeneralTimer(0),
+    m_fsWatcherRestoreTimer(0)
 {
     setWindowIcon(QIcon(":images/easyhg-icon.png"));
 
@@ -237,11 +240,6 @@ void MainWindow::hgStat()
     }
 
     lastStatOutput = "";
-
-    // annoyingly, hg stat actually modifies the working directory --
-    // it creates files called hg-checklink and hg-checkexec to test
-    // properties of the filesystem
-    if (fsWatcher) fsWatcher->blockSignals(true);
 
     runner->requestAction(HgAction(ACT_STAT, workFolderPath, params));
 }
@@ -1480,12 +1478,63 @@ void MainWindow::updateFileSystemWatcher()
         }
     }
 
+    // The general timer isn't really related to the fs watcher
+    // object, it just does something similar -- every now and then we
+    // do a refresh just to update the history dates etc
+
+    m_fsWatcherGeneralTimer = new QTimer(this);
+    connect(m_fsWatcherGeneralTimer, SIGNAL(timeout()),
+            this, SLOT(checkFilesystem()));
+    m_fsWatcherGeneralTimer->setInterval(30 * 60 * 1000); // half an hour
+    m_fsWatcherGeneralTimer->start();
+
     if (justCreated) {
         connect(fsWatcher, SIGNAL(directoryChanged(QString)),
                 this, SLOT(fsDirectoryChanged(QString)));
         connect(fsWatcher, SIGNAL(fileChanged(QString)),
                 this, SLOT(fsFileChanged(QString)));
     }
+}
+
+void MainWindow::suspendFileSystemWatcher()
+{
+    DEBUG << "MainWindow::suspendFileSystemWatcher" << endl;
+    if (fsWatcher) {
+        m_fsWatcherRestoreTimer->stop();
+        m_fsWatcherGeneralTimer->stop();
+        fsWatcher->blockSignals(true);
+    }
+}
+
+void MainWindow::restoreFileSystemWatcher()
+{
+    DEBUG << "MainWindow::restoreFileSystemWatcher" << endl;
+    if (m_fsWatcherRestoreTimer) delete m_fsWatcherRestoreTimer;
+        
+    // The restore timer is used to leave a polite interval between
+    // being asked to restore the watcher and actually doing so.  It's
+    // a single shot timer each time it's used, but we don't use
+    // QTimer::singleShot because we want to stop the previous one if
+    // it's running (via deleting it)
+
+    m_fsWatcherRestoreTimer = new QTimer(this);
+    connect(m_fsWatcherRestoreTimer, SIGNAL(timeout()),
+            this, SLOT(actuallyRestoreFileSystemWatcher()));
+    m_fsWatcherRestoreTimer->setInterval(1000);
+    m_fsWatcherRestoreTimer->setSingleShot(true);
+    m_fsWatcherRestoreTimer->start();
+}
+
+void MainWindow::actuallyRestoreFileSystemWatcher()
+{
+    DEBUG << "MainWindow::actuallyRestoreFileSystemWatcher" << endl;
+    if (fsWatcher) fsWatcher->blockSignals(false);
+}
+
+void MainWindow::checkFilesystem()
+{
+    DEBUG << "MainWindow::checkFilesystem" << endl;
+    hgStat();
 }
 
 void MainWindow::fsDirectoryChanged(QString d)
@@ -1611,9 +1660,21 @@ void MainWindow::reportNewRemoteHeads(QString output)
     }
 }
 
+void MainWindow::commandStarting(HgAction action)
+{
+    // Annoyingly, hg stat actually modifies the working directory --
+    // it creates files called hg-checklink and hg-checkexec to test
+    // properties of the filesystem.  For safety's sake, suspend the
+    // fs watcher while running commands, and restore it shortly after
+    // a command has finished.
+
+    suspendFileSystemWatcher();
+}
+
 void MainWindow::commandFailed(HgAction action, QString output)
 {
     DEBUG << "MainWindow::commandFailed" << endl;
+    restoreFileSystemWatcher();
 
     QString setstr;
 #ifdef Q_OS_MAC
@@ -1671,7 +1732,6 @@ void MainWindow::commandFailed(HgAction action, QString output)
             return;
         }
     case ACT_STAT:
-        if (fsWatcher) fsWatcher->blockSignals(false);
         break; // go on and report
     default:
         break;
@@ -1699,6 +1759,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
 
 void MainWindow::commandCompleted(HgAction completedAction, QString output)
 {
+    restoreFileSystemWatcher();
     HGACTIONS action = completedAction.action;
 
     if (action == ACT_NONE) return;
@@ -1739,7 +1800,6 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     case ACT_STAT:
         lastStatOutput = output;
         updateFileSystemWatcher();
-        if (fsWatcher) fsWatcher->blockSignals(false);
         break;
 
     case ACT_RESOLVE_LIST:
