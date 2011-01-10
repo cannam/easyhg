@@ -5,8 +5,8 @@
 
     Based on HgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
-    Copyright (c) 2010 Chris Cannam
-    Copyright (c) 2010 Queen Mary, University of London
+    Copyright (c) 2011 Chris Cannam
+    Copyright (c) 2011 Queen Mary, University of London
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
