@@ -110,6 +110,7 @@ Panner::slotSetPannedRect(QRectF rect)
 void
 Panner::resizeEvent(QResizeEvent *)
 {
+    DEBUG << "Panner::resizeEvent" << endl;
     if (scene()) fit(sceneRect());
     m_cache = QPixmap();
 }
@@ -117,6 +118,7 @@ Panner::resizeEvent(QResizeEvent *)
 void
 Panner::slotSceneRectChanged(const QRectF &newRect)
 {
+    DEBUG << "Panner::slotSceneRectChanged" << endl;
     if (!scene()) return; // spurious
     fit(newRect);
     m_cache = QPixmap();
@@ -126,6 +128,7 @@ Panner::slotSceneRectChanged(const QRectF &newRect)
 void
 Panner::slotSceneChanged(const QList<QRectF> &)
 {
+    DEBUG << "Panner::slotSceneChanged" << endl;
     if (!scene()) return; // spurious
     m_cache = QPixmap();
     viewport()->update();
@@ -163,7 +166,8 @@ Panner::paintEvent(QPaintEvent *e)
 void
 Panner::updateScene(const QList<QRectF> &rects)
 {
-    if (!m_cache.isNull()) m_cache = QPixmap();
+    DEBUG << "Panner::updateScene" << endl;
+//    if (!m_cache.isNull()) m_cache = QPixmap();
     QGraphicsView::updateScene(rects);
 }
 
@@ -187,6 +191,8 @@ Panner::drawItems(QPainter *painter, int numItems,
         cachePainter.setTransform(viewportTransform());
         ps->drawItems(&cachePainter, numItems, items, options);
         cachePainter.end();
+
+        DEBUG << "done" << endl;
     }
 
     painter->save();
