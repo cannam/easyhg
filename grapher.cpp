@@ -427,6 +427,7 @@ void Grapher::layout(Changesets csets,
         ChangesetItem *item = new ChangesetItem(cs);
         item->setX(0);
         item->setY(0);
+        item->setZValue(0);
         m_items[id] = item;
         m_scene->addChangesetItem(item);
     }
@@ -445,6 +446,7 @@ void Grapher::layout(Changesets csets,
             if (merge) conn->setConnectionType(ConnectionItem::Merge);
             conn->setChild(item);
             conn->setParent(m_items[parentId]);
+            conn->setZValue(-1);
             m_scene->addItem(conn);
         }
     }
@@ -454,12 +456,14 @@ void Grapher::layout(Changesets csets,
     if (!m_uncommittedParents.empty()) {
         m_uncommitted = new UncommittedItem();
         m_uncommitted->setBranch(uncommittedBranch);
+        m_uncommitted->setZValue(10);
         m_scene->addUncommittedItem(m_uncommitted);
         foreach (QString p, m_uncommittedParents) {
             ConnectionItem *conn = new ConnectionItem();
             conn->setConnectionType(ConnectionItem::Merge);
             conn->setParent(m_items[p]);
             conn->setChild(m_uncommitted);
+            conn->setZValue(0);
             m_scene->addItem(conn);
         }
     }
@@ -583,7 +587,7 @@ void Grapher::layout(Changesets csets,
                 item->setCols(datemincol, datemaxcol - datemincol + 1);
                 item->setRows(changeRow, n);
                 item->setEven(even);
-                item->setZValue(-1);
+                item->setZValue(-2);
                 m_scene->addDateItem(item);
                 even = !even;
             }
@@ -599,7 +603,7 @@ void Grapher::layout(Changesets csets,
         item->setCols(datemincol, datemaxcol - datemincol + 1);
         item->setRows(changeRow, n+1);
         item->setEven(even);
-        item->setZValue(-1);
+        item->setZValue(-2);
         m_scene->addDateItem(item);
         even = !even;
     }

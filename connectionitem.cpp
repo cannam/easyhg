@@ -89,7 +89,12 @@ ConnectionItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget
     float c_x = xscale * c_col + size/2;
     float p_x = xscale * p_col + size/2;
 
-    p.moveTo(c_x, yscale * c_row + size);
+    // ensure line reaches the box, even if it's in a small height --
+    // doesn't matter if we overshoot as the box is opaque and has a
+    // greater Z value
+    p.moveTo(c_x, yscale * c_row + size - 20);
+
+    p.lineTo(c_x, yscale * c_row + size);
 
     if (p_col == c_col) {
 

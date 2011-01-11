@@ -127,6 +127,7 @@ UncommittedItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
 
     int height = 49;
     QRectF r(x0, 0, width - 3, height);
+    paint->setBrush(Qt::white);
     paint->drawRect(r);
 
     if (m_wide) {
