@@ -55,7 +55,7 @@ ChangesetItem::boundingRect() const
 {
     int w = 100;
     if (m_wide) w = 180;
-    return QRectF(-((w-50)/2 - 1), -30, w - 3, 79);
+    return QRectF(-((w-50)/2 - 1), -30, w - 3, 90);
 }
 
 void
@@ -211,7 +211,10 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
 	f.setPixelSize(ps);
     }
 
-    if (scale < 0.1) {
+    bool showText = (scale >= 0.2);
+    bool showProperLines = (scale >= 0.1);
+
+    if (!showProperLines) {
 	paint->setPen(QPen(branchColour, 0));
     } else {
 	paint->setPen(QPen(branchColour, 2));
@@ -225,22 +228,54 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     if (m_wide) width = 180;
     int x0 = -((width - 50) / 2 - 1);
 
-    int height = 49;
+    int textwid = width - 7;
+
+    QString comment;
+    QStringList lines;
+    int lineCount = 3;
+
+    if (showText) {
+    
+        comment = m_changeset->comment().trimmed();
+        comment = comment.replace("\\n", " ");
+        comment = comment.replace(QRegExp("^\"\\s*\\**\\s*"), "");
+        comment = comment.replace(QRegExp("\"$"), "");
+        comment = comment.replace("\\\"", "\"");
+
+        comment = TextAbbrev::abbreviate(comment, fm, textwid,
+                                         TextAbbrev::ElideEnd, "...", 3);
+        // abbreviate() changes this (ouch!), restore it
+        textwid = width - 5;
+
+        lines = comment.split('\n');
+        lineCount = lines.size();
+
+        if (lineCount < 2) lineCount = 2;
+    }
+
+    int height = (lineCount + 1) * fh + 2;
     QRectF r(x0, 0, width - 3, height);
+
+    if (showProperLines) {
+
+        paint->setBrush(Qt::white);
+
+        if (m_current) {
+            paint->drawRect(QRectF(x0 - 4, -4, width + 5, height + 8));
+        }
+
+        if (m_new) {
+            paint->save();
+            paint->setPen(Qt::yellow);
+            paint->setBrush(Qt::NoBrush);
+            paint->drawRect(QRectF(x0 - 2, -2, width + 1, height + 4));
+            paint->restore();
+        }
+    }
+
     paint->drawRect(r);
 
-    if (m_new) {
-        paint->save();
-        paint->setPen(Qt::yellow);
-        paint->drawRect(QRectF(x0 - 2, -2, width + 1, height + 4));
-        paint->restore();
-    }
-
-    if (m_current) {
-        paint->drawRect(QRectF(x0 - 4, -4, width + 5, height + 8));
-    }
-
-    if (scale < 0.2) {
+    if (!showText) {
 	paint->restore();
 	return;
     }
@@ -250,8 +285,8 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
 
     paint->setPen(QPen(Qt::white));
 
-    int wid = width - 5;
-    QString person = TextAbbrev::abbreviate(m_changeset->authorName(), fm, wid);
+    QString person = TextAbbrev::abbreviate(m_changeset->authorName(),
+                                            fm, textwid);
     paint->drawText(x0 + 3, fm.ascent(), person);
 
     paint->setPen(QPen(Qt::black));
@@ -293,23 +328,8 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
         paint->restore();
     }
 
-    fm = QFontMetrics(f);
-    fh = fm.height();
     paint->setFont(f);
 
-    QString comment = m_changeset->comment().trimmed();
-    comment = comment.replace("\\n", " ");
-    comment = comment.replace(QRegExp("^\"\\s*\\**\\s*"), "");
-    comment = comment.replace(QRegExp("\"$"), "");
-    comment = comment.replace("\\\"", "\"");
-
-    wid = width - 5;
-    int nlines = (height / fh) - 1;
-    if (nlines < 1) nlines = 1;
-    comment = TextAbbrev::abbreviate(comment, fm, wid, TextAbbrev::ElideEnd,
-				     "...", nlines);
-
-    QStringList lines = comment.split('\n');
     for (int i = 0; i < lines.size(); ++i) {
 	paint->drawText(x0 + 3, i * fh + fh + fm.ascent(), lines[i].trimmed());
     }
