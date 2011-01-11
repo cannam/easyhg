@@ -491,6 +491,16 @@ void MainWindow::hgIgnore()
     
     hgIgnorePath = workFolderPath;
     hgIgnorePath += "/.hgignore";
+
+    if (!QDir(workFolderPath).exists()) return;
+    QFile f(hgIgnorePath);
+    if (!f.exists()) {
+        f.open(QFile::WriteOnly);
+        QTextStream *ts = new QTextStream(&f);
+        *ts << "syntax: glob\n";
+        delete ts;
+        f.close();
+    }
     
     params << hgIgnorePath;
     
