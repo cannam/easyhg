@@ -36,6 +36,7 @@ HistoryWidget::HistoryWidget() :
     m_panner = new Panner;
 
     m_panned->setDragMode(QGraphicsView::ScrollHandDrag);
+    m_panned->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
 
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(m_panned, 0, 0);

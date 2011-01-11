@@ -144,6 +144,7 @@ private:
     bool complainAboutCloneToFile(QString);
     QString complainAboutCloneToExistingFolder(QString local, QString remote); // returns new location, or empty string for cancel
 
+    bool askAboutUnknownFolder(QString);
     bool askToInitExisting(QString);
     bool askToInitNew(QString);
     bool askToOpenParentRepo(QString, QString);
