@@ -124,10 +124,6 @@ MainWindow::MainWindow(QString myDirPath) :
     cs->addDefaultName("default");
     cs->addDefaultName(getUserInfo());
 
-    if (workFolderPath == "") {
-        open();
-    }
-
     hgTest();
 }
 
@@ -973,11 +969,22 @@ void MainWindow::open()
                      tr("Open a local folder, by creating a Mercurial repository in it."),
                      MultiChoiceDialog::DirectoryArg);
 
-        d->setCurrentChoice("local");
+        QSettings settings;
+        settings.beginGroup("General");
+        QString lastChoice = settings.value("lastopentype", "local").toString();
+        if (lastChoice != "local" &&
+            lastChoice != "remote" &&
+            lastChoice != "init") {
+            lastChoice = "local";
+        }
+
+        d->setCurrentChoice(lastChoice);
 
         if (d->exec() == QDialog::Accepted) {
 
             QString choice = d->getCurrentChoice();
+            settings.setValue("lastopentype", choice);
+
             QString arg = d->getArgument().trimmed();
 
             bool result = false;
@@ -1067,6 +1074,28 @@ bool MainWindow::complainAboutFilePath(QString arg)
     QMessageBox::critical
         (this, tr("File chosen"),
          tr("<qt><b>Folder required</b><br><br>You asked to open \"%1\".<br>This is a file; to open a repository, you need to choose a folder.</qt>").arg(xmlEncode(arg)));
+    return false;
+}
+
+bool MainWindow::askAboutUnknownFolder(QString arg)
+{    
+    bool result = (QMessageBox::question
+                   (this, tr("Path does not exist"),
+                    tr("<qt><b>Path does not exist: create it?</b><br><br>You asked to open a remote repository by cloning it to \"%1\". This folder does not exist, and neither does its parent.<br><br>Would you like to create the parent folder as well?</qt>").arg(xmlEncode(arg)),
+                    QMessageBox::Ok | QMessageBox::Cancel,
+                    QMessageBox::Cancel)
+                   == QMessageBox::Ok);
+    if (result) {
+        QDir dir(arg);
+        dir.cdUp();
+        if (!dir.mkpath(dir.absolutePath())) {
+            QMessageBox::critical
+                (this, tr("Failed to create folder"),
+                 tr("<qt><b>Failed to create folder</b><br><br>Sorry, the path for the parent folder \"%1\" could not be created.</qt>").arg(dir.absolutePath()));
+            return false;
+        }
+        return true;
+    }
     return false;
 }
 
@@ -1265,7 +1294,9 @@ bool MainWindow::openRemote(QString remote, QString local)
     }
 
     if (status == FolderUnknown) {
-        return complainAboutUnknownFolder(local);
+        if (!askAboutUnknownFolder(local)) {
+            return false;
+        }
     }
 
     if (status == FolderExists) {
@@ -1900,11 +1931,25 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     switch (action) {
 
     case ACT_TEST_HG:
-        hgTestExtension();
+    {
+        QSettings settings;
+        settings.beginGroup("General");
+        if (settings.value("useextension", true).toBool()) {
+            hgTestExtension();
+        } else if (workFolderPath == "") {
+            open();
+        } else {
+            hgQueryPaths();
+        }
         break;
+    }
         
     case ACT_TEST_HG_EXT:
-        hgQueryPaths();
+        if (workFolderPath == "") {
+            open();
+        } else{
+            hgQueryPaths();
+        }
         break;
         
     case ACT_QUERY_PATHS:
@@ -2053,7 +2098,7 @@ void MainWindow::enableDisableActions()
         workFolderExist = false;
     }
 
-    if (!workFolderDir.exists(workFolderPath)) {
+    if (workFolderPath == "" || !workFolderDir.exists(workFolderPath)) {
         localRepoActionsEnabled = false;
         workFolderExist = false;
     } else {
@@ -2175,7 +2220,11 @@ void MainWindow::enableDisableActions()
     }
 
     if (stateUnknown) {
-        hgTabs->setState(tr("(Examining repository)"));
+        if (workFolderPath == "") {
+            hgTabs->setState(tr("No repository open"));
+        } else {
+            hgTabs->setState(tr("(Examining repository)"));
+        }
     } else if (emptyRepo) {
         hgTabs->setState(tr("Nothing committed to this repository yet"));
     } else if (noWorkingCopy) {
