@@ -2,7 +2,8 @@
 CONFIG += release
 
 macx-* {
-    QMAKE_MAC_SDK=/Developer/SDKs/MacOSX10.4u.sdk
+    QMAKE_MAC_SDK = /Developer/SDKs/MacOSX10.4u.sdk
+    QMAKE_LFLAGS_RELEASE += -bind_at_load
     CONFIG += x86 ppc
 }
 
