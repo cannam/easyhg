@@ -58,7 +58,7 @@ def easyhg_prompt(self, msg, default="y"):
     d = QtGui.QInputDialog()
     d.setInputMode(QtGui.QInputDialog.TextInput)
     d.setTextEchoMode(QtGui.QLineEdit.Normal)
-    d.setLabelText(prompt)
+    d.setLabelText(msg)
     d.setWindowTitle(_('EasyMercurial: Information'))
     d.show()
     d.raise_()
