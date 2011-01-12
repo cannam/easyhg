@@ -55,8 +55,15 @@ def easyhg_prompt(self, msg, default="y"):
         return default
     if msg == _('user:'):
         msg = _('User:')
-    (r,ok) = QtGui.QInputDialog.getText(None, _('Information needed'),
-                                        msg, QtGui.QLineEdit.Normal)
+    d = QtGui.QInputDialog()
+    d.setInputMode(QtGui.QInputDialog.TextInput)
+    d.setTextEchoMode(QtGui.QLineEdit.Normal)
+    d.setLabelText(prompt)
+    d.setWindowTitle(_('EasyMercurial: Information'))
+    d.show()
+    d.raise_()
+    ok = d.exec_()
+    r = d.textValue()
     if not ok:
         raise util.Abort(_('response expected'))
     if not r:
@@ -68,8 +75,15 @@ def easyhg_getpass(self, prompt=None, default=None):
         return default
     if not prompt or prompt == _('password:'):
         prompt = _('Password:');
-    (r,ok) = QtGui.QInputDialog.getText(None, _('Password'), prompt,
-                                        QtGui.QLineEdit.Password)
+    d = QtGui.QInputDialog()
+    d.setInputMode(QtGui.QInputDialog.TextInput)
+    d.setTextEchoMode(QtGui.QLineEdit.Password)
+    d.setLabelText(prompt)
+    d.setWindowTitle(_('EasyMercurial: Password'))
+    d.show()
+    d.raise_()
+    ok = d.exec_()
+    r = d.textValue()
     if not ok:
         raise util.Abort(_('response expected'))
     if not r:
