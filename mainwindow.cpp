@@ -1647,7 +1647,9 @@ void MainWindow::commandStarting(HgAction action)
     // fs watcher while running commands, and restore it shortly after
     // a command has finished.
 
-    suspendFileSystemWatcher();
+    if (action.action == ACT_STAT) {
+        suspendFileSystemWatcher();
+    }
 }
 
 void MainWindow::commandFailed(HgAction action, QString output)
