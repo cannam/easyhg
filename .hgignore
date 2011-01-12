@@ -19,5 +19,4 @@ Makefile.Debug
 Makefile.Release
 *.app/*
 .DS_Store
-EasyMercurial*
 *.pdb

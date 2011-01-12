@@ -1,0 +1,2250 @@
+array set info {
+AllowLanguageSelection
+{Yes}
+
+AppName
+{EasyMercurial}
+
+ApplicationID
+{4ED247D2-7A93-40E4-AA7E-D7CB55AA0411}
+
+ApplicationURL
+{}
+
+AutoRefreshFiles
+{Yes}
+
+BuildFailureAction
+{Fail (recommended)}
+
+CancelledInstallAction
+{Rollback and Stop}
+
+CleanupCancelledInstall
+{Yes}
+
+CommandLineFailureAction
+{Fail (recommended)}
+
+Company
+{Queen Mary, University of London}
+
+CompressionLevel
+{6}
+
+CompressionMethod
+{zlib}
+
+Copyright
+{}
+
+CreateDesktopShortcut
+{Yes}
+
+CreateQuickLaunchShortcut
+{Yes}
+
+DefaultDirectoryLocation
+{}
+
+DefaultLanguage
+{English}
+
+DefaultToSystemLanguage
+{Yes}
+
+EnableResponseFiles
+{Yes}
+
+Ext
+{.exe}
+
+ExtractSolidArchivesOnStartup
+{No}
+
+Icon
+{Modern/Small/SetupModernSmall01.gif}
+
+IgnoreDirectories
+{}
+
+IgnoreFiles
+{}
+
+Image
+{Modern/SetupModern01.gif}
+
+IncludeDebugging
+{Yes}
+
+InstallPassword
+{}
+
+InstallVersion
+{1.3.1.0}
+
+Language,ca
+{Yes}
+
+Language,cs
+{Yes}
+
+Language,de
+{Yes}
+
+Language,en
+{Yes}
+
+Language,es
+{Yes}
+
+Language,fr
+{Yes}
+
+Language,hu
+{Yes}
+
+Language,it
+{Yes}
+
+Language,lt
+{Yes}
+
+Language,nl
+{Yes}
+
+Language,pl
+{Yes}
+
+Language,pt_br
+{Yes}
+
+Language,ru
+{Yes}
+
+LastIgnoreDirectories
+{}
+
+LastIgnoreFiles
+{}
+
+LaunchApplication
+{Yes}
+
+PackageDescription
+{}
+
+PackageLicense
+{}
+
+PackageMaintainer
+{}
+
+PackageName
+{<%ShortAppName%>}
+
+PackagePackager
+{}
+
+PackageRelease
+{<%PatchVersion%>}
+
+PackageSummary
+{}
+
+PackageVersion
+{<%MajorVersion%>.<%MinorVersion%>}
+
+PreserveFileAttributes
+{Yes}
+
+PreserveFilePermissions
+{Yes}
+
+ProjectID
+{CF8A2B09-3CCF-4788-AE7C-93F8BFB98225}
+
+ProjectVersion
+{1.2.15.2}
+
+SaveOnlyToplevelDirs
+{No}
+
+ShortAppName
+{EasyMercurial}
+
+SkipUnusedFileGroups
+{Yes}
+
+Theme
+{Modern_Wizard}
+
+ThemeDir
+{Modern_Wizard}
+
+ThemeVersion
+{1}
+
+UpgradeApplicationID
+{}
+
+Version
+{1.3.1}
+
+ViewReadme
+{Yes}
+
+WizardHeight
+{365}
+
+WizardWidth
+{500}
+
+}
+
+array set ::InstallJammer::InstallCommandLineOptions {
+debug
+{Debugging Switch Yes No {} {run installer in debug mode}}
+
+debugconsole
+{ShowConsole Switch Yes No {} {run installer with a debug console open}}
+
+mode
+{InstallMode Choice No No {Console Default Silent Standard} {set the mode to run the installer in}}
+
+prefix
+{InstallDir String No No {} {set the installation directory}}
+
+test
+{Testing Switch Yes No {} {run installer without installing any files}}
+
+}
+array set ::InstallJammer::UninstallCommandLineOptions {
+debug
+{Debugging Switch Yes No {} {run uninstaller in debug mode}}
+
+debugconsole
+{ShowConsole Switch Yes No {} {run uninstaller with a debug console open}}
+
+mode
+{UninstallMode Choice No No {Console Silent Standard} {set the mode to run the uninstaller in}}
+
+test
+{Testing Switch Yes No {} {run uninstaller without uninstalling any files}}
+
+}
+FileGroup ::7D8589FC-AF69-4DFB-9DE3-363BAFB40C0D -setup Install -active Yes -platforms {AIX-ppc FreeBSD-4-x86 FreeBSD-5-x86 FreeBSD-6-x86 FreeBSD-7-x86 HPUX-hppa Linux-x86 Linux-x86_64 Solaris-sparc Solaris-x86 Windows TarArchive ZipArchive} -name {Program Files} -parent FileGroups
+File ::FA3F40D7-928A-471C-B6FB-06664B4AF5DD -type dir -directory <%InstallDir%> -name D:/EasyMercurial-0.3.1-win32 -parent 7D8589FC-AF69-4DFB-9DE3-363BAFB40C0D
+File ::71B67954-4ACE-47B8-B154-709FB6B52AB5 -name easyhg-icon.ico -parent FA3F40D7-928A-471C-B6FB-06664B4AF5DD
+File ::A4AFAC5C-2CDD-4C0A-A50A-DD6C6537F747 -name easyhg-icon.png -parent FA3F40D7-928A-471C-B6FB-06664B4AF5DD
+File ::671FB0C6-C377-457D-804B-4091E2852874 -name EasyMercurial.exe -parent FA3F40D7-928A-471C-B6FB-06664B4AF5DD
+File ::2FF4EB68-CF87-4572-86E5-3731E9668588 -name hg.exe -parent FA3F40D7-928A-471C-B6FB-06664B4AF5DD
+File ::B3F4C76F-0711-4D91-BC39-3FA4EB2DCAC1 -name kdiff3.exe -parent FA3F40D7-928A-471C-B6FB-06664B4AF5DD
+File ::90D1E310-E586-4E73-B811-BFB7AF5E9005 -name library.zip -parent FA3F40D7-928A-471C-B6FB-06664B4AF5DD
+File ::67827AA9-3963-4F9C-87AA-F84537D75AA5 -name msvcp100.dll -parent FA3F40D7-928A-471C-B6FB-06664B4AF5DD
+File ::922E8B93-2D65-4B5A-815A-6FE22C5D4AC7 -name msvcr100.dll -parent FA3F40D7-928A-471C-B6FB-06664B4AF5DD
+File ::AE3198B4-4759-45E3-8004-13904F0C20AB -name python26.dll -parent FA3F40D7-928A-471C-B6FB-06664B4AF5DD
+File ::D01E8609-5B54-464E-B2CE-8ACCA9189BFB -name QtCore4.dll -parent FA3F40D7-928A-471C-B6FB-06664B4AF5DD
+File ::0938068D-8ED3-41EE-BFCA-EFDFA4560B52 -name QtGui4.dll -parent FA3F40D7-928A-471C-B6FB-06664B4AF5DD
+File ::30DD0704-C89E-462E-971B-A808AFD34C82 -name QtNetwork4.dll -parent FA3F40D7-928A-471C-B6FB-06664B4AF5DD
+File ::EFF54862-F9DC-4934-87D3-4D706C15FFF3 -name sip.pyd -parent FA3F40D7-928A-471C-B6FB-06664B4AF5DD
+File ::C75BD3D6-63C0-4928-844B-269034F65F8E -type dir -name PyQt4 -parent FA3F40D7-928A-471C-B6FB-06664B4AF5DD
+File ::CE2A9028-262A-4D4A-B387-70CBA22C8A1B -name __init__.py -parent C75BD3D6-63C0-4928-844B-269034F65F8E
+File ::88560760-DA1B-47C3-AA01-53CBE6E28FF5 -name __init__.pyo -parent C75BD3D6-63C0-4928-844B-269034F65F8E
+File ::3AD4F42B-A4CD-44CF-9A14-40774B90F346 -name QtCore.pyd -parent C75BD3D6-63C0-4928-844B-269034F65F8E
+File ::9B3010D3-3AAF-400E-B8C8-3B246EC0A206 -name QtGui.pyd -parent C75BD3D6-63C0-4928-844B-269034F65F8E
+Component ::0B08768B-E5AA-4701-B9CE-424C9F6AA96B -setup Install -active Yes -platforms {AIX-ppc FreeBSD-4-x86 FreeBSD-5-x86 FreeBSD-6-x86 FreeBSD-7-x86 HPUX-hppa Linux-x86 Linux-x86_64 Solaris-sparc Solaris-x86 Windows} -name {Default Component} -parent Components
+SetupType ::489BB600-70D6-4EC8-B032-F5FF6FDD532F -setup Install -active Yes -platforms {AIX-ppc FreeBSD-4-x86 FreeBSD-5-x86 FreeBSD-6-x86 FreeBSD-7-x86 HPUX-hppa Linux-x86 Linux-x86_64 Solaris-sparc Solaris-x86 Windows} -name Typical -parent SetupTypes
+SetupType ::2A3B15B2-D3B0-43DD-9FDD-581278BD0EA6 -setup Install -active Yes -platforms {AIX-ppc FreeBSD-4-x86 FreeBSD-5-x86 FreeBSD-6-x86 FreeBSD-7-x86 HPUX-hppa Linux-x86 Linux-x86_64 Solaris-sparc Solaris-x86 Windows} -name Custom -parent SetupTypes
+
+InstallComponent 2AE46278-0442-4ACB-92BC-33F85D961AE6 -setup Install -type pane -title {Welcome Screen} -component Welcome -active Yes -parent StandardInstall
+InstallComponent 806BCA96-55DE-4551-BD24-7BDA967C0122 -setup Install -type pane -conditions {56A12F16-B339-4D29-9B64-FB118A810DF0 A5D3BBB1-85B1-4EB2-B853-8B55062277FC} -title {Select Destination} -component SelectDestination -active Yes -parent StandardInstall
+Condition 56A12F16-B339-4D29-9B64-FB118A810DF0 -active Yes -parent 806BCA96-55DE-4551-BD24-7BDA967C0122 -title {Script Condition} -component ScriptCondition -TreeObject::id 56A12F16-B339-4D29-9B64-FB118A810DF0
+Condition A5D3BBB1-85B1-4EB2-B853-8B55062277FC -active Yes -parent 806BCA96-55DE-4551-BD24-7BDA967C0122 -title {File Permission Condition} -component FilePermissionCondition -TreeObject::id A5D3BBB1-85B1-4EB2-B853-8B55062277FC
+InstallComponent FC22F272-B809-410E-A4C3-C3143C71FC94 -setup Install -type pane -title {Start Copying Files} -component StartCopyingFiles -active Yes -parent StandardInstall
+InstallComponent 436E86CF-1049-4020-87C6-08919DF47E9D -setup Install -type pane -title {Copying Files} -component CopyFiles -active Yes -parent StandardInstall
+InstallComponent 89C128FC-A7C5-462B-ACAD-DFAF81BE1B4B -setup Install -type action -title {Disable Buttons} -component ModifyWidget -active Yes -parent 436E86CF-1049-4020-87C6-08919DF47E9D
+InstallComponent 566F51B1-AFB2-4D36-AC8A-F8EF2E41CFCD -setup Install -type action -title {Install Everything} -component ExecuteAction -active Yes -parent 436E86CF-1049-4020-87C6-08919DF47E9D
+InstallComponent A8D0E4E2-39C9-43A4-8B40-061F397C927F -setup Install -type action -title {Move Forward} -component MoveForward -active Yes -parent 436E86CF-1049-4020-87C6-08919DF47E9D
+InstallComponent 137AE532-86CF-44B3-9167-0132755FA850 -setup Install -type pane -title {Setup Complete} -component SetupComplete -active Yes -parent StandardInstall
+InstallComponent DDC5D1FE-8AB6-43C5-8CE2-5C71729E8BFF -setup Install -type action -conditions {7D1EBBDC-5691-4044-BB19-6CE7D704D434 6AED9C7F-5DEE-4356-A1E3-8D9B67EA577A} -title {View Readme Checkbutton} -component AddWidget -active Yes -parent 137AE532-86CF-44B3-9167-0132755FA850
+Condition 7D1EBBDC-5691-4044-BB19-6CE7D704D434 -active Yes -parent DDC5D1FE-8AB6-43C5-8CE2-5C71729E8BFF -title {File Exists Condition} -component FileExistsCondition -TreeObject::id 7D1EBBDC-5691-4044-BB19-6CE7D704D434
+Condition 6AED9C7F-5DEE-4356-A1E3-8D9B67EA577A -active Yes -parent DDC5D1FE-8AB6-43C5-8CE2-5C71729E8BFF -title {String Is Condition} -component StringIsCondition -TreeObject::id 6AED9C7F-5DEE-4356-A1E3-8D9B67EA577A
+InstallComponent 96B93C29-6883-4B14-A4BB-063769CC7311 -setup Install -type action -conditions {9688B263-B6EC-40CD-9B31-0D1843879A88 E92E5657-B9EE-4F5A-9250-24EE1E67F387} -title {Launch Application Checkbutton} -component AddWidget -active Yes -parent 137AE532-86CF-44B3-9167-0132755FA850
+Condition 9688B263-B6EC-40CD-9B31-0D1843879A88 -active Yes -parent 96B93C29-6883-4B14-A4BB-063769CC7311 -title {File Exists Condition} -component FileExistsCondition -TreeObject::id 9688B263-B6EC-40CD-9B31-0D1843879A88
+Condition E92E5657-B9EE-4F5A-9250-24EE1E67F387 -active Yes -parent 96B93C29-6883-4B14-A4BB-063769CC7311 -title {String Is Condition} -component StringIsCondition -TreeObject::id E92E5657-B9EE-4F5A-9250-24EE1E67F387
+InstallComponent 1ED68248-972F-4343-BEF4-C91ED3618601 -setup Install -type action -conditions {F97966F6-B23B-4C59-95BC-A0A06B71B2BF 1BF9B52D-D364-470B-8D12-A5ADD1A47B5B} -title {Desktop Shortcut Checkbutton} -component AddWidget -active Yes -parent 137AE532-86CF-44B3-9167-0132755FA850
+Condition F97966F6-B23B-4C59-95BC-A0A06B71B2BF -active Yes -parent 1ED68248-972F-4343-BEF4-C91ED3618601 -title {File Exists Condition} -component FileExistsCondition -TreeObject::id F97966F6-B23B-4C59-95BC-A0A06B71B2BF
+Condition 1BF9B52D-D364-470B-8D12-A5ADD1A47B5B -active Yes -parent 1ED68248-972F-4343-BEF4-C91ED3618601 -title {String Is Condition} -component StringIsCondition -TreeObject::id 1BF9B52D-D364-470B-8D12-A5ADD1A47B5B
+InstallComponent 7B9998FD-0077-4EC1-8F96-88ABBE05A702 -setup Install -type action -conditions {147E1FCB-3B06-4776-A3CE-7FE6B93DCC84 5E8028FA-E17F-4AD8-BAC5-4F813927D713 1D290830-4FD2-4440-A00E-2A8668632CE1} -title {Quick Launch Shortcut Checkbutton} -component AddWidget -active Yes -parent 137AE532-86CF-44B3-9167-0132755FA850
+Condition 147E1FCB-3B06-4776-A3CE-7FE6B93DCC84 -active Yes -parent 7B9998FD-0077-4EC1-8F96-88ABBE05A702 -title {Platform Condition} -component PlatformCondition -TreeObject::id 147E1FCB-3B06-4776-A3CE-7FE6B93DCC84
+Condition 5E8028FA-E17F-4AD8-BAC5-4F813927D713 -active Yes -parent 7B9998FD-0077-4EC1-8F96-88ABBE05A702 -title {File Exists Condition} -component FileExistsCondition -TreeObject::id 5E8028FA-E17F-4AD8-BAC5-4F813927D713
+Condition 1D290830-4FD2-4440-A00E-2A8668632CE1 -active Yes -parent 7B9998FD-0077-4EC1-8F96-88ABBE05A702 -title {String Is Condition} -component StringIsCondition -TreeObject::id 1D290830-4FD2-4440-A00E-2A8668632CE1
+InstallComponent 312F5FB0-FF24-477F-8A66-F333A5124D9D -setup Install -type pane -title {Copying Files} -component CopyFiles -active Yes -parent DefaultInstall
+InstallComponent 5E4716C8-584A-4432-A4A0-F4E52EE4C0F7 -setup Install -type action -title {Disable Buttons} -component ModifyWidget -active Yes -parent 312F5FB0-FF24-477F-8A66-F333A5124D9D
+InstallComponent 697B5256-7EBA-4599-B533-6B1A540B5961 -setup Install -type action -title {Install Everything} -component ExecuteAction -active Yes -parent 312F5FB0-FF24-477F-8A66-F333A5124D9D
+InstallComponent B90CCD39-E5F7-4084-8C0E-F8008945BB92 -setup Install -type action -title {Move Forward} -component MoveForward -active Yes -parent 312F5FB0-FF24-477F-8A66-F333A5124D9D
+InstallComponent A0694726-591A-4EBA-AAD2-075E5F9091EE -setup Install -type pane -title {Setup Complete} -component SetupComplete -active Yes -parent DefaultInstall
+InstallComponent 18C3EF37-5C55-43E6-A223-7A4444357E2F -setup Install -type action -conditions {26B9948E-44F1-40C7-8CBA-419E51CF5575 3D587A2C-2764-4105-9E8B-46443BFF7FE3} -title {View Readme Checkbutton} -component AddWidget -active Yes -parent A0694726-591A-4EBA-AAD2-075E5F9091EE
+Condition 26B9948E-44F1-40C7-8CBA-419E51CF5575 -active Yes -parent 18C3EF37-5C55-43E6-A223-7A4444357E2F -title {File Exists Condition} -component FileExistsCondition -TreeObject::id 26B9948E-44F1-40C7-8CBA-419E51CF5575
+Condition 3D587A2C-2764-4105-9E8B-46443BFF7FE3 -active Yes -parent 18C3EF37-5C55-43E6-A223-7A4444357E2F -title {String Is Condition} -component StringIsCondition -TreeObject::id 3D587A2C-2764-4105-9E8B-46443BFF7FE3
+InstallComponent DA64DBB1-48C9-481E-A9B5-79114AE13ED3 -setup Install -type action -conditions {78E848D0-C357-4F8D-9A49-2F1C075E8C87 46287AD0-DC63-4C65-A9D9-CF6D2DDC28BF} -title {Launch Application Checkbutton} -component AddWidget -active Yes -parent A0694726-591A-4EBA-AAD2-075E5F9091EE
+Condition 78E848D0-C357-4F8D-9A49-2F1C075E8C87 -active Yes -parent DA64DBB1-48C9-481E-A9B5-79114AE13ED3 -title {File Exists Condition} -component FileExistsCondition -TreeObject::id 78E848D0-C357-4F8D-9A49-2F1C075E8C87
+Condition 46287AD0-DC63-4C65-A9D9-CF6D2DDC28BF -active Yes -parent DA64DBB1-48C9-481E-A9B5-79114AE13ED3 -title {String Is Condition} -component StringIsCondition -TreeObject::id 46287AD0-DC63-4C65-A9D9-CF6D2DDC28BF
+InstallComponent 5F872846-216A-4EAE-B600-15CBEE8DF4CF -setup Install -type action -conditions {8DA0CB01-C65E-4F61-842C-38C1AD3087C1 863CE846-BD62-448A-BEC7-DAFF4E9C61A4} -title {Desktop Shortcut Checkbutton} -component AddWidget -active Yes -parent A0694726-591A-4EBA-AAD2-075E5F9091EE
+Condition 8DA0CB01-C65E-4F61-842C-38C1AD3087C1 -active Yes -parent 5F872846-216A-4EAE-B600-15CBEE8DF4CF -title {File Exists Condition} -component FileExistsCondition -TreeObject::id 8DA0CB01-C65E-4F61-842C-38C1AD3087C1
+Condition 863CE846-BD62-448A-BEC7-DAFF4E9C61A4 -active Yes -parent 5F872846-216A-4EAE-B600-15CBEE8DF4CF -title {String Is Condition} -component StringIsCondition -TreeObject::id 863CE846-BD62-448A-BEC7-DAFF4E9C61A4
+InstallComponent BB52149D-79DD-4120-8BB8-FF9E81E79E42 -setup Install -type action -conditions {822B14AA-B0F0-4CFD-9E69-C5ACA1946599 040D4822-74FC-432F-A45B-36BA44FEFF99 E4CE56DE-497F-4D32-A6AC-2D03EBF05FD6} -title {Quick Launch Shortcut Checkbutton} -component AddWidget -active Yes -parent A0694726-591A-4EBA-AAD2-075E5F9091EE
+Condition 822B14AA-B0F0-4CFD-9E69-C5ACA1946599 -active Yes -parent BB52149D-79DD-4120-8BB8-FF9E81E79E42 -title {Platform Condition} -component PlatformCondition -TreeObject::id 822B14AA-B0F0-4CFD-9E69-C5ACA1946599
+Condition 040D4822-74FC-432F-A45B-36BA44FEFF99 -active Yes -parent BB52149D-79DD-4120-8BB8-FF9E81E79E42 -title {File Exists Condition} -component FileExistsCondition -TreeObject::id 040D4822-74FC-432F-A45B-36BA44FEFF99
+Condition E4CE56DE-497F-4D32-A6AC-2D03EBF05FD6 -active Yes -parent BB52149D-79DD-4120-8BB8-FF9E81E79E42 -title {String Is Condition} -component StringIsCondition -TreeObject::id E4CE56DE-497F-4D32-A6AC-2D03EBF05FD6
+InstallComponent 8908F64E-3013-478A-8CB2-A232E4E56511 -setup Install -type action -title {Prompt to continue installation} -component ConsoleAskYesOrNo -active Yes -parent ConsoleInstall
+InstallComponent 0F625BC9-C196-49AF-A1D1-B365516BB1D0 -setup Install -type action -conditions 72AECA62-50D3-4BBE-87B8-9B7528CCC7BD -title {Exit if they said no} -component Exit -active Yes -parent ConsoleInstall
+Condition 72AECA62-50D3-4BBE-87B8-9B7528CCC7BD -active Yes -parent 0F625BC9-C196-49AF-A1D1-B365516BB1D0 -title {String Is Condition} -component StringIsCondition -TreeObject::id 72AECA62-50D3-4BBE-87B8-9B7528CCC7BD
+InstallComponent B5EB2E45-BECA-421A-A2F1-1A1D03FBA8E5 -setup Install -type action -conditions D66EB685-05F6-4789-95CD-B3BF714CCFF6 -title {Prompt for install destination} -component ConsoleGetUserInput -active Yes -parent ConsoleInstall
+Condition D66EB685-05F6-4789-95CD-B3BF714CCFF6 -active Yes -parent B5EB2E45-BECA-421A-A2F1-1A1D03FBA8E5 -title {File Permission Condition} -component FilePermissionCondition -TreeObject::id D66EB685-05F6-4789-95CD-B3BF714CCFF6
+InstallComponent EAE9FD9C-689E-40D0-9A06-BBAD9F22D0B1 -setup Install -type action -title {Output Installing Message} -component ConsoleMessage -active Yes -parent ConsoleInstall
+InstallComponent 53358455-6066-4EC4-B313-32B960050C2B -setup Install -type action -title {Install Everything} -component ExecuteAction -active Yes -parent ConsoleInstall
+InstallComponent 1D532C82-EEEA-4AA3-B14B-D0F8AD35DBF2 -setup Install -type action -title {Output Install Complete Message} -component ConsoleMessage -active Yes -parent ConsoleInstall
+InstallComponent 6906B67A-2CE8-4625-90CF-1DFF4F5D5111 -setup Install -type action -title Exit -component Exit -active Yes -parent ConsoleInstall
+InstallComponent CF5E291F-7B8C-4EA0-8A9B-1F7FAE3F58BD -setup Install -type action -title {Install Everything} -component ExecuteAction -active Yes -parent SilentInstall
+InstallComponent F212318C-2AAC-4B73-8A27-791B38F9D509 -setup Install -type action -title Exit -component Exit -active Yes -parent SilentInstall
+InstallComponent 0ADB4A61-3828-4459-B2F2-0EBD8440A5EE -setup Install -type actiongroup -title {Setup Actions} -alias {Setup Actions} -active Yes -parent ActionGroupsInstall
+InstallComponent 4B9F4FD3-2A7D-47E5-8EDD-A789EE7BEB92 -setup Install -type actiongroup -title {Startup Actions} -alias {Startup Actions} -active Yes -parent ActionGroupsInstall
+InstallComponent 39D5E2BB-5E09-40E5-B17F-9A087BC40984 -setup Install -type action -conditions {DBF8F9B2-6265-4155-9984-8F6EEE64E634 7BF3B571-3EE3-485C-BFB9-3732B067B63F} -title Exit -component Exit -active Yes -parent 4B9F4FD3-2A7D-47E5-8EDD-A789EE7BEB92
+Condition DBF8F9B2-6265-4155-9984-8F6EEE64E634 -active Yes -parent 39D5E2BB-5E09-40E5-B17F-9A087BC40984 -title {String Is Condition} -component StringIsCondition -TreeObject::id DBF8F9B2-6265-4155-9984-8F6EEE64E634
+Condition 7BF3B571-3EE3-485C-BFB9-3732B067B63F -active Yes -parent 39D5E2BB-5E09-40E5-B17F-9A087BC40984 -title {Ask Yes or No} -component AskYesOrNo -TreeObject::id 7BF3B571-3EE3-485C-BFB9-3732B067B63F
+InstallComponent 3DA13144-7358-45B9-963D-D4C46070235F -setup Install -type action -title {Create Install Panes} -component CreateInstallPanes -active Yes -parent 4B9F4FD3-2A7D-47E5-8EDD-A789EE7BEB92
+InstallComponent 96D47F15-DF92-4ED1-B3B7-568EBD24CB9B -setup Install -type actiongroup -title {Install Actions} -alias {Install Actions} -active Yes -parent ActionGroupsInstall
+InstallComponent A02B0D14-89F9-4D6E-A640-D32F8DE84CFE -setup Install -type action -title {Install Selected Files} -component InstallSelectedFiles -active Yes -parent 96D47F15-DF92-4ED1-B3B7-568EBD24CB9B
+InstallComponent 3055A4EC-94FA-407B-B69A-9670D30B58AE -setup Install -type action -conditions 7571DE26-7BDF-456E-86DE-FE9362FFB11C -title {Install Uninstaller} -component InstallUninstaller -active Yes -parent 96D47F15-DF92-4ED1-B3B7-568EBD24CB9B
+Condition 7571DE26-7BDF-456E-86DE-FE9362FFB11C -active Yes -parent 3055A4EC-94FA-407B-B69A-9670D30B58AE -title {String Is Condition} -component StringIsCondition -TreeObject::id 7571DE26-7BDF-456E-86DE-FE9362FFB11C
+InstallComponent 08BDABA6-F507-4500-8F7B-26A8A58CD52E -setup Install -type action -conditions 67145EC1-13C4-4E74-B5DE-A78E1B266785 -title {Windows Uninstall Registry} -component AddWindowsUninstallEntry -active Yes -parent 96D47F15-DF92-4ED1-B3B7-568EBD24CB9B
+Condition 67145EC1-13C4-4E74-B5DE-A78E1B266785 -active Yes -parent 08BDABA6-F507-4500-8F7B-26A8A58CD52E -title {String Is Condition} -component StringIsCondition -TreeObject::id 67145EC1-13C4-4E74-B5DE-A78E1B266785
+InstallComponent 8B1A41D1-6E41-41B4-80F6-15493100F9FC -setup Install -type action -conditions C5CB03C7-3D7A-4DC5-B335-FE84A9A1D18A -title {Program Shortcut} -component InstallProgramFolderShortcut -active Yes -parent 96D47F15-DF92-4ED1-B3B7-568EBD24CB9B
+Condition C5CB03C7-3D7A-4DC5-B335-FE84A9A1D18A -active Yes -parent 8B1A41D1-6E41-41B4-80F6-15493100F9FC -title {String Is Condition} -component StringIsCondition -TreeObject::id C5CB03C7-3D7A-4DC5-B335-FE84A9A1D18A
+InstallComponent 7C59ECDE-E0B1-4B3B-9ADE-364347F153E1 -setup Install -type action -conditions 1AB72C39-609E-4F09-8834-3D3C8A68BEB1 -title {Uninstall Shortcut} -component InstallProgramFolderShortcut -active Yes -parent 96D47F15-DF92-4ED1-B3B7-568EBD24CB9B
+Condition 1AB72C39-609E-4F09-8834-3D3C8A68BEB1 -active Yes -parent 7C59ECDE-E0B1-4B3B-9ADE-364347F153E1 -title {String Is Condition} -component StringIsCondition -TreeObject::id 1AB72C39-609E-4F09-8834-3D3C8A68BEB1
+InstallComponent D8F58F63-F6A3-4FF8-8579-5F58FD242EAC -setup Install -type actiongroup -title {Finish Actions} -alias {Finish Actions} -active Yes -parent ActionGroupsInstall
+InstallComponent F243AA46-CB2B-46BA-8254-0CE5192BFD7B -setup Install -type action -conditions {1AA9090F-36B7-4A63-8650-DD76DA7B787A D361C7FD-0376-4C29-8E8F-4056D0F505B6} -title {Install Desktop Shortcut} -component InstallDesktopShortcut -active Yes -parent D8F58F63-F6A3-4FF8-8579-5F58FD242EAC
+Condition 1AA9090F-36B7-4A63-8650-DD76DA7B787A -active Yes -parent F243AA46-CB2B-46BA-8254-0CE5192BFD7B -title {String Is Condition} -component StringIsCondition -TreeObject::id 1AA9090F-36B7-4A63-8650-DD76DA7B787A
+Condition D361C7FD-0376-4C29-8E8F-4056D0F505B6 -active Yes -parent F243AA46-CB2B-46BA-8254-0CE5192BFD7B -title {File Exists Condition} -component FileExistsCondition -TreeObject::id D361C7FD-0376-4C29-8E8F-4056D0F505B6
+InstallComponent AF5F4D19-561B-4E81-8A7A-D0C9DCEE7487 -setup Install -type action -conditions {F114794C-193C-4E5D-8830-4BBF8FDF9FC8 C1C77698-90D3-49DA-8751-B927F3649C44} -title {Install Quick Launch Shortcut} -component InstallWindowsShortcut -active Yes -parent D8F58F63-F6A3-4FF8-8579-5F58FD242EAC
+Condition F114794C-193C-4E5D-8830-4BBF8FDF9FC8 -active Yes -parent AF5F4D19-561B-4E81-8A7A-D0C9DCEE7487 -title {String Is Condition} -component StringIsCondition -TreeObject::id F114794C-193C-4E5D-8830-4BBF8FDF9FC8
+Condition C1C77698-90D3-49DA-8751-B927F3649C44 -active Yes -parent AF5F4D19-561B-4E81-8A7A-D0C9DCEE7487 -title {File Exists Condition} -component FileExistsCondition -TreeObject::id C1C77698-90D3-49DA-8751-B927F3649C44
+InstallComponent 4629322A-B41A-41FD-976D-987B375AFECC -setup Install -type action -conditions {54865810-0EB1-44F6-A737-11953CDA59A0 6967FABA-B1BD-4160-845A-D3582B8967A9 1B65C97D-8937-4145-9BA5-EAD9C908BDBE} -title {View Readme Window} -component TextWindow -active Yes -parent D8F58F63-F6A3-4FF8-8579-5F58FD242EAC
+Condition 54865810-0EB1-44F6-A737-11953CDA59A0 -active Yes -parent 4629322A-B41A-41FD-976D-987B375AFECC -title {String Is Condition} -component StringIsCondition -TreeObject::id 54865810-0EB1-44F6-A737-11953CDA59A0
+Condition 6967FABA-B1BD-4160-845A-D3582B8967A9 -active Yes -parent 4629322A-B41A-41FD-976D-987B375AFECC -title {String Is Condition} -component StringIsCondition -TreeObject::id 6967FABA-B1BD-4160-845A-D3582B8967A9
+Condition 1B65C97D-8937-4145-9BA5-EAD9C908BDBE -active Yes -parent 4629322A-B41A-41FD-976D-987B375AFECC -title {File Exists Condition} -component FileExistsCondition -TreeObject::id 1B65C97D-8937-4145-9BA5-EAD9C908BDBE
+InstallComponent AD493088-BC25-4A05-83FF-CAED2A7960F0 -setup Install -type action -conditions {78B27C47-637A-42F5-934A-4EFA6164572F 16ED1571-4A24-4E75-8D65-8F2EF69903AB D7F35084-4D8C-4118-B96C-48FF9496BFE2} -title {Launch Application} -component ExecuteExternalProgram -active Yes -parent D8F58F63-F6A3-4FF8-8579-5F58FD242EAC
+Condition 78B27C47-637A-42F5-934A-4EFA6164572F -active Yes -parent AD493088-BC25-4A05-83FF-CAED2A7960F0 -title {String Is Condition} -component StringIsCondition -TreeObject::id 78B27C47-637A-42F5-934A-4EFA6164572F
+Condition 16ED1571-4A24-4E75-8D65-8F2EF69903AB -active Yes -parent AD493088-BC25-4A05-83FF-CAED2A7960F0 -title {String Is Condition} -component StringIsCondition -TreeObject::id 16ED1571-4A24-4E75-8D65-8F2EF69903AB
+Condition D7F35084-4D8C-4118-B96C-48FF9496BFE2 -active Yes -parent AD493088-BC25-4A05-83FF-CAED2A7960F0 -title {File Exists Condition} -component FileExistsCondition -TreeObject::id D7F35084-4D8C-4118-B96C-48FF9496BFE2
+InstallComponent 0CEB080C-8AD4-4C6C-BA7B-92A10D26D88C -setup Install -type actiongroup -title {Cancel Actions} -alias {Cancel Actions} -active Yes -parent ActionGroupsInstall
+InstallComponent 44DEB994-3227-4D45-8AAF-97C6BF7DA66E -setup Uninstall -type pane -title Uninstall -component Uninstall -active Yes -parent StandardUninstall
+InstallComponent 392B6093-41C9-4CAA-BE29-4F2E2055363D -setup Uninstall -type action -title {Modify Widget} -component ModifyWidget -active Yes -parent 44DEB994-3227-4D45-8AAF-97C6BF7DA66E
+InstallComponent F1F054C5-13AA-41B3-8BF3-79A7B63EBFC9 -setup Uninstall -type action -title {Execute Action} -component ExecuteAction -active Yes -parent 44DEB994-3227-4D45-8AAF-97C6BF7DA66E
+InstallComponent F5B7F0C0-AB9C-4940-A271-6E51DB56E284 -setup Uninstall -type action -title {Move Forward} -component MoveForward -active Yes -parent 44DEB994-3227-4D45-8AAF-97C6BF7DA66E
+InstallComponent 14B01D4E-2240-4EE8-8E2F-6A8FA09DBB72 -setup Uninstall -type pane -conditions E26CCBFE-A672-4B88-BD04-9A11859EDD42 -title {Uninstall Details} -component UninstallDetails -active Yes -parent StandardUninstall
+Condition E26CCBFE-A672-4B88-BD04-9A11859EDD42 -active Yes -parent 14B01D4E-2240-4EE8-8E2F-6A8FA09DBB72 -title {String Is Condition} -component StringIsCondition -TreeObject::id E26CCBFE-A672-4B88-BD04-9A11859EDD42
+InstallComponent B41385EA-BF12-40E2-8C63-8D34C9085CB8 -setup Uninstall -type pane -title {Uninstall Complete} -component UninstallComplete -active Yes -parent StandardUninstall
+InstallComponent 7377E888-711F-4C79-B921-2A1A3F1F0CA5 -setup Uninstall -type action -title {Console Ask Yes Or No} -component ConsoleAskYesOrNo -active Yes -parent ConsoleUninstall
+InstallComponent 3E46EE98-D3C8-4984-A581-DAD954625F22 -setup Uninstall -type action -conditions 12E3C8CE-B316-4D20-B2E9-4325A24D4549 -title Exit -component Exit -active Yes -parent ConsoleUninstall
+Condition 12E3C8CE-B316-4D20-B2E9-4325A24D4549 -active Yes -parent 3E46EE98-D3C8-4984-A581-DAD954625F22 -title {String Is Condition} -component StringIsCondition -TreeObject::id 12E3C8CE-B316-4D20-B2E9-4325A24D4549
+InstallComponent 09720EAD-E327-41AC-B5C4-CAB372D427D8 -setup Uninstall -type action -title {Console Message} -component ConsoleMessage -active Yes -parent ConsoleUninstall
+InstallComponent C1DA1E92-56F3-4EFE-930E-852FEEF558BF -setup Uninstall -type action -title {Execute Action} -component ExecuteAction -active Yes -parent ConsoleUninstall
+InstallComponent 446444AE-E509-41B3-92E1-6B6EFFA1FD12 -setup Uninstall -type action -title {Console Message} -component ConsoleMessage -active Yes -parent ConsoleUninstall
+InstallComponent 0705315B-1FAD-4054-9223-2741A772D570 -setup Uninstall -type action -title Exit -component Exit -active Yes -parent ConsoleUninstall
+InstallComponent BB024539-5037-4A7B-95BE-26C233CD3842 -setup Uninstall -type action -title {Uninstall Everything} -component ExecuteAction -active Yes -parent SilentUninstall
+InstallComponent 7729A27E-04C9-4ED3-9F8E-5971CC308F51 -setup Uninstall -type action -title Exit -component Exit -active Yes -parent SilentUninstall
+InstallComponent 50259665-CDDA-46AC-ADFD-D493028BB700 -setup Uninstall -type actiongroup -title {Setup Actions} -alias {Setup Actions} -active Yes -parent ActionGroupsUninstall
+InstallComponent 23C9F3A6-8FCB-4B22-A553-CCF3300A1097 -setup Uninstall -type actiongroup -title {Startup Actions} -alias {Startup Actions} -active Yes -parent ActionGroupsUninstall
+InstallComponent 08D33FE8-3A67-4F78-B79F-747F0497187B -setup Uninstall -type action -conditions {69663474-61D6-4E8B-B4B8-288E40DEFADD 2013F392-6A72-4E50-8294-F83C8DBECFEA} -title Exit -component Exit -active Yes -parent 23C9F3A6-8FCB-4B22-A553-CCF3300A1097
+Condition 69663474-61D6-4E8B-B4B8-288E40DEFADD -active Yes -parent 08D33FE8-3A67-4F78-B79F-747F0497187B -title {String Is Condition} -component StringIsCondition -TreeObject::id 69663474-61D6-4E8B-B4B8-288E40DEFADD
+Condition 2013F392-6A72-4E50-8294-F83C8DBECFEA -active Yes -parent 08D33FE8-3A67-4F78-B79F-747F0497187B -title {Ask Yes or No} -component AskYesOrNo -TreeObject::id 2013F392-6A72-4E50-8294-F83C8DBECFEA
+InstallComponent BDBE9DC0-4E01-4B21-8ED7-680161E92902 -setup Uninstall -type actiongroup -title {Uninstall Actions} -alias {Uninstall Actions} -active Yes -parent ActionGroupsUninstall
+InstallComponent EF10895C-0CC7-4072-AFB5-B8D5ADD27E1B -setup Uninstall -type action -title {Uninstall Selected Files} -component UninstallSelectedFiles -active Yes -parent BDBE9DC0-4E01-4B21-8ED7-680161E92902
+InstallComponent 654CF276-B044-4793-95C6-57A33433250F -setup Uninstall -type actiongroup -title {Finish Actions} -alias {Finish Actions} -active Yes -parent ActionGroupsUninstall
+InstallComponent AC727B92-7C03-4C07-9E07-CADE9DF02694 -setup Uninstall -type actiongroup -title {Cancel Actions} -alias {Cancel Actions} -active Yes -parent ActionGroupsUninstall
+
+array set Properties {
+040D4822-74FC-432F-A45B-36BA44FEFF99,CheckCondition
+{Before Action is Executed}
+
+040D4822-74FC-432F-A45B-36BA44FEFF99,Filename
+{<%ProgramExecutable%>}
+
+0705315B-1FAD-4054-9223-2741A772D570,ExitType
+{Finish}
+
+08D33FE8-3A67-4F78-B79F-747F0497187B,Comment
+{Ask the user if they want to proceed with the uninstall.}
+
+09720EAD-E327-41AC-B5C4-CAB372D427D8,Message,subst
+{1}
+
+0ADB4A61-3828-4459-B2F2-0EBD8440A5EE,Alias
+{Setup Actions}
+
+0B08768B-E5AA-4701-B9CE-424C9F6AA96B,Description,subst
+{1}
+
+0B08768B-E5AA-4701-B9CE-424C9F6AA96B,DisplayName,subst
+{1}
+
+0B08768B-E5AA-4701-B9CE-424C9F6AA96B,FileGroups
+{7D8589FC-AF69-4DFB-9DE3-363BAFB40C0D}
+
+0B08768B-E5AA-4701-B9CE-424C9F6AA96B,Name
+{Default Component}
+
+0B08768B-E5AA-4701-B9CE-424C9F6AA96B,RequiredComponent
+{Yes}
+
+0CEB080C-8AD4-4C6C-BA7B-92A10D26D88C,Alias
+{Cancel Actions}
+
+12E3C8CE-B316-4D20-B2E9-4325A24D4549,CheckCondition
+{Before Action is Executed}
+
+12E3C8CE-B316-4D20-B2E9-4325A24D4549,Operator
+{false}
+
+12E3C8CE-B316-4D20-B2E9-4325A24D4549,String
+{<%Answer%>}
+
+137AE532-86CF-44B3-9167-0132755FA850,BackButton,subst
+{1}
+
+137AE532-86CF-44B3-9167-0132755FA850,CancelButton,subst
+{1}
+
+137AE532-86CF-44B3-9167-0132755FA850,Caption,subst
+{1}
+
+137AE532-86CF-44B3-9167-0132755FA850,Message,subst
+{1}
+
+137AE532-86CF-44B3-9167-0132755FA850,NextButton,subst
+{1}
+
+147E1FCB-3B06-4776-A3CE-7FE6B93DCC84,CheckCondition
+{Before Action is Executed}
+
+147E1FCB-3B06-4776-A3CE-7FE6B93DCC84,Platform
+{Windows}
+
+14B01D4E-2240-4EE8-8E2F-6A8FA09DBB72,BackButton,subst
+{1}
+
+14B01D4E-2240-4EE8-8E2F-6A8FA09DBB72,CancelButton,subst
+{1}
+
+14B01D4E-2240-4EE8-8E2F-6A8FA09DBB72,Caption,subst
+{1}
+
+14B01D4E-2240-4EE8-8E2F-6A8FA09DBB72,Message,subst
+{1}
+
+14B01D4E-2240-4EE8-8E2F-6A8FA09DBB72,NextButton,subst
+{1}
+
+14B01D4E-2240-4EE8-8E2F-6A8FA09DBB72,Subtitle,subst
+{1}
+
+14B01D4E-2240-4EE8-8E2F-6A8FA09DBB72,Text,subst
+{1}
+
+14B01D4E-2240-4EE8-8E2F-6A8FA09DBB72,Title,subst
+{1}
+
+16ED1571-4A24-4E75-8D65-8F2EF69903AB,CheckCondition
+{Before Action is Executed}
+
+16ED1571-4A24-4E75-8D65-8F2EF69903AB,String
+{<%LaunchApplication%>}
+
+18C3EF37-5C55-43E6-A223-7A4444357E2F,Background
+{#FFFFFF}
+
+18C3EF37-5C55-43E6-A223-7A4444357E2F,Text,subst
+{1}
+
+18C3EF37-5C55-43E6-A223-7A4444357E2F,Type
+{checkbutton}
+
+18C3EF37-5C55-43E6-A223-7A4444357E2F,VirtualText
+{ViewReadme}
+
+18C3EF37-5C55-43E6-A223-7A4444357E2F,X
+{185}
+
+18C3EF37-5C55-43E6-A223-7A4444357E2F,Y
+{140}
+
+1AA9090F-36B7-4A63-8650-DD76DA7B787A,CheckCondition
+{Before Action is Executed}
+
+1AA9090F-36B7-4A63-8650-DD76DA7B787A,String
+{<%CreateDesktopShortcut%>}
+
+1AB72C39-609E-4F09-8834-3D3C8A68BEB1,CheckCondition
+{Before Action is Executed}
+
+1AB72C39-609E-4F09-8834-3D3C8A68BEB1,Operator
+{false}
+
+1AB72C39-609E-4F09-8834-3D3C8A68BEB1,String
+{<%UpgradeInstall%>}
+
+1B65C97D-8937-4145-9BA5-EAD9C908BDBE,CheckCondition
+{Before Action is Executed}
+
+1B65C97D-8937-4145-9BA5-EAD9C908BDBE,Filename
+{<%ProgramReadme%>}
+
+1BF9B52D-D364-470B-8D12-A5ADD1A47B5B,CheckCondition
+{Before Action is Executed}
+
+1BF9B52D-D364-470B-8D12-A5ADD1A47B5B,Operator
+{false}
+
+1BF9B52D-D364-470B-8D12-A5ADD1A47B5B,String
+{<%InstallStopped%>}
+
+1D290830-4FD2-4440-A00E-2A8668632CE1,CheckCondition
+{Before Action is Executed}
+
+1D290830-4FD2-4440-A00E-2A8668632CE1,Operator
+{false}
+
+1D290830-4FD2-4440-A00E-2A8668632CE1,String
+{<%InstallStopped%>}
+
+1D532C82-EEEA-4AA3-B14B-D0F8AD35DBF2,Message,subst
+{1}
+
+1ED68248-972F-4343-BEF4-C91ED3618601,Background
+{#FFFFFF}
+
+1ED68248-972F-4343-BEF4-C91ED3618601,Text,subst
+{1}
+
+1ED68248-972F-4343-BEF4-C91ED3618601,Type
+{checkbutton}
+
+1ED68248-972F-4343-BEF4-C91ED3618601,VirtualText
+{CreateDesktopShortcut}
+
+1ED68248-972F-4343-BEF4-C91ED3618601,X
+{185}
+
+1ED68248-972F-4343-BEF4-C91ED3618601,Y
+{180}
+
+2013F392-6A72-4E50-8294-F83C8DBECFEA,CheckCondition
+{Before Action is Executed}
+
+2013F392-6A72-4E50-8294-F83C8DBECFEA,Message,subst
+{1}
+
+2013F392-6A72-4E50-8294-F83C8DBECFEA,Title,subst
+{1}
+
+2013F392-6A72-4E50-8294-F83C8DBECFEA,TrueValue
+{No}
+
+23C9F3A6-8FCB-4B22-A553-CCF3300A1097,Alias
+{Startup Actions}
+
+26B9948E-44F1-40C7-8CBA-419E51CF5575,CheckCondition
+{Before Action is Executed}
+
+26B9948E-44F1-40C7-8CBA-419E51CF5575,Filename
+{<%ProgramReadme%>}
+
+2A3B15B2-D3B0-43DD-9FDD-581278BD0EA6,Components
+{0B08768B-E5AA-4701-B9CE-424C9F6AA96B}
+
+2A3B15B2-D3B0-43DD-9FDD-581278BD0EA6,Description,subst
+{1}
+
+2A3B15B2-D3B0-43DD-9FDD-581278BD0EA6,DisplayName,subst
+{1}
+
+2A3B15B2-D3B0-43DD-9FDD-581278BD0EA6,Name
+{Custom}
+
+2AE46278-0442-4ACB-92BC-33F85D961AE6,BackButton,subst
+{1}
+
+2AE46278-0442-4ACB-92BC-33F85D961AE6,CancelButton,subst
+{1}
+
+2AE46278-0442-4ACB-92BC-33F85D961AE6,Caption,subst
+{1}
+
+2AE46278-0442-4ACB-92BC-33F85D961AE6,Message,subst
+{1}
+
+2AE46278-0442-4ACB-92BC-33F85D961AE6,NextButton,subst
+{1}
+
+312F5FB0-FF24-477F-8A66-F333A5124D9D,BackButton,subst
+{1}
+
+312F5FB0-FF24-477F-8A66-F333A5124D9D,CancelButton,subst
+{1}
+
+312F5FB0-FF24-477F-8A66-F333A5124D9D,Caption,subst
+{1}
+
+312F5FB0-FF24-477F-8A66-F333A5124D9D,FileLabel,subst
+{1}
+
+312F5FB0-FF24-477F-8A66-F333A5124D9D,Message,subst
+{1}
+
+312F5FB0-FF24-477F-8A66-F333A5124D9D,NextButton,subst
+{1}
+
+312F5FB0-FF24-477F-8A66-F333A5124D9D,ProgressValue,subst
+{1}
+
+312F5FB0-FF24-477F-8A66-F333A5124D9D,Subtitle,subst
+{1}
+
+312F5FB0-FF24-477F-8A66-F333A5124D9D,Title,subst
+{1}
+
+392B6093-41C9-4CAA-BE29-4F2E2055363D,ExecuteAction
+{Before Pane is Displayed}
+
+392B6093-41C9-4CAA-BE29-4F2E2055363D,State
+{disabled}
+
+392B6093-41C9-4CAA-BE29-4F2E2055363D,Widget
+{NextButton; CancelButton}
+
+39D5E2BB-5E09-40E5-B17F-9A087BC40984,Comment
+{Ask the user if they want to proceed with the install.}
+
+3D587A2C-2764-4105-9E8B-46443BFF7FE3,CheckCondition
+{Before Action is Executed}
+
+3D587A2C-2764-4105-9E8B-46443BFF7FE3,Operator
+{false}
+
+3D587A2C-2764-4105-9E8B-46443BFF7FE3,String
+{<%InstallStopped%>}
+
+436E86CF-1049-4020-87C6-08919DF47E9D,BackButton,subst
+{1}
+
+436E86CF-1049-4020-87C6-08919DF47E9D,CancelButton,subst
+{1}
+
+436E86CF-1049-4020-87C6-08919DF47E9D,Caption,subst
+{1}
+
+436E86CF-1049-4020-87C6-08919DF47E9D,FileLabel,subst
+{1}
+
+436E86CF-1049-4020-87C6-08919DF47E9D,Message,subst
+{1}
+
+436E86CF-1049-4020-87C6-08919DF47E9D,NextButton,subst
+{1}
+
+436E86CF-1049-4020-87C6-08919DF47E9D,ProgressValue,subst
+{1}
+
+436E86CF-1049-4020-87C6-08919DF47E9D,Subtitle,subst
+{1}
+
+436E86CF-1049-4020-87C6-08919DF47E9D,Title,subst
+{1}
+
+446444AE-E509-41B3-92E1-6B6EFFA1FD12,Message,subst
+{1}
+
+44DEB994-3227-4D45-8AAF-97C6BF7DA66E,BackButton,subst
+{1}
+
+44DEB994-3227-4D45-8AAF-97C6BF7DA66E,CancelButton,subst
+{1}
+
+44DEB994-3227-4D45-8AAF-97C6BF7DA66E,Caption,subst
+{1}
+
+44DEB994-3227-4D45-8AAF-97C6BF7DA66E,FileValue,subst
+{1}
+
+44DEB994-3227-4D45-8AAF-97C6BF7DA66E,Message,subst
+{1}
+
+44DEB994-3227-4D45-8AAF-97C6BF7DA66E,NextButton,subst
+{1}
+
+44DEB994-3227-4D45-8AAF-97C6BF7DA66E,ProgressValue,subst
+{1}
+
+44DEB994-3227-4D45-8AAF-97C6BF7DA66E,Subtitle,subst
+{1}
+
+44DEB994-3227-4D45-8AAF-97C6BF7DA66E,Title,subst
+{1}
+
+46287AD0-DC63-4C65-A9D9-CF6D2DDC28BF,CheckCondition
+{Before Action is Executed}
+
+46287AD0-DC63-4C65-A9D9-CF6D2DDC28BF,Operator
+{false}
+
+46287AD0-DC63-4C65-A9D9-CF6D2DDC28BF,String
+{<%InstallStopped%>}
+
+4629322A-B41A-41FD-976D-987B375AFECC,Caption,subst
+{1}
+
+4629322A-B41A-41FD-976D-987B375AFECC,CloseButton,subst
+{1}
+
+4629322A-B41A-41FD-976D-987B375AFECC,Message,subst
+{1}
+
+4629322A-B41A-41FD-976D-987B375AFECC,TextFile
+{<%ProgramReadme%>}
+
+4629322A-B41A-41FD-976D-987B375AFECC,Title,subst
+{1}
+
+489BB600-70D6-4EC8-B032-F5FF6FDD532F,Components
+{0B08768B-E5AA-4701-B9CE-424C9F6AA96B}
+
+489BB600-70D6-4EC8-B032-F5FF6FDD532F,Description,subst
+{1}
+
+489BB600-70D6-4EC8-B032-F5FF6FDD532F,DisplayName,subst
+{1}
+
+489BB600-70D6-4EC8-B032-F5FF6FDD532F,Name
+{Typical}
+
+4B9F4FD3-2A7D-47E5-8EDD-A789EE7BEB92,Alias
+{Startup Actions}
+
+50259665-CDDA-46AC-ADFD-D493028BB700,Alias
+{Setup Actions}
+
+53358455-6066-4EC4-B313-32B960050C2B,Action
+{Install Actions}
+
+54865810-0EB1-44F6-A737-11953CDA59A0,CheckCondition
+{Before Action is Executed}
+
+54865810-0EB1-44F6-A737-11953CDA59A0,String
+{<%GuiMode%>}
+
+566F51B1-AFB2-4D36-AC8A-F8EF2E41CFCD,Action
+{Install Actions}
+
+56A12F16-B339-4D29-9B64-FB118A810DF0,Comment
+{Do not display this pane if this is an upgrade install unless there is more than one installation present}
+
+56A12F16-B339-4D29-9B64-FB118A810DF0,Script
+{!<%UpgradeInstall%> || <%PreviousInstallCount%> != 1}
+
+5E4716C8-584A-4432-A4A0-F4E52EE4C0F7,ExecuteAction
+{Before Pane is Displayed}
+
+5E4716C8-584A-4432-A4A0-F4E52EE4C0F7,State
+{disabled}
+
+5E4716C8-584A-4432-A4A0-F4E52EE4C0F7,Widget
+{Back Button;Next Button}
+
+5E8028FA-E17F-4AD8-BAC5-4F813927D713,CheckCondition
+{Before Action is Executed}
+
+5E8028FA-E17F-4AD8-BAC5-4F813927D713,Filename
+{<%ProgramExecutable%>}
+
+5F872846-216A-4EAE-B600-15CBEE8DF4CF,Background
+{#FFFFFF}
+
+5F872846-216A-4EAE-B600-15CBEE8DF4CF,Text,subst
+{1}
+
+5F872846-216A-4EAE-B600-15CBEE8DF4CF,Type
+{checkbutton}
+
+5F872846-216A-4EAE-B600-15CBEE8DF4CF,VirtualText
+{CreateDesktopShortcut}
+
+5F872846-216A-4EAE-B600-15CBEE8DF4CF,X
+{185}
+
+5F872846-216A-4EAE-B600-15CBEE8DF4CF,Y
+{180}
+
+654CF276-B044-4793-95C6-57A33433250F,Alias
+{Finish Actions}
+
+67145EC1-13C4-4E74-B5DE-A78E1B266785,CheckCondition
+{Before Action is Executed}
+
+67145EC1-13C4-4E74-B5DE-A78E1B266785,Operator
+{false}
+
+67145EC1-13C4-4E74-B5DE-A78E1B266785,String
+{<%UpgradeInstall%>}
+
+6906B67A-2CE8-4625-90CF-1DFF4F5D5111,ExitType
+{Finish}
+
+69663474-61D6-4E8B-B4B8-288E40DEFADD,CheckCondition
+{Before Action is Executed}
+
+69663474-61D6-4E8B-B4B8-288E40DEFADD,String
+{<%GuiMode%>}
+
+6967FABA-B1BD-4160-845A-D3582B8967A9,CheckCondition
+{Before Action is Executed}
+
+6967FABA-B1BD-4160-845A-D3582B8967A9,String
+{<%ViewReadme%>}
+
+697B5256-7EBA-4599-B533-6B1A540B5961,Action
+{Install Actions}
+
+6AED9C7F-5DEE-4356-A1E3-8D9B67EA577A,CheckCondition
+{Before Action is Executed}
+
+6AED9C7F-5DEE-4356-A1E3-8D9B67EA577A,Operator
+{false}
+
+6AED9C7F-5DEE-4356-A1E3-8D9B67EA577A,String
+{<%InstallStopped%>}
+
+72AECA62-50D3-4BBE-87B8-9B7528CCC7BD,CheckCondition
+{Before Action is Executed}
+
+72AECA62-50D3-4BBE-87B8-9B7528CCC7BD,Operator
+{false}
+
+72AECA62-50D3-4BBE-87B8-9B7528CCC7BD,String
+{<%Answer%>}
+
+7377E888-711F-4C79-B921-2A1A3F1F0CA5,Default
+{Yes}
+
+7377E888-711F-4C79-B921-2A1A3F1F0CA5,Prompt
+{<%UninstallStartupText%>}
+
+7571DE26-7BDF-456E-86DE-FE9362FFB11C,CheckCondition
+{Before Action is Executed}
+
+7571DE26-7BDF-456E-86DE-FE9362FFB11C,Operator
+{false}
+
+7571DE26-7BDF-456E-86DE-FE9362FFB11C,String
+{<%UpgradeInstall%>}
+
+7729A27E-04C9-4ED3-9F8E-5971CC308F51,ExitType
+{Finish}
+
+78B27C47-637A-42F5-934A-4EFA6164572F,CheckCondition
+{Before Action is Executed}
+
+78B27C47-637A-42F5-934A-4EFA6164572F,String
+{<%GuiMode%>}
+
+78E848D0-C357-4F8D-9A49-2F1C075E8C87,CheckCondition
+{Before Action is Executed}
+
+78E848D0-C357-4F8D-9A49-2F1C075E8C87,Filename
+{<%ProgramExecutable%>}
+
+7B9998FD-0077-4EC1-8F96-88ABBE05A702,Background
+{#FFFFFF}
+
+7B9998FD-0077-4EC1-8F96-88ABBE05A702,Text,subst
+{1}
+
+7B9998FD-0077-4EC1-8F96-88ABBE05A702,Type
+{checkbutton}
+
+7B9998FD-0077-4EC1-8F96-88ABBE05A702,VirtualText
+{CreateQuickLaunchShortcut}
+
+7B9998FD-0077-4EC1-8F96-88ABBE05A702,X
+{185}
+
+7B9998FD-0077-4EC1-8F96-88ABBE05A702,Y
+{200}
+
+7BF3B571-3EE3-485C-BFB9-3732B067B63F,CheckCondition
+{Before Action is Executed}
+
+7BF3B571-3EE3-485C-BFB9-3732B067B63F,Message,subst
+{1}
+
+7BF3B571-3EE3-485C-BFB9-3732B067B63F,Title,subst
+{1}
+
+7BF3B571-3EE3-485C-BFB9-3732B067B63F,TrueValue
+{No}
+
+7C59ECDE-E0B1-4B3B-9ADE-364347F153E1,FileName
+{<%ShortAppName%>-uninstall}
+
+7C59ECDE-E0B1-4B3B-9ADE-364347F153E1,ShortcutName
+{Uninstall <%AppName%>}
+
+7C59ECDE-E0B1-4B3B-9ADE-364347F153E1,TargetFileName
+{<%Uninstaller%>}
+
+7C59ECDE-E0B1-4B3B-9ADE-364347F153E1,WorkingDirectory
+{<%InstallDir%>}
+
+7D1EBBDC-5691-4044-BB19-6CE7D704D434,CheckCondition
+{Before Action is Executed}
+
+7D1EBBDC-5691-4044-BB19-6CE7D704D434,Filename
+{<%ProgramReadme%>}
+
+7D8589FC-AF69-4DFB-9DE3-363BAFB40C0D,Destination
+{<%InstallDir%>}
+
+7D8589FC-AF69-4DFB-9DE3-363BAFB40C0D,FileSize
+{49475988}
+
+7D8589FC-AF69-4DFB-9DE3-363BAFB40C0D,Name
+{Program Files}
+
+806BCA96-55DE-4551-BD24-7BDA967C0122,BackButton,subst
+{1}
+
+806BCA96-55DE-4551-BD24-7BDA967C0122,BrowseButton,subst
+{1}
+
+806BCA96-55DE-4551-BD24-7BDA967C0122,BrowseText,subst
+{1}
+
+806BCA96-55DE-4551-BD24-7BDA967C0122,CancelButton,subst
+{1}
+
+806BCA96-55DE-4551-BD24-7BDA967C0122,Caption,subst
+{1}
+
+806BCA96-55DE-4551-BD24-7BDA967C0122,Destination,subst
+{1}
+
+806BCA96-55DE-4551-BD24-7BDA967C0122,DestinationLabel,subst
+{0}
+
+806BCA96-55DE-4551-BD24-7BDA967C0122,Message,subst
+{1}
+
+806BCA96-55DE-4551-BD24-7BDA967C0122,NextButton,subst
+{1}
+
+806BCA96-55DE-4551-BD24-7BDA967C0122,Subtitle,subst
+{1}
+
+806BCA96-55DE-4551-BD24-7BDA967C0122,Title,subst
+{1}
+
+822B14AA-B0F0-4CFD-9E69-C5ACA1946599,CheckCondition
+{Before Action is Executed}
+
+822B14AA-B0F0-4CFD-9E69-C5ACA1946599,Platform
+{Windows}
+
+863CE846-BD62-448A-BEC7-DAFF4E9C61A4,CheckCondition
+{Before Action is Executed}
+
+863CE846-BD62-448A-BEC7-DAFF4E9C61A4,Operator
+{false}
+
+863CE846-BD62-448A-BEC7-DAFF4E9C61A4,String
+{<%InstallStopped%>}
+
+8908F64E-3013-478A-8CB2-A232E4E56511,Default
+{Yes}
+
+8908F64E-3013-478A-8CB2-A232E4E56511,Prompt
+{<%InstallStartupText%>}
+
+89C128FC-A7C5-462B-ACAD-DFAF81BE1B4B,ExecuteAction
+{Before Pane is Displayed}
+
+89C128FC-A7C5-462B-ACAD-DFAF81BE1B4B,State
+{disabled}
+
+89C128FC-A7C5-462B-ACAD-DFAF81BE1B4B,Widget
+{Back Button;Next Button}
+
+8B1A41D1-6E41-41B4-80F6-15493100F9FC,ShortcutName
+{<%AppName%>}
+
+8B1A41D1-6E41-41B4-80F6-15493100F9FC,TargetFileName
+{<%ProgramExecutable%>}
+
+8B1A41D1-6E41-41B4-80F6-15493100F9FC,WorkingDirectory
+{<%InstallDir%>}
+
+8DA0CB01-C65E-4F61-842C-38C1AD3087C1,CheckCondition
+{Before Action is Executed}
+
+8DA0CB01-C65E-4F61-842C-38C1AD3087C1,Filename
+{<%ProgramExecutable%>}
+
+9688B263-B6EC-40CD-9B31-0D1843879A88,CheckCondition
+{Before Action is Executed}
+
+9688B263-B6EC-40CD-9B31-0D1843879A88,Filename
+{<%ProgramExecutable%>}
+
+96B93C29-6883-4B14-A4BB-063769CC7311,Background
+{#FFFFFF}
+
+96B93C29-6883-4B14-A4BB-063769CC7311,Text,subst
+{1}
+
+96B93C29-6883-4B14-A4BB-063769CC7311,Type
+{checkbutton}
+
+96B93C29-6883-4B14-A4BB-063769CC7311,VirtualText
+{LaunchApplication}
+
+96B93C29-6883-4B14-A4BB-063769CC7311,X
+{185}
+
+96B93C29-6883-4B14-A4BB-063769CC7311,Y
+{160}
+
+96D47F15-DF92-4ED1-B3B7-568EBD24CB9B,Alias
+{Install Actions}
+
+A0694726-591A-4EBA-AAD2-075E5F9091EE,BackButton,subst
+{1}
+
+A0694726-591A-4EBA-AAD2-075E5F9091EE,CancelButton,subst
+{1}
+
+A0694726-591A-4EBA-AAD2-075E5F9091EE,Caption,subst
+{1}
+
+A0694726-591A-4EBA-AAD2-075E5F9091EE,Message,subst
+{1}
+
+A0694726-591A-4EBA-AAD2-075E5F9091EE,NextButton,subst
+{1}
+
+A5D3BBB1-85B1-4EB2-B853-8B55062277FC,CheckCondition
+{Before Next Pane is Displayed}
+
+A5D3BBB1-85B1-4EB2-B853-8B55062277FC,FailureMessage
+{<%DirectoryPermissionText%>}
+
+A5D3BBB1-85B1-4EB2-B853-8B55062277FC,Filename
+{<%InstallDir%>}
+
+A5D3BBB1-85B1-4EB2-B853-8B55062277FC,Permission
+{can create}
+
+AC727B92-7C03-4C07-9E07-CADE9DF02694,Alias
+{Cancel Actions}
+
+AD493088-BC25-4A05-83FF-CAED2A7960F0,ProgramCommandLine
+{<%ProgramExecutable%>}
+
+AD493088-BC25-4A05-83FF-CAED2A7960F0,WaitForProgram
+{No}
+
+AD493088-BC25-4A05-83FF-CAED2A7960F0,WorkingDirectory
+{<%InstallDir%>}
+
+AF5F4D19-561B-4E81-8A7A-D0C9DCEE7487,ShortcutDirectory
+{<%QUICK_LAUNCH%>}
+
+AF5F4D19-561B-4E81-8A7A-D0C9DCEE7487,ShortcutName
+{<%AppName%>}
+
+AF5F4D19-561B-4E81-8A7A-D0C9DCEE7487,TargetFileName
+{<%ProgramExecutable%>}
+
+AF5F4D19-561B-4E81-8A7A-D0C9DCEE7487,WorkingDirectory
+{<%InstallDir%>}
+
+AIX-ppc,Active
+{No}
+
+AIX-ppc,BuildSeparateArchives
+{No}
+
+AIX-ppc,DefaultDirectoryPermission
+{0755}
+
+AIX-ppc,DefaultFilePermission
+{0755}
+
+AIX-ppc,Executable
+{<%AppName%>-<%Version%>-<%Platform%>-Install<%Ext%>}
+
+AIX-ppc,FallBackToConsole
+{Yes}
+
+AIX-ppc,InstallDir
+{<%Home%>/<%ShortAppName%>}
+
+AIX-ppc,InstallMode
+{Standard}
+
+AIX-ppc,InstallType
+{Typical}
+
+AIX-ppc,ProgramExecutable
+{<%InstallDir%>/EasyMercurial}
+
+AIX-ppc,ProgramFolderAllUsers
+{No}
+
+AIX-ppc,ProgramFolderName
+{<%AppName%>}
+
+AIX-ppc,ProgramLicense
+{<%InstallDir%>/LICENSE.txt}
+
+AIX-ppc,ProgramName
+{}
+
+AIX-ppc,ProgramReadme
+{<%InstallDir%>/README.txt}
+
+AIX-ppc,PromptForRoot
+{Yes}
+
+AIX-ppc,RequireRoot
+{No}
+
+AIX-ppc,RootInstallDir
+{/usr/local/<%ShortAppName%>}
+
+B41385EA-BF12-40E2-8C63-8D34C9085CB8,BackButton,subst
+{1}
+
+B41385EA-BF12-40E2-8C63-8D34C9085CB8,CancelButton,subst
+{1}
+
+B41385EA-BF12-40E2-8C63-8D34C9085CB8,Caption,subst
+{1}
+
+B41385EA-BF12-40E2-8C63-8D34C9085CB8,Message,subst
+{1}
+
+B41385EA-BF12-40E2-8C63-8D34C9085CB8,NextButton,subst
+{1}
+
+B5EB2E45-BECA-421A-A2F1-1A1D03FBA8E5,Prompt
+{<%ConsoleSelectDestinationText%>}
+
+B5EB2E45-BECA-421A-A2F1-1A1D03FBA8E5,VirtualText
+{InstallDir}
+
+BB024539-5037-4A7B-95BE-26C233CD3842,Action
+{Uninstall Actions}
+
+BB52149D-79DD-4120-8BB8-FF9E81E79E42,Background
+{#FFFFFF}
+
+BB52149D-79DD-4120-8BB8-FF9E81E79E42,Text,subst
+{1}
+
+BB52149D-79DD-4120-8BB8-FF9E81E79E42,Type
+{checkbutton}
+
+BB52149D-79DD-4120-8BB8-FF9E81E79E42,VirtualText
+{CreateQuickLaunchShortcut}
+
+BB52149D-79DD-4120-8BB8-FF9E81E79E42,X
+{185}
+
+BB52149D-79DD-4120-8BB8-FF9E81E79E42,Y
+{200}
+
+BDBE9DC0-4E01-4B21-8ED7-680161E92902,Alias
+{Uninstall Actions}
+
+C1C77698-90D3-49DA-8751-B927F3649C44,CheckCondition
+{Before Action is Executed}
+
+C1C77698-90D3-49DA-8751-B927F3649C44,Filename
+{<%ProgramExecutable%>}
+
+C1DA1E92-56F3-4EFE-930E-852FEEF558BF,Action
+{Uninstall Actions}
+
+C5CB03C7-3D7A-4DC5-B335-FE84A9A1D18A,CheckCondition
+{Before Action is Executed}
+
+C5CB03C7-3D7A-4DC5-B335-FE84A9A1D18A,Operator
+{false}
+
+C5CB03C7-3D7A-4DC5-B335-FE84A9A1D18A,String
+{<%UpgradeInstall%>}
+
+CF5E291F-7B8C-4EA0-8A9B-1F7FAE3F58BD,Action
+{Install Actions}
+
+D361C7FD-0376-4C29-8E8F-4056D0F505B6,CheckCondition
+{Before Action is Executed}
+
+D361C7FD-0376-4C29-8E8F-4056D0F505B6,Filename
+{<%ProgramExecutable%>}
+
+D66EB685-05F6-4789-95CD-B3BF714CCFF6,CheckCondition
+{Before Next Action is Executed}
+
+D66EB685-05F6-4789-95CD-B3BF714CCFF6,FailureMessage
+{<%DirectoryPermissionText%>}
+
+D66EB685-05F6-4789-95CD-B3BF714CCFF6,Filename
+{<%InstallDir%>}
+
+D66EB685-05F6-4789-95CD-B3BF714CCFF6,Permission
+{can create}
+
+D7F35084-4D8C-4118-B96C-48FF9496BFE2,CheckCondition
+{Before Action is Executed}
+
+D7F35084-4D8C-4118-B96C-48FF9496BFE2,Filename
+{<%ProgramExecutable%>}
+
+D8F58F63-F6A3-4FF8-8579-5F58FD242EAC,Alias
+{Finish Actions}
+
+DA64DBB1-48C9-481E-A9B5-79114AE13ED3,Background
+{#FFFFFF}
+
+DA64DBB1-48C9-481E-A9B5-79114AE13ED3,Text,subst
+{1}
+
+DA64DBB1-48C9-481E-A9B5-79114AE13ED3,Type
+{checkbutton}
+
+DA64DBB1-48C9-481E-A9B5-79114AE13ED3,VirtualText
+{LaunchApplication}
+
+DA64DBB1-48C9-481E-A9B5-79114AE13ED3,X
+{185}
+
+DA64DBB1-48C9-481E-A9B5-79114AE13ED3,Y
+{160}
+
+DBF8F9B2-6265-4155-9984-8F6EEE64E634,CheckCondition
+{Before Action is Executed}
+
+DBF8F9B2-6265-4155-9984-8F6EEE64E634,String
+{<%GuiMode%>}
+
+DDC5D1FE-8AB6-43C5-8CE2-5C71729E8BFF,Background
+{#FFFFFF}
+
+DDC5D1FE-8AB6-43C5-8CE2-5C71729E8BFF,Text,subst
+{1}
+
+DDC5D1FE-8AB6-43C5-8CE2-5C71729E8BFF,Type
+{checkbutton}
+
+DDC5D1FE-8AB6-43C5-8CE2-5C71729E8BFF,VirtualText
+{ViewReadme}
+
+DDC5D1FE-8AB6-43C5-8CE2-5C71729E8BFF,X
+{185}
+
+DDC5D1FE-8AB6-43C5-8CE2-5C71729E8BFF,Y
+{140}
+
+E26CCBFE-A672-4B88-BD04-9A11859EDD42,String
+{<%ErrorsOccurred%>}
+
+E4CE56DE-497F-4D32-A6AC-2D03EBF05FD6,CheckCondition
+{Before Action is Executed}
+
+E4CE56DE-497F-4D32-A6AC-2D03EBF05FD6,Operator
+{false}
+
+E4CE56DE-497F-4D32-A6AC-2D03EBF05FD6,String
+{<%InstallStopped%>}
+
+E92E5657-B9EE-4F5A-9250-24EE1E67F387,CheckCondition
+{Before Action is Executed}
+
+E92E5657-B9EE-4F5A-9250-24EE1E67F387,Operator
+{false}
+
+E92E5657-B9EE-4F5A-9250-24EE1E67F387,String
+{<%InstallStopped%>}
+
+EAE9FD9C-689E-40D0-9A06-BBAD9F22D0B1,Message,subst
+{1}
+
+F114794C-193C-4E5D-8830-4BBF8FDF9FC8,CheckCondition
+{Before Action is Executed}
+
+F114794C-193C-4E5D-8830-4BBF8FDF9FC8,String
+{<%CreateQuickLaunchShortcut%>}
+
+F1F054C5-13AA-41B3-8BF3-79A7B63EBFC9,Action
+{Uninstall Actions}
+
+F212318C-2AAC-4B73-8A27-791B38F9D509,ExitType
+{Finish}
+
+F243AA46-CB2B-46BA-8254-0CE5192BFD7B,ShortcutName
+{<%AppName%>}
+
+F243AA46-CB2B-46BA-8254-0CE5192BFD7B,TargetFileName
+{<%ProgramExecutable%>}
+
+F243AA46-CB2B-46BA-8254-0CE5192BFD7B,WorkingDirectory
+{<%InstallDir%>}
+
+F97966F6-B23B-4C59-95BC-A0A06B71B2BF,CheckCondition
+{Before Action is Executed}
+
+F97966F6-B23B-4C59-95BC-A0A06B71B2BF,Filename
+{<%ProgramExecutable%>}
+
+FC22F272-B809-410E-A4C3-C3143C71FC94,BackButton,subst
+{1}
+
+FC22F272-B809-410E-A4C3-C3143C71FC94,CancelButton,subst
+{1}
+
+FC22F272-B809-410E-A4C3-C3143C71FC94,Caption,subst
+{1}
+
+FC22F272-B809-410E-A4C3-C3143C71FC94,Message,subst
+{1}
+
+FC22F272-B809-410E-A4C3-C3143C71FC94,NextButton,subst
+{1}
+
+FC22F272-B809-410E-A4C3-C3143C71FC94,Subtitle,subst
+{1}
+
+FC22F272-B809-410E-A4C3-C3143C71FC94,Text,subst
+{1}
+
+FC22F272-B809-410E-A4C3-C3143C71FC94,Title,subst
+{1}
+
+FreeBSD-4-x86,Active
+{No}
+
+FreeBSD-4-x86,BuildSeparateArchives
+{No}
+
+FreeBSD-4-x86,DefaultDirectoryPermission
+{0755}
+
+FreeBSD-4-x86,DefaultFilePermission
+{0755}
+
+FreeBSD-4-x86,Executable
+{<%AppName%>-<%Version%>-<%Platform%>-Install<%Ext%>}
+
+FreeBSD-4-x86,FallBackToConsole
+{Yes}
+
+FreeBSD-4-x86,InstallDir
+{<%Home%>/<%ShortAppName%>}
+
+FreeBSD-4-x86,InstallMode
+{Standard}
+
+FreeBSD-4-x86,InstallType
+{Typical}
+
+FreeBSD-4-x86,ProgramExecutable
+{<%InstallDir%>/EasyMercurial}
+
+FreeBSD-4-x86,ProgramFolderAllUsers
+{No}
+
+FreeBSD-4-x86,ProgramFolderName
+{<%AppName%>}
+
+FreeBSD-4-x86,ProgramLicense
+{<%InstallDir%>/LICENSE.txt}
+
+FreeBSD-4-x86,ProgramName
+{}
+
+FreeBSD-4-x86,ProgramReadme
+{<%InstallDir%>/README.txt}
+
+FreeBSD-4-x86,PromptForRoot
+{Yes}
+
+FreeBSD-4-x86,RequireRoot
+{No}
+
+FreeBSD-4-x86,RootInstallDir
+{/usr/local/<%ShortAppName%>}
+
+FreeBSD-5-x86,Active
+{No}
+
+FreeBSD-5-x86,BuildSeparateArchives
+{No}
+
+FreeBSD-5-x86,DefaultDirectoryPermission
+{0755}
+
+FreeBSD-5-x86,DefaultFilePermission
+{0755}
+
+FreeBSD-5-x86,Executable
+{<%AppName%>-<%Version%>-<%Platform%>-Install<%Ext%>}
+
+FreeBSD-5-x86,FallBackToConsole
+{Yes}
+
+FreeBSD-5-x86,InstallDir
+{<%Home%>/<%ShortAppName%>}
+
+FreeBSD-5-x86,InstallMode
+{Standard}
+
+FreeBSD-5-x86,InstallType
+{Typical}
+
+FreeBSD-5-x86,ProgramExecutable
+{<%InstallDir%>/EasyMercurial}
+
+FreeBSD-5-x86,ProgramFolderAllUsers
+{No}
+
+FreeBSD-5-x86,ProgramFolderName
+{<%AppName%>}
+
+FreeBSD-5-x86,ProgramLicense
+{<%InstallDir%>/LICENSE.txt}
+
+FreeBSD-5-x86,ProgramName
+{}
+
+FreeBSD-5-x86,ProgramReadme
+{<%InstallDir%>/README.txt}
+
+FreeBSD-5-x86,PromptForRoot
+{Yes}
+
+FreeBSD-5-x86,RequireRoot
+{No}
+
+FreeBSD-5-x86,RootInstallDir
+{/usr/local/<%ShortAppName%>}
+
+FreeBSD-6-x86,Active
+{No}
+
+FreeBSD-6-x86,BuildSeparateArchives
+{No}
+
+FreeBSD-6-x86,DefaultDirectoryPermission
+{0755}
+
+FreeBSD-6-x86,DefaultFilePermission
+{0755}
+
+FreeBSD-6-x86,Executable
+{<%AppName%>-<%Version%>-<%Platform%>-Install<%Ext%>}
+
+FreeBSD-6-x86,FallBackToConsole
+{Yes}
+
+FreeBSD-6-x86,InstallDir
+{<%Home%>/<%ShortAppName%>}
+
+FreeBSD-6-x86,InstallMode
+{Standard}
+
+FreeBSD-6-x86,InstallType
+{Typical}
+
+FreeBSD-6-x86,ProgramExecutable
+{<%InstallDir%>/EasyMercurial}
+
+FreeBSD-6-x86,ProgramFolderAllUsers
+{No}
+
+FreeBSD-6-x86,ProgramFolderName
+{<%AppName%>}
+
+FreeBSD-6-x86,ProgramLicense
+{<%InstallDir%>/LICENSE.txt}
+
+FreeBSD-6-x86,ProgramName
+{}
+
+FreeBSD-6-x86,ProgramReadme
+{<%InstallDir%>/README.txt}
+
+FreeBSD-6-x86,PromptForRoot
+{Yes}
+
+FreeBSD-6-x86,RequireRoot
+{No}
+
+FreeBSD-6-x86,RootInstallDir
+{/usr/local/<%ShortAppName%>}
+
+FreeBSD-7-x86,Active
+{No}
+
+FreeBSD-7-x86,BuildSeparateArchives
+{No}
+
+FreeBSD-7-x86,DefaultDirectoryPermission
+{0755}
+
+FreeBSD-7-x86,DefaultFilePermission
+{0755}
+
+FreeBSD-7-x86,Executable
+{<%AppName%>-<%Version%>-<%Platform%>-Install<%Ext%>}
+
+FreeBSD-7-x86,FallBackToConsole
+{Yes}
+
+FreeBSD-7-x86,InstallDir
+{<%Home%>/<%ShortAppName%>}
+
+FreeBSD-7-x86,InstallMode
+{Standard}
+
+FreeBSD-7-x86,InstallType
+{Typical}
+
+FreeBSD-7-x86,ProgramExecutable
+{<%InstallDir%>/EasyMercurial}
+
+FreeBSD-7-x86,ProgramFolderAllUsers
+{No}
+
+FreeBSD-7-x86,ProgramFolderName
+{<%AppName%>}
+
+FreeBSD-7-x86,ProgramLicense
+{<%InstallDir%>/LICENSE.txt}
+
+FreeBSD-7-x86,ProgramName
+{}
+
+FreeBSD-7-x86,ProgramReadme
+{<%InstallDir%>/README.txt}
+
+FreeBSD-7-x86,PromptForRoot
+{Yes}
+
+FreeBSD-7-x86,RequireRoot
+{No}
+
+FreeBSD-7-x86,RootInstallDir
+{/usr/local/<%ShortAppName%>}
+
+HPUX-hppa,Active
+{No}
+
+HPUX-hppa,BuildSeparateArchives
+{No}
+
+HPUX-hppa,DefaultDirectoryPermission
+{0755}
+
+HPUX-hppa,DefaultFilePermission
+{0755}
+
+HPUX-hppa,Executable
+{<%AppName%>-<%Version%>-<%Platform%>-Install<%Ext%>}
+
+HPUX-hppa,FallBackToConsole
+{Yes}
+
+HPUX-hppa,InstallDir
+{<%Home%>/<%ShortAppName%>}
+
+HPUX-hppa,InstallMode
+{Standard}
+
+HPUX-hppa,InstallType
+{Typical}
+
+HPUX-hppa,ProgramExecutable
+{<%InstallDir%>/EasyMercurial}
+
+HPUX-hppa,ProgramFolderAllUsers
+{No}
+
+HPUX-hppa,ProgramFolderName
+{<%AppName%>}
+
+HPUX-hppa,ProgramLicense
+{<%InstallDir%>/LICENSE.txt}
+
+HPUX-hppa,ProgramName
+{}
+
+HPUX-hppa,ProgramReadme
+{<%InstallDir%>/README.txt}
+
+HPUX-hppa,PromptForRoot
+{Yes}
+
+HPUX-hppa,RequireRoot
+{No}
+
+HPUX-hppa,RootInstallDir
+{/usr/local/<%ShortAppName%>}
+
+Linux-x86,Active
+{No}
+
+Linux-x86,BuildSeparateArchives
+{No}
+
+Linux-x86,DefaultDirectoryPermission
+{0755}
+
+Linux-x86,DefaultFilePermission
+{0755}
+
+Linux-x86,Executable
+{<%AppName%>-<%Version%>-<%Platform%>-Install<%Ext%>}
+
+Linux-x86,FallBackToConsole
+{Yes}
+
+Linux-x86,InstallDir
+{<%Home%>/<%ShortAppName%>}
+
+Linux-x86,InstallMode
+{Standard}
+
+Linux-x86,InstallType
+{Typical}
+
+Linux-x86,ProgramExecutable
+{<%InstallDir%>/EasyMercurial}
+
+Linux-x86,ProgramFolderAllUsers
+{No}
+
+Linux-x86,ProgramFolderName
+{<%AppName%>}
+
+Linux-x86,ProgramLicense
+{<%InstallDir%>/LICENSE.txt}
+
+Linux-x86,ProgramName
+{}
+
+Linux-x86,ProgramReadme
+{<%InstallDir%>/README.txt}
+
+Linux-x86,PromptForRoot
+{Yes}
+
+Linux-x86,RequireRoot
+{No}
+
+Linux-x86,RootInstallDir
+{/usr/local/<%ShortAppName%>}
+
+Linux-x86_64,Active
+{No}
+
+Linux-x86_64,BuildSeparateArchives
+{No}
+
+Linux-x86_64,DefaultDirectoryPermission
+{0755}
+
+Linux-x86_64,DefaultFilePermission
+{0755}
+
+Linux-x86_64,Executable
+{<%AppName%>-<%Version%>-<%Platform%>-Install<%Ext%>}
+
+Linux-x86_64,FallBackToConsole
+{Yes}
+
+Linux-x86_64,InstallDir
+{<%Home%>/<%ShortAppName%>}
+
+Linux-x86_64,InstallMode
+{Standard}
+
+Linux-x86_64,InstallType
+{Typical}
+
+Linux-x86_64,ProgramExecutable
+{<%InstallDir%>/EasyMercurial}
+
+Linux-x86_64,ProgramFolderAllUsers
+{No}
+
+Linux-x86_64,ProgramFolderName
+{<%AppName%>}
+
+Linux-x86_64,ProgramLicense
+{<%InstallDir%>/LICENSE.txt}
+
+Linux-x86_64,ProgramName
+{}
+
+Linux-x86_64,ProgramReadme
+{<%InstallDir%>/README.txt}
+
+Linux-x86_64,PromptForRoot
+{Yes}
+
+Linux-x86_64,RequireRoot
+{No}
+
+Linux-x86_64,RootInstallDir
+{/usr/local/<%ShortAppName%>}
+
+Solaris-sparc,Active
+{No}
+
+Solaris-sparc,BuildSeparateArchives
+{No}
+
+Solaris-sparc,DefaultDirectoryPermission
+{0755}
+
+Solaris-sparc,DefaultFilePermission
+{0755}
+
+Solaris-sparc,Executable
+{<%AppName%>-<%Version%>-<%Platform%>-Install<%Ext%>}
+
+Solaris-sparc,FallBackToConsole
+{Yes}
+
+Solaris-sparc,InstallDir
+{<%Home%>/<%ShortAppName%>}
+
+Solaris-sparc,InstallMode
+{Standard}
+
+Solaris-sparc,InstallType
+{Typical}
+
+Solaris-sparc,ProgramExecutable
+{<%InstallDir%>/EasyMercurial}
+
+Solaris-sparc,ProgramFolderAllUsers
+{No}
+
+Solaris-sparc,ProgramFolderName
+{<%AppName%>}
+
+Solaris-sparc,ProgramLicense
+{<%InstallDir%>/LICENSE.txt}
+
+Solaris-sparc,ProgramName
+{}
+
+Solaris-sparc,ProgramReadme
+{<%InstallDir%>/README.txt}
+
+Solaris-sparc,PromptForRoot
+{Yes}
+
+Solaris-sparc,RequireRoot
+{No}
+
+Solaris-sparc,RootInstallDir
+{/usr/local/<%ShortAppName%>}
+
+Solaris-x86,Active
+{No}
+
+Solaris-x86,BuildSeparateArchives
+{No}
+
+Solaris-x86,DefaultDirectoryPermission
+{0755}
+
+Solaris-x86,DefaultFilePermission
+{0755}
+
+Solaris-x86,Executable
+{<%AppName%>-<%Version%>-<%Platform%>-Install<%Ext%>}
+
+Solaris-x86,FallBackToConsole
+{Yes}
+
+Solaris-x86,InstallDir
+{<%Home%>/<%ShortAppName%>}
+
+Solaris-x86,InstallMode
+{Standard}
+
+Solaris-x86,InstallType
+{Typical}
+
+Solaris-x86,ProgramExecutable
+{<%InstallDir%>/EasyMercurial}
+
+Solaris-x86,ProgramFolderAllUsers
+{No}
+
+Solaris-x86,ProgramFolderName
+{<%AppName%>}
+
+Solaris-x86,ProgramLicense
+{<%InstallDir%>/LICENSE.txt}
+
+Solaris-x86,ProgramName
+{}
+
+Solaris-x86,ProgramReadme
+{<%InstallDir%>/README.txt}
+
+Solaris-x86,PromptForRoot
+{Yes}
+
+Solaris-x86,RequireRoot
+{No}
+
+Solaris-x86,RootInstallDir
+{/usr/local/<%ShortAppName%>}
+
+TarArchive,Active
+{No}
+
+TarArchive,BuildSeparateArchives
+{No}
+
+TarArchive,CompressionLevel
+{6}
+
+TarArchive,DefaultDirectoryPermission
+{0755}
+
+TarArchive,DefaultFilePermission
+{0755}
+
+TarArchive,Executable
+{<%AppName%>-<%Version%>-<%Platform%>-Install<%Ext%>}
+
+TarArchive,FallBackToConsole
+{Yes}
+
+TarArchive,InstallDir
+{<%Home%>/<%ShortAppName%>}
+
+TarArchive,InstallMode
+{Standard}
+
+TarArchive,InstallType
+{Typical}
+
+TarArchive,OutputFileName
+{<%ShortAppName%>-<%Version%>.tar.gz}
+
+TarArchive,ProgramExecutable
+{}
+
+TarArchive,ProgramFolderAllUsers
+{No}
+
+TarArchive,ProgramFolderName
+{<%AppName%>}
+
+TarArchive,ProgramLicense
+{<%InstallDir%>/LICENSE.txt}
+
+TarArchive,ProgramName
+{}
+
+TarArchive,ProgramReadme
+{<%InstallDir%>/README.txt}
+
+TarArchive,PromptForRoot
+{Yes}
+
+TarArchive,RequireRoot
+{No}
+
+TarArchive,RootInstallDir
+{/usr/local/<%ShortAppName%>}
+
+TarArchive,VirtualTextMap
+{<%InstallDir%> <%ShortAppName%>}
+
+Windows,Active
+{Yes}
+
+Windows,BuildSeparateArchives
+{No}
+
+Windows,Executable
+{<%AppName%>-<%Version%>-Setup<%Ext%>}
+
+Windows,FileDescription
+{<%AppName%> <%Version%> Setup}
+
+Windows,IncludeTWAPI
+{No}
+
+Windows,InstallDir
+{<%PROGRAM_FILES%>/<%AppName%>}
+
+Windows,InstallMode
+{Standard}
+
+Windows,InstallType
+{Typical}
+
+Windows,LastRequireAdministrator
+{Yes}
+
+Windows,ProgramExecutable
+{<%InstallDir%>/EasyMercurial.exe}
+
+Windows,ProgramFolderAllUsers
+{No}
+
+Windows,ProgramFolderName
+{<%AppName%>}
+
+Windows,ProgramLicense
+{<%InstallDir%>/LICENSE.txt}
+
+Windows,ProgramName
+{}
+
+Windows,ProgramReadme
+{<%InstallDir%>/README.txt}
+
+Windows,RequireAdministrator
+{Yes}
+
+Windows,UseUncompressedBinaries
+{No}
+
+Windows,WindowsIcon
+{Setup Blue Screen.ico}
+
+ZipArchive,Active
+{No}
+
+ZipArchive,BuildSeparateArchives
+{No}
+
+ZipArchive,CompressionLevel
+{6}
+
+ZipArchive,DefaultDirectoryPermission
+{0755}
+
+ZipArchive,DefaultFilePermission
+{0755}
+
+ZipArchive,Executable
+{<%AppName%>-<%Version%>-<%Platform%>-Install<%Ext%>}
+
+ZipArchive,FallBackToConsole
+{Yes}
+
+ZipArchive,InstallDir
+{<%Home%>/<%ShortAppName%>}
+
+ZipArchive,InstallMode
+{Standard}
+
+ZipArchive,InstallType
+{Typical}
+
+ZipArchive,OutputFileName
+{<%ShortAppName%>-<%Version%>.zip}
+
+ZipArchive,ProgramExecutable
+{}
+
+ZipArchive,ProgramFolderAllUsers
+{No}
+
+ZipArchive,ProgramFolderName
+{<%AppName%>}
+
+ZipArchive,ProgramLicense
+{<%InstallDir%>/LICENSE.txt}
+
+ZipArchive,ProgramName
+{}
+
+ZipArchive,ProgramReadme
+{<%InstallDir%>/README.txt}
+
+ZipArchive,PromptForRoot
+{Yes}
+
+ZipArchive,RequireRoot
+{No}
+
+ZipArchive,RootInstallDir
+{/usr/local/<%ShortAppName%>}
+
+ZipArchive,VirtualTextMap
+{<%InstallDir%> <%ShortAppName%>}
+
+}
+
+::msgcat::mcmset ca {
+09720EAD-E327-41AC-B5C4-CAB372D427D8,Message
+{<%UninstallingApplicationText%>}
+
+1D532C82-EEEA-4AA3-B14B-D0F8AD35DBF2,Message
+{<%InstallationCompleteText%>}
+
+446444AE-E509-41B3-92E1-6B6EFFA1FD12,Message
+{<%UninstallCompleteText%>}
+
+EAE9FD9C-689E-40D0-9A06-BBAD9F22D0B1,Message
+{<%InstallingApplicationText%>}
+
+}
+::msgcat::mcmset cs {
+09720EAD-E327-41AC-B5C4-CAB372D427D8,Message
+{<%UninstallingApplicationText%>}
+
+1D532C82-EEEA-4AA3-B14B-D0F8AD35DBF2,Message
+{<%InstallationCompleteText%>}
+
+446444AE-E509-41B3-92E1-6B6EFFA1FD12,Message
+{<%UninstallCompleteText%>}
+
+EAE9FD9C-689E-40D0-9A06-BBAD9F22D0B1,Message
+{<%InstallingApplicationText%>}
+
+}
+::msgcat::mcmset de {
+09720EAD-E327-41AC-B5C4-CAB372D427D8,Message
+{<%UninstallingApplicationText%>}
+
+1D532C82-EEEA-4AA3-B14B-D0F8AD35DBF2,Message
+{<%InstallationCompleteText%>}
+
+446444AE-E509-41B3-92E1-6B6EFFA1FD12,Message
+{<%UninstallCompleteText%>}
+
+EAE9FD9C-689E-40D0-9A06-BBAD9F22D0B1,Message
+{<%InstallingApplicationText%>}
+
+}
+::msgcat::mcmset en {
+09720EAD-E327-41AC-B5C4-CAB372D427D8,Message
+{<%UninstallingApplicationText%>}
+
+0B08768B-E5AA-4701-B9CE-424C9F6AA96B,Description
+{<%ProgramFilesDescription%>}
+
+18C3EF37-5C55-43E6-A223-7A4444357E2F,Text
+{<%ViewReadmeText%>}
+
+1D532C82-EEEA-4AA3-B14B-D0F8AD35DBF2,Message
+{<%InstallationCompleteText%>}
+
+1ED68248-972F-4343-BEF4-C91ED3618601,Text
+{<%CreateDesktopShortcutText%>}
+
+2013F392-6A72-4E50-8294-F83C8DBECFEA,Message
+{<%UninstallStartupText%>}
+
+2013F392-6A72-4E50-8294-F83C8DBECFEA,Title
+{<%UninstallApplicationText%>}
+
+2A3B15B2-D3B0-43DD-9FDD-581278BD0EA6,Description
+{<%CustomInstallDescription%>}
+
+446444AE-E509-41B3-92E1-6B6EFFA1FD12,Message
+{<%UninstallCompleteText%>}
+
+4629322A-B41A-41FD-976D-987B375AFECC,Caption
+{<%ApplicationReadmeText%>}
+
+4629322A-B41A-41FD-976D-987B375AFECC,Message
+{}
+
+4629322A-B41A-41FD-976D-987B375AFECC,Title
+{<%ApplicationReadmeText%>}
+
+489BB600-70D6-4EC8-B032-F5FF6FDD532F,Description
+{<%TypicalInstallDescription%>}
+
+5F872846-216A-4EAE-B600-15CBEE8DF4CF,Text
+{<%CreateDesktopShortcutText%>}
+
+7B9998FD-0077-4EC1-8F96-88ABBE05A702,Text
+{<%CreateQuickLaunchShortcutText%>}
+
+7BF3B571-3EE3-485C-BFB9-3732B067B63F,Message
+{<%InstallStartupText%>}
+
+7BF3B571-3EE3-485C-BFB9-3732B067B63F,Title
+{<%InstallApplicationText%>}
+
+96B93C29-6883-4B14-A4BB-063769CC7311,Text
+{<%LaunchApplicationText%>}
+
+BB52149D-79DD-4120-8BB8-FF9E81E79E42,Text
+{<%CreateQuickLaunchShortcutText%>}
+
+DA64DBB1-48C9-481E-A9B5-79114AE13ED3,Text
+{<%LaunchApplicationText%>}
+
+DDC5D1FE-8AB6-43C5-8CE2-5C71729E8BFF,Text
+{<%ViewReadmeText%>}
+
+EAE9FD9C-689E-40D0-9A06-BBAD9F22D0B1,Message
+{<%InstallingApplicationText%>}
+
+}
+::msgcat::mcmset es {
+09720EAD-E327-41AC-B5C4-CAB372D427D8,Message
+{<%UninstallingApplicationText%>}
+
+1D532C82-EEEA-4AA3-B14B-D0F8AD35DBF2,Message
+{<%InstallationCompleteText%>}
+
+446444AE-E509-41B3-92E1-6B6EFFA1FD12,Message
+{<%UninstallCompleteText%>}
+
+EAE9FD9C-689E-40D0-9A06-BBAD9F22D0B1,Message
+{<%InstallingApplicationText%>}
+
+}
+::msgcat::mcmset fr {
+09720EAD-E327-41AC-B5C4-CAB372D427D8,Message
+{<%UninstallingApplicationText%>}
+
+1D532C82-EEEA-4AA3-B14B-D0F8AD35DBF2,Message
+{<%InstallationCompleteText%>}
+
+446444AE-E509-41B3-92E1-6B6EFFA1FD12,Message
+{<%UninstallCompleteText%>}
+
+EAE9FD9C-689E-40D0-9A06-BBAD9F22D0B1,Message
+{<%InstallingApplicationText%>}
+
+}
+::msgcat::mcmset hu {
+09720EAD-E327-41AC-B5C4-CAB372D427D8,Message
+{<%UninstallingApplicationText%>}
+
+1D532C82-EEEA-4AA3-B14B-D0F8AD35DBF2,Message
+{<%InstallationCompleteText%>}
+
+446444AE-E509-41B3-92E1-6B6EFFA1FD12,Message
+{<%UninstallCompleteText%>}
+
+EAE9FD9C-689E-40D0-9A06-BBAD9F22D0B1,Message
+{<%InstallingApplicationText%>}
+
+}
+::msgcat::mcmset it {
+09720EAD-E327-41AC-B5C4-CAB372D427D8,Message
+{<%UninstallingApplicationText%>}
+
+1D532C82-EEEA-4AA3-B14B-D0F8AD35DBF2,Message
+{<%InstallationCompleteText%>}
+
+446444AE-E509-41B3-92E1-6B6EFFA1FD12,Message
+{<%UninstallCompleteText%>}
+
+EAE9FD9C-689E-40D0-9A06-BBAD9F22D0B1,Message
+{<%InstallingApplicationText%>}
+
+}
+::msgcat::mcmset lt {
+09720EAD-E327-41AC-B5C4-CAB372D427D8,Message
+{<%UninstallingApplicationText%>}
+
+1D532C82-EEEA-4AA3-B14B-D0F8AD35DBF2,Message
+{<%InstallationCompleteText%>}
+
+446444AE-E509-41B3-92E1-6B6EFFA1FD12,Message
+{<%UninstallCompleteText%>}
+
+EAE9FD9C-689E-40D0-9A06-BBAD9F22D0B1,Message
+{<%InstallingApplicationText%>}
+
+}
+::msgcat::mcmset nl {
+09720EAD-E327-41AC-B5C4-CAB372D427D8,Message
+{<%UninstallingApplicationText%>}
+
+1D532C82-EEEA-4AA3-B14B-D0F8AD35DBF2,Message
+{<%InstallationCompleteText%>}
+
+446444AE-E509-41B3-92E1-6B6EFFA1FD12,Message
+{<%UninstallCompleteText%>}
+
+EAE9FD9C-689E-40D0-9A06-BBAD9F22D0B1,Message
+{<%InstallingApplicationText%>}
+
+}
+::msgcat::mcmset pl {
+09720EAD-E327-41AC-B5C4-CAB372D427D8,Message
+{<%UninstallingApplicationText%>}
+
+1D532C82-EEEA-4AA3-B14B-D0F8AD35DBF2,Message
+{<%InstallationCompleteText%>}
+
+446444AE-E509-41B3-92E1-6B6EFFA1FD12,Message
+{<%UninstallCompleteText%>}
+
+EAE9FD9C-689E-40D0-9A06-BBAD9F22D0B1,Message
+{<%InstallingApplicationText%>}
+
+}
+::msgcat::mcmset pt_br {
+09720EAD-E327-41AC-B5C4-CAB372D427D8,Message
+{<%UninstallingApplicationText%>}
+
+1D532C82-EEEA-4AA3-B14B-D0F8AD35DBF2,Message
+{<%InstallationCompleteText%>}
+
+446444AE-E509-41B3-92E1-6B6EFFA1FD12,Message
+{<%UninstallCompleteText%>}
+
+EAE9FD9C-689E-40D0-9A06-BBAD9F22D0B1,Message
+{<%InstallingApplicationText%>}
+
+}
+::msgcat::mcmset ru {
+09720EAD-E327-41AC-B5C4-CAB372D427D8,Message
+{<%UninstallingApplicationText%>}
+
+1D532C82-EEEA-4AA3-B14B-D0F8AD35DBF2,Message
+{<%InstallationCompleteText%>}
+
+446444AE-E509-41B3-92E1-6B6EFFA1FD12,Message
+{<%UninstallCompleteText%>}
+
+EAE9FD9C-689E-40D0-9A06-BBAD9F22D0B1,Message
+{<%InstallingApplicationText%>}
+
+}
+
