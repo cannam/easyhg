@@ -381,6 +381,9 @@ void HgRunner::startCommand(HgAction action)
     bool interactive = false;
     QStringList params = action.params;
 
+    QSettings settings;
+    settings.beginGroup("General");
+
     if (executable == "") {
         // This is a Hg command
         executable = getHgBinaryName();
@@ -389,8 +392,6 @@ void HgRunner::startCommand(HgAction action)
             params.push_front("ui.interactive=true");
             params.push_front("--config");
 
-            QSettings settings;
-            settings.beginGroup("General");
             if (settings.value("useextension", true).toBool()) {
                 QString extpath = getExtensionLocation();
                 params.push_front(QString("extensions.easyhg=%1").arg(extpath));
@@ -415,8 +416,17 @@ void HgRunner::startCommand(HgAction action)
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
 
 #ifdef Q_OS_WIN32
+    // On Win32 we like to bundle Hg and other executables with EasyHg
     if (m_myDirPath != "") {
         env.insert("PATH", m_myDirPath + ";" + env.value("PATH"));
+    }
+#endif
+
+#ifdef Q_OS_MAC
+    // On OS/X 10.6, Python is 64-bit by default but our Hg extension
+    // is only available in 32-bit
+    if (settings.value("python32", true).toBool()) {
+        env.insert("VERSIONER_PYTHON_PREFER_32_BIT", 1);
     }
 #endif
 
