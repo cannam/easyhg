@@ -6,7 +6,11 @@
 app=EasyMercurial
 
 version=`perl -p -e 's/^[^"]*"([^"]*)".*$/$1/' version.h`
-bundleVersion="$version".0
+case "$version" in
+    [0-9].[0-9]) bundleVersion="$version".0 ;;
+    [0-9].[0-9].[0-9]) bundleVersion="$version" ;;
+    *) echo "Error: Version $version is neither two- nor three-part number" ;;
+esac
 
 echo
 echo "Writing version $bundleVersion in to bundle."
