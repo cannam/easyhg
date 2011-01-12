@@ -25,6 +25,8 @@
 
 int main(int argc, char *argv[])
 {
+    QApplication app(argc, argv);
+
     QApplication::setOrganizationName("easymercurial");
     QApplication::setOrganizationDomain("easymercurial.org");
     QApplication::setApplicationName(QApplication::tr("EasyMercurial"));
@@ -34,8 +36,6 @@ int main(int argc, char *argv[])
     loseControllingTerminal();
 
     installSignalHandlers();
-
-    QApplication app(argc, argv);
 
     QTranslator translator;
     QString language = QLocale::system().name();
