@@ -88,7 +88,7 @@ private:
     void layoutCol(QString id);
     void allocateBranchHomes(Changesets csets);
     bool rangesConflict(const Range &r1, const Range &r2);
-    int findAvailableColumn(int row, int parent, int sign, bool preferParentCol);
+    int findAvailableColumn(int row, int parent, bool preferParentCol);
     bool isAvailable(int row, int col);
 };
 
