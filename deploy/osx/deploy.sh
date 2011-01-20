@@ -37,6 +37,10 @@ install_name_tool -change QtCore.framework/Versions/4/QtCore @executable_path/..
 install_name_tool -change QtGui.framework/Versions/4/QtGui @executable_path/../Frameworks/QtGui "$app.app/Contents/MacOS/$app"
 install_name_tool -change QtNetwork.framework/Versions/4/QtNetwork @executable_path/../Frameworks/QtNetwork "$app.app/Contents/MacOS/$app"
 
+install_name_tool -change QtCore.framework/Versions/4/QtCore @executable_path/../Frameworks/QtCore "$app.app/Contents/MacOS/kdiff3"
+install_name_tool -change QtGui.framework/Versions/4/QtGui @executable_path/../Frameworks/QtGui "$app.app/Contents/MacOS/kdiff3"
+install_name_tool -change QtNetwork.framework/Versions/4/QtNetwork @executable_path/../Frameworks/QtNetwork "$app.app/Contents/MacOS/kdiff3"
+
 install_name_tool -change QtCore.framework/Versions/4/QtCore @loader_path/QtCore "$app.app/Contents/Frameworks/QtGui"
 install_name_tool -change QtCore.framework/Versions/4/QtCore @loader_path/QtCore "$app.app/Contents/Frameworks/QtNetwork"
 
