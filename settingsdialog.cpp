@@ -261,9 +261,7 @@ SettingsDialog::findDiffBinaryName()
     QString diff = settings.value("extdiffbinary", "").toString();
     if (diff == "") {
         QStringList bases;
-#ifdef Q_OS_MAC
-        bases << "easyhg-extdiff-osx.sh";
-#endif 
+        bases << "easyhg-extdiff.sh";
         bases << "kompare" << "kdiff3" << "meld";
         bool found = false;
         foreach (QString base, bases) {
@@ -289,13 +287,10 @@ SettingsDialog::findMergeBinaryName()
     }
     QString merge;
     QStringList bases;
-#ifdef Q_OS_MAC
-    bases << "easyhg-merge-osx.sh";
-#endif
-    // I think this is too dangerous, given command line ordering
-    // differences and suchlike.  Need to make sure the hg
-    // installation is configured OK instead
-//    bases << "meld" << "diffuse" << "kdiff3";
+    bases << "easyhg-merge.sh";
+    // NB it's not a good idea to add other tools here, as command
+    // line argument ordering varies.  Configure them through hgrc
+    // instead
     bool found = false;
     foreach (QString base, bases) {
         merge = findInPath(base, m_installPath, true);
