@@ -261,7 +261,11 @@ SettingsDialog::findDiffBinaryName()
     QString diff = settings.value("extdiffbinary", "").toString();
     if (diff == "") {
         QStringList bases;
+#ifdef Q_OS_WIN32
+        bases << "easyhg-extdiff.bat";
+#else
         bases << "easyhg-extdiff.sh";
+#endif
         bases << "kompare" << "kdiff3" << "meld";
         bool found = false;
         foreach (QString base, bases) {
@@ -287,7 +291,11 @@ SettingsDialog::findMergeBinaryName()
     }
     QString merge;
     QStringList bases;
+#ifdef Q_OS_WIN32
+    bases << "easyhg-merge.bat";
+#else
     bases << "easyhg-merge.sh";
+#endif
     // NB it's not a good idea to add other tools here, as command
     // line argument ordering varies.  Configure them through hgrc
     // instead
