@@ -25,6 +25,7 @@
 #include <QSettings>
 #include <QDir>
 #include <QFileDialog>
+#include <QMessageBox>
 
 QString
 SettingsDialog::m_installPath;
@@ -68,12 +69,27 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     row = 0;
 
     m_showIconLabels = new QCheckBox(tr("Show labels on toolbar icons"));
-    lookLayout->addWidget(m_showIconLabels, row++, 0);
+    lookLayout->addWidget(m_showIconLabels, row++, 0, 1, 2);
 
     m_showExtraText = new QCheckBox(tr("Show long descriptions for file status headings"));
-    lookLayout->addWidget(m_showExtraText, row++, 0);
+    lookLayout->addWidget(m_showExtraText, row++, 0, 1, 2);
+    
+#ifdef NOT_IMPLEMENTED_YET
+    lookLayout->addWidget(new QLabel(tr("Place the work and history views")), row, 0);
+    m_workHistoryArrangement = new QComboBox();
+    m_workHistoryArrangement->addItem(tr("In separate tabs"));
+    m_workHistoryArrangement->addItem(tr("Side-by-side in a single pane"));
+    lookLayout->addWidget(m_workHistoryArrangement, row++, 1, Qt::AlignLeft);
+    lookLayout->setColumnStretch(1, 20);
+#endif
 
-
+    lookLayout->addWidget(new QLabel(tr("Label the history timeline with")), row, 0);
+    m_dateFormat = new QComboBox();
+    m_dateFormat->addItem(tr("Ages, for example \"5 weeks ago\""));
+    m_dateFormat->addItem(tr("Dates, for example \"2010-06-23\""));
+    lookLayout->addWidget(m_dateFormat, row++, 1, Qt::AlignLeft);
+    lookLayout->setColumnStretch(1, 20);
+    
 
     QGroupBox *pathsBox = new QGroupBox(tr("System application locations"));
     mainLayout->addWidget(pathsBox, 2, 0);
@@ -195,9 +211,15 @@ SettingsDialog::browseFor(QString title, QLineEdit *edit)
 void
 SettingsDialog::restoreDefaults()
 {
-    clear();
-    findDefaultLocations();
-    reset();
+    if (QMessageBox::question
+        (this, tr("Restore default settings?"),
+         tr("<qt><b>Restore default settings?</b><br><br>Are you sure you want to reset all settings to their default values?"),
+         QMessageBox::Ok | QMessageBox::Cancel,
+         QMessageBox::Cancel) == QMessageBox::Ok) {
+        clear();
+        findDefaultLocations();
+        reset();
+    }
 }
 
 void
@@ -379,6 +401,10 @@ SettingsDialog::reset()
     settings.beginGroup("Presentation");
     m_showIconLabels->setChecked(settings.value("showiconlabels", true).toBool());
     m_showExtraText->setChecked(settings.value("showhelpfultext", true).toBool());
+#ifdef NOT_IMPLEMENTED_YET
+    m_workHistoryArrangement->setCurrentIndex(settings.value("workhistoryarrangement", 0).toInt());
+#endif
+    m_dateFormat->setCurrentIndex(settings.value("dateformat", 0).toInt());
     settings.endGroup();
     settings.beginGroup("Locations");
     m_hgPathLabel->setText(settings.value("hgbinary").toString());
@@ -411,6 +437,19 @@ SettingsDialog::accept()
     b = m_showExtraText->isChecked();
     if (b != settings.value("showhelpfultext", true)) {
         settings.setValue("showhelpfultext", b);
+        m_presentationChanged = true;
+    }
+    int i;
+#ifdef NOT_IMPLEMENTED_YET
+    i = m_workHistoryArrangement->currentIndex();
+    if (i != settings.value("workhistoryarrangement", 0)) {
+        settings.setValue("workhistoryarrangement", i);
+        m_presentationChanged = true;
+    }
+#endif
+    i = m_dateFormat->currentIndex();
+    if (i != settings.value("dateformat", 0)) {
+        settings.setValue("dateformat", i);
         m_presentationChanged = true;
     }
     settings.endGroup();

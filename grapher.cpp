@@ -21,7 +21,17 @@
 #include "debug.h"
 #include "changesetscene.h"
 
+#include <QSettings>
+
 #include <iostream>
+
+Grapher::Grapher(ChangesetScene *scene) :
+    m_scene(scene)
+{
+    QSettings settings;
+    settings.beginGroup("Presentation");
+    m_showDates = (settings.value("dateformat", 0) == 1);
+}
 
 int Grapher::findAvailableColumn(int row, int parent, bool preferParentCol)
 {
@@ -94,7 +104,12 @@ void Grapher::layoutRow(QString id)
     // above all nodes that have earlier dates (to the nearest day).
     // m_rowDates maps each row to a date: use that.
 
-    QString date = cs->age();
+    QString date;
+    if (m_showDates) {
+        date = cs->date();
+    } else {
+        date = cs->age();
+    }
     while (m_rowDates.contains(row) && m_rowDates[row] != date) {
         --row;
     }

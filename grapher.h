@@ -32,7 +32,7 @@
 class Grapher
 {
 public:
-    Grapher(ChangesetScene *scene) { m_scene = scene; }
+    Grapher(ChangesetScene *scene);
 
     void layout(Changesets csets,
                 QStringList uncommittedParents,
@@ -78,6 +78,8 @@ private:
 
     typedef QMap<int, QString> RowDateMap;
     RowDateMap m_rowDates;
+
+    bool m_showDates;
 
     QStringList m_uncommittedParents;
     int m_uncommittedParentRow;

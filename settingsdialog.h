@@ -23,6 +23,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QCheckBox>
+#include <QComboBox>
 
 class SettingsDialog : public QDialog
 {
@@ -63,6 +64,10 @@ private:
 
     QCheckBox *m_showIconLabels;
     QCheckBox *m_showExtraText;
+    QComboBox *m_dateFormat;
+#ifdef NOT_IMPLEMENTED_YET
+    QComboBox *m_workHistoryArrangement;
+#endif
 
     QPushButton *m_ok;
 

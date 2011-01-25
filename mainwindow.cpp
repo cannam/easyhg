@@ -1360,6 +1360,7 @@ void MainWindow::settings()
     if (settingsDlg->presentationChanged()) {
         hgTabs->updateFileStates();
         updateToolBarStyle();
+        hgRefresh();
     }
 }
 
@@ -1509,7 +1510,7 @@ void MainWindow::actuallyRestoreFileSystemWatcher()
 void MainWindow::checkFilesystem()
 {
     DEBUG << "MainWindow::checkFilesystem" << endl;
-    hgStat();
+    hgRefresh();
 }
 
 void MainWindow::fsDirectoryChanged(QString d)
