@@ -43,6 +43,7 @@
 #include "confirmcommentdialog.h"
 #include "incomingdialog.h"
 #include "settingsdialog.h"
+#include "moreinformationdialog.h"
 #include "version.h"
 
 
@@ -1529,6 +1530,11 @@ void MainWindow::fsFileChanged(QString f)
     }
 }
 
+QString MainWindow::format1(QString head)
+{
+    return QString("<qt><h3>%1</h3></qt>").arg(head);
+}    
+
 QString MainWindow::format3(QString head, QString intro, QString code)
 {
     code = xmlEncode(code).replace("\n", "<br>")
@@ -1596,12 +1602,19 @@ void MainWindow::showPullResult(QString output)
     } else {
         report = tr("Pull complete");
     }
-    report = format3(report, tr("The pull command output was:"), output);
+
     runner->hide();
 
-    //!!! and something about updating
+    MoreInformationDialog::information(this, tr("Pull complete"),
+                                       format1(report), output);
+
+/*!!!
+    report = format3(report, tr("The pull command output was:"), output);
+
+    //!!! and something about updating?
 
     QMessageBox::information(this, "Pull complete", report);
+*/
 }
 
 void MainWindow::reportNewRemoteHeads(QString output)
