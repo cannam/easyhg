@@ -154,6 +154,7 @@ private:
     void showPullResult(QString);
     void showPushResult(QString);
     int extractChangeCount(QString);
+    QString format1(QString);
     QString format3(QString, QString, QString);
 
     void clearState();

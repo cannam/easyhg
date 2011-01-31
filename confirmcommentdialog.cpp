@@ -51,8 +51,10 @@ ConfirmCommentDialog::ConfirmCommentDialog(QWidget *parent,
                                                   QDialogButtonBox::Cancel);
     layout->addWidget(bbox, 2, 0);
     m_ok = bbox->button(QDialogButtonBox::Ok);
+    m_ok->setDefault(true);
     m_ok->setEnabled(initialComment != "");
     m_ok->setText(okButtonText);
+    bbox->button(QDialogButtonBox::Cancel)->setAutoDefault(false);
 
     connect(bbox, SIGNAL(accepted()), this, SLOT(accept()));
     connect(bbox, SIGNAL(rejected()), this, SLOT(reject()));
@@ -93,6 +95,7 @@ bool ConfirmCommentDialog::confirm(QWidget *parent,
 
     QPushButton *ok = box.addButton(QMessageBox::Ok);
     ok->setText(okButtonText);
+    box.setDefaultButton(QMessageBox::Ok);
     if (box.exec() == -1) return false;
     return box.standardButton(box.clickedButton()) == QMessageBox::Ok;
 }
@@ -110,6 +113,7 @@ bool ConfirmCommentDialog::confirmDangerous(QWidget *parent,
 
     QPushButton *ok = box.addButton(QMessageBox::Ok);
     ok->setText(okButtonText);
+    box.setDefaultButton(QMessageBox::Cancel);
     if (box.exec() == -1) return false;
     return box.standardButton(box.clickedButton()) == QMessageBox::Ok;
 }
