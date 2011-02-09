@@ -280,6 +280,9 @@ void HistoryWidget::connectSceneSignals()
     connect(scene, SIGNAL(mergeFrom(QString)),
             this, SIGNAL(mergeFrom(QString)));
 
+    connect(scene, SIGNAL(newBranch(QString)),
+            this, SIGNAL(newBranch(QString)));
+
     connect(scene, SIGNAL(tag(QString)),
             this, SIGNAL(tag(QString)));
 }

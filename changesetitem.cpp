@@ -153,6 +153,10 @@ ChangesetItem::activateMenu()
 
     menu->addSeparator();
 
+    QAction *branch = menu->addAction(tr("Start new branch..."));
+    branch->setEnabled(m_current);
+    connect(branch, SIGNAL(triggered()), this, SLOT(newBranchActivated()));
+
     QAction *tag = menu->addAction(tr("Add tag..."));
     connect(tag, SIGNAL(triggered()), this, SLOT(tagActivated()));
 
@@ -190,6 +194,7 @@ void ChangesetItem::updateActivated() { emit updateTo(getId()); }
 void ChangesetItem::diffToCurrentActivated() { emit diffToCurrent(getId()); }
 void ChangesetItem::mergeActivated() { emit mergeFrom(getId()); }
 void ChangesetItem::tagActivated() { emit tag(getId()); }
+void ChangesetItem::newBranchActivated() { emit newBranch(getId()); }
 
 void
 ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,

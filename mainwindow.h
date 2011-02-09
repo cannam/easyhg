@@ -101,6 +101,7 @@ private slots:
     void hgAnnotate();
     void hgResolveList();
     void hgTag(QString);
+    void hgNewBranch(QString);
     void hgServe();
     void hgIgnore();
 
