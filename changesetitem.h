@@ -64,6 +64,7 @@ signals:
     void diffToCurrent(QString);
     void diffToParent(QString child, QString parent);
     void mergeFrom(QString);
+    void newBranch(QString);
     void tag(QString);
 
 public slots:
@@ -77,6 +78,7 @@ private slots:
     void diffToCurrentActivated();
     void mergeActivated();
     void tagActivated();
+    void newBranchActivated();
 
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *);

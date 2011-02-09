@@ -447,18 +447,35 @@ void MainWindow::hgCommit()
 
 QString MainWindow::filterTag(QString tag)
 {
-    for(int i = 0; i < tag.size(); i++)
-    {
-        if (tag[i].isLower() || tag[i].isUpper() || tag[i].isDigit() || (tag[i] == QChar('.')))
-        {
+    for(int i = 0; i < tag.size(); i++) {
+        if (tag[i].isLower() || tag[i].isUpper() ||
+            tag[i].isDigit() || (tag[i] == QChar('.'))) {
             //ok
-        }
-        else
-        {
+        } else {
             tag[i] = QChar('_');
         }
     }
     return tag;
+}
+
+
+void MainWindow::hgNewBranch(QString id)
+{
+    QStringList params;
+    QString branch;
+
+    if (ConfirmCommentDialog::confirmAndGetShortComment
+        (this,
+         tr("New Branch"),
+         tr("Enter new branch name:"),
+         branch,
+         tr("Start Branch"))) {
+        if (!branch.isEmpty()) {//!!! do something better if it is empty
+
+            params << "branch" << filterTag(branch);
+            runner->requestAction(HgAction(ACT_NEW_BRANCH, workFolderPath, params));
+        }
+    }
 }
 
 
@@ -1695,6 +1712,9 @@ void MainWindow::commandFailed(HgAction action, QString output)
     case ACT_INCOMING:
         // returns non-zero code and no output if the check was
         // successful but there are no changes pending
+
+        //!!! -- won't do, there may legitimately be warnings,
+        //!!! -- e.g. certificate not verified
         if (output.trimmed() == "") {
             showIncoming("");
             return;
@@ -1897,6 +1917,11 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         shouldHgStat = true;
         break;
 
+    case ACT_NEW_BRANCH:
+        shouldHgStat = true;
+        hgTabs->showWorkTab();
+        break;
+
     case ACT_DIFF_SUMMARY:
         QMessageBox::information(this, tr("Change summary"),
                                  format3(tr("Summary of uncommitted changes"),
@@ -2081,6 +2106,9 @@ void MainWindow::connectTabsSignals()
 
     connect(hgTabs, SIGNAL(mergeFrom(QString)),
             this, SLOT(hgMergeFrom(QString)));
+
+    connect(hgTabs, SIGNAL(newBranch(QString)),
+            this, SLOT(hgNewBranch(QString)));
 
     connect(hgTabs, SIGNAL(tag(QString)),
             this, SLOT(hgTag(QString)));
