@@ -1695,7 +1695,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
     case ACT_INCOMING:
         // returns non-zero code and no output if the check was
         // successful but there are no changes pending
-        if (output.trimmed() == "") {
+        if (output.replace(QRegExp("(^|\\n)warning: [^\\n]*\\n"), "").trimmed() == "") {
             showIncoming("");
             return;
         }
