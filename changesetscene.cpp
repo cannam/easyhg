@@ -108,3 +108,13 @@ ChangesetScene::dateItemClicked()
     }
 }
 
+ChangesetItem *
+ChangesetScene::getItemById(QString id)
+{
+    foreach (QGraphicsItem *it, items()) {
+        ChangesetItem *csit = dynamic_cast<ChangesetItem *>(it);
+        if (csit && csit->getId() == id) return csit;
+    }
+}
+
+

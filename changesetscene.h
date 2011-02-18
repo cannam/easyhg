@@ -35,6 +35,8 @@ public:
     void addUncommittedItem(UncommittedItem *item);
     void addDateItem(DateItem *item);
 
+    ChangesetItem *getItemById(QString id); // Slow: traversal required
+
 signals:
     void commit();
     void revert();

@@ -16,6 +16,7 @@
 */
 
 #include "changesetitem.h"
+#include "changesetscene.h"
 #include "changesetdetailitem.h"
 #include "changeset.h"
 #include "textabbrev.h"
@@ -121,15 +122,51 @@ ChangesetItem::activateMenu()
 
     menu->addSeparator();
 
-    if (m_changeset->parents().size() > 1) {
+    QStringList parents = m_changeset->parents();
 
-        foreach (QString parentId, m_changeset->parents()) {
-            QAction *diffParent =
-                menu->addAction(tr("Diff to parent %1")
-                                .arg(Changeset::hashOf(parentId)));
+    if (parents.size() > 1) {
+
+        QString leftId, rightId;
+        ChangesetScene *cs = dynamic_cast<ChangesetScene *>(scene());
+        bool havePositions = false;
+
+        if (cs && parents.size() == 2) {
+            ChangesetItem *i0 = cs->getItemById(parents[0]);
+            ChangesetItem *i1 = cs->getItemById(parents[1]);
+            if (i0 && i1) {
+                if (i0->x() < i1->x()) {
+                    leftId = parents[0];
+                    rightId = parents[1];
+                } else {
+                    leftId = parents[1];
+                    rightId = parents[0];
+                }
+                havePositions = true;
+            }
+        }
+
+        if (havePositions) {
+            
+            QAction *diffParent = menu->addAction(tr("Diff to left parent"));
             connect(diffParent, SIGNAL(triggered()),
                     this, SLOT(diffToParentActivated()));
-            m_parentDiffActions[diffParent] = parentId;
+            m_parentDiffActions[diffParent] = leftId;
+            
+            diffParent = menu->addAction(tr("Diff to right parent"));
+            connect(diffParent, SIGNAL(triggered()),
+                    this, SLOT(diffToParentActivated()));
+            m_parentDiffActions[diffParent] = rightId;
+
+        } else {
+
+            foreach (QString parentId, parents) {
+                QString text = tr("Diff to parent %1")
+                    .arg(Changeset::hashOf(parentId));
+                QAction *diffParent = menu->addAction(text);
+                connect(diffParent, SIGNAL(triggered()),
+                        this, SLOT(diffToParentActivated()));
+                m_parentDiffActions[diffParent] = parentId;
+            }
         }
 
     } else {

@@ -590,7 +590,7 @@ void MainWindow::hgDiffToParent(QString child, QString parent)
 
     QStringList params;
 
-    // Diff given revision against working folder
+    // Diff given revision against parent revision
 
     params << "--config" << "extensions.extdiff=" << "extdiff";
     params << "--program" << diff;
