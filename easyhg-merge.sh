@@ -18,6 +18,10 @@ for d in kdiff3 kdiff3.exe; do
 	found=true
 	"$p/$d" "$ancestor" "$left" "$right" -o "$out"
 	break
+    elif [ -x "$(type -path $d)" ]; then
+	found=true
+	"$d" "$ancestor" "$left" "$right" -o "$out"
+	break;
     fi
 done
 if [ -z "$found" ]; then
@@ -26,3 +30,4 @@ if [ -z "$found" ]; then
 	"$fm" -left "$left" -merge "$out" -ancestor "$ancestor" -right "$right"
     fi
 fi
+[ -z "$found" ]
