@@ -18,7 +18,6 @@
 #include "filestatuswidget.h"
 #include "debug.h"
 #include "multichoicedialog.h"
-#include "workstatuswidget.h"
 
 #include <QLabel>
 #include <QListWidget>
@@ -42,10 +41,6 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     setLayout(layout);
 
     int row = 0;
-
-    m_workStatus = new WorkStatusWidget(this);
-    layout->addWidget(m_workStatus, row, 0, 1, 3);
-    ++row;
 
     m_noModificationsLabel = new QLabel;
     setNoModificationsLabelText();
@@ -362,13 +357,13 @@ QStringList FileStatusWidget::getAllRemovableFiles() const
 QString
 FileStatusWidget::localPath() const
 {
-    return m_workStatus->localPath();
+    return m_localPath;
 }
 
 void
 FileStatusWidget::setLocalPath(QString p)
 {
-    m_workStatus->setLocalPath(p);
+    m_localPath = p;
     delete m_dateReference;
     m_dateReference = new QFileInfo(p + "/.hg/dirstate");
     if (!m_dateReference->exists() ||
@@ -381,30 +376,6 @@ FileStatusWidget::setLocalPath(QString p)
         delete m_dateReference;
         m_dateReference = 0;
     }
-}
-
-QString
-FileStatusWidget::remoteURL() const
-{
-    return m_workStatus->remoteURL();
-}
-
-void
-FileStatusWidget::setRemoteURL(QString r)
-{
-    m_workStatus->setRemoteURL(r);
-}
-
-QString
-FileStatusWidget::state() const
-{
-    return m_workStatus->state();
-}
-
-void
-FileStatusWidget::setState(QString b)
-{
-    m_workStatus->setState(b);
 }
 
 void
@@ -443,7 +414,7 @@ FileStatusWidget::updateWidgets()
             if (s == FileStates::Unknown) {
                 // We want to highlight untracked files that have appeared
                 // since the last interaction with the repo
-                QString fn(m_workStatus->localPath() + "/" + file);
+                QString fn(m_localPath + "/" + file);
                 DEBUG << "comparing with " << fn << endl;
                 QFileInfo fi(fn);
                 if (fi.exists() && fi.created() > lastInteractionTime) {

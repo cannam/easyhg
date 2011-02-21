@@ -34,6 +34,8 @@ class QMenu;
 class QTimer;
 QT_END_NAMESPACE
 
+class WorkStatusWidget;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -149,6 +151,9 @@ private:
     void suspendFileSystemWatcher();
     void restoreFileSystemWatcher();
 
+    void updateWorkFolderAndRepoNames();
+
+    WorkStatusWidget *m_workStatus;
     HgTabWidget *m_hgTabs;
 
     QString m_remoteRepoPath;

@@ -29,8 +29,6 @@ class QPushButton;
 class QFileInfo;
 class QCheckBox;
 
-class WorkStatusWidget;
-
 class FileStatusWidget : public QWidget
 {
     Q_OBJECT
@@ -41,12 +39,6 @@ public:
 
     QString localPath() const;
     void setLocalPath(QString p);
-
-    QString remoteURL() const;
-    void setRemoteURL(QString u);
-
-    QString state() const;
-    void setState(QString b);
 
     FileStates fileStates() const;
     void setFileStates(FileStates sp);
@@ -83,8 +75,7 @@ private slots:
     void itemSelectionChanged();
 
 private:
-    WorkStatusWidget *m_workStatus;
-    
+    QString m_localPath;
     QLabel *m_noModificationsLabel;
 
     QCheckBox *m_showAllFiles;
