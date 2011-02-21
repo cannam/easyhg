@@ -18,7 +18,7 @@
 #include "filestatuswidget.h"
 #include "debug.h"
 #include "multichoicedialog.h"
-#include "clickablelabel.h"
+#include "workstatuswidget.h"
 
 #include <QLabel>
 #include <QListWidget>
@@ -43,35 +43,8 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 
     int row = 0;
 
-#ifndef Q_OS_MAC    
-    layout->addItem(new QSpacerItem(1, 1), row, 0);
-    ++row;
-#endif
-
-    layout->addWidget(new QLabel(tr("Local:")), row, 0);
-
-    m_openButton = new ClickableLabel;
-    QFont f(m_openButton->font());
-    f.setBold(true);
-    m_openButton->setFont(f);
-    m_openButton->setMouseUnderline(true);
-    connect(m_openButton, SIGNAL(clicked()), this, SLOT(openButtonClicked()));
-    layout->addWidget(m_openButton, row, 1, 1, 2, Qt::AlignLeft);
-
-    ++row;
-    layout->addWidget(new QLabel(tr("Remote:")), row, 0);
-    m_remoteURLLabel = new QLabel;
-    layout->addWidget(m_remoteURLLabel, row, 1, 1, 2);
-
-    ++row;
-    layout->addWidget(new QLabel(tr("State:")), row, 0);
-    m_stateLabel = new QLabel;
-    layout->addWidget(m_stateLabel, row, 1, 1, 2);
-
-    layout->setColumnStretch(1, 20);
-
-    layout->addWidget(new QLabel("<qt><hr></qt>"), ++row, 0, 1, 3);
-
+    m_workStatus = new WorkStatusWidget(this);
+    layout->addWidget(m_workStatus, row, 0, 1, 3);
     ++row;
 
     m_noModificationsLabel = new QLabel;
@@ -160,32 +133,6 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 FileStatusWidget::~FileStatusWidget()
 {
     delete m_dateReference;
-}
-
-void FileStatusWidget::openButtonClicked()
-{
-    QDir d(m_localPath);
-    if (d.exists()) {
-        QStringList args;
-        QString path = d.canonicalPath();
-#if defined Q_OS_WIN32
-        // Although the Win32 API is quite happy to have
-        // forward slashes as directory separators, Windows
-        // Explorer is not
-        path = path.replace('/', '\\');
-        args << path;
-        QProcess::execute("c:/windows/explorer.exe", args);
-#else
-        args << path;
-        QProcess::execute(
-#if defined Q_OS_MAC
-            "/usr/bin/open",
-#else
-            "/usr/bin/xdg-open",
-#endif
-            args);
-#endif
-    }
 }
 
 QString FileStatusWidget::labelFor(FileStates::State s, bool addHighlightExplanation)
@@ -412,11 +359,16 @@ QStringList FileStatusWidget::getAllRemovableFiles() const
     return files;
 }
 
+QString
+FileStatusWidget::localPath() const
+{
+    return m_workStatus->localPath();
+}
+
 void
 FileStatusWidget::setLocalPath(QString p)
 {
-    m_localPath = p;
-    m_openButton->setText(p);
+    m_workStatus->setLocalPath(p);
     delete m_dateReference;
     m_dateReference = new QFileInfo(p + "/.hg/dirstate");
     if (!m_dateReference->exists() ||
@@ -429,14 +381,30 @@ FileStatusWidget::setLocalPath(QString p)
         delete m_dateReference;
         m_dateReference = 0;
     }
-    m_openButton->setEnabled(QDir(m_localPath).exists());
+}
+
+QString
+FileStatusWidget::remoteURL() const
+{
+    return m_workStatus->remoteURL();
 }
 
 void
 FileStatusWidget::setRemoteURL(QString r)
 {
-    m_remoteURL = r;
-    m_remoteURLLabel->setText(r);
+    m_workStatus->setRemoteURL(r);
+}
+
+QString
+FileStatusWidget::state() const
+{
+    return m_workStatus->state();
+}
+
+void
+FileStatusWidget::setState(QString b)
+{
+    m_workStatus->setState(b);
 }
 
 void
@@ -444,13 +412,6 @@ FileStatusWidget::setFileStates(FileStates p)
 {
     m_fileStates = p;
     updateWidgets();
-}
-
-void
-FileStatusWidget::setState(QString b)
-{
-    m_state = b;
-    updateStateLabel();
 }
 
 void
@@ -482,7 +443,7 @@ FileStatusWidget::updateWidgets()
             if (s == FileStates::Unknown) {
                 // We want to highlight untracked files that have appeared
                 // since the last interaction with the repo
-                QString fn(m_localPath + "/" + file);
+                QString fn(m_workStatus->localPath() + "/" + file);
                 DEBUG << "comparing with " << fn << endl;
                 QFileInfo fi(fn);
                 if (fi.exists() && fi.created() > lastInteractionTime) {
@@ -530,7 +491,6 @@ FileStatusWidget::updateWidgets()
         layoutBoxesLinearly();
     }
 
-    updateStateLabel();
     setNoModificationsLabelText();
 }
 
@@ -594,7 +554,3 @@ void FileStatusWidget::setLabelFor(QWidget *w, FileStates::State s, bool addHigh
     if (!ql.empty()) ql[0]->setText(text);
 }
 
-void FileStatusWidget::updateStateLabel()
-{
-    m_stateLabel->setText(m_state);
-}
