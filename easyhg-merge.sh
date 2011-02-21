@@ -27,7 +27,8 @@ done
 if [ -z "$found" ]; then
     fm=/Developer/Applications/Utilities/FileMerge.app/Contents/MacOS/FileMerge
     if [ -x "$fm" ]; then
+	found=true
 	"$fm" -left "$left" -merge "$out" -ancestor "$ancestor" -right "$right"
     fi
 fi
-[ -z "$found" ]
+[ -n "$found" ]
