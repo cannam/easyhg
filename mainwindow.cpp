@@ -1599,7 +1599,7 @@ void MainWindow::showPushResult(QString output)
     } else if (n == 0) {
         head = tr("No changes to push");
         report = tr("The remote repository already contains all changes that have been committed locally.");
-        if (hgTabs->canCommit()) {
+        if (m_hgTabs->canCommit()) {
             report = tr("%1<p>You do have some uncommitted changes. If you wish to push those to the remote repository, commit them locally first.").arg(report);
         }            
     } else {
@@ -1626,8 +1626,6 @@ void MainWindow::showPullResult(QString output)
         head = tr("Pull complete");
     }
     m_runner->hide();
-
-    runner->hide();
 
     MoreInformationDialog::information(this, tr("Pull complete"),
                                        head, report, output);
@@ -1877,7 +1875,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
             (this,
              tr("Clone"),
              tr("Clone successful"),
-             tr("The remote repository <pre>%1</pre> was successfully cloned to the local folder <pre>%2</pre>.").arg(remoteRepoPath).arg(workFolderPath),
+             tr("The remote repository <pre>%1</pre> was successfully cloned to the local folder <pre>%2</pre>.").arg(m_remoteRepoPath).arg(m_workFolderPath),
              output);
         enableDisableActions();
         m_shouldHgStat = true;
@@ -1986,8 +1984,10 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
         
     case ACT_MERGE:
-        //!!! use format3?
-        QMessageBox::information(this, tr("Merge"), tr("<qt><h3>Merge successful</h3><pre>%1</pre>").arg(xmlEncode(output)));
+        MoreInformationDialog::information
+            (this, tr("Merge"), tr("Merge successful"),
+             tr("The merge succeeded.  Remember to commit the result!"),
+             output);
         m_shouldHgStat = true;
         m_justMerged = true;
         break;
