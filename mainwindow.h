@@ -69,6 +69,7 @@ private slots:
     void hgAdd();
     void hgCommit();
     void hgShowSummary();
+    void hgShowSummaryToParent(QString, QString);
     void hgFolderDiff();
     void hgDiffToCurrent(QString);
     void hgDiffToParent(QString, QString);

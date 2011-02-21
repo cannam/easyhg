@@ -46,6 +46,7 @@ signals:
 
     void updateTo(QString id);
     void diffToParent(QString id, QString parent);
+    void showSummaryToParent(QString id, QString parent);
     void diffToCurrent(QString id);
     void mergeFrom(QString id);
     void tag(QString id);

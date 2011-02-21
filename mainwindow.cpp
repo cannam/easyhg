@@ -545,7 +545,7 @@ void MainWindow::hgShowSummary()
     
     params << "diff" << "--stat";
 
-    m_runner->requestAction(HgAction(ACT_DIFF_SUMMARY, m_workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_UNCOMMITTED_SUMMARY, m_workFolderPath, params));
 }
 
 void MainWindow::hgFolderDiff()
@@ -598,6 +598,18 @@ void MainWindow::hgDiffToParent(QString child, QString parent)
            << "--rev" << Changeset::hashOf(child);
 
     m_runner->requestAction(HgAction(ACT_CHGSETDIFF, m_workFolderPath, params));
+}
+
+
+void MainWindow::hgShowSummaryToParent(QString child, QString parent)
+{
+    QStringList params;
+
+    params << "diff" << "--stat"
+           << "--rev" << Changeset::hashOf(parent)
+           << "--rev" << Changeset::hashOf(child);
+
+    m_runner->requestAction(HgAction(ACT_DIFF_SUMMARY, m_workFolderPath, params));
 }
 
 
@@ -1897,11 +1909,26 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         m_shouldHgStat = true;
         break;
 
-    case ACT_DIFF_SUMMARY:
+    case ACT_UNCOMMITTED_SUMMARY:
         QMessageBox::information(this, tr("Change summary"),
                                  format3(tr("Summary of uncommitted changes"),
                                          "",
                                          output));
+        break;
+
+    case ACT_DIFF_SUMMARY:
+        if (output == "") {
+            // Can happen, for a merge commit
+            QMessageBox::information(this, tr("Change summary"),
+                                     format3(tr("Summary of changes"),
+                                             tr("No changes"),
+                                             output));
+        } else {
+            QMessageBox::information(this, tr("Change summary"),
+                                     format3(tr("Summary of changes"),
+                                             "",
+                                             output));
+        }            
         break;
 
     case ACT_FOLDERDIFF:
@@ -2078,6 +2105,9 @@ void MainWindow::connectTabsSignals()
 
     connect(m_hgTabs, SIGNAL(diffToParent(QString, QString)),
             this, SLOT(hgDiffToParent(QString, QString)));
+
+    connect(m_hgTabs, SIGNAL(showSummaryToParent(QString, QString)),
+            this, SLOT(hgShowSummaryToParent(QString, QString)));
 
     connect(m_hgTabs, SIGNAL(mergeFrom(QString)),
             this, SLOT(hgMergeFrom(QString)));

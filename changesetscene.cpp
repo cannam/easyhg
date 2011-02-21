@@ -45,6 +45,9 @@ ChangesetScene::addChangesetItem(ChangesetItem *item)
     connect(item, SIGNAL(diffToParent(QString, QString)),
             this, SIGNAL(diffToParent(QString, QString)));
 
+    connect(item, SIGNAL(showSummaryToParent(QString, QString)),
+            this, SIGNAL(showSummaryToParent(QString, QString)));
+
     connect(item, SIGNAL(mergeFrom(QString)),
             this, SIGNAL(mergeFrom(QString)));
 
@@ -115,6 +118,7 @@ ChangesetScene::getItemById(QString id)
         ChangesetItem *csit = dynamic_cast<ChangesetItem *>(it);
         if (csit && csit->getId() == id) return csit;
     }
+    return 0;
 }
 
 
