@@ -1606,7 +1606,7 @@ void MainWindow::showPullResult(QString output)
     runner->hide();
 
     MoreInformationDialog::information(this, tr("Pull complete"),
-                                       format1(report), output);
+                                       report, "", output);
 
 /*!!!
     report = format3(report, tr("The pull command output was:"), output);
