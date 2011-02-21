@@ -63,7 +63,7 @@ signals:
     void updateTo(QString);
     void diffToCurrent(QString);
     void diffToParent(QString child, QString parent);
-    void showSummaryToParent(QString child, QString parent);
+    void showSummary(Changeset *);
     void mergeFrom(QString);
     void tag(QString);
 
@@ -75,7 +75,7 @@ private slots:
     void copyIdActivated();
     void updateActivated();
     void diffToParentActivated();
-    void showSummaryToParentActivated();
+    void showSummaryActivated();
     void diffToCurrentActivated();
     void mergeActivated();
     void tagActivated();
