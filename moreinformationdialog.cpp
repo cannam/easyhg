@@ -40,14 +40,15 @@ MoreInformationDialog::MoreInformationDialog(QString title,
     setLayout(layout);
 
     m_iconLabel = new QLabel;
-    layout->addWidget(m_iconLabel, 0, 0);
+    layout->addWidget(m_iconLabel, 0, 0, 2, 1, Qt::AlignTop);
 
     QLabel *headLabel = new QLabel(QString("<qt><h3>%1</h3></qt>").arg(head));
     layout->addWidget(headLabel, 0, 1);
 
     QLabel *textLabel = new QLabel(text);
     textLabel->setTextFormat(Qt::RichText);
-    layout->addWidget(textLabel, 1, 1);
+    textLabel->setWordWrap(true);
+    layout->addWidget(textLabel, 1, 1, Qt::AlignTop);
 
     QDialogButtonBox *bb = new QDialogButtonBox(QDialogButtonBox::Ok);
     connect(bb, SIGNAL(accepted()), this, SLOT(accept()));
@@ -55,8 +56,11 @@ MoreInformationDialog::MoreInformationDialog(QString title,
 
     m_moreButton = bb->addButton(tr("More Details..."),
                                  QDialogButtonBox::ActionRole);
+    m_moreButton->setDefault(false);
 
     connect(m_moreButton, SIGNAL(clicked()), this, SLOT(moreClicked()));
+
+    bb->button(QDialogButtonBox::Ok)->setDefault(true);
 
     m_moreText = new QTextEdit();
     m_moreText->setAcceptRichText(false);
@@ -72,7 +76,9 @@ MoreInformationDialog::MoreInformationDialog(QString title,
     layout->addWidget(m_moreText, 3, 0, 1, 2);
 
     m_moreText->hide();
+    if (more == "") m_moreButton->hide();
 
+    layout->setRowStretch(1, 20);
     layout->setColumnStretch(1, 20);
     setMinimumWidth(400);
 }

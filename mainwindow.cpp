@@ -846,7 +846,7 @@ void MainWindow::hgPull()
 {
     if (ConfirmCommentDialog::confirm
         (this, tr("Confirm pull"),
-         format3(tr("Confirm pull from remote repository"),
+         format3(tr("Pull from remote repository?"),
                  tr("You are about to pull changes from the following remote repository:"),
                  remoteRepoPath),
          tr("Pull"))) {
@@ -861,7 +861,7 @@ void MainWindow::hgPush()
 {
     if (ConfirmCommentDialog::confirm
         (this, tr("Confirm push"),
-         format3(tr("Confirm push to remote repository"),
+         format3(tr("Push to remote repository?"),
                  tr("You are about to push your changes to the following remote repository:"),
                  remoteRepoPath),
          tr("Push"))) {
@@ -1577,44 +1577,45 @@ int MainWindow::extractChangeCount(QString text)
 
 void MainWindow::showPushResult(QString output)
 {
+    QString head;
     QString report;
     int n = extractChangeCount(output);
     if (n > 0) {
-        report = tr("Pushed %n changeset(s)", "", n);
+        head = tr("Pushed %n changeset(s)", "", n);
     } else if (n == 0) {
-        report = tr("No changes to push");
+        head = tr("No changes to push");
+        report = tr("The remote repository already contains all changes that have been committed locally.");
+        if (hgTabs->canCommit()) {
+            report = tr("%1<p>You do have some uncommitted changes. If you wish to push those to the remote repository, commit them locally first.").arg(report);
+        }            
     } else {
-        report = tr("Push complete");
+        head = tr("Push complete");
     }
-    report = format3(report, tr("The push command output was:"), output);
     runner->hide();
-    QMessageBox::information(this, "Push complete", report);
+
+    MoreInformationDialog::information(this, tr("Push complete"),
+                                       head, report, output);
 }
 
 void MainWindow::showPullResult(QString output)
 {
+    QString head;
     QString report;
     int n = extractChangeCount(output);
     if (n > 0) {
-        report = tr("Pulled %n changeset(s)", "", n);
+        head = tr("Pulled %n changeset(s)", "", n);
+        report = tr("New changes will be highlighted in the history. Update to bring these changes into your working copy.");
     } else if (n == 0) {
-        report = tr("No changes to pull");
+        head = tr("No changes to pull");
+        report = tr("Your local repository already contains all changes found in the remote repository.");
     } else {
-        report = tr("Pull complete");
+        head = tr("Pull complete");
     }
 
     runner->hide();
 
     MoreInformationDialog::information(this, tr("Pull complete"),
-                                       report, "", output);
-
-/*!!!
-    report = format3(report, tr("The pull command output was:"), output);
-
-    //!!! and something about updating?
-
-    QMessageBox::information(this, "Pull complete", report);
-*/
+                                       head, report, output);
 }
 
 void MainWindow::reportNewRemoteHeads(QString output)
@@ -1639,17 +1640,19 @@ void MainWindow::reportNewRemoteHeads(QString output)
     }
 
     if (headsAreLocal) {
-        QMessageBox::warning
-            (this, tr("Push failed"),
-             format3(tr("Push failed"),
-                     tr("Your local repository could not be pushed to the remote repository.<br><br>You may need to merge the changes locally first.<br><br>The output of the push command was:"),
-                     output));
+        MoreInformationDialog::warning
+            (this,
+             tr("Push failed"),
+             tr("Push failed"),
+             tr("Your local repository could not be pushed to the remote repository.<br><br>You may need to merge the changes locally first."),
+             output);
     } else {
-        QMessageBox::warning
-            (this, tr("Push failed"),
-             format3(tr("Push failed"),
-                     tr("Your local repository could not be pushed to the remote repository.<br><br>The remote repository may have been changed by someone else since you last pushed. Try pulling and merging their changes into your local repository first.<br><br>The output of the push command was:"),
-                     output));
+        MoreInformationDialog::warning
+            (this,
+             tr("Push failed"),
+             tr("Push failed"),
+             tr("Your local repository could not be pushed to the remote repository.<br><br>The remote repository may have been changed by someone else since you last pushed. Try pulling and merging their changes into your local repository first."),
+             output);
     }
 }
 
@@ -1685,19 +1688,21 @@ void MainWindow::commandFailed(HgAction action, QString output)
         // uh huh
         return;
     case ACT_TEST_HG:
-        QMessageBox::warning
-            (this, tr("Failed to run Mercurial"),
-             format3(tr("Failed to run Mercurial"),
-                     tr("The Mercurial program either could not be found or failed to run.<br>Check that the Mercurial program path is correct in %1.<br><br>%2").arg(setstr).arg(output == "" ? QString("") : tr("The test command said:")),
-                     output));
+        MoreInformationDialog::warning
+            (this,
+             tr("Failed to run Mercurial"),
+             tr("Failed to run Mercurial"),
+             tr("The Mercurial program either could not be found or failed to run.<br>Check that the Mercurial program path is correct in %1.").arg(setstr),
+             output);
         settings();
         return;
     case ACT_TEST_HG_EXT:
         QMessageBox::warning
-            (this, tr("Failed to run Mercurial"),
-             format3(tr("Failed to run Mercurial with extension enabled"),
-                     tr("The Mercurial program failed to run with the EasyMercurial interaction extension enabled.<br>This may indicate an installation problem with EasyMercurial.<br><br>You may be able to continue working if you switch off &ldquo;Use EasyHg Mercurial Extension&rdquo; in %1.  Note that remote repositories that require authentication may not work if you do this.<br><br>%2").arg(setstr).arg(output == "" ? QString("") : tr("The test command said:")),
-                     output));
+            (this,
+             tr("Failed to run Mercurial"),
+             tr("Failed to run Mercurial with extension enabled"),
+             tr("The Mercurial program failed to run with the EasyMercurial interaction extension enabled.<br>This may indicate an installation problem with EasyMercurial.<br><br>You may be able to continue working if you switch off &ldquo;Use EasyHg Mercurial Extension&rdquo; in %1.  Note that remote repositories that require authentication may not work if you do this.").arg(setstr),
+             output);
         settings();
         return;
     case ACT_CLONEFROMREMOTE:
@@ -1742,6 +1747,8 @@ void MainWindow::commandFailed(HgAction action, QString output)
     foreach (QString arg, action.params) {
         command += " " + arg;
     }
+
+    //!!!
 
     QString message = tr("<qt><h3>Command failed</h3>"
                          "<p>The following command failed:</p>"
@@ -1851,7 +1858,12 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         MultiChoiceDialog::addRecentArgument("local", workFolderPath);
         MultiChoiceDialog::addRecentArgument("remote", remoteRepoPath);
         MultiChoiceDialog::addRecentArgument("remote", workFolderPath, true);
-        QMessageBox::information(this, tr("Clone"), tr("<qt><h3>Clone successful</h3><pre>%1</pre>").arg(xmlEncode(output)));
+        MoreInformationDialog::information
+            (this,
+             tr("Clone"),
+             tr("Clone successful"),
+             tr("The remote repository <pre>%1</pre> was successfully cloned to the local folder <pre>%2</pre>.").arg(remoteRepoPath).arg(workFolderPath),
+             output);
         enableDisableActions();
         shouldHgStat = true;
         break;
