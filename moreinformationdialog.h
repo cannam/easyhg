@@ -19,20 +19,45 @@
 #define MORE_INFORMATION_DIALOG_H
 
 #include <QString>
+#include <QDialog>
 
-class QWidget;
+class QLabel;
+class QTextEdit;
+class QPushButton;
 
 /**
  * Provide methods like the QMessageBox static methods, to call up
- * dialogs with "More information" buttons in them
+ * dialogs with "More information" buttons in them.  QMessageBox does
+ * have an optional additional-details field, but it doesn't behave
+ * quite as we'd like with regard to layout
  */
 
-class MoreInformationDialog
+class MoreInformationDialog : public QDialog
 {
+    Q_OBJECT
+
 public:
-    static void critical(QWidget *parent, QString title, QString text, QString more);
-    static void information(QWidget *parent, QString title, QString text, QString more);
-    static void warning(QWidget *parent, QString title, QString text, QString more);
+    MoreInformationDialog(QString title,
+                          QString head,
+                          QString text,
+                          QString more,
+                          QWidget *parent = 0);
+
+    ~MoreInformationDialog();
+
+    void setIcon(QIcon);
+
+    static void critical(QWidget *parent, QString title, QString head, QString text, QString more);
+    static void information(QWidget *parent, QString title, QString head, QString text, QString more);
+    static void warning(QWidget *parent, QString title, QString head, QString text, QString more);
+
+private slots:
+    void moreClicked();
+
+private:
+    QLabel *m_iconLabel;
+    QPushButton *m_moreButton;
+    QTextEdit *m_moreText;
 };
 
 #endif
