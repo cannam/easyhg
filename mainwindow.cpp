@@ -1875,7 +1875,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
             (this,
              tr("Clone"),
              tr("Clone successful"),
-             tr("The remote repository <pre>%1</pre> was successfully cloned to the local folder <pre>%2</pre>.").arg(m_remoteRepoPath).arg(m_workFolderPath),
+             tr("The remote repository was successfully cloned to the local folder <code>%1</code>.").arg(xmlEncode(m_workFolderPath)),
              output);
         enableDisableActions();
         m_shouldHgStat = true;
