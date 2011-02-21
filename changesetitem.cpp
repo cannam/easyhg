@@ -121,6 +121,11 @@ ChangesetItem::activateMenu()
     QAction *copyId = menu->addAction(tr("Copy identifier to clipboard"));
     connect(copyId, SIGNAL(triggered()), this, SLOT(copyIdActivated()));
 
+    QAction *stat = menu->addAction(tr("Summarise changes"));
+    connect(stat, SIGNAL(triggered()), this, SLOT(showSummaryActivated()));
+
+    menu->addSeparator();
+
     QStringList parents = m_changeset->parents();
 
     QString leftId, rightId;
@@ -143,32 +148,6 @@ ChangesetItem::activateMenu()
             }
         }
     }
-
-    if (parents.size() > 1) {
-        if (havePositions) {
-            QAction *stat = menu->addAction(tr("Summarise changes from left parent"));
-            connect(stat, SIGNAL(triggered()), this, SLOT(showSummaryToParentActivated()));
-            m_summaryActions[stat] = leftId;
-            
-            stat = menu->addAction(tr("Summarise changes from right parent"));
-            connect(stat, SIGNAL(triggered()), this, SLOT(showSummaryToParentActivated()));
-            m_summaryActions[stat] = rightId;
-        } else {
-            
-            foreach (QString parentId, parents) {
-                QString text = tr("Summarise changes from parent %1").arg(Changeset::hashOf(parentId));
-                QAction *stat = menu->addAction(text);
-                connect(stat, SIGNAL(triggered()), this, SLOT(showSummaryToParentActivated()));
-                m_summaryActions[stat] = parentId;
-            }
-
-        }
-    } else {
-        QAction *stat = menu->addAction(tr("Summarise changes"));
-        connect(stat, SIGNAL(triggered()), this, SLOT(showSummaryToParentActivated()));
-    }
-
-    menu->addSeparator();
 
     if (parents.size() > 1) {
         if (havePositions) {
@@ -243,22 +222,9 @@ void ChangesetItem::diffToParentActivated()
     emit diffToParent(getId(), parentId);
 }
 
-void ChangesetItem::showSummaryToParentActivated()
+void ChangesetItem::showSummaryActivated()
 {
-    QAction *a = qobject_cast<QAction *>(sender());
-    QString parentId;
-    if (m_summaryActions.contains(a)) {
-        parentId = m_summaryActions[a];
-        DEBUG << "ChangesetItem::showSummaryToParentActivated: specific parent " 
-              << parentId << " selected" << endl;
-    } else {
-        parentId = m_changeset->parents()[0];
-        DEBUG << "ChangesetItem::showSummaryToParentActivated: "
-              << "no specific parent selected, using first parent "
-              << parentId << endl;
-    }
-
-    emit showSummaryToParent(getId(), parentId);
+    emit showSummary(m_changeset);
 }
 
 void ChangesetItem::updateActivated() { emit updateTo(getId()); }

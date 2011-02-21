@@ -601,15 +601,17 @@ void MainWindow::hgDiffToParent(QString child, QString parent)
 }
 
 
-void MainWindow::hgShowSummaryToParent(QString child, QString parent)
+void MainWindow::hgShowSummaryFor(Changeset *cs)
 {
     QStringList params;
 
-    params << "diff" << "--stat"
-           << "--rev" << Changeset::hashOf(parent)
-           << "--rev" << Changeset::hashOf(child);
+    // This will pick a default parent if there is more than one
+    // (whereas with diff we need to supply one).  But it does need a
+    // bit more parsing
+    params << "log" << "--stat" << "--rev" << Changeset::hashOf(cs->id());
 
-    m_runner->requestAction(HgAction(ACT_DIFF_SUMMARY, m_workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_DIFF_SUMMARY, m_workFolderPath,
+                                     params, cs));
 }
 
 
@@ -1917,8 +1919,21 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
 
     case ACT_DIFF_SUMMARY:
-        if (output == "") {
-            // Can happen, for a merge commit
+    {
+        // Output has log info first, diff following after a blank line
+        output.replace("\r\n", "\n");
+        QStringList olist = output.split("\n\n", QString::SkipEmptyParts);
+        if (olist.size() > 1) output = olist[1];
+
+        Changeset *cs = (Changeset *)completedAction.extraData;
+        if (cs) {
+            QMessageBox::information
+                (this, tr("Change summary"),
+                 format3(tr("Summary of changes"),
+                         cs->formatHtml(),
+                         output));
+        } else if (output == "") {
+            // Can happen, for a merge commit (depending on parent)
             QMessageBox::information(this, tr("Change summary"),
                                      format3(tr("Summary of changes"),
                                              tr("No changes"),
@@ -1930,6 +1945,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
                                              output));
         }            
         break;
+    }
 
     case ACT_FOLDERDIFF:
     case ACT_CHGSETDIFF:
@@ -2106,8 +2122,8 @@ void MainWindow::connectTabsSignals()
     connect(m_hgTabs, SIGNAL(diffToParent(QString, QString)),
             this, SLOT(hgDiffToParent(QString, QString)));
 
-    connect(m_hgTabs, SIGNAL(showSummaryToParent(QString, QString)),
-            this, SLOT(hgShowSummaryToParent(QString, QString)));
+    connect(m_hgTabs, SIGNAL(showSummary(Changeset *)),
+            this, SLOT(hgShowSummaryFor(Changeset *)));
 
     connect(m_hgTabs, SIGNAL(mergeFrom(QString)),
             this, SLOT(hgMergeFrom(QString)));
