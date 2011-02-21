@@ -40,20 +40,6 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QString myDirPath);
-    HgTabWidget *hgTabs;
-    void writeSettings();
-
-    //Paths to remote repo & workfolder
-    //Local repo is directory "./hg/" under work folder
-    QString remoteRepoPath;
-    QString workFolderPath;
-    QString currentBranch;
-    Changesets currentHeads;
-    Changesets currentParents;
-    int commitsSincePush;
-    bool stateUnknown;
-    bool hgIsOK;
-    bool needNewLog;
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -126,6 +112,7 @@ private:
     void splitChangeSets(QStringList *list, QString hgLogOutput);
     void reportNewRemoteHeads(QString);
     void presentLongStdoutToUser(QString stdo);
+    void writeSettings();
 
     QStringList listAllUpIpV4Addresses();
     QString filterTag(QString tag);
@@ -162,71 +149,83 @@ private:
     void suspendFileSystemWatcher();
     void restoreFileSystemWatcher();
 
-    bool firstStart;
+    HgTabWidget *m_hgTabs;
 
-    bool showAllFiles;
+    QString m_remoteRepoPath;
+    QString m_workFolderPath;
+    QString m_currentBranch;
+    Changesets m_currentHeads;
+    Changesets m_currentParents;
+    int m_commitsSincePush;
+    bool m_stateUnknown;
+    bool m_hgIsOK;
+    bool m_needNewLog;
+
+    bool m_firstStart;
+
+    bool m_showAllFiles;
 
     //Actions enabled flags
-    bool remoteRepoActionsEnabled;
-    bool localRepoActionsEnabled;
+    bool m_remoteRepoActionsEnabled;
+    bool m_localRepoActionsEnabled;
 
     QString m_myDirPath;
 
-    //File menu actions
-    QAction *openAct;
-    QAction *changeRemoteRepoAct;
-    QAction *settingsAct;
-    QAction *exitAct;
+    // File menu actions
+    QAction *m_openAct;
+    QAction *m_changeRemoteRepoAct;
+    QAction *m_settingsAct;
+    QAction *m_exitAct;
 
-    //Repo actions
-    QAction *hgIncomingAct;
-    QAction *hgPushAct;
-    QAction *hgPullAct;
-    QAction *hgRefreshAct;
-    QAction *hgFolderDiffAct;
-    QAction *hgChgSetDiffAct;
-    QAction *hgRevertAct;
-    QAction *hgAddAct;
-    QAction *hgRemoveAct;
-    QAction *hgUpdateAct;
-    QAction *hgCommitAct;
-    QAction *hgMergeAct;
-    QAction *hgUpdateToRevAct;
-    QAction *hgAnnotateAct;
-    QAction *hgIgnoreAct;
-    QAction *hgServeAct;
+    // Repo actions
+    QAction *m_hgIncomingAct;
+    QAction *m_hgPushAct;
+    QAction *m_hgPullAct;
+    QAction *m_hgRefreshAct;
+    QAction *m_hgFolderDiffAct;
+    QAction *m_hgChgSetDiffAct;
+    QAction *m_hgRevertAct;
+    QAction *m_hgAddAct;
+    QAction *m_hgRemoveAct;
+    QAction *m_hgUpdateAct;
+    QAction *m_hgCommitAct;
+    QAction *m_hgMergeAct;
+    QAction *m_hgUpdateToRevAct;
+    QAction *m_hgAnnotateAct;
+    QAction *m_hgIgnoreAct;
+    QAction *m_hgServeAct;
 
-    //Menus
-    QMenu   *fileMenu;
-    QMenu   *advancedMenu;
-    QMenu   *helpMenu;
+    // Menus
+    QMenu *m_fileMenu;
+    QMenu *m_advancedMenu;
+    QMenu *m_helpMenu;
 
-    //Help menu actions
-    QAction *aboutAct;
+    // Help menu actions
+    QAction *m_aboutAct;
 
-    QToolBar *fileToolBar;
-    QToolBar *repoToolBar;
-    QToolBar *workFolderToolBar;
+    QToolBar *m_fileToolBar;
+    QToolBar *m_repoToolBar;
+    QToolBar *m_workFolderToolBar;
 
-    HgRunner *runner;
+    HgRunner *m_runner;
 
-    bool shouldHgStat;
+    bool m_shouldHgStat;
 
     QString getDiffBinaryName();
     QString getMergeBinaryName();
     QString getEditorBinaryName();
 
-    QFileSystemWatcher *fsWatcher;
+    QFileSystemWatcher *m_fsWatcher;
     QTimer *m_fsWatcherGeneralTimer;
     QTimer *m_fsWatcherRestoreTimer;
     bool m_fsWatcherSuspended;
 
-    QString lastStatOutput;
-    QStringList lastRevertedFiles;
+    QString m_lastStatOutput;
+    QStringList m_lastRevertedFiles;
 
-    bool justMerged;
-    QString mergeTargetRevision;
-    QString mergeCommitComment;
+    bool m_justMerged;
+    QString m_mergeTargetRevision;
+    QString m_mergeCommitComment;
 };
 
 #endif
