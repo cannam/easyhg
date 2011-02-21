@@ -38,15 +38,14 @@ class HgTabWidget: public QTabWidget
     Q_OBJECT
 
 public:
-    HgTabWidget(QWidget *parent, QString remoteRepo, QString workFolderPath);
+    HgTabWidget(QWidget *parent, QString workFolderPath);
 
     void updateWorkFolderFileList(QString fileList);
 
     void setNewLog(QString hgLogList);
     void addIncrementalLog(QString hgLogList);
 
-    void setWorkFolderAndRepoNames(QString workFolderPath, QString remoteRepoPath);
-    void setState(QString state);
+    void setLocalPath(QString workFolderPath);
 
     void setCurrent(QStringList ids, QString branch);
 
