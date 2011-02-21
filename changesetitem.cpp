@@ -108,6 +108,7 @@ void
 ChangesetItem::activateMenu()
 {
     m_parentDiffActions.clear();
+    m_summaryActions.clear();
 
     QMenu *menu = new QMenu;
     QLabel *label = new QLabel(tr("<qt><b>&nbsp;Revision: </b>%1</qt>")
@@ -120,16 +121,13 @@ ChangesetItem::activateMenu()
     QAction *copyId = menu->addAction(tr("Copy identifier to clipboard"));
     connect(copyId, SIGNAL(triggered()), this, SLOT(copyIdActivated()));
 
-    menu->addSeparator();
-
     QStringList parents = m_changeset->parents();
 
+    QString leftId, rightId;
+    bool havePositions = false;
+
     if (parents.size() > 1) {
-
-        QString leftId, rightId;
         ChangesetScene *cs = dynamic_cast<ChangesetScene *>(scene());
-        bool havePositions = false;
-
         if (cs && parents.size() == 2) {
             ChangesetItem *i0 = cs->getItemById(parents[0]);
             ChangesetItem *i1 = cs->getItemById(parents[1]);
@@ -144,37 +142,59 @@ ChangesetItem::activateMenu()
                 havePositions = true;
             }
         }
+    }
 
+    if (parents.size() > 1) {
+        if (havePositions) {
+            QAction *stat = menu->addAction(tr("Summarise changes from left parent"));
+            connect(stat, SIGNAL(triggered()), this, SLOT(showSummaryToParentActivated()));
+            m_summaryActions[stat] = leftId;
+            
+            stat = menu->addAction(tr("Summarise changes from right parent"));
+            connect(stat, SIGNAL(triggered()), this, SLOT(showSummaryToParentActivated()));
+            m_summaryActions[stat] = rightId;
+        } else {
+            
+            foreach (QString parentId, parents) {
+                QString text = tr("Summarise changes from parent %1").arg(Changeset::hashOf(parentId));
+                QAction *stat = menu->addAction(text);
+                connect(stat, SIGNAL(triggered()), this, SLOT(showSummaryToParentActivated()));
+                m_summaryActions[stat] = parentId;
+            }
+
+        }
+    } else {
+        QAction *stat = menu->addAction(tr("Summarise changes"));
+        connect(stat, SIGNAL(triggered()), this, SLOT(showSummaryToParentActivated()));
+    }
+
+    menu->addSeparator();
+
+    if (parents.size() > 1) {
         if (havePositions) {
             
-            QAction *diffParent = menu->addAction(tr("Diff to left parent"));
-            connect(diffParent, SIGNAL(triggered()),
-                    this, SLOT(diffToParentActivated()));
-            m_parentDiffActions[diffParent] = leftId;
+            QAction *diff = menu->addAction(tr("Diff to left parent"));
+            connect(diff, SIGNAL(triggered()), this, SLOT(diffToParentActivated()));
+            m_parentDiffActions[diff] = leftId;
             
-            diffParent = menu->addAction(tr("Diff to right parent"));
-            connect(diffParent, SIGNAL(triggered()),
-                    this, SLOT(diffToParentActivated()));
-            m_parentDiffActions[diffParent] = rightId;
+            diff = menu->addAction(tr("Diff to right parent"));
+            connect(diff, SIGNAL(triggered()), this, SLOT(diffToParentActivated()));
+            m_parentDiffActions[diff] = rightId;
 
         } else {
 
             foreach (QString parentId, parents) {
-                QString text = tr("Diff to parent %1")
-                    .arg(Changeset::hashOf(parentId));
-                QAction *diffParent = menu->addAction(text);
-                connect(diffParent, SIGNAL(triggered()),
-                        this, SLOT(diffToParentActivated()));
-                m_parentDiffActions[diffParent] = parentId;
+                QString text = tr("Diff to parent %1").arg(Changeset::hashOf(parentId));
+                QAction *diff = menu->addAction(text);
+                connect(diff, SIGNAL(triggered()), this, SLOT(diffToParentActivated()));
+                m_parentDiffActions[diff] = parentId;
             }
         }
 
     } else {
 
-        QAction *diffParent =
-            menu->addAction(tr("Diff to parent"));
-        connect(diffParent, SIGNAL(triggered()),
-                this, SLOT(diffToParentActivated()));
+        QAction *diff = menu->addAction(tr("Diff to parent"));
+        connect(diff, SIGNAL(triggered()), this, SLOT(diffToParentActivated()));
     }
 
     QAction *diffCurrent = menu->addAction(tr("Diff to current working folder"));
@@ -223,14 +243,31 @@ void ChangesetItem::diffToParentActivated()
     emit diffToParent(getId(), parentId);
 }
 
+void ChangesetItem::showSummaryToParentActivated()
+{
+    QAction *a = qobject_cast<QAction *>(sender());
+    QString parentId;
+    if (m_summaryActions.contains(a)) {
+        parentId = m_summaryActions[a];
+        DEBUG << "ChangesetItem::showSummaryToParentActivated: specific parent " 
+              << parentId << " selected" << endl;
+    } else {
+        parentId = m_changeset->parents()[0];
+        DEBUG << "ChangesetItem::showSummaryToParentActivated: "
+              << "no specific parent selected, using first parent "
+              << parentId << endl;
+    }
+
+    emit showSummaryToParent(getId(), parentId);
+}
+
 void ChangesetItem::updateActivated() { emit updateTo(getId()); }
 void ChangesetItem::diffToCurrentActivated() { emit diffToCurrent(getId()); }
 void ChangesetItem::mergeActivated() { emit mergeFrom(getId()); }
 void ChangesetItem::tagActivated() { emit tag(getId()); }
 
 void
-ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
-                     QWidget *w)
+ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget *)
 {
     paint->save();
     
