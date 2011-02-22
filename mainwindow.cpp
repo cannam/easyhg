@@ -1985,7 +1985,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     case ACT_MERGE:
         MoreInformationDialog::information
             (this, tr("Merge"), tr("Merge successful"),
-             tr("The merge succeeded.  Remember to commit the result!"),
+             tr("Remember to test and commit the result before making any further changes."),
              output);
         m_shouldHgStat = true;
         m_justMerged = true;
@@ -1993,7 +1993,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         
     case ACT_RETRY_MERGE:
         QMessageBox::information(this, tr("Resolved"),
-                                 tr("<qt><h3>Merge resolved</h3><p>Merge resolved successfully.</p>"));
+                                 tr("<qt><h3>Merge resolved</h3><p>Merge resolved successfully.<br>Remember to test and commit the result before making any further changes.</p>"));
         m_shouldHgStat = true;
         m_justMerged = true;
         break;
