@@ -56,6 +56,7 @@ MoreInformationDialog::MoreInformationDialog(QString title,
 
     m_moreButton = bb->addButton(tr("More Details..."),
                                  QDialogButtonBox::ActionRole);
+    m_moreButton->setAutoDefault(false);
     m_moreButton->setDefault(false);
 
     connect(m_moreButton, SIGNAL(clicked()), this, SLOT(moreClicked()));

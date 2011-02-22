@@ -860,9 +860,8 @@ void MainWindow::hgPull()
 {
     if (ConfirmCommentDialog::confirm
         (this, tr("Confirm pull"),
-         format3(tr("Pull from remote repository?"),
-                 tr("You are about to pull changes from the following remote repository:"),
-                 m_remoteRepoPath),
+         tr("Pull from remote repository?"),
+         tr("<qt>You are about to pull changes from the repository at <code>%1</code></qt>").arg(xmlEncode(m_remoteRepoPath)),
          tr("Pull"))) {
 
         QStringList params;
@@ -875,9 +874,8 @@ void MainWindow::hgPush()
 {
     if (ConfirmCommentDialog::confirm
         (this, tr("Confirm push"),
-         format3(tr("Push to remote repository?"),
-                 tr("You are about to push your changes to the following remote repository:"),
-                 m_remoteRepoPath),
+         tr("Push to remote repository?"),
+         tr("<qt>You are about to push your changes to the repository at <code>%1</code>").arg(xmlEncode(m_remoteRepoPath)),
          tr("Push"))) {
 
         QStringList params;

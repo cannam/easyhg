@@ -40,7 +40,9 @@ IncomingDialog::IncomingDialog(QWidget *w, QString text) :
 	    body = QString("<p>%1</p><code>%2</code>")
 		.arg(tr("The command output was:"))
 		.arg(xmlEncode(text).replace("\n", "<br>"));
-	}
+	} else {
+            body = tr("<qt>Your local repository already contains all changes found in the remote repository.</qt>");
+        }
 	scroll = false;
     } else {
         head = tr("There are %n change(s) ready to pull", "", csets.size());
@@ -59,12 +61,13 @@ IncomingDialog::IncomingDialog(QWidget *w, QString text) :
     int iconSize = style->pixelMetric(QStyle::PM_MessageBoxIconSize, 0, this);
     info->setPixmap(style->standardIcon(QStyle::SP_MessageBoxInformation, 0, this)
 		    .pixmap(iconSize, iconSize));
-    layout->addWidget(info, 0, 0);
+    layout->addWidget(info, 0, 0, 2, 1);
 
     QLabel *headLabel = new QLabel(QString("<qt><h3>%1</h3></qt>").arg(head));
     layout->addWidget(headLabel, 0, 1);
 
     QLabel *textLabel = new QLabel(body);
+    if (csets.empty()) textLabel->setWordWrap(true);
 
     if (scroll) {
 	QScrollArea *sa = new QScrollArea;
