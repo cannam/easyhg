@@ -67,6 +67,9 @@ HgTabWidget::HgTabWidget(QWidget *parent,
     connect(m_historyWidget, SIGNAL(diffToParent(QString, QString)),
             this, SIGNAL(diffToParent(QString, QString)));
 
+    connect(m_historyWidget, SIGNAL(showSummary(Changeset *)),
+            this, SIGNAL(showSummary(Changeset *)));
+
     connect(m_historyWidget, SIGNAL(mergeFrom(QString)),
             this, SIGNAL(mergeFrom(QString)));
 

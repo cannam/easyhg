@@ -71,6 +71,7 @@ private slots:
     void hgAdd();
     void hgCommit();
     void hgShowSummary();
+    void hgShowSummaryFor(Changeset *);
     void hgFolderDiff();
     void hgDiffToCurrent(QString);
     void hgDiffToParent(QString, QString);
@@ -143,6 +144,7 @@ private:
     void showPullResult(QString);
     void showPushResult(QString);
     int extractChangeCount(QString);
+    QString format1(QString);
     QString format3(QString, QString, QString);
 
     void clearState();

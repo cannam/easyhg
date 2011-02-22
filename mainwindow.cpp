@@ -43,6 +43,7 @@
 #include "confirmcommentdialog.h"
 #include "incomingdialog.h"
 #include "settingsdialog.h"
+#include "moreinformationdialog.h"
 #include "version.h"
 #include "workstatuswidget.h"
 
@@ -547,7 +548,7 @@ void MainWindow::hgShowSummary()
     
     params << "diff" << "--stat";
 
-    m_runner->requestAction(HgAction(ACT_DIFF_SUMMARY, m_workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_UNCOMMITTED_SUMMARY, m_workFolderPath, params));
 }
 
 void MainWindow::hgFolderDiff()
@@ -600,6 +601,20 @@ void MainWindow::hgDiffToParent(QString child, QString parent)
            << "--rev" << Changeset::hashOf(child);
 
     m_runner->requestAction(HgAction(ACT_CHGSETDIFF, m_workFolderPath, params));
+}
+
+
+void MainWindow::hgShowSummaryFor(Changeset *cs)
+{
+    QStringList params;
+
+    // This will pick a default parent if there is more than one
+    // (whereas with diff we need to supply one).  But it does need a
+    // bit more parsing
+    params << "log" << "--stat" << "--rev" << Changeset::hashOf(cs->id());
+
+    m_runner->requestAction(HgAction(ACT_DIFF_SUMMARY, m_workFolderPath,
+                                     params, cs));
 }
 
 
@@ -847,7 +862,7 @@ void MainWindow::hgPull()
 {
     if (ConfirmCommentDialog::confirm
         (this, tr("Confirm pull"),
-         format3(tr("Confirm pull from remote repository"),
+         format3(tr("Pull from remote repository?"),
                  tr("You are about to pull changes from the following remote repository:"),
                  m_remoteRepoPath),
          tr("Pull"))) {
@@ -862,7 +877,7 @@ void MainWindow::hgPush()
 {
     if (ConfirmCommentDialog::confirm
         (this, tr("Confirm push"),
-         format3(tr("Confirm push to remote repository"),
+         format3(tr("Push to remote repository?"),
                  tr("You are about to push your changes to the following remote repository:"),
                  m_remoteRepoPath),
          tr("Push"))) {
@@ -1531,6 +1546,11 @@ void MainWindow::fsFileChanged(QString f)
     }
 }
 
+QString MainWindow::format1(QString head)
+{
+    return QString("<qt><h3>%1</h3></qt>").arg(head);
+}    
+
 QString MainWindow::format3(QString head, QString intro, QString code)
 {
     code = xmlEncode(code).replace("\n", "<br>")
@@ -1573,37 +1593,44 @@ int MainWindow::extractChangeCount(QString text)
 
 void MainWindow::showPushResult(QString output)
 {
+    QString head;
     QString report;
     int n = extractChangeCount(output);
     if (n > 0) {
-        report = tr("Pushed %n changeset(s)", "", n);
+        head = tr("Pushed %n changeset(s)", "", n);
     } else if (n == 0) {
-        report = tr("No changes to push");
+        head = tr("No changes to push");
+        report = tr("The remote repository already contains all changes that have been committed locally.");
+        if (m_hgTabs->canCommit()) {
+            report = tr("%1<p>You do have some uncommitted changes. If you wish to push those to the remote repository, commit them locally first.").arg(report);
+        }            
     } else {
-        report = tr("Push complete");
+        head = tr("Push complete");
     }
-    report = format3(report, tr("The push command output was:"), output);
     m_runner->hide();
-    QMessageBox::information(this, "Push complete", report);
+
+    MoreInformationDialog::information(this, tr("Push complete"),
+                                       head, report, output);
 }
 
 void MainWindow::showPullResult(QString output)
 {
+    QString head;
     QString report;
     int n = extractChangeCount(output);
     if (n > 0) {
-        report = tr("Pulled %n changeset(s)", "", n);
+        head = tr("Pulled %n changeset(s)", "", n);
+        report = tr("New changes will be highlighted in the history. Update to bring these changes into your working copy.");
     } else if (n == 0) {
-        report = tr("No changes to pull");
+        head = tr("No changes to pull");
+        report = tr("Your local repository already contains all changes found in the remote repository.");
     } else {
-        report = tr("Pull complete");
+        head = tr("Pull complete");
     }
-    report = format3(report, tr("The pull command output was:"), output);
     m_runner->hide();
 
-    //!!! and something about updating
-
-    QMessageBox::information(this, "Pull complete", report);
+    MoreInformationDialog::information(this, tr("Pull complete"),
+                                       head, report, output);
 }
 
 void MainWindow::reportNewRemoteHeads(QString output)
@@ -1628,17 +1655,19 @@ void MainWindow::reportNewRemoteHeads(QString output)
     }
 
     if (headsAreLocal) {
-        QMessageBox::warning
-            (this, tr("Push failed"),
-             format3(tr("Push failed"),
-                     tr("Your local repository could not be pushed to the remote repository.<br><br>You may need to merge the changes locally first.<br><br>The output of the push command was:"),
-                     output));
+        MoreInformationDialog::warning
+            (this,
+             tr("Push failed"),
+             tr("Push failed"),
+             tr("Your local repository could not be pushed to the remote repository.<br><br>You may need to merge the changes locally first."),
+             output);
     } else {
-        QMessageBox::warning
-            (this, tr("Push failed"),
-             format3(tr("Push failed"),
-                     tr("Your local repository could not be pushed to the remote repository.<br><br>The remote repository may have been changed by someone else since you last pushed. Try pulling and merging their changes into your local repository first.<br><br>The output of the push command was:"),
-                     output));
+        MoreInformationDialog::warning
+            (this,
+             tr("Push failed"),
+             tr("Push failed"),
+             tr("Your local repository could not be pushed to the remote repository.<br><br>The remote repository may have been changed by someone else since you last pushed. Try pulling and merging their changes into your local repository first."),
+             output);
     }
 }
 
@@ -1674,19 +1703,21 @@ void MainWindow::commandFailed(HgAction action, QString output)
         // uh huh
         return;
     case ACT_TEST_HG:
-        QMessageBox::warning
-            (this, tr("Failed to run Mercurial"),
-             format3(tr("Failed to run Mercurial"),
-                     tr("The Mercurial program either could not be found or failed to run.<br>Check that the Mercurial program path is correct in %1.<br><br>%2").arg(setstr).arg(output == "" ? QString("") : tr("The test command said:")),
-                     output));
+        MoreInformationDialog::warning
+            (this,
+             tr("Failed to run Mercurial"),
+             tr("Failed to run Mercurial"),
+             tr("The Mercurial program either could not be found or failed to run.<br>Check that the Mercurial program path is correct in %1.").arg(setstr),
+             output);
         settings();
         return;
     case ACT_TEST_HG_EXT:
         QMessageBox::warning
-            (this, tr("Failed to run Mercurial"),
-             format3(tr("Failed to run Mercurial with extension enabled"),
-                     tr("The Mercurial program failed to run with the EasyMercurial interaction extension enabled.<br>This may indicate an installation problem with EasyMercurial.<br><br>You may be able to continue working if you switch off &ldquo;Use EasyHg Mercurial Extension&rdquo; in %1.  Note that remote repositories that require authentication may not work if you do this.<br><br>%2").arg(setstr).arg(output == "" ? QString("") : tr("The test command said:")),
-                     output));
+            (this,
+             tr("Failed to run Mercurial"),
+             tr("Failed to run Mercurial with extension enabled"),
+             tr("The Mercurial program failed to run with the EasyMercurial interaction extension enabled.<br>This may indicate an installation problem with EasyMercurial.<br><br>You may be able to continue working if you switch off &ldquo;Use EasyHg Mercurial Extension&rdquo; in %1.  Note that remote repositories that require authentication may not work if you do this.").arg(setstr),
+             output);
         settings();
         return;
     case ACT_CLONEFROMREMOTE:
@@ -1731,6 +1762,8 @@ void MainWindow::commandFailed(HgAction action, QString output)
     foreach (QString arg, action.params) {
         command += " " + arg;
     }
+
+    //!!!
 
     QString message = tr("<qt><h3>Command failed</h3>"
                          "<p>The following command failed:</p>"
@@ -1840,7 +1873,12 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         MultiChoiceDialog::addRecentArgument("local", m_workFolderPath);
         MultiChoiceDialog::addRecentArgument("remote", m_remoteRepoPath);
         MultiChoiceDialog::addRecentArgument("remote", m_workFolderPath, true);
-        QMessageBox::information(this, tr("Clone"), tr("<qt><h3>Clone successful</h3><pre>%1</pre>").arg(xmlEncode(output)));
+        MoreInformationDialog::information
+            (this,
+             tr("Clone"),
+             tr("Clone successful"),
+             tr("The remote repository was successfully cloned to the local folder <code>%1</code>.").arg(xmlEncode(m_workFolderPath)),
+             output);
         enableDisableActions();
         m_shouldHgStat = true;
         break;
@@ -1899,12 +1937,41 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         m_shouldHgStat = true;
         break;
 
-    case ACT_DIFF_SUMMARY:
+    case ACT_UNCOMMITTED_SUMMARY:
         QMessageBox::information(this, tr("Change summary"),
                                  format3(tr("Summary of uncommitted changes"),
                                          "",
                                          output));
         break;
+
+    case ACT_DIFF_SUMMARY:
+    {
+        // Output has log info first, diff following after a blank line
+        output.replace("\r\n", "\n");
+        QStringList olist = output.split("\n\n", QString::SkipEmptyParts);
+        if (olist.size() > 1) output = olist[1];
+
+        Changeset *cs = (Changeset *)completedAction.extraData;
+        if (cs) {
+            QMessageBox::information
+                (this, tr("Change summary"),
+                 format3(tr("Summary of changes"),
+                         cs->formatHtml(),
+                         output));
+        } else if (output == "") {
+            // Can happen, for a merge commit (depending on parent)
+            QMessageBox::information(this, tr("Change summary"),
+                                     format3(tr("Summary of changes"),
+                                             tr("No changes"),
+                                             output));
+        } else {
+            QMessageBox::information(this, tr("Change summary"),
+                                     format3(tr("Summary of changes"),
+                                             "",
+                                             output));
+        }            
+        break;
+    }
 
     case ACT_FOLDERDIFF:
     case ACT_CHGSETDIFF:
@@ -1919,8 +1986,10 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
         
     case ACT_MERGE:
-        //!!! use format3?
-        QMessageBox::information(this, tr("Merge"), tr("<qt><h3>Merge successful</h3><pre>%1</pre>").arg(xmlEncode(output)));
+        MoreInformationDialog::information
+            (this, tr("Merge"), tr("Merge successful"),
+             tr("The merge succeeded.  Remember to commit the result!"),
+             output);
         m_shouldHgStat = true;
         m_justMerged = true;
         break;
@@ -2080,6 +2149,9 @@ void MainWindow::connectTabsSignals()
 
     connect(m_hgTabs, SIGNAL(diffToParent(QString, QString)),
             this, SLOT(hgDiffToParent(QString, QString)));
+
+    connect(m_hgTabs, SIGNAL(showSummary(Changeset *)),
+            this, SLOT(hgShowSummaryFor(Changeset *)));
 
     connect(m_hgTabs, SIGNAL(mergeFrom(QString)),
             this, SLOT(hgMergeFrom(QString)));
