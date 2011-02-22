@@ -26,5 +26,5 @@ if [ -z "$found" ]; then
 	"$od" "$1" "$2" | cat
     fi
 fi
-[ -z "$found" ]
+[ -n "$found" ]
 
