@@ -1619,7 +1619,7 @@ void MainWindow::showPullResult(QString output)
     int n = extractChangeCount(output);
     if (n > 0) {
         head = tr("Pulled %n changeset(s)", "", n);
-        report = tr("New changes will be highlighted in the history. Update to bring these changes into your working copy.");
+        report = tr("The new changes will be highlighted in the history.<br>Use Update to bring these changes into your working copy.");
     } else if (n == 0) {
         head = tr("No changes to pull");
         report = tr("Your local repository already contains all changes found in the remote repository.");
@@ -1987,7 +1987,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     case ACT_MERGE:
         MoreInformationDialog::information
             (this, tr("Merge"), tr("Merge successful"),
-             tr("The merge succeeded.  Remember to commit the result!"),
+             tr("Remember to test and commit the result before making any further changes."),
              output);
         m_shouldHgStat = true;
         m_justMerged = true;
@@ -1995,7 +1995,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         
     case ACT_RETRY_MERGE:
         QMessageBox::information(this, tr("Resolved"),
-                                 tr("<qt><h3>Merge resolved</h3><p>Merge resolved successfully.</p>"));
+                                 tr("<qt><h3>Merge resolved</h3><p>Merge resolved successfully.<br>Remember to test and commit the result before making any further changes.</p>"));
         m_shouldHgStat = true;
         m_justMerged = true;
         break;
