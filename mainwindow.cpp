@@ -862,9 +862,8 @@ void MainWindow::hgPull()
 {
     if (ConfirmCommentDialog::confirm
         (this, tr("Confirm pull"),
-         format3(tr("Pull from remote repository?"),
-                 tr("You are about to pull changes from the following remote repository:"),
-                 m_remoteRepoPath),
+         tr("<qt><h3>Pull from remote repository?</h3></qt>"),
+         tr("<qt><p>You are about to pull changes from the remote repository at <code>%1</code>.</p></qt>").arg(xmlEncode(m_remoteRepoPath)),
          tr("Pull"))) {
 
         QStringList params;
@@ -877,9 +876,8 @@ void MainWindow::hgPush()
 {
     if (ConfirmCommentDialog::confirm
         (this, tr("Confirm push"),
-         format3(tr("Push to remote repository?"),
-                 tr("You are about to push your changes to the following remote repository:"),
-                 m_remoteRepoPath),
+         tr("<qt><h3>Push to remote repository?</h3></qt>"),
+         tr("<qt><p>You are about to push your changes to the remote repository at <code>%1</code>.</p></qt>").arg(xmlEncode(m_remoteRepoPath)),
          tr("Push"))) {
 
         QStringList params;
@@ -1598,6 +1596,7 @@ void MainWindow::showPushResult(QString output)
     int n = extractChangeCount(output);
     if (n > 0) {
         head = tr("Pushed %n changeset(s)", "", n);
+        report = tr("<qt>Successfully pushed to the remote repository at <code>%1</code>.</qt>").arg(xmlEncode(m_remoteRepoPath));
     } else if (n == 0) {
         head = tr("No changes to push");
         report = tr("The remote repository already contains all changes that have been committed locally.");
