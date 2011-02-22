@@ -73,25 +73,32 @@ QString ConfirmCommentDialog::getComment() const
 QString ConfirmCommentDialog::buildFilesText(QString intro, QStringList files)
 {
     QString text;
-    text = "<qt>" + intro;
-    text += "<p><code>";
+
+    if (intro == "") text = "<qt>";
+    else text = "<qt>" + intro + "<p>";
+
+    text += "<code>";
     foreach (QString file, files) {
         text += "&nbsp;&nbsp;&nbsp;" + xmlEncode(file) + "<br>";
     }
     text += "</code></qt>";
+
     return text;
 }
 
 bool ConfirmCommentDialog::confirm(QWidget *parent,
                                    QString title,
+                                   QString head,
                                    QString text,
                                    QString okButtonText)
 {
     QMessageBox box(QMessageBox::Question,
                     title,
-                    text,
+                    head,
                     QMessageBox::Cancel,
                     parent);
+
+    box.setInformativeText(text);
 
     QPushButton *ok = box.addButton(QMessageBox::Ok);
     ok->setText(okButtonText);
@@ -102,14 +109,17 @@ bool ConfirmCommentDialog::confirm(QWidget *parent,
 
 bool ConfirmCommentDialog::confirmDangerous(QWidget *parent,
                                             QString title,
+                                            QString head,
                                             QString text,
                                             QString okButtonText)
 {
     QMessageBox box(QMessageBox::Warning,
                     title,
-                    text,
+                    head,
                     QMessageBox::Cancel,
                     parent);
+
+    box.setInformativeText(text);
 
     QPushButton *ok = box.addButton(QMessageBox::Ok);
     ok->setText(okButtonText);
@@ -131,7 +141,7 @@ bool ConfirmCommentDialog::confirmFilesAction(QWidget *parent,
     } else {
         text = "<qt>" + introTextWithCount + "</qt>";
     }
-    return confirm(parent, title, text, okButtonText);
+    return confirm(parent, title, text, "", okButtonText);
 }
 
 bool ConfirmCommentDialog::confirmDangerousFilesAction(QWidget *parent,
@@ -147,7 +157,7 @@ bool ConfirmCommentDialog::confirmDangerousFilesAction(QWidget *parent,
     } else {
         text = "<qt>" + introTextWithCount + "</qt>";
     }
-    return confirmDangerous(parent, title, text, okButtonText);
+    return confirmDangerous(parent, title, text, "", okButtonText);
 }
 
 bool ConfirmCommentDialog::confirmAndGetShortComment(QWidget *parent,
