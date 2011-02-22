@@ -81,6 +81,9 @@ IncomingDialog::IncomingDialog(QWidget *w, QString text) :
     QDialogButtonBox *bb = new QDialogButtonBox(QDialogButtonBox::Ok);
     connect(bb, SIGNAL(accepted()), this, SLOT(accept()));
     layout->addWidget(bb, 2, 0, 1, 2);
+
+    layout->setColumnStretch(1, 20);
+    setMinimumWidth(400);
 }
 
     

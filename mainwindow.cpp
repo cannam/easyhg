@@ -1594,6 +1594,7 @@ void MainWindow::showPushResult(QString output)
     int n = extractChangeCount(output);
     if (n > 0) {
         head = tr("Pushed %n changeset(s)", "", n);
+        report = tr("<qt>Successfully pushed to the remote repository at <code>%1</code>.</qt>").arg(xmlEncode(m_remoteRepoPath));
     } else if (n == 0) {
         head = tr("No changes to push");
         report = tr("The remote repository already contains all changes that have been committed locally.");
