@@ -44,7 +44,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 
     m_noModificationsLabel = new QLabel;
     setNoModificationsLabelText();
-    layout->addWidget(m_noModificationsLabel, row, 1, 1, 2);
+    layout->addWidget(m_noModificationsLabel, row, 0);
     m_noModificationsLabel->hide();
 
     m_simpleLabels[FileStates::Clean] = tr("Unmodified:");
@@ -75,7 +75,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
                                 "have appeared since your most recent commit or update.");
 
     m_boxesParent = new QWidget(this);
-    layout->addWidget(m_boxesParent, ++row, 0, 1, 3);
+    layout->addWidget(m_boxesParent, ++row, 0);
 
     QGridLayout *boxesLayout = new QGridLayout;
     boxesLayout->setMargin(0);
@@ -120,7 +120,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     layout->addItem(new QSpacerItem(8, 8), ++row, 0);
 
     m_showAllFiles = new QCheckBox(tr("Show all files"), this);
-    layout->addWidget(m_showAllFiles, ++row, 0, 1, 3, Qt::AlignLeft);
+    layout->addWidget(m_showAllFiles, ++row, 0, Qt::AlignLeft);
     connect(m_showAllFiles, SIGNAL(toggled(bool)),
             this, SIGNAL(showAllChanged(bool)));
 }

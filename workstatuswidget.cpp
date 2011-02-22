@@ -29,7 +29,8 @@ WorkStatusWidget::WorkStatusWidget(QWidget *parent) :
     QWidget(parent)
 {
     QGridLayout *layout = new QGridLayout;
-    layout->setMargin(10);
+    layout->setMargin(6);
+    layout->setSpacing(6);
     setLayout(layout);
 
     int row = 0;
@@ -39,7 +40,7 @@ WorkStatusWidget::WorkStatusWidget(QWidget *parent) :
     ++row;
 #endif
 
-    layout->addWidget(new QLabel(tr("Local:")), row, 0);
+    layout->addWidget(new QLabel(tr("Local:")), row, 1);
 
     m_openButton = new ClickableLabel;
     QFont f(m_openButton->font());
@@ -47,19 +48,19 @@ WorkStatusWidget::WorkStatusWidget(QWidget *parent) :
     m_openButton->setFont(f);
     m_openButton->setMouseUnderline(true);
     connect(m_openButton, SIGNAL(clicked()), this, SLOT(openButtonClicked()));
-    layout->addWidget(m_openButton, row, 1, 1, 2, Qt::AlignLeft);
+    layout->addWidget(m_openButton, row, 2, 1, 2, Qt::AlignLeft);
 
     ++row;
-    layout->addWidget(new QLabel(tr("Remote:")), row, 0);
+    layout->addWidget(new QLabel(tr("Remote:")), row, 1);
     m_remoteURLLabel = new QLabel;
-    layout->addWidget(m_remoteURLLabel, row, 1, 1, 2);
+    layout->addWidget(m_remoteURLLabel, row, 2, 1, 2);
 
     ++row;
-    layout->addWidget(new QLabel(tr("State:")), row, 0);
+    layout->addWidget(new QLabel(tr("State:")), row, 1);
     m_stateLabel = new QLabel;
-    layout->addWidget(m_stateLabel, row, 1, 1, 2);
+    layout->addWidget(m_stateLabel, row, 2, 1, 2);
 
-    layout->setColumnStretch(1, 20);
+    layout->setColumnStretch(2, 20);
 
 
 }
