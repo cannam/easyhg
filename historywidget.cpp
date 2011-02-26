@@ -141,7 +141,8 @@ void HistoryWidget::addChangesets(Changesets csets)
         m_newIds.insert(cs->id());
     }
 
-    DEBUG << "addChangesets: " << csets.size() << " new changesets" << endl;
+    DEBUG << "addChangesets: " << csets.size() << " new changesets have ("
+          << m_changesets.size() << " already)" << endl;
 
     csets << m_changesets;
     m_changesets = csets;

@@ -325,6 +325,16 @@ void MainWindow::hgLog()
 
 void MainWindow::hgLogIncremental(QStringList prune)
 {
+    // Sometimes we can be called with prune empty -- it represents
+    // the current heads, but if we have none already and for some
+    // reason are being prompted for an incremental update, we may run
+    // into trouble.  In that case, make this a full log instead
+
+    if (prune.empty()) {
+        hgLog();
+        return;
+    }
+
     QStringList params;
     params << "log";
 
@@ -906,6 +916,7 @@ QStringList MainWindow::listAllUpIpV4Addresses()
 
 void MainWindow::clearState()
 {
+    DEBUG << "MainWindow::clearState" << endl;
     foreach (Changeset *cs, m_currentParents) delete cs;
     m_currentParents.clear();
     foreach (Changeset *cs, m_currentHeads) delete cs;
@@ -1905,6 +1916,8 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         QStringList newHeadIds = Changeset::getIds(newHeads);
         if (oldHeadIds != newHeadIds) {
             DEBUG << "Heads changed, will prompt an incremental log if appropriate" << endl;
+            DEBUG << "Old heads: " << oldHeadIds.join(",") << endl;
+            DEBUG << "New heads: " << newHeadIds.join(",") << endl;
             headsChanged = true;
             foreach (Changeset *cs, m_currentHeads) delete cs;
             m_currentHeads = newHeads;
