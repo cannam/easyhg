@@ -1968,7 +1968,6 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
 
     case ACT_NEW_BRANCH:
         m_shouldHgStat = true;
-        m_hgTabs->showWorkTab();
         break;
 
     case ACT_UNCOMMITTED_SUMMARY:
