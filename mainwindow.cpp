@@ -1720,7 +1720,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
         settings();
         return;
     case ACT_TEST_HG_EXT:
-        QMessageBox::warning
+        MoreInformationDialog::warning
             (this,
              tr("Failed to run Mercurial"),
              tr("Failed to run Mercurial with extension enabled"),
@@ -1771,20 +1771,12 @@ void MainWindow::commandFailed(HgAction action, QString output)
         command += " " + arg;
     }
 
-    //!!!
-
-    QString message = tr("<qt><h3>Command failed</h3>"
-                         "<p>The following command failed:</p>"
-                         "<code>%1</code>"
-                         "%2</qt>")
-        .arg(command)
-        .arg((output.trimmed() != "") ?
-             tr("<p>Its output said:</p><code>%1</code>")
-             .arg(xmlEncode(output.left(800))
-                  .replace("\n", "<br>"))
-             : "");
-
-    QMessageBox::warning(this, tr("Command failed"), message);
+    MoreInformationDialog::warning
+        (this,
+         tr("Command failed"),
+         tr("Command failed"),
+         tr("A Mercurial command failed to run correctly.  This may indicate an installation problem or some other problem with EasyMercurial.<br><br>See &ldquo;More Details&rdquo; for the command output."),
+         output);
 }
 
 void MainWindow::commandCompleted(HgAction completedAction, QString output)
