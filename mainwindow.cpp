@@ -1724,7 +1724,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
             (this,
              tr("Failed to run Mercurial"),
              tr("Failed to run Mercurial with extension enabled"),
-             tr("The Mercurial program failed to run with the EasyMercurial interaction extension enabled.<br>This may indicate an installation problem with EasyMercurial.<br><br>You may be able to continue working if you switch off &ldquo;Use EasyHg Mercurial Extension&rdquo; in %1.  Note that remote repositories that require authentication may not work if you do this.").arg(setstr),
+             tr("The Mercurial program failed to run with the EasyMercurial interaction extension enabled.<br>This may indicate an installation problem.<br><br>You may be able to continue working if you switch off &ldquo;Use EasyHg Mercurial Extension&rdquo; in %1.  Note that remote repositories that require authentication might not work if you do this.").arg(setstr),
              output);
         settings();
         return;
