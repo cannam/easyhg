@@ -141,7 +141,8 @@ void HistoryWidget::addChangesets(Changesets csets)
         m_newIds.insert(cs->id());
     }
 
-    DEBUG << "addChangesets: " << csets.size() << " new changesets" << endl;
+    DEBUG << "addChangesets: " << csets.size() << " new changesets have ("
+          << m_changesets.size() << " already)" << endl;
 
     csets << m_changesets;
     m_changesets = csets;
@@ -276,6 +277,9 @@ void HistoryWidget::connectSceneSignals()
 
     connect(scene, SIGNAL(diffToParent(QString, QString)),
             this, SIGNAL(diffToParent(QString, QString)));
+
+    connect(scene, SIGNAL(showSummary(Changeset *)),
+            this, SIGNAL(showSummary(Changeset *)));
 
     connect(scene, SIGNAL(mergeFrom(QString)),
             this, SIGNAL(mergeFrom(QString)));

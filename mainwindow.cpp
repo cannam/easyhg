@@ -43,7 +43,9 @@
 #include "confirmcommentdialog.h"
 #include "incomingdialog.h"
 #include "settingsdialog.h"
+#include "moreinformationdialog.h"
 #include "version.h"
+#include "workstatuswidget.h"
 
 
 MainWindow::MainWindow(QString myDirPath) :
@@ -56,55 +58,56 @@ MainWindow::MainWindow(QString myDirPath) :
 
     QString wndTitle;
 
-    showAllFiles = false;
+    m_showAllFiles = false;
 
-    fsWatcher = 0;
-    commitsSincePush = 0;
-    shouldHgStat = true;
+    m_fsWatcher = 0;
+    m_commitsSincePush = 0;
+    m_shouldHgStat = true;
 
     createActions();
     createMenus();
     createToolBars();
     createStatusBar();
 
-    runner = new HgRunner(myDirPath, this);
-    connect(runner, SIGNAL(commandStarting(HgAction)),
+    m_runner = new HgRunner(m_myDirPath, this);
+    connect(m_runner, SIGNAL(commandStarting(HgAction)),
             this, SLOT(commandStarting(HgAction)));
-    connect(runner, SIGNAL(commandCompleted(HgAction, QString)),
+    connect(m_runner, SIGNAL(commandCompleted(HgAction, QString)),
             this, SLOT(commandCompleted(HgAction, QString)));
-    connect(runner, SIGNAL(commandFailed(HgAction, QString)),
+    connect(m_runner, SIGNAL(commandFailed(HgAction, QString)),
             this, SLOT(commandFailed(HgAction, QString)));
-    statusBar()->addPermanentWidget(runner);
+    statusBar()->addPermanentWidget(m_runner);
 
     setWindowTitle(tr("EasyMercurial"));
 
-    remoteRepoPath = "";
-    workFolderPath = "";
+    m_remoteRepoPath = "";
+    m_workFolderPath = "";
 
     readSettings();
 
-    justMerged = false;
+    m_justMerged = false;
 
     QWidget *central = new QWidget(this);
     setCentralWidget(central);
 
-    hgTabs = new HgTabWidget(central, remoteRepoPath, workFolderPath);
-    connectTabsSignals();
-
-    // Instead of setting the tab widget as our central widget
-    // directly, put it in a layout, so that we can have some space
-    // around it on the Mac where it looks very strange without
-
     QGridLayout *cl = new QGridLayout(central);
-    cl->addWidget(hgTabs, 0, 0);
+    int row = 0;
 
 #ifndef Q_OS_MAC
     cl->setMargin(0);
 #endif
 
-    connect(hgTabs, SIGNAL(selectionChanged()),
+    m_workStatus = new WorkStatusWidget(this);
+    cl->addWidget(m_workStatus, row++, 0);
+
+    m_hgTabs = new HgTabWidget(central, m_workFolderPath);
+    connectTabsSignals();
+
+    cl->addWidget(m_hgTabs, row++, 0);
+
+    connect(m_hgTabs, SIGNAL(selectionChanged()),
             this, SLOT(enableDisableActions()));
-    connect(hgTabs, SIGNAL(showAllChanged(bool)),
+    connect(m_hgTabs, SIGNAL(showAllChanged(bool)),
             this, SLOT(showAllChanged(bool)));
 
     setUnifiedTitleAndToolBarOnMac(true);
@@ -112,7 +115,7 @@ MainWindow::MainWindow(QString myDirPath) :
     clearState();
     enableDisableActions();
 
-    if (firstStart) {
+    if (m_firstStart) {
         startupDialog();
     }
 
@@ -131,7 +134,7 @@ MainWindow::MainWindow(QString myDirPath) :
 void MainWindow::closeEvent(QCloseEvent *)
 {
     writeSettings();
-    delete fsWatcher;
+    delete m_fsWatcher;
 }
 
 
@@ -195,12 +198,12 @@ void MainWindow::about()
 
 void MainWindow::clearSelections()
 {
-    hgTabs->clearSelections();
+    m_hgTabs->clearSelections();
 }
 
 void MainWindow::showAllChanged(bool s)
 {
-    showAllFiles = s;
+    m_showAllFiles = s;
     hgQueryPaths();
 }
 
@@ -216,36 +219,36 @@ void MainWindow::hgTest()
     //!!! should we test version output? Really we want at least 1.7.x
     //!!! for options such as merge --tool
     params << "--version";
-    runner->requestAction(HgAction(ACT_TEST_HG, m_myDirPath, params));
+    m_runner->requestAction(HgAction(ACT_TEST_HG, m_myDirPath, params));
 }
 
 void MainWindow::hgTestExtension()
 {
     QStringList params;
     params << "--version";
-    runner->requestAction(HgAction(ACT_TEST_HG_EXT, m_myDirPath, params));
+    m_runner->requestAction(HgAction(ACT_TEST_HG_EXT, m_myDirPath, params));
 }
 
 void MainWindow::hgStat()
 {
     QStringList params;
 
-    if (showAllFiles) {
+    if (m_showAllFiles) {
         params << "stat" << "-A";
     } else {
         params << "stat" << "-ardum";
     }
 
-    lastStatOutput = "";
+    m_lastStatOutput = "";
 
-    runner->requestAction(HgAction(ACT_STAT, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_STAT, m_workFolderPath, params));
 }
 
 void MainWindow::hgQueryPaths()
 {
     // Quickest is to just read the file
 
-    QFileInfo hgrc(workFolderPath + "/.hg/hgrc");
+    QFileInfo hgrc(m_workFolderPath + "/.hg/hgrc");
 
     QString path;
 
@@ -255,12 +258,12 @@ void MainWindow::hgQueryPaths()
         path = s.value("default").toString();
     }
 
-    remoteRepoPath = path;
+    m_remoteRepoPath = path;
 
     // We have to do this here, because commandCompleted won't be called
-    MultiChoiceDialog::addRecentArgument("local", workFolderPath);
-    MultiChoiceDialog::addRecentArgument("remote", remoteRepoPath);
-    hgTabs->setWorkFolderAndRepoNames(workFolderPath, remoteRepoPath);
+    MultiChoiceDialog::addRecentArgument("local", m_workFolderPath);
+    MultiChoiceDialog::addRecentArgument("remote", m_remoteRepoPath);
+    updateWorkFolderAndRepoNames();
     
     hgQueryBranch();
     return;
@@ -269,7 +272,7 @@ void MainWindow::hgQueryPaths()
 
     QStringList params;
     params << "paths";
-    runner->requestAction(HgAction(ACT_QUERY_PATHS, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_QUERY_PATHS, m_workFolderPath, params));
 */
 }
 
@@ -277,7 +280,7 @@ void MainWindow::hgQueryBranch()
 {
     // Quickest is to just read the file
 
-    QFile hgbr(workFolderPath + "/.hg/branch");
+    QFile hgbr(m_workFolderPath + "/.hg/branch");
 
     QString br = "default";
 
@@ -286,7 +289,7 @@ void MainWindow::hgQueryBranch()
         br = QString::fromUtf8(ba).trimmed();
     }
     
-    currentBranch = br;
+    m_currentBranch = br;
     
     // We have to do this here, because commandCompleted won't be called
     hgStat();
@@ -296,7 +299,7 @@ void MainWindow::hgQueryBranch()
 
     QStringList params;
     params << "branch";
-    runner->requestAction(HgAction(ACT_QUERY_BRANCH, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_QUERY_BRANCH, m_workFolderPath, params));
 */
 }
 
@@ -309,7 +312,7 @@ void MainWindow::hgQueryHeads()
     // incremental log will end up with spurious stuff in it because
     // we won't be pruning at the ends of closed branches
     params << "heads" << "--closed";
-    runner->requestAction(HgAction(ACT_QUERY_HEADS, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_QUERY_HEADS, m_workFolderPath, params));
 }
 
 void MainWindow::hgLog()
@@ -319,11 +322,21 @@ void MainWindow::hgLog()
     params << "--template";
     params << Changeset::getLogTemplate();
     
-    runner->requestAction(HgAction(ACT_LOG, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_LOG, m_workFolderPath, params));
 }
 
 void MainWindow::hgLogIncremental(QStringList prune)
 {
+    // Sometimes we can be called with prune empty -- it represents
+    // the current heads, but if we have none already and for some
+    // reason are being prompted for an incremental update, we may run
+    // into trouble.  In that case, make this a full log instead
+
+    if (prune.empty()) {
+        hgLog();
+        return;
+    }
+
     QStringList params;
     params << "log";
 
@@ -334,26 +347,26 @@ void MainWindow::hgLogIncremental(QStringList prune)
     params << "--template";
     params << Changeset::getLogTemplate();
     
-    runner->requestAction(HgAction(ACT_LOG_INCREMENTAL, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_LOG_INCREMENTAL, m_workFolderPath, params));
 }
 
 void MainWindow::hgQueryParents()
 {
     QStringList params;
     params << "parents";
-    runner->requestAction(HgAction(ACT_QUERY_PARENTS, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_QUERY_PARENTS, m_workFolderPath, params));
 }
 
 void MainWindow::hgAnnotate()
 {
     QStringList params;
-    QString currentFile;//!!! = hgTabs -> getCurrentFileListLine();
+    QString currentFile;//!!! = m_hgTabs -> getCurrentFileListLine();
     
     if (!currentFile.isEmpty())
     {
         params << "annotate" << "--" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
 
-        runner->requestAction(HgAction(ACT_ANNOTATE, workFolderPath, params));
+        m_runner->requestAction(HgAction(ACT_ANNOTATE, m_workFolderPath, params));
     }
 }
 
@@ -362,7 +375,7 @@ void MainWindow::hgResolveList()
     QStringList params;
 
     params << "resolve" << "--list";
-    runner->requestAction(HgAction(ACT_RESOLVE_LIST, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_RESOLVE_LIST, m_workFolderPath, params));
 }
 
 void MainWindow::hgAdd()
@@ -372,11 +385,11 @@ void MainWindow::hgAdd()
     // hgExplorer permitted adding "all" files -- I'm not sure
     // that one is a good idea, let's require the user to select
 
-    QStringList files = hgTabs->getSelectedAddableFiles();
+    QStringList files = m_hgTabs->getSelectedAddableFiles();
 
     if (!files.empty()) {
         params << "add" << "--" << files;
-        runner->requestAction(HgAction(ACT_ADD, workFolderPath, params));
+        m_runner->requestAction(HgAction(ACT_ADD, m_workFolderPath, params));
     }
 }
 
@@ -385,11 +398,11 @@ void MainWindow::hgRemove()
 {
     QStringList params;
 
-    QStringList files = hgTabs->getSelectedRemovableFiles();
+    QStringList files = m_hgTabs->getSelectedRemovableFiles();
 
     if (!files.empty()) {
         params << "remove" << "--after" << "--force" << "--" << files;
-        runner->requestAction(HgAction(ACT_REMOVE, workFolderPath, params));
+        m_runner->requestAction(HgAction(ACT_REMOVE, m_workFolderPath, params));
     }
 }
 
@@ -398,12 +411,12 @@ void MainWindow::hgCommit()
     QStringList params;
     QString comment;
 
-    if (justMerged) {
-        comment = mergeCommitComment;
+    if (m_justMerged) {
+        comment = m_mergeCommitComment;
     }
 
-    QStringList files = hgTabs->getSelectedCommittableFiles();
-    QStringList allFiles = hgTabs->getAllCommittableFiles();
+    QStringList files = m_hgTabs->getSelectedCommittableFiles();
+    QStringList allFiles = m_hgTabs->getAllCommittableFiles();
     QStringList reportFiles = files;
     if (reportFiles.empty()) {
         reportFiles = allFiles;
@@ -429,7 +442,7 @@ void MainWindow::hgCommit()
          comment,
          tr("Commit"))) {
 
-        if (!justMerged && !files.empty()) {
+        if (!m_justMerged && !files.empty()) {
             // User wants to commit selected file(s) (and this is not
             // merge commit, which would fail if we selected files)
             params << "commit" << "--message" << comment
@@ -440,8 +453,8 @@ void MainWindow::hgCommit()
                    << "--user" << getUserInfo();
         }
         
-        runner->requestAction(HgAction(ACT_COMMIT, workFolderPath, params));
-        mergeCommitComment = "";
+        m_runner->requestAction(HgAction(ACT_COMMIT, m_workFolderPath, params));
+        m_mergeCommitComment = "";
     }
 }
 
@@ -473,7 +486,7 @@ void MainWindow::hgNewBranch(QString id)
         if (!branch.isEmpty()) {//!!! do something better if it is empty
 
             params << "branch" << filterTag(branch);
-            runner->requestAction(HgAction(ACT_NEW_BRANCH, workFolderPath, params));
+            m_runner->requestAction(HgAction(ACT_NEW_BRANCH, m_workFolderPath, params));
         }
     }
 }
@@ -495,7 +508,7 @@ void MainWindow::hgTag(QString id)
             params << "tag" << "--user" << getUserInfo();
             params << "--rev" << Changeset::hashOf(id) << filterTag(tag);
             
-            runner->requestAction(HgAction(ACT_TAG, workFolderPath, params));
+            m_runner->requestAction(HgAction(ACT_TAG, m_workFolderPath, params));
         }
     }
 }
@@ -506,10 +519,10 @@ void MainWindow::hgIgnore()
     QString hgIgnorePath;
     QStringList params;
     
-    hgIgnorePath = workFolderPath;
+    hgIgnorePath = m_workFolderPath;
     hgIgnorePath += "/.hgignore";
 
-    if (!QDir(workFolderPath).exists()) return;
+    if (!QDir(m_workFolderPath).exists()) return;
     QFile f(hgIgnorePath);
     if (!f.exists()) {
         f.open(QFile::WriteOnly);
@@ -529,10 +542,10 @@ void MainWindow::hgIgnore()
         return;
     }
 
-    HgAction action(ACT_HG_IGNORE, workFolderPath, params);
+    HgAction action(ACT_HG_IGNORE, m_workFolderPath, params);
     action.executable = editor;
 
-    runner->requestAction(action);
+    m_runner->requestAction(action);
 }
 
 QString MainWindow::getDiffBinaryName()
@@ -562,7 +575,7 @@ void MainWindow::hgShowSummary()
     
     params << "diff" << "--stat";
 
-    runner->requestAction(HgAction(ACT_DIFF_SUMMARY, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_UNCOMMITTED_SUMMARY, m_workFolderPath, params));
 }
 
 void MainWindow::hgFolderDiff()
@@ -577,9 +590,9 @@ void MainWindow::hgFolderDiff()
     params << "--config" << "extensions.extdiff=" << "extdiff";
     params << "--program" << diff;
 
-    params << hgTabs->getSelectedCommittableFiles(); // may be none: whole dir
+    params << m_hgTabs->getSelectedCommittableFiles(); // may be none: whole dir
 
-    runner->requestAction(HgAction(ACT_FOLDERDIFF, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_FOLDERDIFF, m_workFolderPath, params));
 }
 
 
@@ -596,7 +609,7 @@ void MainWindow::hgDiffToCurrent(QString id)
     params << "--program" << diff;
     params << "--rev" << Changeset::hashOf(id);
 
-    runner->requestAction(HgAction(ACT_FOLDERDIFF, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_FOLDERDIFF, m_workFolderPath, params));
 }
 
 
@@ -607,14 +620,28 @@ void MainWindow::hgDiffToParent(QString child, QString parent)
 
     QStringList params;
 
-    // Diff given revision against working folder
+    // Diff given revision against parent revision
 
     params << "--config" << "extensions.extdiff=" << "extdiff";
     params << "--program" << diff;
     params << "--rev" << Changeset::hashOf(parent)
            << "--rev" << Changeset::hashOf(child);
 
-    runner->requestAction(HgAction(ACT_CHGSETDIFF, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_CHGSETDIFF, m_workFolderPath, params));
+}
+
+
+void MainWindow::hgShowSummaryFor(Changeset *cs)
+{
+    QStringList params;
+
+    // This will pick a default parent if there is more than one
+    // (whereas with diff we need to supply one).  But it does need a
+    // bit more parsing
+    params << "log" << "--stat" << "--rev" << Changeset::hashOf(cs->id());
+
+    m_runner->requestAction(HgAction(ACT_DIFF_SUMMARY, m_workFolderPath,
+                                     params, cs));
 }
 
 
@@ -624,7 +651,7 @@ void MainWindow::hgUpdate()
 
     params << "update";
     
-    runner->requestAction(HgAction(ACT_UPDATE, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_UPDATE, m_workFolderPath, params));
 }
 
 
@@ -634,7 +661,7 @@ void MainWindow::hgUpdateToRev(QString id)
 
     params << "update" << "--rev" << Changeset::hashOf(id) << "--check";
 
-    runner->requestAction(HgAction(ACT_UPDATE, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_UPDATE, m_workFolderPath, params));
 }
 
 
@@ -644,8 +671,8 @@ void MainWindow::hgRevert()
     QString comment;
     bool all = false;
 
-    QStringList files = hgTabs->getSelectedRevertableFiles();
-    QStringList allFiles = hgTabs->getAllRevertableFiles();
+    QStringList files = m_hgTabs->getSelectedRevertableFiles();
+    QStringList allFiles = m_hgTabs->getAllRevertableFiles();
     if (files.empty() || files == allFiles) {
         files = allFiles;
         all = true;
@@ -661,9 +688,9 @@ void MainWindow::hgRevert()
     // Set up params before asking for confirmation, because there is
     // a failure case here that we would need to report on early
 
-    DEBUG << "hgRevert: justMerged = " << justMerged << ", mergeTargetRevision = " << mergeTargetRevision << endl;
+    DEBUG << "hgRevert: m_justMerged = " << m_justMerged << ", m_mergeTargetRevision = " << m_mergeTargetRevision << endl;
 
-    if (justMerged) {
+    if (m_justMerged) {
 
         // This is a little fiddly.  The proper way to "revert" the
         // whole of an uncommitted merge is with "hg update --clean ."
@@ -677,9 +704,9 @@ void MainWindow::hgRevert()
         if (all) {
             params << "update" << "--clean" << ".";
         } else {
-            if (mergeTargetRevision != "") {
+            if (m_mergeTargetRevision != "") {
                 params << "revert" << "--rev"
-                       << Changeset::hashOf(mergeTargetRevision)
+                       << Changeset::hashOf(m_mergeTargetRevision)
                        << "--" << files;
             } else {
                 QMessageBox::information
@@ -704,9 +731,9 @@ void MainWindow::hgRevert()
          files,
          tr("Revert"))) {
 
-        lastRevertedFiles = files;
+        m_lastRevertedFiles = files;
         
-        runner->requestAction(HgAction(ACT_REVERT, workFolderPath, params));
+        m_runner->requestAction(HgAction(ACT_REVERT, m_workFolderPath, params));
     }
 }
 
@@ -723,7 +750,7 @@ void MainWindow::hgMarkResolved(QStringList files)
         params << "--" << files;
     }
 
-    runner->requestAction(HgAction(ACT_RESOLVE_MARK, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_RESOLVE_MARK, m_workFolderPath, params));
 }
 
 
@@ -738,26 +765,26 @@ void MainWindow::hgRetryMerge()
         params << "--tool" << merge;
     }
 
-    QStringList files = hgTabs->getSelectedUnresolvedFiles();
+    QStringList files = m_hgTabs->getSelectedUnresolvedFiles();
     if (files.empty()) {
         params << "--all";
     } else {
         params << "--" << files;
     }
 
-    if (currentParents.size() == 1) {
-        mergeTargetRevision = currentParents[0]->id();
+    if (m_currentParents.size() == 1) {
+        m_mergeTargetRevision = m_currentParents[0]->id();
     }
 
-    runner->requestAction(HgAction(ACT_RETRY_MERGE, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_RETRY_MERGE, m_workFolderPath, params));
 
-    mergeCommitComment = tr("Merge");
+    m_mergeCommitComment = tr("Merge");
 }
 
 
 void MainWindow::hgMerge()
 {
-    if (hgTabs->canResolve()) {
+    if (m_hgTabs->canResolve()) {
         hgRetryMerge();
         return;
     }
@@ -771,13 +798,13 @@ void MainWindow::hgMerge()
         params << "--tool" << merge;
     }
 
-    if (currentParents.size() == 1) {
-        mergeTargetRevision = currentParents[0]->id();
+    if (m_currentParents.size() == 1) {
+        m_mergeTargetRevision = m_currentParents[0]->id();
     }
 
-    runner->requestAction(HgAction(ACT_MERGE, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_MERGE, m_workFolderPath, params));
 
-    mergeCommitComment = tr("Merge");
+    m_mergeCommitComment = tr("Merge");
 }
 
 
@@ -793,26 +820,26 @@ void MainWindow::hgMergeFrom(QString id)
         params << "--tool" << merge;
     }
     
-    if (currentParents.size() == 1) {
-        mergeTargetRevision = currentParents[0]->id();
+    if (m_currentParents.size() == 1) {
+        m_mergeTargetRevision = m_currentParents[0]->id();
     }
 
-    runner->requestAction(HgAction(ACT_MERGE, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_MERGE, m_workFolderPath, params));
 
-    mergeCommitComment = "";
+    m_mergeCommitComment = "";
 
-    foreach (Changeset *cs, currentHeads) {
-        if (cs->id() == id && !cs->isOnBranch(currentBranch)) {
+    foreach (Changeset *cs, m_currentHeads) {
+        if (cs->id() == id && !cs->isOnBranch(m_currentBranch)) {
             if (cs->branch() == "" || cs->branch() == "default") {
-                mergeCommitComment = tr("Merge from the default branch");
+                m_mergeCommitComment = tr("Merge from the default branch");
             } else {
-                mergeCommitComment = tr("Merge from branch \"%1\"").arg(cs->branch());
+                m_mergeCommitComment = tr("Merge from branch \"%1\"").arg(cs->branch());
             }
         }
     }
 
-    if (mergeCommitComment == "") {
-        mergeCommitComment = tr("Merge from %1").arg(id);
+    if (m_mergeCommitComment == "") {
+        m_mergeCommitComment = tr("Merge from %1").arg(id);
     }
 }
 
@@ -821,21 +848,21 @@ void MainWindow::hgCloneFromRemote()
 {
     QStringList params;
 
-    if (!QDir(workFolderPath).exists()) {
-        if (!QDir().mkpath(workFolderPath)) {
+    if (!QDir(m_workFolderPath).exists()) {
+        if (!QDir().mkpath(m_workFolderPath)) {
             DEBUG << "hgCloneFromRemote: Failed to create target path "
-                  << workFolderPath << endl;
+                  << m_workFolderPath << endl;
             //!!! report error
             return;
         }
     }
 
-    params << "clone" << remoteRepoPath << workFolderPath;
+    params << "clone" << m_remoteRepoPath << m_workFolderPath;
     
-    hgTabs->setWorkFolderAndRepoNames(workFolderPath, remoteRepoPath);
-    hgTabs->updateWorkFolderFileList("");
+    updateWorkFolderAndRepoNames();
+    m_hgTabs->updateWorkFolderFileList("");
 
-    runner->requestAction(HgAction(ACT_CLONEFROMREMOTE, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_CLONEFROMREMOTE, m_workFolderPath, params));
 }
 
 void MainWindow::hgInit()
@@ -843,33 +870,32 @@ void MainWindow::hgInit()
     QStringList params;
 
     params << "init";
-    params << workFolderPath;
+    params << m_workFolderPath;
 
-    runner->requestAction(HgAction(ACT_INIT, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_INIT, m_workFolderPath, params));
 }
 
 void MainWindow::hgIncoming()
 {
     QStringList params;
 
-    params << "incoming" << "--newest-first" << remoteRepoPath;
+    params << "incoming" << "--newest-first" << m_remoteRepoPath;
     params << "--template" << Changeset::getLogTemplate();
 
-    runner->requestAction(HgAction(ACT_INCOMING, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_INCOMING, m_workFolderPath, params));
 }
 
 void MainWindow::hgPull()
 {
     if (ConfirmCommentDialog::confirm
         (this, tr("Confirm pull"),
-         format3(tr("Confirm pull from remote repository"),
-                 tr("You are about to pull changes from the following remote repository:"),
-                 remoteRepoPath),
+         tr("<qt><h3>Pull from remote repository?</h3></qt>"),
+         tr("<qt><p>You are about to pull changes from the remote repository at <code>%1</code>.</p></qt>").arg(xmlEncode(m_remoteRepoPath)),
          tr("Pull"))) {
 
         QStringList params;
-        params << "pull" << remoteRepoPath;
-        runner->requestAction(HgAction(ACT_PULL, workFolderPath, params));
+        params << "pull" << m_remoteRepoPath;
+        m_runner->requestAction(HgAction(ACT_PULL, m_workFolderPath, params));
     }
 }
 
@@ -877,14 +903,13 @@ void MainWindow::hgPush()
 {
     if (ConfirmCommentDialog::confirm
         (this, tr("Confirm push"),
-         format3(tr("Confirm push to remote repository"),
-                 tr("You are about to push your changes to the following remote repository:"),
-                 remoteRepoPath),
+         tr("<qt><h3>Push to remote repository?</h3></qt>"),
+         tr("<qt><p>You are about to push your changes to the remote repository at <code>%1</code>.</p></qt>").arg(xmlEncode(m_remoteRepoPath)),
          tr("Push"))) {
 
         QStringList params;
-        params << "push" << "--new-branch" << remoteRepoPath;
-        runner->requestAction(HgAction(ACT_PUSH, workFolderPath, params));
+        params << "push" << "--new-branch" << m_remoteRepoPath;
+        m_runner->requestAction(HgAction(ACT_PUSH, m_workFolderPath, params));
     }
 }
 
@@ -910,24 +935,25 @@ QStringList MainWindow::listAllUpIpV4Addresses()
 
 void MainWindow::clearState()
 {
-    foreach (Changeset *cs, currentParents) delete cs;
-    currentParents.clear();
-    foreach (Changeset *cs, currentHeads) delete cs;
-    currentHeads.clear();
-    currentBranch = "";
-    lastStatOutput = "";
-    lastRevertedFiles.clear();
-    mergeTargetRevision = "";
-    mergeCommitComment = "";
-    stateUnknown = true;
-    needNewLog = true;
-    if (fsWatcher) {
+    DEBUG << "MainWindow::clearState" << endl;
+    foreach (Changeset *cs, m_currentParents) delete cs;
+    m_currentParents.clear();
+    foreach (Changeset *cs, m_currentHeads) delete cs;
+    m_currentHeads.clear();
+    m_currentBranch = "";
+    m_lastStatOutput = "";
+    m_lastRevertedFiles.clear();
+    m_mergeTargetRevision = "";
+    m_mergeCommitComment = "";
+    m_stateUnknown = true;
+    m_needNewLog = true;
+    if (m_fsWatcher) {
         delete m_fsWatcherGeneralTimer;
         m_fsWatcherGeneralTimer = 0;
         delete m_fsWatcherRestoreTimer;
         m_fsWatcherRestoreTimer = 0;
-        delete fsWatcher;
-        fsWatcher = 0;
+        delete m_fsWatcher;
+        m_fsWatcher = 0;
     }
 }
 
@@ -957,17 +983,17 @@ void MainWindow::hgServe()
              
     params << "serve";
 
-    runner->requestAction(HgAction(ACT_SERVE, workFolderPath, params));
+    m_runner->requestAction(HgAction(ACT_SERVE, m_workFolderPath, params));
     
     QMessageBox::information(this, tr("Serve"), msg, QMessageBox::Close);
 
-    runner->killCurrentActions();
+    m_runner->killCurrentActions();
 }
 
 void MainWindow::startupDialog()
 {
     StartupDialog *dlg = new StartupDialog(this);
-    if (dlg->exec()) firstStart = false;
+    if (dlg->exec()) m_firstStart = false;
 }
 
 void MainWindow::open()
@@ -1045,13 +1071,13 @@ void MainWindow::changeRemoteRepo()
 {
     // This will involve rewriting the local .hgrc
 
-    QDir hgDir(workFolderPath + "/.hg");
+    QDir hgDir(m_workFolderPath + "/.hg");
     if (!hgDir.exists()) {
         //!!! visible error!
         return;
     }
 
-    QFileInfo hgrc(workFolderPath + "/.hg/hgrc");
+    QFileInfo hgrc(m_workFolderPath + "/.hg/hgrc");
     if (hgrc.exists() && !hgrc.isWritable()) {
         //!!! visible error!
         return;
@@ -1080,7 +1106,7 @@ void MainWindow::changeRemoteRepo()
             s.setValue("default", d->getArgument());
         }
 
-        stateUnknown = true;
+        m_stateUnknown = true;
         hgQueryPaths();
     }
 
@@ -1298,8 +1324,8 @@ bool MainWindow::openLocal(QString local)
         return complainAboutFilePath(local);
     }
 
-    workFolderPath = local;
-    remoteRepoPath = "";
+    m_workFolderPath = local;
+    m_remoteRepoPath = "";
     return true;
 }    
 
@@ -1331,8 +1357,8 @@ bool MainWindow::openRemote(QString remote, QString local)
         if (local == "") return false;
     }
 
-    workFolderPath = local;
-    remoteRepoPath = remote;
+    m_workFolderPath = local;
+    m_remoteRepoPath = remote;
     hgCloneFromRemote();
 
     return true;
@@ -1363,8 +1389,8 @@ bool MainWindow::openInit(QString local)
         return complainAboutUnknownFolder(local);
     }
 
-    workFolderPath = local;
-    remoteRepoPath = "";
+    m_workFolderPath = local;
+    m_remoteRepoPath = "";
     hgInit();
     return true;
 }
@@ -1375,7 +1401,7 @@ void MainWindow::settings()
     settingsDlg->exec();
 
     if (settingsDlg->presentationChanged()) {
-        hgTabs->updateFileStates();
+        m_hgTabs->updateFileStates();
         updateToolBarStyle();
         hgRefresh();
     }
@@ -1427,8 +1453,8 @@ void MainWindow::presentLongStdoutToUser(QString stdo)
 void MainWindow::updateFileSystemWatcher()
 {
     bool justCreated = false;
-    if (!fsWatcher) {
-        fsWatcher = new QFileSystemWatcher();
+    if (!m_fsWatcher) {
+        m_fsWatcher = new QFileSystemWatcher();
         justCreated = true;
     }
 
@@ -1438,18 +1464,18 @@ void MainWindow::updateFileSystemWatcher()
     // annoying because it would be the normal case for us.  So we'll
     // check for duplicates ourselves.
     QSet<QString> alreadyWatched;
-    QStringList dl(fsWatcher->directories());
+    QStringList dl(m_fsWatcher->directories());
     foreach (QString d, dl) alreadyWatched.insert(d);
     
     std::deque<QString> pending;
-    pending.push_back(workFolderPath);
+    pending.push_back(m_workFolderPath);
 
     while (!pending.empty()) {
 
         QString path = pending.front();
         pending.pop_front();
         if (!alreadyWatched.contains(path)) {
-            fsWatcher->addPath(path);
+            m_fsWatcher->addPath(path);
             DEBUG << "Added to file system watcher: " << path << endl;
         }
 
@@ -1476,9 +1502,9 @@ void MainWindow::updateFileSystemWatcher()
     m_fsWatcherGeneralTimer->start();
 
     if (justCreated) {
-        connect(fsWatcher, SIGNAL(directoryChanged(QString)),
+        connect(m_fsWatcher, SIGNAL(directoryChanged(QString)),
                 this, SLOT(fsDirectoryChanged(QString)));
-        connect(fsWatcher, SIGNAL(fileChanged(QString)),
+        connect(m_fsWatcher, SIGNAL(fileChanged(QString)),
                 this, SLOT(fsFileChanged(QString)));
     }
 }
@@ -1486,7 +1512,7 @@ void MainWindow::updateFileSystemWatcher()
 void MainWindow::suspendFileSystemWatcher()
 {
     DEBUG << "MainWindow::suspendFileSystemWatcher" << endl;
-    if (fsWatcher) {
+    if (m_fsWatcher) {
         m_fsWatcherSuspended = true;
         if (m_fsWatcherRestoreTimer) {
             delete m_fsWatcherRestoreTimer;
@@ -1518,7 +1544,7 @@ void MainWindow::restoreFileSystemWatcher()
 void MainWindow::actuallyRestoreFileSystemWatcher()
 {
     DEBUG << "MainWindow::actuallyRestoreFileSystemWatcher" << endl;
-    if (fsWatcher) {
+    if (m_fsWatcher) {
         m_fsWatcherSuspended = false;
         m_fsWatcherGeneralTimer->start();
     }
@@ -1546,6 +1572,11 @@ void MainWindow::fsFileChanged(QString f)
     }
 }
 
+QString MainWindow::format1(QString head)
+{
+    return QString("<qt><h3>%1</h3></qt>").arg(head);
+}    
+
 QString MainWindow::format3(QString head, QString intro, QString code)
 {
     code = xmlEncode(code).replace("\n", "<br>")
@@ -1568,7 +1599,7 @@ QString MainWindow::format3(QString head, QString intro, QString code)
 
 void MainWindow::showIncoming(QString output)
 {
-    runner->hide();
+    m_runner->hide();
     IncomingDialog *d = new IncomingDialog(this, output);
     d->exec();
     delete d;
@@ -1588,72 +1619,82 @@ int MainWindow::extractChangeCount(QString text)
 
 void MainWindow::showPushResult(QString output)
 {
+    QString head;
     QString report;
     int n = extractChangeCount(output);
     if (n > 0) {
-        report = tr("Pushed %n changeset(s)", "", n);
+        head = tr("Pushed %n changeset(s)", "", n);
+        report = tr("<qt>Successfully pushed to the remote repository at <code>%1</code>.</qt>").arg(xmlEncode(m_remoteRepoPath));
     } else if (n == 0) {
-        report = tr("No changes to push");
+        head = tr("No changes to push");
+        report = tr("The remote repository already contains all changes that have been committed locally.");
+        if (m_hgTabs->canCommit()) {
+            report = tr("%1<p>You do have some uncommitted changes. If you wish to push those to the remote repository, commit them locally first.").arg(report);
+        }            
     } else {
-        report = tr("Push complete");
+        head = tr("Push complete");
     }
-    report = format3(report, tr("The push command output was:"), output);
-    runner->hide();
-    QMessageBox::information(this, "Push complete", report);
+    m_runner->hide();
+
+    MoreInformationDialog::information(this, tr("Push complete"),
+                                       head, report, output);
 }
 
 void MainWindow::showPullResult(QString output)
 {
+    QString head;
     QString report;
     int n = extractChangeCount(output);
     if (n > 0) {
-        report = tr("Pulled %n changeset(s)", "", n);
+        head = tr("Pulled %n changeset(s)", "", n);
+        report = tr("The new changes will be highlighted in the history.<br>Use Update to bring these changes into your working copy.");
     } else if (n == 0) {
-        report = tr("No changes to pull");
+        head = tr("No changes to pull");
+        report = tr("Your local repository already contains all changes found in the remote repository.");
     } else {
-        report = tr("Pull complete");
+        head = tr("Pull complete");
     }
-    report = format3(report, tr("The pull command output was:"), output);
-    runner->hide();
+    m_runner->hide();
 
-    //!!! and something about updating
-
-    QMessageBox::information(this, "Pull complete", report);
+    MoreInformationDialog::information(this, tr("Pull complete"),
+                                       head, report, output);
 }
 
 void MainWindow::reportNewRemoteHeads(QString output)
 {
     bool headsAreLocal = false;
 
-    if (currentParents.size() == 1) {
-        int currentBranchHeads = 0;
+    if (m_currentParents.size() == 1) {
+        int m_currentBranchHeads = 0;
         bool parentIsHead = false;
-        Changeset *parent = currentParents[0];
-        foreach (Changeset *head, currentHeads) {
-            if (head->isOnBranch(currentBranch)) {
-                ++currentBranchHeads;
+        Changeset *parent = m_currentParents[0];
+        foreach (Changeset *head, m_currentHeads) {
+            if (head->isOnBranch(m_currentBranch)) {
+                ++m_currentBranchHeads;
             }
             if (parent->id() == head->id()) {
                 parentIsHead = true;
             }
         }
-        if (currentBranchHeads == 2 && parentIsHead) {
+        if (m_currentBranchHeads == 2 && parentIsHead) {
             headsAreLocal = true;
         }
     }
 
     if (headsAreLocal) {
-        QMessageBox::warning
-            (this, tr("Push failed"),
-             format3(tr("Push failed"),
-                     tr("Your local repository could not be pushed to the remote repository.<br><br>You may need to merge the changes locally first.<br><br>The output of the push command was:"),
-                     output));
+        MoreInformationDialog::warning
+            (this,
+             tr("Push failed"),
+             tr("Push failed"),
+             tr("Your local repository could not be pushed to the remote repository.<br><br>You may need to merge the changes locally first."),
+             output);
     } else {
-        QMessageBox::warning
-            (this, tr("Push failed"),
-             format3(tr("Push failed"),
-                     tr("Your local repository could not be pushed to the remote repository.<br><br>The remote repository may have been changed by someone else since you last pushed. Try pulling and merging their changes into your local repository first.<br><br>The output of the push command was:"),
-                     output));
+        MoreInformationDialog::warning
+            (this,
+             tr("Push failed"),
+             tr("Push failed"),
+             tr("Your local repository could not be pushed to the remote repository.<br><br>The remote repository may have been changed by someone else since you last pushed. Try pulling and merging their changes into your local repository first."),
+             output);
     }
 }
 
@@ -1689,33 +1730,32 @@ void MainWindow::commandFailed(HgAction action, QString output)
         // uh huh
         return;
     case ACT_TEST_HG:
-        QMessageBox::warning
-            (this, tr("Failed to run Mercurial"),
-             format3(tr("Failed to run Mercurial"),
-                     tr("The Mercurial program either could not be found or failed to run.<br>Check that the Mercurial program path is correct in %1.<br><br>%2").arg(setstr).arg(output == "" ? QString("") : tr("The test command said:")),
-                     output));
+        MoreInformationDialog::warning
+            (this,
+             tr("Failed to run Mercurial"),
+             tr("Failed to run Mercurial"),
+             tr("The Mercurial program either could not be found or failed to run.<br>Check that the Mercurial program path is correct in %1.").arg(setstr),
+             output);
         settings();
         return;
     case ACT_TEST_HG_EXT:
         QMessageBox::warning
-            (this, tr("Failed to run Mercurial"),
-             format3(tr("Failed to run Mercurial with extension enabled"),
-                     tr("The Mercurial program failed to run with the EasyMercurial interaction extension enabled.<br>This may indicate an installation problem with EasyMercurial.<br><br>You may be able to continue working if you switch off &ldquo;Use EasyHg Mercurial Extension&rdquo; in %1.  Note that remote repositories that require authentication may not work if you do this.<br><br>%2").arg(setstr).arg(output == "" ? QString("") : tr("The test command said:")),
-                     output));
+            (this,
+             tr("Failed to run Mercurial"),
+             tr("Failed to run Mercurial with extension enabled"),
+             tr("The Mercurial program failed to run with the EasyMercurial interaction extension enabled.<br>This may indicate an installation problem with EasyMercurial.<br><br>You may be able to continue working if you switch off &ldquo;Use EasyHg Mercurial Extension&rdquo; in %1.  Note that remote repositories that require authentication may not work if you do this.").arg(setstr),
+             output);
         settings();
         return;
     case ACT_CLONEFROMREMOTE:
         // if clone fails, we have no repo
-        workFolderPath = "";
+        m_workFolderPath = "";
         enableDisableActions();
         break;
     case ACT_INCOMING:
         // returns non-zero code and no output if the check was
         // successful but there are no changes pending
-
-        //!!! -- won't do, there may legitimately be warnings,
-        //!!! -- e.g. certificate not verified
-        if (output.trimmed() == "") {
+        if (output.replace(QRegExp("(^|\\n)warning: [^\\n]*\\n"), "").trimmed() == "") {
             showIncoming("");
             return;
         }
@@ -1749,6 +1789,8 @@ void MainWindow::commandFailed(HgAction action, QString output)
     foreach (QString arg, action.params) {
         command += " " + arg;
     }
+
+    //!!!
 
     QString message = tr("<qt><h3>Command failed</h3>"
                          "<p>The following command failed:</p>"
@@ -1789,23 +1831,23 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         LogList ll = lp.parse();
         DEBUG << ll.size() << " results" << endl;
         if (!ll.empty()) {
-            remoteRepoPath = lp.parse()[0]["default"].trimmed();
-            DEBUG << "Set remote path to " << remoteRepoPath << endl;
+            m_remoteRepoPath = lp.parse()[0]["default"].trimmed();
+            DEBUG << "Set remote path to " << m_remoteRepoPath << endl;
         } else {
-            remoteRepoPath = "";
+            m_remoteRepoPath = "";
         }
-        MultiChoiceDialog::addRecentArgument("local", workFolderPath);
-        MultiChoiceDialog::addRecentArgument("remote", remoteRepoPath);
-        hgTabs->setWorkFolderAndRepoNames(workFolderPath, remoteRepoPath);
+        MultiChoiceDialog::addRecentArgument("local", m_workFolderPath);
+        MultiChoiceDialog::addRecentArgument("remote", m_remoteRepoPath);
+        updateWorkFolderAndRepoNames();
         break;
     }
 
     case ACT_QUERY_BRANCH:
-        currentBranch = output.trimmed();
+        m_currentBranch = output.trimmed();
         break;
 
     case ACT_STAT:
-        lastStatOutput = output;
+        m_lastStatOutput = output;
         updateFileSystemWatcher();
         break;
 
@@ -1820,13 +1862,13 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
             }
             output = winnowed.join("\n");
         }
-        DEBUG << "lastStatOutput = " << lastStatOutput << endl;
+        DEBUG << "m_lastStatOutput = " << m_lastStatOutput << endl;
         DEBUG << "resolve output = " << output << endl;
-        hgTabs->updateWorkFolderFileList(lastStatOutput + output);
+        m_hgTabs->updateWorkFolderFileList(m_lastStatOutput + output);
         break;
 
     case ACT_RESOLVE_MARK:
-        shouldHgStat = true;
+        m_shouldHgStat = true;
         break;
         
     case ACT_INCOMING:
@@ -1835,12 +1877,12 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
 
     case ACT_ANNOTATE:
         presentLongStdoutToUser(output);
-        shouldHgStat = true;
+        m_shouldHgStat = true;
         break;
         
     case ACT_PULL:
         showPullResult(output);
-        shouldHgStat = true;
+        m_shouldHgStat = true;
         break;
         
     case ACT_PUSH:
@@ -1848,111 +1890,149 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
         
     case ACT_INIT:
-        MultiChoiceDialog::addRecentArgument("init", workFolderPath);
-        MultiChoiceDialog::addRecentArgument("local", workFolderPath);
+        MultiChoiceDialog::addRecentArgument("init", m_workFolderPath);
+        MultiChoiceDialog::addRecentArgument("local", m_workFolderPath);
         enableDisableActions();
-        shouldHgStat = true;
+        m_shouldHgStat = true;
         break;
         
     case ACT_CLONEFROMREMOTE:
-        MultiChoiceDialog::addRecentArgument("local", workFolderPath);
-        MultiChoiceDialog::addRecentArgument("remote", remoteRepoPath);
-        MultiChoiceDialog::addRecentArgument("remote", workFolderPath, true);
-        QMessageBox::information(this, tr("Clone"), tr("<qt><h3>Clone successful</h3><pre>%1</pre>").arg(xmlEncode(output)));
+        MultiChoiceDialog::addRecentArgument("local", m_workFolderPath);
+        MultiChoiceDialog::addRecentArgument("remote", m_remoteRepoPath);
+        MultiChoiceDialog::addRecentArgument("remote", m_workFolderPath, true);
+        MoreInformationDialog::information
+            (this,
+             tr("Clone"),
+             tr("Clone successful"),
+             tr("The remote repository was successfully cloned to the local folder <code>%1</code>.").arg(xmlEncode(m_workFolderPath)),
+             output);
         enableDisableActions();
-        shouldHgStat = true;
+        m_shouldHgStat = true;
         break;
         
     case ACT_LOG:
-        hgTabs->setNewLog(output);
-        needNewLog = false;
+        m_hgTabs->setNewLog(output);
+        m_needNewLog = false;
         break;
         
     case ACT_LOG_INCREMENTAL:
-        hgTabs->addIncrementalLog(output);
+        m_hgTabs->addIncrementalLog(output);
         break;
         
     case ACT_QUERY_PARENTS:
     {
-        foreach (Changeset *cs, currentParents) delete cs;
-        currentParents = Changeset::parseChangesets(output);
-        QStringList parentIds = Changeset::getIds(currentParents);
-        hgTabs->setCurrent(parentIds, currentBranch);
+        foreach (Changeset *cs, m_currentParents) delete cs;
+        m_currentParents = Changeset::parseChangesets(output);
+        QStringList parentIds = Changeset::getIds(m_currentParents);
+        m_hgTabs->setCurrent(parentIds, m_currentBranch);
     }
         break;
         
     case ACT_QUERY_HEADS:
     {
-        oldHeadIds = Changeset::getIds(currentHeads);
+        oldHeadIds = Changeset::getIds(m_currentHeads);
         Changesets newHeads = Changeset::parseChangesets(output);
         QStringList newHeadIds = Changeset::getIds(newHeads);
         if (oldHeadIds != newHeadIds) {
             DEBUG << "Heads changed, will prompt an incremental log if appropriate" << endl;
+            DEBUG << "Old heads: " << oldHeadIds.join(",") << endl;
+            DEBUG << "New heads: " << newHeadIds.join(",") << endl;
             headsChanged = true;
-            foreach (Changeset *cs, currentHeads) delete cs;
-            currentHeads = newHeads;
+            foreach (Changeset *cs, m_currentHeads) delete cs;
+            m_currentHeads = newHeads;
         }
     }
         break;
 
     case ACT_COMMIT:
-        hgTabs->clearSelections();
-        justMerged = false;
-        shouldHgStat = true;
+        m_hgTabs->clearSelections();
+        m_justMerged = false;
+        m_shouldHgStat = true;
         break;
 
     case ACT_REVERT:
-        hgMarkResolved(lastRevertedFiles);
-        justMerged = false;
+        hgMarkResolved(m_lastRevertedFiles);
+        m_justMerged = false;
         break;
         
     case ACT_REMOVE:
     case ACT_ADD:
-        hgTabs->clearSelections();
-        shouldHgStat = true;
+        m_hgTabs->clearSelections();
+        m_shouldHgStat = true;
         break;
 
     case ACT_TAG:
-        needNewLog = true;
-        shouldHgStat = true;
+        m_needNewLog = true;
+        m_shouldHgStat = true;
         break;
 
     case ACT_NEW_BRANCH:
-        shouldHgStat = true;
-        hgTabs->showWorkTab();
+        m_shouldHgStat = true;
+        m_hgTabs->showWorkTab();
         break;
 
-    case ACT_DIFF_SUMMARY:
+    case ACT_UNCOMMITTED_SUMMARY:
         QMessageBox::information(this, tr("Change summary"),
                                  format3(tr("Summary of uncommitted changes"),
                                          "",
                                          output));
         break;
 
+    case ACT_DIFF_SUMMARY:
+    {
+        // Output has log info first, diff following after a blank line
+        output.replace("\r\n", "\n");
+        QStringList olist = output.split("\n\n", QString::SkipEmptyParts);
+        if (olist.size() > 1) output = olist[1];
+
+        Changeset *cs = (Changeset *)completedAction.extraData;
+        if (cs) {
+            QMessageBox::information
+                (this, tr("Change summary"),
+                 format3(tr("Summary of changes"),
+                         cs->formatHtml(),
+                         output));
+        } else if (output == "") {
+            // Can happen, for a merge commit (depending on parent)
+            QMessageBox::information(this, tr("Change summary"),
+                                     format3(tr("Summary of changes"),
+                                             tr("No changes"),
+                                             output));
+        } else {
+            QMessageBox::information(this, tr("Change summary"),
+                                     format3(tr("Summary of changes"),
+                                             "",
+                                             output));
+        }            
+        break;
+    }
+
     case ACT_FOLDERDIFF:
     case ACT_CHGSETDIFF:
     case ACT_SERVE:
     case ACT_HG_IGNORE:
-        shouldHgStat = true;
+        m_shouldHgStat = true;
         break;
         
     case ACT_UPDATE:
         QMessageBox::information(this, tr("Update"), tr("<qt><h3>Update successful</h3><p>%1</p>").arg(xmlEncode(output)));
-        shouldHgStat = true;
+        m_shouldHgStat = true;
         break;
         
     case ACT_MERGE:
-        //!!! use format3?
-        QMessageBox::information(this, tr("Merge"), tr("<qt><h3>Merge successful</h3><pre>%1</pre>").arg(xmlEncode(output)));
-        shouldHgStat = true;
-        justMerged = true;
+        MoreInformationDialog::information
+            (this, tr("Merge"), tr("Merge successful"),
+             tr("Remember to test and commit the result before making any further changes."),
+             output);
+        m_shouldHgStat = true;
+        m_justMerged = true;
         break;
         
     case ACT_RETRY_MERGE:
         QMessageBox::information(this, tr("Resolved"),
-                                 tr("<qt><h3>Merge resolved</h3><p>Merge resolved successfully.</p>"));
-        shouldHgStat = true;
-        justMerged = true;
+                                 tr("<qt><h3>Merge resolved</h3><p>Merge resolved successfully.<br>Remember to test and commit the result before making any further changes.</p>"));
+        m_shouldHgStat = true;
+        m_justMerged = true;
         break;
         
     default:
@@ -1979,7 +2059,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         settings.beginGroup("General");
         if (settings.value("useextension", true).toBool()) {
             hgTestExtension();
-        } else if (workFolderPath == "") {
+        } else if (m_workFolderPath == "") {
             open();
         } else {
             hgQueryPaths();
@@ -1988,7 +2068,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     }
         
     case ACT_TEST_HG_EXT:
-        if (workFolderPath == "") {
+        if (m_workFolderPath == "") {
             open();
         } else{
             hgQueryPaths();
@@ -2012,7 +2092,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
 
     case ACT_QUERY_HEADS:
-        if (headsChanged && !needNewLog) {
+        if (headsChanged && !m_needNewLog) {
             hgLogIncremental(oldHeadIds);
         } else {
             hgQueryParents();
@@ -2024,7 +2104,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
 
     case ACT_QUERY_PARENTS:
-        if (needNewLog) {
+        if (m_needNewLog) {
             hgLog();
         } else {
             // we're done
@@ -2038,8 +2118,8 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
 
     default:
-        if (shouldHgStat) {
-            shouldHgStat = false;
+        if (m_shouldHgStat) {
+            m_shouldHgStat = false;
             hgQueryPaths();
         } else {
             noMore = true;
@@ -2048,69 +2128,72 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     }
 
     if (noMore) {
-        stateUnknown = false;
+        m_stateUnknown = false;
         enableDisableActions();
-        hgTabs->updateHistory();
+        m_hgTabs->updateHistory();
     }
 }
 
 void MainWindow::connectActions()
 {
-    connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
-    connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
+    connect(m_exitAct, SIGNAL(triggered()), this, SLOT(close()));
+    connect(m_aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
-    connect(hgRefreshAct, SIGNAL(triggered()), this, SLOT(hgRefresh()));
-    connect(hgRemoveAct, SIGNAL(triggered()), this, SLOT(hgRemove()));
-    connect(hgAddAct, SIGNAL(triggered()), this, SLOT(hgAdd()));
-    connect(hgCommitAct, SIGNAL(triggered()), this, SLOT(hgCommit()));
-    connect(hgFolderDiffAct, SIGNAL(triggered()), this, SLOT(hgFolderDiff()));
-    connect(hgUpdateAct, SIGNAL(triggered()), this, SLOT(hgUpdate()));
-    connect(hgRevertAct, SIGNAL(triggered()), this, SLOT(hgRevert()));
-    connect(hgMergeAct, SIGNAL(triggered()), this, SLOT(hgMerge()));
-    connect(hgIgnoreAct, SIGNAL(triggered()), this, SLOT(hgIgnore()));
+    connect(m_hgRefreshAct, SIGNAL(triggered()), this, SLOT(hgRefresh()));
+    connect(m_hgRemoveAct, SIGNAL(triggered()), this, SLOT(hgRemove()));
+    connect(m_hgAddAct, SIGNAL(triggered()), this, SLOT(hgAdd()));
+    connect(m_hgCommitAct, SIGNAL(triggered()), this, SLOT(hgCommit()));
+    connect(m_hgFolderDiffAct, SIGNAL(triggered()), this, SLOT(hgFolderDiff()));
+    connect(m_hgUpdateAct, SIGNAL(triggered()), this, SLOT(hgUpdate()));
+    connect(m_hgRevertAct, SIGNAL(triggered()), this, SLOT(hgRevert()));
+    connect(m_hgMergeAct, SIGNAL(triggered()), this, SLOT(hgMerge()));
+    connect(m_hgIgnoreAct, SIGNAL(triggered()), this, SLOT(hgIgnore()));
 
-    connect(settingsAct, SIGNAL(triggered()), this, SLOT(settings()));
-    connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
-    connect(changeRemoteRepoAct, SIGNAL(triggered()), this, SLOT(changeRemoteRepo()));
+    connect(m_settingsAct, SIGNAL(triggered()), this, SLOT(settings()));
+    connect(m_openAct, SIGNAL(triggered()), this, SLOT(open()));
+    connect(m_changeRemoteRepoAct, SIGNAL(triggered()), this, SLOT(changeRemoteRepo()));
 
-    connect(hgIncomingAct, SIGNAL(triggered()), this, SLOT(hgIncoming()));
-    connect(hgPullAct, SIGNAL(triggered()), this, SLOT(hgPull()));
-    connect(hgPushAct, SIGNAL(triggered()), this, SLOT(hgPush()));
+    connect(m_hgIncomingAct, SIGNAL(triggered()), this, SLOT(hgIncoming()));
+    connect(m_hgPullAct, SIGNAL(triggered()), this, SLOT(hgPull()));
+    connect(m_hgPushAct, SIGNAL(triggered()), this, SLOT(hgPush()));
 
-    connect(hgAnnotateAct, SIGNAL(triggered()), this, SLOT(hgAnnotate()));
-    connect(hgServeAct, SIGNAL(triggered()), this, SLOT(hgServe()));
+    connect(m_hgAnnotateAct, SIGNAL(triggered()), this, SLOT(hgAnnotate()));
+    connect(m_hgServeAct, SIGNAL(triggered()), this, SLOT(hgServe()));
 }
 
 void MainWindow::connectTabsSignals()
 {
-    connect(hgTabs, SIGNAL(commit()),
+    connect(m_hgTabs, SIGNAL(commit()),
             this, SLOT(hgCommit()));
     
-    connect(hgTabs, SIGNAL(revert()),
+    connect(m_hgTabs, SIGNAL(revert()),
             this, SLOT(hgRevert()));
     
-    connect(hgTabs, SIGNAL(diffWorkingFolder()),
+    connect(m_hgTabs, SIGNAL(diffWorkingFolder()),
             this, SLOT(hgFolderDiff()));
     
-    connect(hgTabs, SIGNAL(showSummary()),
+    connect(m_hgTabs, SIGNAL(showSummary()),
             this, SLOT(hgShowSummary()));
 
-    connect(hgTabs, SIGNAL(updateTo(QString)),
+    connect(m_hgTabs, SIGNAL(updateTo(QString)),
             this, SLOT(hgUpdateToRev(QString)));
 
-    connect(hgTabs, SIGNAL(diffToCurrent(QString)),
+    connect(m_hgTabs, SIGNAL(diffToCurrent(QString)),
             this, SLOT(hgDiffToCurrent(QString)));
 
-    connect(hgTabs, SIGNAL(diffToParent(QString, QString)),
+    connect(m_hgTabs, SIGNAL(diffToParent(QString, QString)),
             this, SLOT(hgDiffToParent(QString, QString)));
 
-    connect(hgTabs, SIGNAL(mergeFrom(QString)),
+    connect(m_hgTabs, SIGNAL(showSummary(Changeset *)),
+            this, SLOT(hgShowSummaryFor(Changeset *)));
+
+    connect(m_hgTabs, SIGNAL(mergeFrom(QString)),
             this, SLOT(hgMergeFrom(QString)));
 
-    connect(hgTabs, SIGNAL(newBranch(QString)),
+    connect(m_hgTabs, SIGNAL(newBranch(QString)),
             this, SLOT(hgNewBranch(QString)));
 
-    connect(hgTabs, SIGNAL(tag(QString)),
+    connect(m_hgTabs, SIGNAL(tag(QString)),
             this, SLOT(hgTag(QString)));
 }    
 
@@ -2118,7 +2201,7 @@ void MainWindow::enableDisableActions()
 {
     DEBUG << "MainWindow::enableDisableActions" << endl;
 
-    QString dirname = QDir(workFolderPath).dirName();
+    QString dirname = QDir(m_workFolderPath).dirName();
     if (dirname != "") {
         setWindowTitle(tr("EasyMercurial: %1").arg(dirname));
     } else {
@@ -2133,32 +2216,32 @@ void MainWindow::enableDisableActions()
     bool workFolderExist = true;
     bool localRepoExist = true;
 
-    remoteRepoActionsEnabled = true;
-    if (remoteRepoPath.isEmpty()) {
-        remoteRepoActionsEnabled = false;
+    m_remoteRepoActionsEnabled = true;
+    if (m_remoteRepoPath.isEmpty()) {
+        m_remoteRepoActionsEnabled = false;
     }
 
-    localRepoActionsEnabled = true;
-    if (workFolderPath.isEmpty()) {
-        localRepoActionsEnabled = false;
+    m_localRepoActionsEnabled = true;
+    if (m_workFolderPath.isEmpty()) {
+        m_localRepoActionsEnabled = false;
         workFolderExist = false;
     }
 
-    if (workFolderPath == "" || !workFolderDir.exists(workFolderPath)) {
-        localRepoActionsEnabled = false;
+    if (m_workFolderPath == "" || !workFolderDir.exists(m_workFolderPath)) {
+        m_localRepoActionsEnabled = false;
         workFolderExist = false;
     } else {
         workFolderExist = true;
     }
 
-    if (!localRepoDir.exists(workFolderPath + "/.hg")) {
-        localRepoActionsEnabled = false;
+    if (!localRepoDir.exists(m_workFolderPath + "/.hg")) {
+        m_localRepoActionsEnabled = false;
         localRepoExist = false;
     }
 
-    hgIncomingAct -> setEnabled(remoteRepoActionsEnabled && remoteRepoActionsEnabled);
-    hgPullAct -> setEnabled(remoteRepoActionsEnabled && remoteRepoActionsEnabled);
-    hgPushAct -> setEnabled(remoteRepoActionsEnabled && remoteRepoActionsEnabled);
+    m_hgIncomingAct -> setEnabled(m_remoteRepoActionsEnabled && m_remoteRepoActionsEnabled);
+    m_hgPullAct -> setEnabled(m_remoteRepoActionsEnabled && m_remoteRepoActionsEnabled);
+    m_hgPushAct -> setEnabled(m_remoteRepoActionsEnabled && m_remoteRepoActionsEnabled);
 
     bool haveDiff = false;
     QSettings settings;
@@ -2168,26 +2251,26 @@ void MainWindow::enableDisableActions()
     }
     settings.endGroup();
 
-    hgRefreshAct -> setEnabled(localRepoActionsEnabled);
-    hgFolderDiffAct -> setEnabled(localRepoActionsEnabled && haveDiff);
-    hgRevertAct -> setEnabled(localRepoActionsEnabled);
-    hgAddAct -> setEnabled(localRepoActionsEnabled);
-    hgRemoveAct -> setEnabled(localRepoActionsEnabled);
-    hgUpdateAct -> setEnabled(localRepoActionsEnabled);
-    hgCommitAct -> setEnabled(localRepoActionsEnabled);
-    hgMergeAct -> setEnabled(localRepoActionsEnabled);
-    hgAnnotateAct -> setEnabled(localRepoActionsEnabled);
-    hgServeAct -> setEnabled(localRepoActionsEnabled);
-    hgIgnoreAct -> setEnabled(localRepoActionsEnabled);
+    m_hgRefreshAct -> setEnabled(m_localRepoActionsEnabled);
+    m_hgFolderDiffAct -> setEnabled(m_localRepoActionsEnabled && haveDiff);
+    m_hgRevertAct -> setEnabled(m_localRepoActionsEnabled);
+    m_hgAddAct -> setEnabled(m_localRepoActionsEnabled);
+    m_hgRemoveAct -> setEnabled(m_localRepoActionsEnabled);
+    m_hgUpdateAct -> setEnabled(m_localRepoActionsEnabled);
+    m_hgCommitAct -> setEnabled(m_localRepoActionsEnabled);
+    m_hgMergeAct -> setEnabled(m_localRepoActionsEnabled);
+    m_hgAnnotateAct -> setEnabled(m_localRepoActionsEnabled);
+    m_hgServeAct -> setEnabled(m_localRepoActionsEnabled);
+    m_hgIgnoreAct -> setEnabled(m_localRepoActionsEnabled);
 
-    DEBUG << "localRepoActionsEnabled = " << localRepoActionsEnabled << endl;
-    DEBUG << "canCommit = " << hgTabs->canCommit() << endl;
+    DEBUG << "m_localRepoActionsEnabled = " << m_localRepoActionsEnabled << endl;
+    DEBUG << "canCommit = " << m_hgTabs->canCommit() << endl;
 
-    hgAddAct->setEnabled(localRepoActionsEnabled && hgTabs->canAdd());
-    hgRemoveAct->setEnabled(localRepoActionsEnabled && hgTabs->canRemove());
-    hgCommitAct->setEnabled(localRepoActionsEnabled && hgTabs->canCommit());
-    hgRevertAct->setEnabled(localRepoActionsEnabled && hgTabs->canRevert());
-    hgFolderDiffAct->setEnabled(localRepoActionsEnabled && hgTabs->canDiff());
+    m_hgAddAct->setEnabled(m_localRepoActionsEnabled && m_hgTabs->canAdd());
+    m_hgRemoveAct->setEnabled(m_localRepoActionsEnabled && m_hgTabs->canRemove());
+    m_hgCommitAct->setEnabled(m_localRepoActionsEnabled && m_hgTabs->canCommit());
+    m_hgRevertAct->setEnabled(m_localRepoActionsEnabled && m_hgTabs->canRevert());
+    m_hgFolderDiffAct->setEnabled(m_localRepoActionsEnabled && m_hgTabs->canDiff());
 
     // A default merge makes sense if:
     //  * there is only one parent (if there are two, we have an uncommitted merge) and
@@ -2204,24 +2287,24 @@ void MainWindow::enableDisableActions()
     bool emptyRepo = false;
     bool noWorkingCopy = false;
     bool newBranch = false;
-    int currentBranchHeads = 0;
+    int m_currentBranchHeads = 0;
 
-    if (currentParents.size() == 1) {
+    if (m_currentParents.size() == 1) {
         bool parentIsHead = false;
-        Changeset *parent = currentParents[0];
-        foreach (Changeset *head, currentHeads) {
-            DEBUG << "head branch " << head->branch() << ", current branch " << currentBranch << endl;
-            if (head->isOnBranch(currentBranch)) {
-                ++currentBranchHeads;
+        Changeset *parent = m_currentParents[0];
+        foreach (Changeset *head, m_currentHeads) {
+            DEBUG << "head branch " << head->branch() << ", current branch " << m_currentBranch << endl;
+            if (head->isOnBranch(m_currentBranch)) {
+                ++m_currentBranchHeads;
             }
             if (parent->id() == head->id()) {
                 parentIsHead = true;
             }
         }
-        if (currentBranchHeads == 2 && parentIsHead) {
+        if (m_currentBranchHeads == 2 && parentIsHead) {
             canMerge = true;
         }
-        if (currentBranchHeads == 0 && parentIsHead) {
+        if (m_currentBranchHeads == 0 && parentIsHead) {
             // Just created a new branch
             newBranch = true;
         }
@@ -2229,13 +2312,13 @@ void MainWindow::enableDisableActions()
             canUpdate = true;
             DEBUG << "parent id = " << parent->id() << endl;
             DEBUG << " head ids "<<endl;
-            foreach (Changeset *h, currentHeads) {
+            foreach (Changeset *h, m_currentHeads) {
                 DEBUG << "head id = " << h->id() << endl;
             }
         }
-        justMerged = false;
-    } else if (currentParents.size() == 0) {
-        if (currentHeads.size() == 0) {
+        m_justMerged = false;
+    } else if (m_currentParents.size() == 0) {
+        if (m_currentHeads.size() == 0) {
             // No heads -> empty repo
             emptyRepo = true;
         } else {
@@ -2245,125 +2328,125 @@ void MainWindow::enableDisableActions()
             noWorkingCopy = true;
             canUpdate = true;
         }
-        justMerged = false;
+        m_justMerged = false;
     } else {
         haveMerge = true;
-        justMerged = true;
+        m_justMerged = true;
     }
         
-    hgMergeAct->setEnabled(localRepoActionsEnabled &&
-                           (canMerge || hgTabs->canResolve()));
-    hgUpdateAct->setEnabled(localRepoActionsEnabled &&
-                            (canUpdate && !hgTabs->haveChangesToCommit()));
+    m_hgMergeAct->setEnabled(m_localRepoActionsEnabled &&
+                           (canMerge || m_hgTabs->canResolve()));
+    m_hgUpdateAct->setEnabled(m_localRepoActionsEnabled &&
+                            (canUpdate && !m_hgTabs->haveChangesToCommit()));
 
     // Set the state field on the file status widget
 
     QString branchText;
-    if (currentBranch == "" || currentBranch == "default") {
+    if (m_currentBranch == "" || m_currentBranch == "default") {
         branchText = tr("the default branch");
     } else {
-        branchText = tr("branch \"%1\"").arg(currentBranch);
+        branchText = tr("branch \"%1\"").arg(m_currentBranch);
     }
 
-    if (stateUnknown) {
-        if (workFolderPath == "") {
-            hgTabs->setState(tr("No repository open"));
+    if (m_stateUnknown) {
+        if (m_workFolderPath == "") {
+            m_workStatus->setState(tr("No repository open"));
         } else {
-            hgTabs->setState(tr("(Examining repository)"));
+            m_workStatus->setState(tr("(Examining repository)"));
         }
     } else if (emptyRepo) {
-        hgTabs->setState(tr("Nothing committed to this repository yet"));
+        m_workStatus->setState(tr("Nothing committed to this repository yet"));
     } else if (noWorkingCopy) {
-        hgTabs->setState(tr("No working copy yet: consider updating"));
+        m_workStatus->setState(tr("No working copy yet: consider updating"));
     } else if (canMerge) {
-        hgTabs->setState(tr("<b>Awaiting merge</b> on %1").arg(branchText));
-    } else if (!hgTabs->getAllUnresolvedFiles().empty()) {
-        hgTabs->setState(tr("Have unresolved files following merge on %1").arg(branchText));
+        m_workStatus->setState(tr("<b>Awaiting merge</b> on %1").arg(branchText));
+    } else if (!m_hgTabs->getAllUnresolvedFiles().empty()) {
+        m_workStatus->setState(tr("Have unresolved files following merge on %1").arg(branchText));
     } else if (haveMerge) {
-        hgTabs->setState(tr("Have merged but not yet committed on %1").arg(branchText));
+        m_workStatus->setState(tr("Have merged but not yet committed on %1").arg(branchText));
     } else if (newBranch) {
-        hgTabs->setState(tr("On %1.  New branch: has not yet been committed").arg(branchText));
+        m_workStatus->setState(tr("On %1.  New branch: has not yet been committed").arg(branchText));
     } else if (canUpdate) {
-        if (hgTabs->haveChangesToCommit()) {
+        if (m_hgTabs->haveChangesToCommit()) {
             // have uncommitted changes
-            hgTabs->setState(tr("On %1. Not at the head of the branch").arg(branchText));
+            m_workStatus->setState(tr("On %1. Not at the head of the branch").arg(branchText));
         } else {
             // no uncommitted changes
-            hgTabs->setState(tr("On %1. Not at the head of the branch: consider updating").arg(branchText));
+            m_workStatus->setState(tr("On %1. Not at the head of the branch: consider updating").arg(branchText));
         }
-    } else if (currentBranchHeads > 1) {
-        hgTabs->setState(tr("At one of %n heads of %1", "", currentBranchHeads).arg(branchText));
+    } else if (m_currentBranchHeads > 1) {
+        m_workStatus->setState(tr("At one of %n heads of %1", "", m_currentBranchHeads).arg(branchText));
     } else {
-        hgTabs->setState(tr("At the head of %1").arg(branchText));
+        m_workStatus->setState(tr("At the head of %1").arg(branchText));
     }
 }
 
 void MainWindow::createActions()
 {
     //File actions
-    openAct = new QAction(QIcon(":/images/fileopen.png"), tr("Open..."), this);
-    openAct -> setStatusTip(tr("Open an existing repository or working folder"));
+    m_openAct = new QAction(QIcon(":/images/fileopen.png"), tr("Open..."), this);
+    m_openAct -> setStatusTip(tr("Open an existing repository or working folder"));
 
-    changeRemoteRepoAct = new QAction(tr("Change Remote Location..."), this);
-    changeRemoteRepoAct->setStatusTip(tr("Change the default remote repository for pull and push actions"));
+    m_changeRemoteRepoAct = new QAction(tr("Change Remote Location..."), this);
+    m_changeRemoteRepoAct->setStatusTip(tr("Change the default remote repository for pull and push actions"));
 
-    settingsAct = new QAction(QIcon(":/images/settings.png"), tr("Settings..."), this);
-    settingsAct -> setStatusTip(tr("View and change application settings"));
+    m_settingsAct = new QAction(QIcon(":/images/settings.png"), tr("Settings..."), this);
+    m_settingsAct -> setStatusTip(tr("View and change application settings"));
 
-    exitAct = new QAction(QIcon(":/images/exit.png"), tr("Quit"), this);
-    exitAct->setShortcuts(QKeySequence::Quit);
-    exitAct->setStatusTip(tr("Quit EasyMercurial"));
+    m_exitAct = new QAction(QIcon(":/images/exit.png"), tr("Quit"), this);
+    m_exitAct->setShortcuts(QKeySequence::Quit);
+    m_exitAct->setStatusTip(tr("Quit EasyMercurial"));
 
     //Repository actions
-    hgRefreshAct = new QAction(QIcon(":/images/status.png"), tr("Refresh"), this);
-    hgRefreshAct->setStatusTip(tr("Refresh the window to show the current state of the working folder"));
+    m_hgRefreshAct = new QAction(QIcon(":/images/status.png"), tr("Refresh"), this);
+    m_hgRefreshAct->setStatusTip(tr("Refresh the window to show the current state of the working folder"));
 
-    hgIncomingAct = new QAction(QIcon(":/images/incoming.png"), tr("Preview"), this);
-    hgIncomingAct -> setStatusTip(tr("See what changes are available in the remote repository waiting to be pulled"));
+    m_hgIncomingAct = new QAction(QIcon(":/images/incoming.png"), tr("Preview"), this);
+    m_hgIncomingAct -> setStatusTip(tr("See what changes are available in the remote repository waiting to be pulled"));
 
-    hgPullAct = new QAction(QIcon(":/images/pull.png"), tr("Pull"), this);
-    hgPullAct -> setStatusTip(tr("Pull changes from the remote repository to the local repository"));
+    m_hgPullAct = new QAction(QIcon(":/images/pull.png"), tr("Pull"), this);
+    m_hgPullAct -> setStatusTip(tr("Pull changes from the remote repository to the local repository"));
 
-    hgPushAct = new QAction(QIcon(":/images/push.png"), tr("Push"), this);
-    hgPushAct->setStatusTip(tr("Push changes from the local repository to the remote repository"));
+    m_hgPushAct = new QAction(QIcon(":/images/push.png"), tr("Push"), this);
+    m_hgPushAct->setStatusTip(tr("Push changes from the local repository to the remote repository"));
 
     //Workfolder actions
-    hgFolderDiffAct   = new QAction(QIcon(":/images/folderdiff.png"), tr("Diff"), this);
-    hgFolderDiffAct->setStatusTip(tr("See what has changed in the working folder compared with the last committed state"));
+    m_hgFolderDiffAct   = new QAction(QIcon(":/images/folderdiff.png"), tr("Diff"), this);
+    m_hgFolderDiffAct->setStatusTip(tr("See what has changed in the working folder compared with the last committed state"));
 
-    hgRevertAct = new QAction(QIcon(":/images/undo.png"), tr("Revert"), this);
-    hgRevertAct->setStatusTip(tr("Throw away your changes and return to the last committed state"));
+    m_hgRevertAct = new QAction(QIcon(":/images/undo.png"), tr("Revert"), this);
+    m_hgRevertAct->setStatusTip(tr("Throw away your changes and return to the last committed state"));
 
-    hgAddAct = new QAction(QIcon(":/images/add.png"), tr("Add"), this);
-    hgAddAct -> setStatusTip(tr("Mark the selected file(s) to be added on the next commit"));
+    m_hgAddAct = new QAction(QIcon(":/images/add.png"), tr("Add"), this);
+    m_hgAddAct -> setStatusTip(tr("Mark the selected file(s) to be added on the next commit"));
 
     //!!! needs to be modified for number
-    hgRemoveAct = new QAction(QIcon(":/images/remove.png"), tr("Remove"), this);
-    hgRemoveAct -> setStatusTip(tr("Mark the selected file(s) to be removed from version control on the next commit"));
+    m_hgRemoveAct = new QAction(QIcon(":/images/remove.png"), tr("Remove"), this);
+    m_hgRemoveAct -> setStatusTip(tr("Mark the selected file(s) to be removed from version control on the next commit"));
 
-    hgUpdateAct = new QAction(QIcon(":/images/update.png"), tr("Update"), this);
-    hgUpdateAct->setStatusTip(tr("Update the working folder to the head of the current repository branch"));
+    m_hgUpdateAct = new QAction(QIcon(":/images/update.png"), tr("Update"), this);
+    m_hgUpdateAct->setStatusTip(tr("Update the working folder to the head of the current repository branch"));
 
     //!!! needs to be modified when files selected
-    hgCommitAct = new QAction(QIcon(":/images/commit.png"), tr("Commit"), this);
-    hgCommitAct->setStatusTip(tr("Commit your changes to the local repository"));
+    m_hgCommitAct = new QAction(QIcon(":/images/commit.png"), tr("Commit"), this);
+    m_hgCommitAct->setStatusTip(tr("Commit your changes to the local repository"));
 
-    hgMergeAct = new QAction(QIcon(":/images/merge.png"), tr("Merge"), this);
-    hgMergeAct->setStatusTip(tr("Merge the two independent sets of changes in the local repository into the working folder"));
+    m_hgMergeAct = new QAction(QIcon(":/images/merge.png"), tr("Merge"), this);
+    m_hgMergeAct->setStatusTip(tr("Merge the two independent sets of changes in the local repository into the working folder"));
 
     //Advanced actions
     //!!! needs to be modified for number
-    hgAnnotateAct = new QAction(tr("Annotate"), this);
-    hgAnnotateAct -> setStatusTip(tr("Show line-by-line version information for selected file"));
+    m_hgAnnotateAct = new QAction(tr("Annotate"), this);
+    m_hgAnnotateAct -> setStatusTip(tr("Show line-by-line version information for selected file"));
 
-    hgIgnoreAct = new QAction(tr("Edit .hgignore File"), this);
-    hgIgnoreAct -> setStatusTip(tr("Edit the .hgignore file, containing the names of files that should be ignored by Mercurial"));
+    m_hgIgnoreAct = new QAction(tr("Edit .hgignore File"), this);
+    m_hgIgnoreAct -> setStatusTip(tr("Edit the .hgignore file, containing the names of files that should be ignored by Mercurial"));
 
-    hgServeAct = new QAction(tr("Serve via HTTP"), this);
-    hgServeAct -> setStatusTip(tr("Serve local repository via http for workgroup access"));
+    m_hgServeAct = new QAction(tr("Serve via HTTP"), this);
+    m_hgServeAct -> setStatusTip(tr("Serve local repository via http for workgroup access"));
 
     //Help actions
-    aboutAct = new QAction(tr("About EasyMercurial"), this);
+    m_aboutAct = new QAction(tr("About EasyMercurial"), this);
 
     // Miscellaneous
     QShortcut *clearSelectionsShortcut = new QShortcut(Qt::Key_Escape, this);
@@ -2373,56 +2456,56 @@ void MainWindow::createActions()
 
 void MainWindow::createMenus()
 {
-    fileMenu = menuBar()->addMenu(tr("File"));
+    m_fileMenu = menuBar()->addMenu(tr("File"));
 
-    fileMenu -> addAction(openAct);
-    fileMenu -> addAction(changeRemoteRepoAct);
-    fileMenu -> addSeparator();
+    m_fileMenu -> addAction(m_openAct);
+    m_fileMenu -> addAction(m_changeRemoteRepoAct);
+    m_fileMenu -> addSeparator();
 
-    advancedMenu = fileMenu->addMenu(tr("Advanced"));
+    m_advancedMenu = m_fileMenu->addMenu(tr("Advanced"));
 
-    fileMenu -> addAction(settingsAct);
+    m_fileMenu -> addAction(m_settingsAct);
 
-    fileMenu -> addSeparator();
-    fileMenu -> addAction(exitAct);
+    m_fileMenu -> addSeparator();
+    m_fileMenu -> addAction(m_exitAct);
 
-    advancedMenu -> addAction(hgIgnoreAct);
-    advancedMenu -> addSeparator();
-    advancedMenu -> addAction(hgServeAct);
+    m_advancedMenu -> addAction(m_hgIgnoreAct);
+    m_advancedMenu -> addSeparator();
+    m_advancedMenu -> addAction(m_hgServeAct);
 
-    helpMenu = menuBar()->addMenu(tr("Help"));
-    helpMenu->addAction(aboutAct);
+    m_helpMenu = menuBar()->addMenu(tr("Help"));
+    m_helpMenu->addAction(m_aboutAct);
 }
 
 void MainWindow::createToolBars()
 {
-    fileToolBar = addToolBar(tr("File"));
-    fileToolBar -> setIconSize(QSize(MY_ICON_SIZE, MY_ICON_SIZE));
-    fileToolBar -> addAction(openAct);
-    fileToolBar -> addAction(hgRefreshAct);
-    fileToolBar -> addSeparator();
-    fileToolBar -> setMovable(false);
+    m_fileToolBar = addToolBar(tr("File"));
+    m_fileToolBar -> setIconSize(QSize(MY_ICON_SIZE, MY_ICON_SIZE));
+    m_fileToolBar -> addAction(m_openAct);
+    m_fileToolBar -> addAction(m_hgRefreshAct);
+    m_fileToolBar -> addSeparator();
+    m_fileToolBar -> setMovable(false);
 
-    repoToolBar = addToolBar(tr(REPOMENU_TITLE));
-    repoToolBar -> setIconSize(QSize(MY_ICON_SIZE, MY_ICON_SIZE));
-    repoToolBar->addAction(hgIncomingAct);
-    repoToolBar->addAction(hgPullAct);
-    repoToolBar->addAction(hgPushAct);
-    repoToolBar -> setMovable(false);
+    m_repoToolBar = addToolBar(tr(REPOMENU_TITLE));
+    m_repoToolBar -> setIconSize(QSize(MY_ICON_SIZE, MY_ICON_SIZE));
+    m_repoToolBar->addAction(m_hgIncomingAct);
+    m_repoToolBar->addAction(m_hgPullAct);
+    m_repoToolBar->addAction(m_hgPushAct);
+    m_repoToolBar -> setMovable(false);
 
-    workFolderToolBar = addToolBar(tr(WORKFOLDERMENU_TITLE));
-    addToolBar(Qt::LeftToolBarArea, workFolderToolBar);
-    workFolderToolBar -> setIconSize(QSize(MY_ICON_SIZE, MY_ICON_SIZE));
-    workFolderToolBar->addAction(hgFolderDiffAct);
-    workFolderToolBar->addSeparator();
-    workFolderToolBar->addAction(hgRevertAct);
-    workFolderToolBar->addAction(hgUpdateAct);
-    workFolderToolBar->addAction(hgCommitAct);
-    workFolderToolBar->addAction(hgMergeAct);
-    workFolderToolBar->addSeparator();
-    workFolderToolBar->addAction(hgAddAct);
-    workFolderToolBar->addAction(hgRemoveAct);
-    workFolderToolBar -> setMovable(false);
+    m_workFolderToolBar = addToolBar(tr(WORKFOLDERMENU_TITLE));
+    addToolBar(Qt::LeftToolBarArea, m_workFolderToolBar);
+    m_workFolderToolBar -> setIconSize(QSize(MY_ICON_SIZE, MY_ICON_SIZE));
+    m_workFolderToolBar->addAction(m_hgFolderDiffAct);
+    m_workFolderToolBar->addSeparator();
+    m_workFolderToolBar->addAction(m_hgRevertAct);
+    m_workFolderToolBar->addAction(m_hgUpdateAct);
+    m_workFolderToolBar->addAction(m_hgCommitAct);
+    m_workFolderToolBar->addAction(m_hgMergeAct);
+    m_workFolderToolBar->addSeparator();
+    m_workFolderToolBar->addAction(m_hgAddAct);
+    m_workFolderToolBar->addAction(m_hgRemoveAct);
+    m_workFolderToolBar -> setMovable(false);
 
     updateToolBarStyle();
 }
@@ -2441,13 +2524,18 @@ void MainWindow::updateToolBarStyle()
     }
 }    
 
+void MainWindow::updateWorkFolderAndRepoNames()
+{
+    m_hgTabs->setLocalPath(m_workFolderPath);
+
+    m_workStatus->setLocalPath(m_workFolderPath);
+    m_workStatus->setRemoteURL(m_remoteRepoPath);
+}
+
 void MainWindow::createStatusBar()
 {
     statusBar()->showMessage(tr("Ready"));
 }
-
-
-//!!! review these:
 
 void MainWindow::readSettings()
 {
@@ -2455,32 +2543,29 @@ void MainWindow::readSettings()
 
     QSettings settings;
 
-    remoteRepoPath = settings.value("remoterepopath", "").toString();
-    workFolderPath = settings.value("workfolderpath", "").toString();
-    if (!workFolder.exists(workFolderPath))
+    m_remoteRepoPath = settings.value("remoterepopath", "").toString();
+    m_workFolderPath = settings.value("workfolderpath", "").toString();
+    if (!workFolder.exists(m_workFolderPath))
     {
-        workFolderPath = "";
+        m_workFolderPath = "";
     }
 
     QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
     QSize size = settings.value("size", QSize(400, 400)).toSize();
-    firstStart = settings.value("firststart", QVariant(true)).toBool();
+    m_firstStart = settings.value("firststart", QVariant(true)).toBool();
 
-//!!!    initialFileTypesBits = (unsigned char) settings.value("viewFileTypes", QVariant(DEFAULT_HG_STAT_BITS)).toInt();
     resize(size);
     move(pos);
 }
-
 
 void MainWindow::writeSettings()
 {
     QSettings settings;
     settings.setValue("pos", pos());
     settings.setValue("size", size());
-    settings.setValue("remoterepopath", remoteRepoPath);
-    settings.setValue("workfolderpath", workFolderPath);
-    settings.setValue("firststart", firstStart);
-    //!!!settings.setValue("viewFileTypes", hgTabs -> getFileTypesBits());
+    settings.setValue("remoterepopath", m_remoteRepoPath);
+    settings.setValue("workfolderpath", m_workFolderPath);
+    settings.setValue("firststart", m_firstStart);
 }
 
 

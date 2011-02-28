@@ -54,6 +54,7 @@ signals:
 
     void updateTo(QString id);
     void diffToParent(QString id, QString parent);
+    void showSummary(Changeset *);
     void diffToCurrent(QString id);
     void mergeFrom(QString id);
     void newBranch(QString id);

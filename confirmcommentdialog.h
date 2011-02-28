@@ -32,11 +32,13 @@ class ConfirmCommentDialog : public QDialog
 public:
     static bool confirm(QWidget *parent,
                         QString title,
+                        QString head,
                         QString text,
                         QString okButtonText);
     
     static bool confirmDangerous(QWidget *parent,
                                  QString title,
+                                 QString head,
                                  QString text,
                                  QString okButtonText);
     
