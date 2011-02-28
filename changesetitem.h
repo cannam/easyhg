@@ -63,6 +63,7 @@ signals:
     void updateTo(QString);
     void diffToCurrent(QString);
     void diffToParent(QString child, QString parent);
+    void showSummary(Changeset *);
     void mergeFrom(QString);
     void newBranch(QString);
     void tag(QString);
@@ -75,6 +76,7 @@ private slots:
     void copyIdActivated();
     void updateActivated();
     void diffToParentActivated();
+    void showSummaryActivated();
     void diffToCurrentActivated();
     void mergeActivated();
     void tagActivated();
@@ -97,6 +99,7 @@ private:
     bool m_new;
 
     QMap<QAction *, QString> m_parentDiffActions;
+    QMap<QAction *, QString> m_summaryActions;
 };
 
 #endif // CHANGESETITEM_H

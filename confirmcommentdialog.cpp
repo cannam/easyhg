@@ -51,8 +51,10 @@ ConfirmCommentDialog::ConfirmCommentDialog(QWidget *parent,
                                                   QDialogButtonBox::Cancel);
     layout->addWidget(bbox, 2, 0);
     m_ok = bbox->button(QDialogButtonBox::Ok);
+    m_ok->setDefault(true);
     m_ok->setEnabled(initialComment != "");
     m_ok->setText(okButtonText);
+    bbox->button(QDialogButtonBox::Cancel)->setAutoDefault(false);
 
     connect(bbox, SIGNAL(accepted()), this, SLOT(accept()));
     connect(bbox, SIGNAL(rejected()), this, SLOT(reject()));
@@ -71,45 +73,57 @@ QString ConfirmCommentDialog::getComment() const
 QString ConfirmCommentDialog::buildFilesText(QString intro, QStringList files)
 {
     QString text;
-    text = "<qt>" + intro;
-    text += "<p><code>";
+
+    if (intro == "") text = "<qt>";
+    else text = "<qt>" + intro + "<p>";
+
+    text += "<code>";
     foreach (QString file, files) {
         text += "&nbsp;&nbsp;&nbsp;" + xmlEncode(file) + "<br>";
     }
     text += "</code></qt>";
+
     return text;
 }
 
 bool ConfirmCommentDialog::confirm(QWidget *parent,
                                    QString title,
+                                   QString head,
                                    QString text,
                                    QString okButtonText)
 {
     QMessageBox box(QMessageBox::Question,
                     title,
-                    text,
+                    head,
                     QMessageBox::Cancel,
                     parent);
 
+    box.setInformativeText(text);
+
     QPushButton *ok = box.addButton(QMessageBox::Ok);
     ok->setText(okButtonText);
+    box.setDefaultButton(QMessageBox::Ok);
     if (box.exec() == -1) return false;
     return box.standardButton(box.clickedButton()) == QMessageBox::Ok;
 }
 
 bool ConfirmCommentDialog::confirmDangerous(QWidget *parent,
                                             QString title,
+                                            QString head,
                                             QString text,
                                             QString okButtonText)
 {
     QMessageBox box(QMessageBox::Warning,
                     title,
-                    text,
+                    head,
                     QMessageBox::Cancel,
                     parent);
 
+    box.setInformativeText(text);
+
     QPushButton *ok = box.addButton(QMessageBox::Ok);
     ok->setText(okButtonText);
+    box.setDefaultButton(QMessageBox::Cancel);
     if (box.exec() == -1) return false;
     return box.standardButton(box.clickedButton()) == QMessageBox::Ok;
 }
@@ -127,7 +141,7 @@ bool ConfirmCommentDialog::confirmFilesAction(QWidget *parent,
     } else {
         text = "<qt>" + introTextWithCount + "</qt>";
     }
-    return confirm(parent, title, text, okButtonText);
+    return confirm(parent, title, text, "", okButtonText);
 }
 
 bool ConfirmCommentDialog::confirmDangerousFilesAction(QWidget *parent,
@@ -143,7 +157,7 @@ bool ConfirmCommentDialog::confirmDangerousFilesAction(QWidget *parent,
     } else {
         text = "<qt>" + introTextWithCount + "</qt>";
     }
-    return confirmDangerous(parent, title, text, okButtonText);
+    return confirmDangerous(parent, title, text, "", okButtonText);
 }
 
 bool ConfirmCommentDialog::confirmAndGetShortComment(QWidget *parent,

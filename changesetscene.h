@@ -21,6 +21,7 @@
 #include <QGraphicsScene>
 
 class ChangesetItem;
+class Changeset;
 class UncommittedItem;
 class DateItem;
 
@@ -35,6 +36,8 @@ public:
     void addUncommittedItem(UncommittedItem *item);
     void addDateItem(DateItem *item);
 
+    ChangesetItem *getItemById(QString id); // Slow: traversal required
+
 signals:
     void commit();
     void revert();
@@ -44,6 +47,7 @@ signals:
 
     void updateTo(QString id);
     void diffToParent(QString id, QString parent);
+    void showSummary(Changeset *);
     void diffToCurrent(QString id);
     void mergeFrom(QString id);
     void newBranch(QString id);

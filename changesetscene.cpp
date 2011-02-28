@@ -45,6 +45,9 @@ ChangesetScene::addChangesetItem(ChangesetItem *item)
     connect(item, SIGNAL(diffToParent(QString, QString)),
             this, SIGNAL(diffToParent(QString, QString)));
 
+    connect(item, SIGNAL(showSummary(Changeset *)),
+            this, SIGNAL(showSummary(Changeset *)));
+
     connect(item, SIGNAL(mergeFrom(QString)),
             this, SIGNAL(mergeFrom(QString)));
 
@@ -110,4 +113,15 @@ ChangesetScene::dateItemClicked()
         m_detailShown->hideDetail();
     }
 }
+
+ChangesetItem *
+ChangesetScene::getItemById(QString id)
+{
+    foreach (QGraphicsItem *it, items()) {
+        ChangesetItem *csit = dynamic_cast<ChangesetItem *>(it);
+        if (csit && csit->getId() == id) return csit;
+    }
+    return 0;
+}
+
 

@@ -49,7 +49,9 @@ HEADERS = mainwindow.h \
     incomingdialog.h \
     uncommitteditem.h \
     settingsdialog.h \
-    clickablelabel.h
+    clickablelabel.h \
+    workstatuswidget.h \
+    moreinformationdialog.h
 SOURCES = main.cpp \
     mainwindow.cpp \
     hgtabwidget.cpp \
@@ -79,7 +81,9 @@ SOURCES = main.cpp \
     changesetscene.cpp \
     incomingdialog.cpp \
     uncommitteditem.cpp \
-    settingsdialog.cpp
+    settingsdialog.cpp \
+    workstatuswidget.cpp \
+    moreinformationdialog.cpp
 
 macx-* {
     SOURCES += common_osx.mm

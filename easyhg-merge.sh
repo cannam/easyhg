@@ -18,11 +18,17 @@ for d in kdiff3 kdiff3.exe; do
 	found=true
 	"$p/$d" "$ancestor" "$left" "$right" -o "$out"
 	break
+    elif [ -x "$(type -path $d)" ]; then
+	found=true
+	"$d" "$ancestor" "$left" "$right" -o "$out"
+	break;
     fi
 done
 if [ -z "$found" ]; then
     fm=/Developer/Applications/Utilities/FileMerge.app/Contents/MacOS/FileMerge
     if [ -x "$fm" ]; then
+	found=true
 	"$fm" -left "$left" -merge "$out" -ancestor "$ancestor" -right "$right"
     fi
 fi
+[ -n "$found" ]
