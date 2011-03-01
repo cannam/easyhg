@@ -36,6 +36,9 @@ public:
 
     bool showBranch() const { return m_showBranch; }
     void setShowBranch(bool s) { m_showBranch = s; }
+
+    bool isNewBranch() const { return m_isNewBranch; }
+    void setIsNewBranch(bool s) { m_isNewBranch = s; }
     
     int column() const { return m_column; }
     int row() const { return m_row; }
@@ -51,6 +54,8 @@ signals:
     void diff();
     void showSummary();
     void showWork();
+    void newBranch();
+    void noBranch();
 
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *);
@@ -61,6 +66,7 @@ private:
 
     QString m_branch;
     bool m_showBranch;
+    bool m_isNewBranch;
     QFont m_font;
     int m_column;
     int m_row;

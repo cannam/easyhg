@@ -77,6 +77,13 @@ ChangesetScene::addUncommittedItem(UncommittedItem *item)
 
     connect(item, SIGNAL(showWork()),
             this, SIGNAL(showWork()));
+
+    connect(item, SIGNAL(newBranch()),
+            this, SIGNAL(newBranch()));
+
+    connect(item, SIGNAL(noBranch()),
+            this, SIGNAL(noBranch()));
+
 }
 
 void

@@ -87,6 +87,8 @@ signals:
     void revert();
     void diffWorkingFolder();
     void showSummary();
+    void newBranch();
+    void noBranch();
 
     void updateTo(QString id);
     void diffToParent(QString id, QString parent);

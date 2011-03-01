@@ -588,10 +588,10 @@
     </message>
     <message numerus="yes">
         <location filename="mainwindow.cpp" line="308"/>
-        <source>You are about to commit %n file(s).</source>
+        <source>You are about to commit %n file(s) to %1.</source>
         <translation type="unfinished">
-            <numerusform>You are about to commit %n file.</numerusform>
-            <numerusform>You are about to commit %n files.</numerusform>
+            <numerusform>You are about to commit %n file to %1.</numerusform>
+            <numerusform>You are about to commit %n files to %1.</numerusform>
         </translation>
     </message>
     <message>

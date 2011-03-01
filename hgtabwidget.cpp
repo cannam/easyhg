@@ -52,6 +52,12 @@ HgTabWidget::HgTabWidget(QWidget *parent,
     connect(m_historyWidget, SIGNAL(showSummary()),
             this, SIGNAL(showSummary()));
     
+    connect(m_historyWidget, SIGNAL(newBranch()),
+            this, SIGNAL(newBranch()));
+    
+    connect(m_historyWidget, SIGNAL(noBranch()),
+            this, SIGNAL(noBranch()));
+    
     connect(m_historyWidget, SIGNAL(diffWorkingFolder()),
             this, SIGNAL(diffWorkingFolder()));
 

@@ -233,6 +233,7 @@ void Grapher::layoutCol(QString id)
         }
     }
 
+
     // Normally the children will lay out themselves, but we can do
     // a better job in some special cases:
 
@@ -431,18 +432,32 @@ void Grapher::layout(Changesets csets,
     // Add uncommitted item and connecting line as necessary
 
     if (!m_uncommittedParents.empty()) {
+
         m_uncommitted = new UncommittedItem();
         m_uncommitted->setBranch(uncommittedBranch);
         m_uncommitted->setZValue(10);
         m_scene->addUncommittedItem(m_uncommitted);
+
+        bool haveParentOnBranch = false;
         foreach (QString p, m_uncommittedParents) {
             ConnectionItem *conn = new ConnectionItem();
             conn->setConnectionType(ConnectionItem::Merge);
-            conn->setParent(m_items[p]);
+            ChangesetItem *pitem = m_items[p];
+            conn->setParent(pitem);
             conn->setChild(m_uncommitted);
             conn->setZValue(0);
             m_scene->addItem(conn);
+            if (pitem) {
+                if (pitem->getChangeset()->branch() == uncommittedBranch) {
+                    haveParentOnBranch = true;
+                }
+            }
         }
+
+        // If the uncommitted item has no parents on the same branch,
+        // tell it it has a new branch (the "show branch" flag is set
+        // elsewhere for this item)
+        m_uncommitted->setIsNewBranch(!haveParentOnBranch);
     }
 
     // Add the branch labels
