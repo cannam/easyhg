@@ -27,7 +27,6 @@ class QLabel;
 class QListWidget;
 class QPushButton;
 class QFileInfo;
-class ClickableLabel;
 class QCheckBox;
 
 class FileStatusWidget : public QWidget
@@ -38,16 +37,10 @@ public:
     FileStatusWidget(QWidget *parent = 0);
     ~FileStatusWidget();
 
-    QString localPath() const { return m_localPath; }
+    QString localPath() const;
     void setLocalPath(QString p);
 
-    QString remoteURL() const { return m_remoteURL; }
-    void setRemoteURL(QString u);
-
-    QString state() const { return m_state; }
-    void setState(QString b);
-
-    FileStates fileStates() const { return m_fileStates; }
+    FileStates fileStates() const;
     void setFileStates(FileStates sp);
 
     bool haveChangesToCommit() const;
@@ -80,18 +73,9 @@ public slots:
 
 private slots:
     void itemSelectionChanged();
-    void openButtonClicked();
 
 private:
     QString m_localPath;
-    ClickableLabel *m_openButton;
-
-    QString m_remoteURL;
-    QLabel *m_remoteURLLabel;
-
-    QString m_state;
-    QLabel *m_stateLabel;
-    
     QLabel *m_noModificationsLabel;
 
     QCheckBox *m_showAllFiles;
@@ -112,7 +96,6 @@ private:
 
     void layoutBoxesGridly(int count);
     void layoutBoxesLinearly();
-    void updateStateLabel();
     void setNoModificationsLabelText();
     QString labelFor(FileStates::State, bool addHighlightExplanation = false);
     void setLabelFor(QWidget *w, FileStates::State, bool addHighlightExplanation);
