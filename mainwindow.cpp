@@ -429,14 +429,21 @@ void MainWindow::hgCommit()
     
     QString cf(tr("Commit files"));
 
+    QString branchText;
+    if (m_currentBranch == "" || m_currentBranch == "default") {
+        branchText = tr("the default branch");
+    } else {
+        branchText = tr("branch \"%1\"").arg(m_currentBranch);
+    }
+
     if (ConfirmCommentDialog::confirmAndGetLongComment
         (this,
          cf,
          tr("<h3>%1</h3><p>%2%3").arg(cf)
-         .arg(tr("You are about to commit the following files."))
+         .arg(tr("You are about to commit the following files to %1.").arg(branchText))
          .arg(subsetNote),
          tr("<h3>%1</h3><p>%2%3").arg(cf)
-         .arg(tr("You are about to commit %n file(s).", "", reportFiles.size()))
+         .arg(tr("You are about to commit %n file(s) to %1.", "", reportFiles.size()).arg(branchText))
          .arg(subsetNote),
          reportFiles,
          comment,
@@ -472,7 +479,7 @@ QString MainWindow::filterTag(QString tag)
 }
 
 
-void MainWindow::hgNewBranch(QString id)
+void MainWindow::hgNewBranch()
 {
     QStringList params;
     QString branch;
@@ -489,6 +496,19 @@ void MainWindow::hgNewBranch(QString id)
             m_runner->requestAction(HgAction(ACT_NEW_BRANCH, m_workFolderPath, params));
         }
     }
+}
+
+
+void MainWindow::hgNoBranch()
+{
+    if (m_currentParents.empty()) return;
+
+    QString parentBranch = m_currentParents[0]->branch();
+    if (parentBranch == "") parentBranch = "default";
+
+    QStringList params;
+    params << "branch" << parentBranch;
+    m_runner->requestAction(HgAction(ACT_NEW_BRANCH, m_workFolderPath, params));
 }
 
 
@@ -2173,6 +2193,12 @@ void MainWindow::connectTabsSignals()
     
     connect(m_hgTabs, SIGNAL(showSummary()),
             this, SLOT(hgShowSummary()));
+    
+    connect(m_hgTabs, SIGNAL(newBranch()),
+            this, SLOT(hgNewBranch()));
+    
+    connect(m_hgTabs, SIGNAL(noBranch()),
+            this, SLOT(hgNoBranch()));
 
     connect(m_hgTabs, SIGNAL(updateTo(QString)),
             this, SLOT(hgUpdateToRev(QString)));
@@ -2190,7 +2216,7 @@ void MainWindow::connectTabsSignals()
             this, SLOT(hgMergeFrom(QString)));
 
     connect(m_hgTabs, SIGNAL(newBranch(QString)),
-            this, SLOT(hgNewBranch(QString)));
+            this, SLOT(hgNewBranch()));
 
     connect(m_hgTabs, SIGNAL(tag(QString)),
             this, SLOT(hgTag(QString)));
