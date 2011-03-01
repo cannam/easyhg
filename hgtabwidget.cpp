@@ -27,14 +27,12 @@
 #include <iostream>
 
 HgTabWidget::HgTabWidget(QWidget *parent,
-                         QString remoteRepo,
                          QString workFolderPath) :
     QTabWidget(parent)
 {
     // Work page
     m_fileStatusWidget = new FileStatusWidget;
     m_fileStatusWidget->setLocalPath(workFolderPath);
-    m_fileStatusWidget->setRemoteURL(remoteRepo);
     connect(m_fileStatusWidget, SIGNAL(selectionChanged()),
             this, SIGNAL(selectionChanged()));
     connect(m_fileStatusWidget, SIGNAL(showAllChanged(bool)),
@@ -53,6 +51,12 @@ HgTabWidget::HgTabWidget(QWidget *parent,
     
     connect(m_historyWidget, SIGNAL(showSummary()),
             this, SIGNAL(showSummary()));
+    
+    connect(m_historyWidget, SIGNAL(newBranch()),
+            this, SIGNAL(newBranch()));
+    
+    connect(m_historyWidget, SIGNAL(noBranch()),
+            this, SIGNAL(noBranch()));
     
     connect(m_historyWidget, SIGNAL(diffWorkingFolder()),
             this, SIGNAL(diffWorkingFolder()));
@@ -74,6 +78,9 @@ HgTabWidget::HgTabWidget(QWidget *parent,
 
     connect(m_historyWidget, SIGNAL(mergeFrom(QString)),
             this, SIGNAL(mergeFrom(QString)));
+
+    connect(m_historyWidget, SIGNAL(newBranch(QString)),
+            this, SIGNAL(newBranch(QString)));
 
     connect(m_historyWidget, SIGNAL(tag(QString)),
             this, SIGNAL(tag(QString)));
@@ -243,15 +250,9 @@ void HgTabWidget::addIncrementalLog(QString hgLogList)
     }
 }
 
-void HgTabWidget::setWorkFolderAndRepoNames(QString workFolderPath, QString remoteRepoPath)
+void HgTabWidget::setLocalPath(QString workFolderPath)
 {
     m_fileStatusWidget->setLocalPath(workFolderPath);
-    m_fileStatusWidget->setRemoteURL(remoteRepoPath);
-}
-
-void HgTabWidget::setState(QString state)
-{
-    m_fileStatusWidget->setState(state);
 }
 
 void HgTabWidget::showWorkTab()

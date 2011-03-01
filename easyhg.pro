@@ -50,6 +50,7 @@ HEADERS = mainwindow.h \
     uncommitteditem.h \
     settingsdialog.h \
     clickablelabel.h \
+    workstatuswidget.h \
     moreinformationdialog.h
 SOURCES = main.cpp \
     mainwindow.cpp \
@@ -81,6 +82,7 @@ SOURCES = main.cpp \
     incomingdialog.cpp \
     uncommitteditem.cpp \
     settingsdialog.cpp \
+    workstatuswidget.cpp \
     moreinformationdialog.cpp
 
 macx-* {

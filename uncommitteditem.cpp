@@ -29,7 +29,8 @@
 #include <QWidgetAction>
 
 UncommittedItem::UncommittedItem() :
-    m_showBranch(false), m_column(0), m_row(0), m_wide(false)
+    m_showBranch(false), m_isNewBranch(false),
+    m_column(0), m_row(0), m_wide(false)
 {
     m_font = QFont();
     m_font.setPixelSize(11);
@@ -86,6 +87,14 @@ UncommittedItem::activateMenu()
     connect(commit, SIGNAL(triggered()), this, SIGNAL(commit()));
     QAction *revert = menu->addAction(tr("Revert..."));
     connect(revert, SIGNAL(triggered()), this, SIGNAL(revert()));
+
+    menu->addSeparator();
+
+    QAction *branch = menu->addAction(tr("Start new branch..."));
+    connect(branch, SIGNAL(triggered()), this, SIGNAL(newBranch()));
+    QAction *nobranch = menu->addAction(tr("Cancel new branch"));
+    nobranch->setEnabled(m_isNewBranch);
+    connect(nobranch, SIGNAL(triggered()), this, SIGNAL(noBranch()));
 
     menu->exec(QCursor::pos());
 

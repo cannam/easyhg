@@ -45,6 +45,7 @@
 #include "settingsdialog.h"
 #include "moreinformationdialog.h"
 #include "version.h"
+#include "workstatuswidget.h"
 
 
 MainWindow::MainWindow(QString myDirPath) :
@@ -89,19 +90,20 @@ MainWindow::MainWindow(QString myDirPath) :
     QWidget *central = new QWidget(this);
     setCentralWidget(central);
 
-    m_hgTabs = new HgTabWidget(central, m_remoteRepoPath, m_workFolderPath);
-    connectTabsSignals();
-
-    // Instead of setting the tab widget as our central widget
-    // directly, put it in a layout, so that we can have some space
-    // around it on the Mac where it looks very strange without
-
     QGridLayout *cl = new QGridLayout(central);
-    cl->addWidget(m_hgTabs, 0, 0);
+    int row = 0;
 
 #ifndef Q_OS_MAC
     cl->setMargin(0);
 #endif
+
+    m_workStatus = new WorkStatusWidget(this);
+    cl->addWidget(m_workStatus, row++, 0);
+
+    m_hgTabs = new HgTabWidget(central, m_workFolderPath);
+    connectTabsSignals();
+
+    cl->addWidget(m_hgTabs, row++, 0);
 
     connect(m_hgTabs, SIGNAL(selectionChanged()),
             this, SLOT(enableDisableActions()));
@@ -261,7 +263,7 @@ void MainWindow::hgQueryPaths()
     // We have to do this here, because commandCompleted won't be called
     MultiChoiceDialog::addRecentArgument("local", m_workFolderPath);
     MultiChoiceDialog::addRecentArgument("remote", m_remoteRepoPath);
-    m_hgTabs->setWorkFolderAndRepoNames(m_workFolderPath, m_remoteRepoPath);
+    updateWorkFolderAndRepoNames();
     
     hgQueryBranch();
     return;
@@ -427,14 +429,21 @@ void MainWindow::hgCommit()
     
     QString cf(tr("Commit files"));
 
+    QString branchText;
+    if (m_currentBranch == "" || m_currentBranch == "default") {
+        branchText = tr("the default branch");
+    } else {
+        branchText = tr("branch \"%1\"").arg(m_currentBranch);
+    }
+
     if (ConfirmCommentDialog::confirmAndGetLongComment
         (this,
          cf,
          tr("<h3>%1</h3><p>%2%3").arg(cf)
-         .arg(tr("You are about to commit the following files."))
+         .arg(tr("You are about to commit the following files to %1.").arg(branchText))
          .arg(subsetNote),
          tr("<h3>%1</h3><p>%2%3").arg(cf)
-         .arg(tr("You are about to commit %n file(s).", "", reportFiles.size()))
+         .arg(tr("You are about to commit %n file(s) to %1.", "", reportFiles.size()).arg(branchText))
          .arg(subsetNote),
          reportFiles,
          comment,
@@ -458,18 +467,48 @@ void MainWindow::hgCommit()
 
 QString MainWindow::filterTag(QString tag)
 {
-    for(int i = 0; i < tag.size(); i++)
-    {
-        if (tag[i].isLower() || tag[i].isUpper() || tag[i].isDigit() || (tag[i] == QChar('.')))
-        {
+    for(int i = 0; i < tag.size(); i++) {
+        if (tag[i].isLower() || tag[i].isUpper() ||
+            tag[i].isDigit() || (tag[i] == QChar('.'))) {
             //ok
-        }
-        else
-        {
+        } else {
             tag[i] = QChar('_');
         }
     }
     return tag;
+}
+
+
+void MainWindow::hgNewBranch()
+{
+    QStringList params;
+    QString branch;
+
+    if (ConfirmCommentDialog::confirmAndGetShortComment
+        (this,
+         tr("New Branch"),
+         tr("Enter new branch name:"),
+         branch,
+         tr("Start Branch"))) {
+        if (!branch.isEmpty()) {//!!! do something better if it is empty
+
+            params << "branch" << filterTag(branch);
+            m_runner->requestAction(HgAction(ACT_NEW_BRANCH, m_workFolderPath, params));
+        }
+    }
+}
+
+
+void MainWindow::hgNoBranch()
+{
+    if (m_currentParents.empty()) return;
+
+    QString parentBranch = m_currentParents[0]->branch();
+    if (parentBranch == "") parentBranch = "default";
+
+    QStringList params;
+    params << "branch" << parentBranch;
+    m_runner->requestAction(HgAction(ACT_NEW_BRANCH, m_workFolderPath, params));
 }
 
 
@@ -840,7 +879,7 @@ void MainWindow::hgCloneFromRemote()
 
     params << "clone" << m_remoteRepoPath << m_workFolderPath;
     
-    m_hgTabs->setWorkFolderAndRepoNames(m_workFolderPath, m_remoteRepoPath);
+    updateWorkFolderAndRepoNames();
     m_hgTabs->updateWorkFolderFileList("");
 
     m_runner->requestAction(HgAction(ACT_CLONEFROMREMOTE, m_workFolderPath, params));
@@ -1811,7 +1850,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         }
         MultiChoiceDialog::addRecentArgument("local", m_workFolderPath);
         MultiChoiceDialog::addRecentArgument("remote", m_remoteRepoPath);
-        m_hgTabs->setWorkFolderAndRepoNames(m_workFolderPath, m_remoteRepoPath);
+        updateWorkFolderAndRepoNames();
         break;
     }
 
@@ -1936,6 +1975,10 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
 
     case ACT_TAG:
         m_needNewLog = true;
+        m_shouldHgStat = true;
+        break;
+
+    case ACT_NEW_BRANCH:
         m_shouldHgStat = true;
         break;
 
@@ -2142,6 +2185,12 @@ void MainWindow::connectTabsSignals()
     
     connect(m_hgTabs, SIGNAL(showSummary()),
             this, SLOT(hgShowSummary()));
+    
+    connect(m_hgTabs, SIGNAL(newBranch()),
+            this, SLOT(hgNewBranch()));
+    
+    connect(m_hgTabs, SIGNAL(noBranch()),
+            this, SLOT(hgNoBranch()));
 
     connect(m_hgTabs, SIGNAL(updateTo(QString)),
             this, SLOT(hgUpdateToRev(QString)));
@@ -2157,6 +2206,9 @@ void MainWindow::connectTabsSignals()
 
     connect(m_hgTabs, SIGNAL(mergeFrom(QString)),
             this, SLOT(hgMergeFrom(QString)));
+
+    connect(m_hgTabs, SIGNAL(newBranch(QString)),
+            this, SLOT(hgNewBranch()));
 
     connect(m_hgTabs, SIGNAL(tag(QString)),
             this, SLOT(hgTag(QString)));
@@ -2315,34 +2367,34 @@ void MainWindow::enableDisableActions()
 
     if (m_stateUnknown) {
         if (m_workFolderPath == "") {
-            m_hgTabs->setState(tr("No repository open"));
+            m_workStatus->setState(tr("No repository open"));
         } else {
-            m_hgTabs->setState(tr("(Examining repository)"));
+            m_workStatus->setState(tr("(Examining repository)"));
         }
     } else if (emptyRepo) {
-        m_hgTabs->setState(tr("Nothing committed to this repository yet"));
+        m_workStatus->setState(tr("Nothing committed to this repository yet"));
     } else if (noWorkingCopy) {
-        m_hgTabs->setState(tr("No working copy yet: consider updating"));
+        m_workStatus->setState(tr("No working copy yet: consider updating"));
     } else if (canMerge) {
-        m_hgTabs->setState(tr("<b>Awaiting merge</b> on %1").arg(branchText));
+        m_workStatus->setState(tr("<b>Awaiting merge</b> on %1").arg(branchText));
     } else if (!m_hgTabs->getAllUnresolvedFiles().empty()) {
-        m_hgTabs->setState(tr("Have unresolved files following merge on %1").arg(branchText));
+        m_workStatus->setState(tr("Have unresolved files following merge on %1").arg(branchText));
     } else if (haveMerge) {
-        m_hgTabs->setState(tr("Have merged but not yet committed on %1").arg(branchText));
+        m_workStatus->setState(tr("Have merged but not yet committed on %1").arg(branchText));
     } else if (newBranch) {
-        m_hgTabs->setState(tr("On %1.  New branch: has not yet been committed").arg(branchText));
+        m_workStatus->setState(tr("On %1.  New branch: has not yet been committed").arg(branchText));
     } else if (canUpdate) {
         if (m_hgTabs->haveChangesToCommit()) {
             // have uncommitted changes
-            m_hgTabs->setState(tr("On %1. Not at the head of the branch").arg(branchText));
+            m_workStatus->setState(tr("On %1. Not at the head of the branch").arg(branchText));
         } else {
             // no uncommitted changes
-            m_hgTabs->setState(tr("On %1. Not at the head of the branch: consider updating").arg(branchText));
+            m_workStatus->setState(tr("On %1. Not at the head of the branch: consider updating").arg(branchText));
         }
     } else if (m_currentBranchHeads > 1) {
-        m_hgTabs->setState(tr("At one of %n heads of %1", "", m_currentBranchHeads).arg(branchText));
+        m_workStatus->setState(tr("At one of %n heads of %1", "", m_currentBranchHeads).arg(branchText));
     } else {
-        m_hgTabs->setState(tr("At the head of %1").arg(branchText));
+        m_workStatus->setState(tr("At the head of %1").arg(branchText));
     }
 }
 
@@ -2489,13 +2541,18 @@ void MainWindow::updateToolBarStyle()
     }
 }    
 
+void MainWindow::updateWorkFolderAndRepoNames()
+{
+    m_hgTabs->setLocalPath(m_workFolderPath);
+
+    m_workStatus->setLocalPath(m_workFolderPath);
+    m_workStatus->setRemoteURL(m_remoteRepoPath);
+}
+
 void MainWindow::createStatusBar()
 {
     statusBar()->showMessage(tr("Ready"));
 }
-
-
-//!!! review these:
 
 void MainWindow::readSettings()
 {
@@ -2514,11 +2571,9 @@ void MainWindow::readSettings()
     QSize size = settings.value("size", QSize(400, 400)).toSize();
     m_firstStart = settings.value("firststart", QVariant(true)).toBool();
 
-//!!!    initialFileTypesBits = (unsigned char) settings.value("viewFileTypes", QVariant(DEFAULT_HG_STAT_BITS)).toInt();
     resize(size);
     move(pos);
 }
-
 
 void MainWindow::writeSettings()
 {
@@ -2528,7 +2583,6 @@ void MainWindow::writeSettings()
     settings.setValue("remoterepopath", m_remoteRepoPath);
     settings.setValue("workfolderpath", m_workFolderPath);
     settings.setValue("firststart", m_firstStart);
-    //!!!settings.setValue("viewFileTypes", m_hgTabs -> getFileTypesBits());
 }
 
 

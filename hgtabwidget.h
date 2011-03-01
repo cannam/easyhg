@@ -38,15 +38,14 @@ class HgTabWidget: public QTabWidget
     Q_OBJECT
 
 public:
-    HgTabWidget(QWidget *parent, QString remoteRepo, QString workFolderPath);
+    HgTabWidget(QWidget *parent, QString workFolderPath);
 
     void updateWorkFolderFileList(QString fileList);
 
     void setNewLog(QString hgLogList);
     void addIncrementalLog(QString hgLogList);
 
-    void setWorkFolderAndRepoNames(QString workFolderPath, QString remoteRepoPath);
-    void setState(QString state);
+    void setLocalPath(QString workFolderPath);
 
     void setCurrent(QStringList ids, QString branch);
 
@@ -88,12 +87,15 @@ signals:
     void revert();
     void diffWorkingFolder();
     void showSummary();
+    void newBranch();
+    void noBranch();
 
     void updateTo(QString id);
     void diffToParent(QString id, QString parent);
     void showSummary(Changeset *);
     void diffToCurrent(QString id);
     void mergeFrom(QString id);
+    void newBranch(QString id);
     void tag(QString id);
 
 public slots:
