@@ -440,7 +440,7 @@ void MainWindow::hgCommit()
         (this,
          cf,
          tr("<h3>%1</h3><p>%2%3").arg(cf)
-         .arg(tr("You are about to commit the following files to %1.").arg(branchText))
+         .arg(tr("You are about to commit the following files to %1:").arg(branchText))
          .arg(subsetNote),
          tr("<h3>%1</h3><p>%2%3").arg(cf)
          .arg(tr("You are about to commit %n file(s) to %1.", "", reportFiles.size()).arg(branchText))
