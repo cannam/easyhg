@@ -423,9 +423,7 @@ void HgRunner::startCommand(HgAction action)
 #endif
 
 #ifdef Q_OS_MAC
-    // On OS/X 10.6, Python is 64-bit by default but our Hg extension
-    // is only available in 32-bit
-    if (settings.value("python32", true).toBool()) {
+    if (settings.value("python32", false).toBool()) {
         env.insert("VERSIONER_PYTHON_PREFER_32_BIT", "1");
     }
 #endif
