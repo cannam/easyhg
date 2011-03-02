@@ -33,20 +33,17 @@ install_name_tool -id QtCore "$app.app/Contents/Frameworks/QtCore"
 install_name_tool -id QtGui "$app.app/Contents/Frameworks/QtGui"
 install_name_tool -id QtNetwork "$app.app/Contents/Frameworks/QtNetwork"
 
-install_name_tool -change QtCore.framework/Versions/4/QtCore @executable_path/../Frameworks/QtCore "$app.app/Contents/MacOS/$app"
-install_name_tool -change QtGui.framework/Versions/4/QtGui @executable_path/../Frameworks/QtGui "$app.app/Contents/MacOS/$app"
-install_name_tool -change QtNetwork.framework/Versions/4/QtNetwork @executable_path/../Frameworks/QtNetwork "$app.app/Contents/MacOS/$app"
-
-install_name_tool -change QtCore.framework/Versions/4/QtCore @executable_path/../Frameworks/QtCore "$app.app/Contents/MacOS/kdiff3"
-install_name_tool -change QtGui.framework/Versions/4/QtGui @executable_path/../Frameworks/QtGui "$app.app/Contents/MacOS/kdiff3"
-install_name_tool -change QtNetwork.framework/Versions/4/QtNetwork @executable_path/../Frameworks/QtNetwork "$app.app/Contents/MacOS/kdiff3"
-
-install_name_tool -change QtCore.framework/Versions/4/QtCore @loader_path/QtCore "$app.app/Contents/Frameworks/QtGui"
-install_name_tool -change QtCore.framework/Versions/4/QtCore @loader_path/QtCore "$app.app/Contents/Frameworks/QtNetwork"
-
-install_name_tool -change QtCore.framework/Versions/4/QtCore @loader_path/../../Frameworks/QtCore "$app.app/Contents/MacOS/PyQt4/QtCore.so"
-install_name_tool -change QtCore.framework/Versions/4/QtCore @loader_path/../../Frameworks/QtCore "$app.app/Contents/MacOS/PyQt4/QtGui.so"
-install_name_tool -change QtCore.framework/Versions/4/QtCore @loader_path/../../Frameworks/QtGui "$app.app/Contents/MacOS/PyQt4/QtGui.so"
+for fwk in QtCore QtGui QtNetwork; do
+	find "$app.app" -type f -print | while read x; do
+		current=$(otool -L "$x" | grep "$fwk.framework/" | awk '{ print $1; }')
+		[ -z "$current" ] && continue
+		echo "$x has $current"
+		relative=$(echo "$x" | sed -e "s,$app.app/Contents/,," \
+			-e 's,[^/]*/,../,g' -e 's,/[^/]*$,/Frameworks/'"$fwk"',' )
+		echo "replacing with relative path $relative"
+		install_name_tool -change "$current" "@loader_path/$relative" "$x"
+	done
+done
 
 echo "Done: be sure to run the app and see that it works!"
 
