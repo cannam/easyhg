@@ -173,6 +173,34 @@ void FileStatusWidget::setNoModificationsLabelText()
     }
 }
 
+
+
+//!!! So, we want a right-button menu on each list view.  With which options?
+//
+//        Modified -- commit, revert, remove, diff, annotate
+//        Added -- commit, revert, remove
+//        Removed -- commit, revert, add
+//        InConflict -- merge, mark resolved (can't do revert for a single file during merge? or can we?), annotate?
+//        Missing -- remove, restore
+//        Unknown -- add, ignore (!)
+//        Clean -- remove, annotate
+//        Ignored -- un-ignore? but how?, edit .hgignore
+//
+// or by function:
+// 
+// commit -- Modified, Added, Removed
+// revert -- Modified, Added, Removed, InConflict, Missing (but call it restore?)
+// diff -- Modified
+// remove -- Clean, Modified, Missing, Added
+// add -- Unknown, Removed
+// merge (redo) -- InConflict
+// mark resolved -- InConflict
+// annotate -- Clean, Modified, Added?, Removed?, Missing?
+// ignore -- Unknown
+// un-ignore (?), edit hgignore -- Ignored
+
+
+
 void FileStatusWidget::itemSelectionChanged()
 {
     DEBUG << "FileStatusWidget::itemSelectionChanged" << endl;
