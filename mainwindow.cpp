@@ -1708,6 +1708,13 @@ void MainWindow::reportNewRemoteHeads(QString output)
              tr("Push failed"),
              tr("Your local repository could not be pushed to the remote repository.<br><br>You may need to merge the changes locally first."),
              output);
+    } else if (m_hgTabs->canCommit() && m_currentParents.size() > 1) {
+        MoreInformationDialog::warning
+            (this,
+             tr("Push failed"),
+             tr("Push failed"),
+             tr("Your local repository could not be pushed to the remote repository.<br><br>You have an uncommitted merge in your local folder.  You probably need to commit it before you push."),
+             output);
     } else {
         MoreInformationDialog::warning
             (this,
