@@ -57,6 +57,17 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_simpleLabels[FileStates::Unknown] = tr("Untracked:");
     m_simpleLabels[FileStates::Ignored] = tr("Ignored:");
 
+    m_actionLabels[FileStates::Annotate] = tr("Annotate");
+    m_actionLabels[FileStates::Diff] = tr("Diff");
+    m_actionLabels[FileStates::Commit] = tr("Commit...");
+    m_actionLabels[FileStates::Revert] = tr("Revert");
+    m_actionLabels[FileStates::Add] = tr("Add");
+    m_actionLabels[FileStates::Remove] = tr("Remove");
+    m_actionLabels[FileStates::RedoMerge] = tr("Redo Merge");
+    m_actionLabels[FileStates::MarkResolved] = tr("Mark Resolved");
+    m_actionLabels[FileStates::Ignore] = tr("Ignore");
+    m_actionLabels[FileStates::UnIgnore] = tr("Stop Ignoring");
+
     m_descriptions[FileStates::Clean] = tr("You have not changed these files.");
     m_descriptions[FileStates::Modified] = tr("You have changed these files since you last committed them.");
     m_descriptions[FileStates::Added] = tr("These files will be added to version control next time you commit them.");
@@ -107,7 +118,19 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
         connect(w, SIGNAL(itemSelectionChanged()),
                 this, SLOT(itemSelectionChanged()));
 
-        w->insertAction(0, new QAction(tr("Commit"), w));
+        FileStates::Activities activities = m_fileStates.activitiesSupportedBy(s);
+        int prevGroup = -1;
+        foreach (FileStates::Activity a, activities) {
+            int group = FileStates::activityGroup(a);
+            if (group != prevGroup && prevGroup != -1) {
+                QAction *sep = new QAction("", w);
+                sep->setSeparator(true);
+                w->insertAction(0, sep);
+            }
+            prevGroup = group;
+            QAction *act = new QAction(m_actionLabels[a], w);
+            w->insertAction(0, act);
+        }
         w->setContextMenuPolicy(Qt::ActionsContextMenu);
 
         boxlayout->addItem(new QSpacerItem(2, 2), 3, 0);

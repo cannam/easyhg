@@ -68,12 +68,16 @@ public:
 
         Annotate,
         Diff,
+
         Commit,
         Revert,
+
         Add,
         Remove,
+
         RedoMerge,
         MarkResolved,
+
         Ignore,
         UnIgnore,
 
@@ -85,6 +89,7 @@ public:
 
     static bool supportsActivity(State s, Activity a);
     static Activities activitiesSupportedBy(State s);
+    static int activityGroup(Activity a);
     
     bool supportsActivity(QString file, Activity a) const;
     QStringList filesSupportingActivity(Activity) const;

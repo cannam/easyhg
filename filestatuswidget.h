@@ -84,6 +84,7 @@ private:
     QMap<FileStates::State, QString> m_simpleLabels;
     QMap<FileStates::State, QString> m_descriptions;
     QMap<FileStates::State, QListWidget *> m_stateListMap;
+    QMap<FileStates::Activity, QString> m_actionLabels;
     QString m_highlightExplanation;
 
     QFileInfo *m_dateReference;
