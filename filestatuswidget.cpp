@@ -31,6 +31,7 @@
 #include <QProcess>
 #include <QCheckBox>
 #include <QSettings>
+#include <QAction>
 
 FileStatusWidget::FileStatusWidget(QWidget *parent) :
     QWidget(parent),
@@ -105,6 +106,9 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 
         connect(w, SIGNAL(itemSelectionChanged()),
                 this, SLOT(itemSelectionChanged()));
+
+        w->insertAction(0, new QAction(tr("Commit"), w));
+        w->setContextMenuPolicy(Qt::ActionsContextMenu);
 
         boxlayout->addItem(new QSpacerItem(2, 2), 3, 0);
 
