@@ -47,10 +47,11 @@ public:
 
     void parseStates(QString text);
 
-    void clearBuckets();
+    bool isInState(QString file, State s) const;
+    QStringList filesInState(State s) const;
+    State stateOf(QString file) const;
 
-    QStringList getFilesInState(State) const;
-
+/*!!! -- to remove: */
     QStringList modified() const { return m_modified; }
     QStringList added() const { return m_added; }
     QStringList unknown() const { return m_unknown; }
@@ -60,7 +61,34 @@ public:
     QStringList clean() const { return m_clean; }
     QStringList ignored() const { return m_ignored; }
 
-    State getStateOfFile(QString file) const;
+    enum Activity {
+
+        // These are in the order in which they want to be listed in
+        // the context menu
+
+        Annotate,
+        Diff,
+        Commit,
+        Revert,
+        Add,
+        Remove,
+        RedoMerge,
+        MarkResolved,
+        Ignore,
+        UnIgnore,
+
+        FirstActivity = Commit,
+        LastActivity = UnIgnore
+    };
+
+    typedef QList<Activity> Activities;
+
+    static bool supportsActivity(State s, Activity a);
+    static Activities activitiesSupportedBy(State s);
+    
+    bool supportsActivity(QString file, Activity a) const;
+    QStringList filesSupportingActivity(Activity) const;
+    Activities activitiesSupportedBy(QString file) const;
 
 private:
     QStringList m_modified;
@@ -72,6 +100,8 @@ private:
     QStringList m_clean;
     QStringList m_ignored;
     QMap<QString, State> m_stateMap;
+
+    void clearBuckets();
 
     State charToState(QChar, bool * = 0);
     QStringList *stateToBucket(State);
