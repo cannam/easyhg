@@ -263,7 +263,7 @@ QStringList FileStatusWidget::getSelectedCommittableFiles() const
 {
     QStringList files;
     foreach (QString f, m_selectedFiles) {
-        switch (m_fileStates.getStateOfFile(f)) {
+        switch (m_fileStates.stateOf(f)) {
         case FileStates::Added:
         case FileStates::Modified:
         case FileStates::Removed:
@@ -278,9 +278,9 @@ QStringList FileStatusWidget::getSelectedCommittableFiles() const
 QStringList FileStatusWidget::getAllCommittableFiles() const
 {
     QStringList files;
-    files << m_fileStates.getFilesInState(FileStates::Modified);
-    files << m_fileStates.getFilesInState(FileStates::Added);
-    files << m_fileStates.getFilesInState(FileStates::Removed);
+    files << m_fileStates.filesInState(FileStates::Modified);
+    files << m_fileStates.filesInState(FileStates::Added);
+    files << m_fileStates.filesInState(FileStates::Removed);
     return files;
 }
 
@@ -288,7 +288,7 @@ QStringList FileStatusWidget::getSelectedRevertableFiles() const
 {
     QStringList files;
     foreach (QString f, m_selectedFiles) {
-        switch (m_fileStates.getStateOfFile(f)) {
+        switch (m_fileStates.stateOf(f)) {
         case FileStates::Added:
         case FileStates::Modified:
         case FileStates::Removed:
@@ -305,11 +305,11 @@ QStringList FileStatusWidget::getSelectedRevertableFiles() const
 QStringList FileStatusWidget::getAllRevertableFiles() const
 {
     QStringList files;
-    files << m_fileStates.getFilesInState(FileStates::Modified);
-    files << m_fileStates.getFilesInState(FileStates::Added);
-    files << m_fileStates.getFilesInState(FileStates::Removed);
-    files << m_fileStates.getFilesInState(FileStates::Missing);
-    files << m_fileStates.getFilesInState(FileStates::InConflict);
+    files << m_fileStates.filesInState(FileStates::Modified);
+    files << m_fileStates.filesInState(FileStates::Added);
+    files << m_fileStates.filesInState(FileStates::Removed);
+    files << m_fileStates.filesInState(FileStates::Missing);
+    files << m_fileStates.filesInState(FileStates::InConflict);
     return files;
 }
 
@@ -317,7 +317,7 @@ QStringList FileStatusWidget::getSelectedUnresolvedFiles() const
 {
     QStringList files;
     foreach (QString f, m_selectedFiles) {
-        switch (m_fileStates.getStateOfFile(f)) {
+        switch (m_fileStates.stateOf(f)) {
         case FileStates::InConflict:
             files.push_back(f);
             break;
@@ -330,7 +330,7 @@ QStringList FileStatusWidget::getSelectedUnresolvedFiles() const
 QStringList FileStatusWidget::getAllUnresolvedFiles() const
 {
     QStringList files;
-    files << m_fileStates.getFilesInState(FileStates::InConflict);
+    files << m_fileStates.filesInState(FileStates::InConflict);
     return files;
 }
 
@@ -338,7 +338,7 @@ QStringList FileStatusWidget::getSelectedAddableFiles() const
 {
     QStringList files;
     foreach (QString f, m_selectedFiles) {
-        switch (m_fileStates.getStateOfFile(f)) {
+        switch (m_fileStates.stateOf(f)) {
         case FileStates::Unknown:
         case FileStates::Removed:
             files.push_back(f);
@@ -352,8 +352,8 @@ QStringList FileStatusWidget::getSelectedAddableFiles() const
 QStringList FileStatusWidget::getAllAddableFiles() const
 {
     QStringList files;
-    files << m_fileStates.getFilesInState(FileStates::Removed);
-    files << m_fileStates.getFilesInState(FileStates::Unknown);
+    files << m_fileStates.filesInState(FileStates::Removed);
+    files << m_fileStates.filesInState(FileStates::Unknown);
     return files;
 }
 
@@ -361,7 +361,7 @@ QStringList FileStatusWidget::getSelectedRemovableFiles() const
 {
     QStringList files;
     foreach (QString f, m_selectedFiles) {
-        switch (m_fileStates.getStateOfFile(f)) {
+        switch (m_fileStates.stateOf(f)) {
         case FileStates::Clean:
         case FileStates::Added:
         case FileStates::Modified:
@@ -378,11 +378,11 @@ QStringList FileStatusWidget::getSelectedRemovableFiles() const
 QStringList FileStatusWidget::getAllRemovableFiles() const
 {
     QStringList files;
-    files << m_fileStates.getFilesInState(FileStates::Clean);
-    files << m_fileStates.getFilesInState(FileStates::Added);
-    files << m_fileStates.getFilesInState(FileStates::Modified);
-    files << m_fileStates.getFilesInState(FileStates::Missing);
-    files << m_fileStates.getFilesInState(FileStates::InConflict);
+    files << m_fileStates.filesInState(FileStates::Clean);
+    files << m_fileStates.filesInState(FileStates::Added);
+    files << m_fileStates.filesInState(FileStates::Modified);
+    files << m_fileStates.filesInState(FileStates::Missing);
+    files << m_fileStates.filesInState(FileStates::InConflict);
     return files;
 }
 
@@ -435,7 +435,7 @@ FileStatusWidget::updateWidgets()
 
         QListWidget *w = m_stateListMap[s];
         w->clear();
-        QStringList files = m_fileStates.getFilesInState(s);
+        QStringList files = m_fileStates.filesInState(s);
 
         QStringList highPriority, lowPriority;
 
