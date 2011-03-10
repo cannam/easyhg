@@ -184,6 +184,17 @@ bool FileStates::supportsActivity(State s, Activity a)
     return activitiesSupportedBy(s).contains(a);
 }
 
+int FileStates::activityGroup(Activity a)
+{
+    switch (a) {
+    case Annotate: case Diff: return 0;
+    case Commit: case Revert: return 1;
+    case Add: case Remove: return 2;
+    case RedoMerge: case MarkResolved: return 3;
+    case Ignore: case UnIgnore: return 4;
+    }
+}
+
 bool FileStates::supportsActivity(QString file, Activity a) const
 {
     return supportsActivity(stateOf(file), a);
