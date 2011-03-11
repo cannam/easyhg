@@ -60,11 +60,11 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_actionLabels[FileStates::Annotate] = tr("Show annotated version");
     m_actionLabels[FileStates::Diff] = tr("Diff to parent");
     m_actionLabels[FileStates::Commit] = tr("Commit...");
-    m_actionLabels[FileStates::Revert] = tr("Revert to last commit");
+    m_actionLabels[FileStates::Revert] = tr("Revert to last committed state");
     m_actionLabels[FileStates::Add] = tr("Add to version control");
     m_actionLabels[FileStates::Remove] = tr("Remove from version control");
     m_actionLabels[FileStates::RedoMerge] = tr("Redo merge");
-    m_actionLabels[FileStates::MarkResolved] = tr("Mark resolved");
+    m_actionLabels[FileStates::MarkResolved] = tr("Mark conflict as resolved");
     m_actionLabels[FileStates::Ignore] = tr("Ignore");
     m_actionLabels[FileStates::UnIgnore] = tr("Stop ignoring");
 
