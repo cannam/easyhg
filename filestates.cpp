@@ -156,7 +156,7 @@ FileStates::Activities FileStates::activitiesSupportedBy(State s)
         break;
 
     case InConflict:
-        a << Annotate << Diff << RedoMerge << MarkResolved;
+        a << Annotate << Diff << RedoMerge << Revert << MarkResolved;
         break;
 
     case Missing:
@@ -193,6 +193,7 @@ int FileStates::activityGroup(Activity a)
     case RedoMerge: case MarkResolved: return 3;
     case Ignore: case UnIgnore: return 4;
     }
+    return 0;
 }
 
 bool FileStates::supportsActivity(QString file, Activity a) const
@@ -205,7 +206,9 @@ QStringList FileStates::filesSupportingActivity(Activity a) const
     QStringList f;
     for (int i = int(FirstState); i <= int(LastState); ++i) {
         State s = (State)i;
-        f << filesInState(s);
+        if (supportsActivity(s, a)) {
+            f << filesInState(s);
+        }
     }
     return f;
 }

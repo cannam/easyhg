@@ -370,6 +370,16 @@ void MainWindow::hgAnnotate()
     }
 }
 
+void MainWindow::hgAnnotateFiles(QStringList files)
+{
+    QStringList params;
+    
+    if (!files.isEmpty()) {
+        params << "annotate" << "--" << files;
+        m_runner->requestAction(HgAction(ACT_ANNOTATE, m_workFolderPath, params));
+    }
+}
+
 void MainWindow::hgResolveList()
 {
     QStringList params;
@@ -380,12 +390,15 @@ void MainWindow::hgResolveList()
 
 void MainWindow::hgAdd()
 {
-    QStringList params;
-
     // hgExplorer permitted adding "all" files -- I'm not sure
     // that one is a good idea, let's require the user to select
 
-    QStringList files = m_hgTabs->getSelectedAddableFiles();
+    hgAddFiles(m_hgTabs->getSelectedAddableFiles());
+}
+
+void MainWindow::hgAddFiles(QStringList files)
+{
+    QStringList params;
 
     if (!files.empty()) {
         params << "add" << "--" << files;
@@ -393,12 +406,14 @@ void MainWindow::hgAdd()
     }
 }
 
-
 void MainWindow::hgRemove()
 {
-    QStringList params;
+    hgRemoveFiles(m_hgTabs->getSelectedRemovableFiles());
+}
 
-    QStringList files = m_hgTabs->getSelectedRemovableFiles();
+void MainWindow::hgRemoveFiles(QStringList files)
+{
+    QStringList params;
 
     if (!files.empty()) {
         params << "remove" << "--after" << "--force" << "--" << files;
@@ -408,6 +423,11 @@ void MainWindow::hgRemove()
 
 void MainWindow::hgCommit()
 {
+    hgCommitFiles(QStringList());
+}
+
+void MainWindow::hgCommitFiles(QStringList files)
+{
     QStringList params;
     QString comment;
 
@@ -415,7 +435,6 @@ void MainWindow::hgCommit()
         comment = m_mergeCommitComment;
     }
 
-    QStringList files = m_hgTabs->getSelectedCommittableFiles();
     QStringList allFiles = m_hgTabs->getAllCommittableFiles();
     QStringList reportFiles = files;
     if (reportFiles.empty()) {
@@ -498,7 +517,6 @@ void MainWindow::hgNewBranch()
     }
 }
 
-
 void MainWindow::hgNoBranch()
 {
     if (m_currentParents.empty()) return;
@@ -510,7 +528,6 @@ void MainWindow::hgNoBranch()
     params << "branch" << parentBranch;
     m_runner->requestAction(HgAction(ACT_NEW_BRANCH, m_workFolderPath, params));
 }
-
 
 void MainWindow::hgTag(QString id)
 {
@@ -532,7 +549,6 @@ void MainWindow::hgTag(QString id)
         }
     }
 }
-
 
 void MainWindow::hgIgnore()
 {
@@ -568,6 +584,18 @@ void MainWindow::hgIgnore()
     m_runner->requestAction(action);
 }
 
+void MainWindow::hgIgnoreFiles(QStringList files)
+{
+    //!!! not implemented yet
+    DEBUG << "MainWindow::hgIgnoreFiles: Not implemented" << endl;
+}
+
+void MainWindow::hgUnIgnoreFiles(QStringList files)
+{
+    //!!! not implemented yet
+    DEBUG << "MainWindow::hgUnIgnoreFiles: Not implemented" << endl;
+}
+
 QString MainWindow::getDiffBinaryName()
 {
     QSettings settings;
@@ -600,6 +628,11 @@ void MainWindow::hgShowSummary()
 
 void MainWindow::hgFolderDiff()
 {
+    hgDiffFiles(QStringList());
+}
+
+void MainWindow::hgDiffFiles(QStringList files)
+{
     QString diff = getDiffBinaryName();
     if (diff == "") return;
 
@@ -610,11 +643,10 @@ void MainWindow::hgFolderDiff()
     params << "--config" << "extensions.extdiff=" << "extdiff";
     params << "--program" << diff;
 
-    params << m_hgTabs->getSelectedCommittableFiles(); // may be none: whole dir
+    params << files; // may be none: whole dir
 
     m_runner->requestAction(HgAction(ACT_FOLDERDIFF, m_workFolderPath, params));
 }
-
 
 void MainWindow::hgDiffToCurrent(QString id)
 {
@@ -632,7 +664,6 @@ void MainWindow::hgDiffToCurrent(QString id)
     m_runner->requestAction(HgAction(ACT_FOLDERDIFF, m_workFolderPath, params));
 }
 
-
 void MainWindow::hgDiffToParent(QString child, QString parent)
 {
     QString diff = getDiffBinaryName();
@@ -649,7 +680,7 @@ void MainWindow::hgDiffToParent(QString child, QString parent)
 
     m_runner->requestAction(HgAction(ACT_CHGSETDIFF, m_workFolderPath, params));
 }
-
+    
 
 void MainWindow::hgShowSummaryFor(Changeset *cs)
 {
@@ -687,11 +718,15 @@ void MainWindow::hgUpdateToRev(QString id)
 
 void MainWindow::hgRevert()
 {
+    hgRevertFiles(QStringList());
+}
+
+void MainWindow::hgRevertFiles(QStringList files)
+{
     QStringList params;
     QString comment;
     bool all = false;
 
-    QStringList files = m_hgTabs->getSelectedRevertableFiles();
     QStringList allFiles = m_hgTabs->getAllRevertableFiles();
     if (files.empty() || files == allFiles) {
         files = allFiles;
@@ -758,7 +793,7 @@ void MainWindow::hgRevert()
 }
 
 
-void MainWindow::hgMarkResolved(QStringList files)
+void MainWindow::hgMarkFilesResolved(QStringList files)
 {
     QStringList params;
 
@@ -774,7 +809,13 @@ void MainWindow::hgMarkResolved(QStringList files)
 }
 
 
-void MainWindow::hgRetryMerge()
+void MainWindow::hgRedoMerge()
+{
+    hgRedoFileMerges(QStringList());
+}
+
+
+void MainWindow::hgRedoFileMerges(QStringList files)
 {
     QStringList params;
 
@@ -785,7 +826,6 @@ void MainWindow::hgRetryMerge()
         params << "--tool" << merge;
     }
 
-    QStringList files = m_hgTabs->getSelectedUnresolvedFiles();
     if (files.empty()) {
         params << "--all";
     } else {
@@ -800,12 +840,12 @@ void MainWindow::hgRetryMerge()
 
     m_mergeCommitComment = tr("Merge");
 }
-
+    
 
 void MainWindow::hgMerge()
 {
     if (m_hgTabs->canResolve()) {
-        hgRetryMerge();
+        hgRedoMerge();
         return;
     }
 
@@ -1970,7 +2010,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
 
     case ACT_REVERT:
-        hgMarkResolved(m_lastRevertedFiles);
+        hgMarkFilesResolved(m_lastRevertedFiles);
         m_justMerged = false;
         break;
         
@@ -2219,6 +2259,36 @@ void MainWindow::connectTabsSignals()
 
     connect(m_hgTabs, SIGNAL(tag(QString)),
             this, SLOT(hgTag(QString)));
+
+    connect(m_hgTabs, SIGNAL(annotateFiles(QStringList)),
+            this, SLOT(hgAnnotateFiles(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(diffFiles(QStringList)),
+            this, SLOT(hgDiffFiles(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(commitFiles(QStringList)),
+            this, SLOT(hgCommitFiles(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(revertFiles(QStringList)),
+            this, SLOT(hgRevertFiles(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(addFiles(QStringList)),
+            this, SLOT(hgAddFiles(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(removeFiles(QStringList)),
+            this, SLOT(hgRemoveFiles(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(redoFileMerges(QStringList)),
+            this, SLOT(hgRedoFileMerges(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(markFilesResolved(QStringList)),
+            this, SLOT(hgMarkFilesResolved(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(ignoreFiles(QStringList)),
+            this, SLOT(hgIgnoreFiles(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(unIgnoreFiles(QStringList)),
+            this, SLOT(hgUnIgnoreFiles(QStringList)));
 }    
 
 void MainWindow::enableDisableActions()

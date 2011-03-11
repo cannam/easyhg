@@ -78,8 +78,7 @@ private slots:
     void hgUpdate();
     void hgRevert();
     void hgMerge();
-    void hgMarkResolved(QStringList);
-    void hgRetryMerge();
+    void hgRedoMerge();
     void hgCloneFromRemote();
     void hgInit();
     void hgIncoming();
@@ -94,6 +93,17 @@ private slots:
     void hgNoBranch();
     void hgServe();
     void hgIgnore();
+
+    void hgAnnotateFiles(QStringList);
+    void hgDiffFiles(QStringList);
+    void hgCommitFiles(QStringList);
+    void hgRevertFiles(QStringList);
+    void hgAddFiles(QStringList);
+    void hgRemoveFiles(QStringList);
+    void hgRedoFileMerges(QStringList);
+    void hgMarkFilesResolved(QStringList);
+    void hgIgnoreFiles(QStringList);
+    void hgUnIgnoreFiles(QStringList);
 
     void fsDirectoryChanged(QString);
     void fsFileChanged(QString);

@@ -46,32 +46,34 @@ public:
     bool haveChangesToCommit() const;
     bool haveSelection() const;
 
-    QStringList getAllSelectedFiles() const;
-
-    QStringList getSelectedCommittableFiles() const;
     QStringList getAllCommittableFiles() const;
-
-    QStringList getSelectedRevertableFiles() const;
     QStringList getAllRevertableFiles() const;
+    QStringList getAllUnresolvedFiles() const;
 
     QStringList getSelectedAddableFiles() const;
-    QStringList getAllAddableFiles() const;
-
     QStringList getSelectedRemovableFiles() const;
-    QStringList getAllRemovableFiles() const;
 
-    QStringList getSelectedUnresolvedFiles() const;
-    QStringList getAllUnresolvedFiles() const;
-    
 signals:
     void selectionChanged();
     void showAllChanged(bool);
+
+    void annotateFiles(QStringList);
+    void diffFiles(QStringList);
+    void commitFiles(QStringList);
+    void revertFiles(QStringList);
+    void addFiles(QStringList);
+    void removeFiles(QStringList);
+    void redoFileMerges(QStringList);
+    void markFilesResolved(QStringList);
+    void ignoreFiles(QStringList);
+    void unIgnoreFiles(QStringList);
 
 public slots:
     void clearSelections();
     void updateWidgets();
 
 private slots:
+    void menuActionActivated();
     void itemSelectionChanged();
 
 private:
@@ -100,6 +102,9 @@ private:
     void setNoModificationsLabelText();
     QString labelFor(FileStates::State, bool addHighlightExplanation = false);
     void setLabelFor(QWidget *w, FileStates::State, bool addHighlightExplanation);
+
+    QStringList getSelectedFilesInState(FileStates::State s) const;
+    QStringList getSelectedFilesSupportingActivity(FileStates::Activity) const;
 };
 
 #endif
