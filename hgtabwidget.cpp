@@ -163,6 +163,9 @@ bool HgTabWidget::canRevert() const
 
 bool HgTabWidget::canAdd() const
 {
+    // Permit this only when work tab is visible
+    if (currentIndex() != 0) return false;
+
     QStringList addable = m_fileStatusWidget->getSelectedAddableFiles();
     if (addable.empty()) return false;
 
@@ -174,6 +177,9 @@ bool HgTabWidget::canAdd() const
 
 bool HgTabWidget::canRemove() const
 {
+    // Permit this only when work tab is visible
+    if (currentIndex() != 0) return false;
+
     if (m_fileStatusWidget->getSelectedRemovableFiles().empty()) return false;
     if (!m_fileStatusWidget->getSelectedAddableFiles().empty()) return false;
     return true;
