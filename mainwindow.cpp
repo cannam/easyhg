@@ -1845,6 +1845,13 @@ void MainWindow::commandFailed(HgAction action, QString output)
             reportNewRemoteHeads(output);
             return;
         }
+    case ACT_MERGE:
+    case ACT_RETRY_MERGE:
+        MoreInformationDialog::information
+            (this, tr("Merge"), tr("Merge failed"),
+             tr("Some files were not merged successfully.<p>You can Merge again to repeat the interactive merge; use Revert to abandon the merge entirely; or edit the files that are in conflict in an editor and, when you are happy with them, choose Mark Resolved in each file's right-button menu."),
+             output);
+        return;
     case ACT_STAT:
         break; // go on and report
     default:

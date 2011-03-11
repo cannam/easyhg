@@ -156,7 +156,7 @@ FileStates::Activities FileStates::activitiesSupportedBy(State s)
         break;
 
     case InConflict:
-        a << Annotate << Diff << RedoMerge << Revert << MarkResolved;
+        a << Annotate << Diff << RedoMerge << MarkResolved << Revert;
         break;
 
     case Missing:
@@ -168,7 +168,7 @@ FileStates::Activities FileStates::activitiesSupportedBy(State s)
         break;
 
     case Clean:
-        a << Remove << Annotate;
+        a << Annotate << Remove;
         break;
 
     case Ignored:
