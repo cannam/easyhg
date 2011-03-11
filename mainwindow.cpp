@@ -2221,6 +2221,9 @@ void MainWindow::connectActions()
 
 void MainWindow::connectTabsSignals()
 {
+    connect(m_hgTabs, SIGNAL(currentChanged(int)),
+            this, SLOT(enableDisableActions()));
+
     connect(m_hgTabs, SIGNAL(commit()),
             this, SLOT(hgCommit()));
     
