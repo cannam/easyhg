@@ -62,22 +62,12 @@ public:
     bool canResolve() const;
     bool haveChangesToCommit() const;
 
-    QStringList getAllSelectedFiles() const;
-
-    QStringList getSelectedCommittableFiles() const;
     QStringList getAllCommittableFiles() const;
-
-    QStringList getSelectedRevertableFiles() const;
     QStringList getAllRevertableFiles() const;
+    QStringList getAllUnresolvedFiles() const;
 
     QStringList getSelectedAddableFiles() const;
-    QStringList getAllAddableFiles() const;
-
     QStringList getSelectedRemovableFiles() const;
-    QStringList getAllRemovableFiles() const;
-
-    QStringList getSelectedUnresolvedFiles() const;
-    QStringList getAllUnresolvedFiles() const;
 
 signals:
     void selectionChanged();
@@ -97,6 +87,17 @@ signals:
     void mergeFrom(QString id);
     void newBranch(QString id);
     void tag(QString id);
+
+    void annotateFiles(QStringList);
+    void diffFiles(QStringList);
+    void commitFiles(QStringList);
+    void revertFiles(QStringList);
+    void addFiles(QStringList);
+    void removeFiles(QStringList);
+    void redoFileMerges(QStringList);
+    void markFilesResolved(QStringList);
+    void ignoreFiles(QStringList);
+    void unIgnoreFiles(QStringList);
 
 public slots:
     void clearSelections();

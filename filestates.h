@@ -66,8 +66,8 @@ public:
         // These are in the order in which they want to be listed in
         // the context menu
 
-        Annotate,
         Diff,
+        Annotate,
 
         Commit,
         Revert,
@@ -81,7 +81,7 @@ public:
         Ignore,
         UnIgnore,
 
-        FirstActivity = Commit,
+        FirstActivity = Diff,
         LastActivity = UnIgnore
     };
 
