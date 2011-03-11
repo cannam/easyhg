@@ -31,6 +31,7 @@
 #include <QProcess>
 #include <QCheckBox>
 #include <QSettings>
+#include <QAction>
 
 FileStatusWidget::FileStatusWidget(QWidget *parent) :
     QWidget(parent),
@@ -55,6 +56,17 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_simpleLabels[FileStates::InConflict] = tr("In Conflict:");
     m_simpleLabels[FileStates::Unknown] = tr("Untracked:");
     m_simpleLabels[FileStates::Ignored] = tr("Ignored:");
+
+    m_actionLabels[FileStates::Annotate] = tr("Show annotated version");
+    m_actionLabels[FileStates::Diff] = tr("Diff to parent");
+    m_actionLabels[FileStates::Commit] = tr("Commit...");
+    m_actionLabels[FileStates::Revert] = tr("Revert to last committed state");
+    m_actionLabels[FileStates::Add] = tr("Add to version control");
+    m_actionLabels[FileStates::Remove] = tr("Remove from version control");
+    m_actionLabels[FileStates::RedoMerge] = tr("Redo merge");
+    m_actionLabels[FileStates::MarkResolved] = tr("Mark conflict as resolved");
+    m_actionLabels[FileStates::Ignore] = tr("Ignore");
+    m_actionLabels[FileStates::UnIgnore] = tr("Stop ignoring");
 
     m_descriptions[FileStates::Clean] = tr("You have not changed these files.");
     m_descriptions[FileStates::Modified] = tr("You have changed these files since you last committed them.");
@@ -105,6 +117,30 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 
         connect(w, SIGNAL(itemSelectionChanged()),
                 this, SLOT(itemSelectionChanged()));
+
+        FileStates::Activities activities = m_fileStates.activitiesSupportedBy(s);
+        int prevGroup = -1;
+        foreach (FileStates::Activity a, activities) {
+            // Skip activities which are not yet implemented
+            if (a == FileStates::Annotate ||
+                a == FileStates::Ignore ||
+                a == FileStates::UnIgnore) {
+                continue;
+            }
+            int group = FileStates::activityGroup(a);
+            if (group != prevGroup && prevGroup != -1) {
+                QAction *sep = new QAction("", w);
+                sep->setSeparator(true);
+                w->insertAction(0, sep);
+            }
+            prevGroup = group;
+            QAction *act = new QAction(m_actionLabels[a], w);
+            act->setProperty("state", s);
+            act->setProperty("activity", a);
+            connect(act, SIGNAL(triggered()), this, SLOT(menuActionActivated()));
+            w->insertAction(0, act);
+        }
+        w->setContextMenuPolicy(Qt::ActionsContextMenu);
 
         boxlayout->addItem(new QSpacerItem(2, 2), 3, 0);
 
@@ -173,6 +209,44 @@ void FileStatusWidget::setNoModificationsLabelText()
     }
 }
 
+
+void FileStatusWidget::menuActionActivated()
+{
+    QAction *act = qobject_cast<QAction *>(sender());
+    if (!act) return;
+    
+    FileStates::State state = (FileStates::State)
+        act->property("state").toUInt();
+    FileStates::Activity activity = (FileStates::Activity)
+        act->property("activity").toUInt();
+
+    DEBUG << "menuActionActivated: state = " << state << ", activity = "
+          << activity << endl;
+
+    if (!FileStates::supportsActivity(state, activity)) {
+        std::cerr << "WARNING: FileStatusWidget::menuActionActivated: "
+                  << "Action state " << state << " does not support activity "
+                  << activity << std::endl;
+        return;
+    }
+
+    QStringList files = getSelectedFilesInState(state);
+
+    switch (activity) {
+    case FileStates::Annotate: emit annotateFiles(files); break;
+    case FileStates::Diff: emit diffFiles(files); break;
+    case FileStates::Commit: emit commitFiles(files); break;
+    case FileStates::Revert: emit revertFiles(files); break;
+    case FileStates::Add: emit addFiles(files); break;
+    case FileStates::Remove: emit removeFiles(files); break;
+    case FileStates::RedoMerge: emit redoFileMerges(files); break;
+    case FileStates::MarkResolved: emit markFilesResolved(files); break;
+    case FileStates::Ignore: emit ignoreFiles(files); break;
+    case FileStates::UnIgnore: emit unIgnoreFiles(files); break;
+    }
+}
+
+
 void FileStatusWidget::itemSelectionChanged()
 {
     DEBUG << "FileStatusWidget::itemSelectionChanged" << endl;
@@ -212,9 +286,7 @@ void FileStatusWidget::clearSelections()
 
 bool FileStatusWidget::haveChangesToCommit() const
 {
-    return !m_fileStates.added().empty() ||
-           !m_fileStates.removed().empty() ||
-           !m_fileStates.modified().empty();
+    return !getAllCommittableFiles().empty();
 }
 
 bool FileStatusWidget::haveSelection() const
@@ -222,136 +294,47 @@ bool FileStatusWidget::haveSelection() const
     return !m_selectedFiles.empty();
 }
 
-QStringList FileStatusWidget::getAllSelectedFiles() const
-{
-    return m_selectedFiles;
-}
-
-QStringList FileStatusWidget::getSelectedCommittableFiles() const
+QStringList FileStatusWidget::getSelectedFilesInState(FileStates::State s) const
 {
     QStringList files;
     foreach (QString f, m_selectedFiles) {
-        switch (m_fileStates.getStateOfFile(f)) {
-        case FileStates::Added:
-        case FileStates::Modified:
-        case FileStates::Removed:
-            files.push_back(f);
-            break;
-        default: break;
-        }
+        if (m_fileStates.stateOf(f) == s) files.push_back(f);
     }
     return files;
-}
+}    
+
+QStringList FileStatusWidget::getSelectedFilesSupportingActivity(FileStates::Activity a) const
+{
+    QStringList files;
+    foreach (QString f, m_selectedFiles) {
+        if (m_fileStates.supportsActivity(f, a)) files.push_back(f);
+    }
+    return files;
+}    
 
 QStringList FileStatusWidget::getAllCommittableFiles() const
 {
-    QStringList files;
-    files << m_fileStates.getFilesInState(FileStates::Modified);
-    files << m_fileStates.getFilesInState(FileStates::Added);
-    files << m_fileStates.getFilesInState(FileStates::Removed);
-    return files;
-}
-
-QStringList FileStatusWidget::getSelectedRevertableFiles() const
-{
-    QStringList files;
-    foreach (QString f, m_selectedFiles) {
-        switch (m_fileStates.getStateOfFile(f)) {
-        case FileStates::Added:
-        case FileStates::Modified:
-        case FileStates::Removed:
-        case FileStates::Missing:
-        case FileStates::InConflict:
-            files.push_back(f);
-            break;
-        default: break;
-        }
-    }
-    return files;
+    return m_fileStates.filesSupportingActivity(FileStates::Commit);
 }
 
 QStringList FileStatusWidget::getAllRevertableFiles() const
 {
-    QStringList files;
-    files << m_fileStates.getFilesInState(FileStates::Modified);
-    files << m_fileStates.getFilesInState(FileStates::Added);
-    files << m_fileStates.getFilesInState(FileStates::Removed);
-    files << m_fileStates.getFilesInState(FileStates::Missing);
-    files << m_fileStates.getFilesInState(FileStates::InConflict);
-    return files;
-}
-
-QStringList FileStatusWidget::getSelectedUnresolvedFiles() const
-{
-    QStringList files;
-    foreach (QString f, m_selectedFiles) {
-        switch (m_fileStates.getStateOfFile(f)) {
-        case FileStates::InConflict:
-            files.push_back(f);
-            break;
-        default: break;
-        }
-    }
-    return files;
+    return m_fileStates.filesSupportingActivity(FileStates::Revert);
 }
 
 QStringList FileStatusWidget::getAllUnresolvedFiles() const
 {
-    QStringList files;
-    files << m_fileStates.getFilesInState(FileStates::InConflict);
-    return files;
+    return m_fileStates.filesInState(FileStates::InConflict);
 }
 
 QStringList FileStatusWidget::getSelectedAddableFiles() const
 {
-    QStringList files;
-    foreach (QString f, m_selectedFiles) {
-        switch (m_fileStates.getStateOfFile(f)) {
-        case FileStates::Unknown:
-        case FileStates::Removed:
-            files.push_back(f);
-            break;
-        default: break;
-        }
-    }
-    return files;
-}
-
-QStringList FileStatusWidget::getAllAddableFiles() const
-{
-    QStringList files;
-    files << m_fileStates.getFilesInState(FileStates::Removed);
-    files << m_fileStates.getFilesInState(FileStates::Unknown);
-    return files;
+    return getSelectedFilesSupportingActivity(FileStates::Add);
 }
 
 QStringList FileStatusWidget::getSelectedRemovableFiles() const
 {
-    QStringList files;
-    foreach (QString f, m_selectedFiles) {
-        switch (m_fileStates.getStateOfFile(f)) {
-        case FileStates::Clean:
-        case FileStates::Added:
-        case FileStates::Modified:
-        case FileStates::Missing:
-        case FileStates::InConflict:
-            files.push_back(f);
-            break;
-        default: break;
-        }
-    }
-    return files;
-}
-
-QStringList FileStatusWidget::getAllRemovableFiles() const
-{
-    QStringList files;
-    files << m_fileStates.getFilesInState(FileStates::Clean);
-    files << m_fileStates.getFilesInState(FileStates::Added);
-    files << m_fileStates.getFilesInState(FileStates::Modified);
-    files << m_fileStates.getFilesInState(FileStates::Missing);
-    files << m_fileStates.getFilesInState(FileStates::InConflict);
-    return files;
+    return getSelectedFilesSupportingActivity(FileStates::Remove);
 }
 
 QString
@@ -403,7 +386,7 @@ FileStatusWidget::updateWidgets()
 
         QListWidget *w = m_stateListMap[s];
         w->clear();
-        QStringList files = m_fileStates.getFilesInState(s);
+        QStringList files = m_fileStates.filesInState(s);
 
         QStringList highPriority, lowPriority;
 
@@ -434,7 +417,7 @@ FileStatusWidget::updateWidgets()
         foreach (QString file, highPriority) {
             QListWidgetItem *item = new QListWidgetItem(file);
             w->addItem(item);
-            item->setForeground(QColor("#d40000")); //!!! and a nice gold star
+            item->setForeground(QColor("#d40000"));
             item->setSelected(selectedFiles.contains(file));
         }
 
