@@ -1818,7 +1818,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
         // if clone fails, we have no repo
         m_workFolderPath = "";
         enableDisableActions();
-        break;
+        break; // go on to default report
     case ACT_INCOMING:
         // returns non-zero code and no output if the check was
         // successful but there are no changes pending
@@ -1826,7 +1826,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
             showIncoming("");
             return;
         }
-        break;
+        break; // go on to default report
     case ACT_QUERY_HEADS:
         // fails if repo is empty; we don't care (if there's a genuine
         // problem, something else will fail too).  Pretend it
@@ -1845,6 +1845,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
             reportNewRemoteHeads(output);
             return;
         }
+        break; // go on to default report
     case ACT_MERGE:
     case ACT_RETRY_MERGE:
         MoreInformationDialog::information
@@ -1853,7 +1854,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
              output);
         return;
     case ACT_STAT:
-        break; // go on and report
+        break; // go on to default report
     default:
         break;
     }
