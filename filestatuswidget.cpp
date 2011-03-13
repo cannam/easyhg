@@ -117,13 +117,14 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 
         connect(w, SIGNAL(itemSelectionChanged()),
                 this, SLOT(itemSelectionChanged()));
+        connect(w, SIGNAL(itemDoubleClicked(QListWidgetItem *)),
+                this, SLOT(itemDoubleClicked(QListWidgetItem *)));
 
         FileStates::Activities activities = m_fileStates.activitiesSupportedBy(s);
         int prevGroup = -1;
         foreach (FileStates::Activity a, activities) {
             // Skip activities which are not yet implemented
-            if (a == FileStates::Annotate ||
-                a == FileStates::Ignore ||
+            if (a == FileStates::Ignore ||
                 a == FileStates::UnIgnore) {
                 continue;
             }
@@ -246,6 +247,12 @@ void FileStatusWidget::menuActionActivated()
     }
 }
 
+void FileStatusWidget::itemDoubleClicked(QListWidgetItem *item)
+{
+    QStringList files;
+    files << item->text();
+    emit annotateFiles(files);
+}
 
 void FileStatusWidget::itemSelectionChanged()
 {

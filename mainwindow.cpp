@@ -44,6 +44,7 @@
 #include "incomingdialog.h"
 #include "settingsdialog.h"
 #include "moreinformationdialog.h"
+#include "annotatedialog.h"
 #include "version.h"
 #include "workstatuswidget.h"
 
@@ -357,25 +358,12 @@ void MainWindow::hgQueryParents()
     m_runner->requestAction(HgAction(ACT_QUERY_PARENTS, m_workFolderPath, params));
 }
 
-void MainWindow::hgAnnotate()
-{
-    QStringList params;
-    QString currentFile;//!!! = m_hgTabs -> getCurrentFileListLine();
-    
-    if (!currentFile.isEmpty())
-    {
-        params << "annotate" << "--" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
-
-        m_runner->requestAction(HgAction(ACT_ANNOTATE, m_workFolderPath, params));
-    }
-}
-
 void MainWindow::hgAnnotateFiles(QStringList files)
 {
     QStringList params;
     
     if (!files.isEmpty()) {
-        params << "annotate" << "--" << files;
+        params << "annotate" << "-udc" << "--" << files;
         m_runner->requestAction(HgAction(ACT_ANNOTATE, m_workFolderPath, params));
     }
 }
@@ -643,7 +631,7 @@ void MainWindow::hgDiffFiles(QStringList files)
     params << "--config" << "extensions.extdiff=" << "extdiff";
     params << "--program" << diff;
 
-    params << files; // may be none: whole dir
+    params << "--" << files; // may be none: whole dir
 
     m_runner->requestAction(HgAction(ACT_FOLDERDIFF, m_workFolderPath, params));
 }
@@ -1467,49 +1455,6 @@ void MainWindow::settings()
     }
 }
 
-#define STDOUT_NEEDS_BIG_WINDOW 512
-#define SMALL_WND_W     500
-#define SMALL_WND_H     300
-
-#define BIG_WND_W       1024
-#define BIG_WND_H       768
-
-
-void MainWindow::presentLongStdoutToUser(QString stdo)
-{
-    if (!stdo.isEmpty())
-    {
-        QDialog dlg;
-
-        if (stdo.length() > STDOUT_NEEDS_BIG_WINDOW)
-        {
-            dlg.setMinimumWidth(BIG_WND_W);
-            dlg.setMinimumHeight(BIG_WND_H);
-        }
-        else
-        {
-            dlg.setMinimumWidth(SMALL_WND_W);
-            dlg.setMinimumHeight(SMALL_WND_H);
-        }
-
-        QVBoxLayout *box = new QVBoxLayout;
-        QListWidget *list = new QListWidget;
-        list-> addItems(stdo.split("\n"));
-        QPushButton *btn = new QPushButton(tr("Ok"));
-        connect(btn, SIGNAL(clicked()), &dlg, SLOT(accept()));
-
-        box -> addWidget(list);
-        box -> addWidget(btn);
-        dlg.setLayout(box);
-
-        dlg.exec();
-    }
-    else
-    {
-        QMessageBox::information(this, tr("EasyMercurial"), tr("Mercurial command did not return any output."));
-    }
-}
-
 void MainWindow::updateFileSystemWatcher()
 {
     bool justCreated = false;
@@ -1943,9 +1888,12 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
 
     case ACT_ANNOTATE:
-        presentLongStdoutToUser(output);
+    {
+        AnnotateDialog dialog(this, output);
+        dialog.exec();
         m_shouldHgStat = true;
         break;
+    }
         
     case ACT_PULL:
         showPullResult(output);
@@ -2223,7 +2171,6 @@ void MainWindow::connectActions()
     connect(m_hgPullAct, SIGNAL(triggered()), this, SLOT(hgPull()));
     connect(m_hgPushAct, SIGNAL(triggered()), this, SLOT(hgPush()));
 
-    connect(m_hgAnnotateAct, SIGNAL(triggered()), this, SLOT(hgAnnotate()));
     connect(m_hgServeAct, SIGNAL(triggered()), this, SLOT(hgServe()));
 }
 
@@ -2364,7 +2311,6 @@ void MainWindow::enableDisableActions()
     m_hgUpdateAct -> setEnabled(m_localRepoActionsEnabled);
     m_hgCommitAct -> setEnabled(m_localRepoActionsEnabled);
     m_hgMergeAct -> setEnabled(m_localRepoActionsEnabled);
-    m_hgAnnotateAct -> setEnabled(m_localRepoActionsEnabled);
     m_hgServeAct -> setEnabled(m_localRepoActionsEnabled);
     m_hgIgnoreAct -> setEnabled(m_localRepoActionsEnabled);
 
@@ -2540,9 +2486,6 @@ void MainWindow::createActions()
     m_hgMergeAct->setStatusTip(tr("Merge the two independent sets of changes in the local repository into the working folder"));
 
     //Advanced actions
-    //!!! needs to be modified for number
-    m_hgAnnotateAct = new QAction(tr("Annotate"), this);
-    m_hgAnnotateAct -> setStatusTip(tr("Show line-by-line version information for selected file"));
 
     m_hgIgnoreAct = new QAction(tr("Edit .hgignore File"), this);
     m_hgIgnoreAct -> setStatusTip(tr("Edit the .hgignore file, containing the names of files that should be ignored by Mercurial"));

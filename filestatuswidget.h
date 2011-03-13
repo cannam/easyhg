@@ -25,6 +25,7 @@
 
 class QLabel;
 class QListWidget;
+class QListWidgetItem;
 class QPushButton;
 class QFileInfo;
 class QCheckBox;
@@ -75,6 +76,7 @@ public slots:
 private slots:
     void menuActionActivated();
     void itemSelectionChanged();
+    void itemDoubleClicked(QListWidgetItem *);
 
 private:
     QString m_localPath;
