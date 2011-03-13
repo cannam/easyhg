@@ -86,7 +86,6 @@ private slots:
     void hgPull();
     void hgUpdateToRev(QString);
     void hgMergeFrom(QString);
-    void hgAnnotate();
     void hgResolveList();
     void hgTag(QString);
     void hgNewBranch();
@@ -126,7 +125,6 @@ private:
     void readSettings();
     void splitChangeSets(QStringList *list, QString hgLogOutput);
     void reportNewRemoteHeads(QString);
-    void presentLongStdoutToUser(QString stdo);
     void writeSettings();
 
     QStringList listAllUpIpV4Addresses();
