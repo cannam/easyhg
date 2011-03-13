@@ -363,7 +363,7 @@ void MainWindow::hgAnnotateFiles(QStringList files)
     QStringList params;
     
     if (!files.isEmpty()) {
-        params << "annotate" << "-udc" << "--" << files;
+        params << "annotate" << "-udqc" << "--" << files;
         m_runner->requestAction(HgAction(ACT_ANNOTATE, m_workFolderPath, params));
     }
 }
