@@ -17,6 +17,7 @@
 
 #include "annotatedialog.h"
 #include "common.h"
+#include "colourset.h"
 #include "debug.h"
 
 #include <QDialogButtonBox>
@@ -28,8 +29,8 @@
 AnnotateDialog::AnnotateDialog(QWidget *w, QString text) :
     QDialog(w)
 {
-    setMinimumWidth(600);
-    setMinimumHeight(700);
+    setMinimumWidth(800);
+    setMinimumHeight(500);
 
     text.replace("\r\n", "\n");
     QStringList lines = text.split("\n");
@@ -42,21 +43,39 @@ AnnotateDialog::AnnotateDialog(QWidget *w, QString text) :
     table->setRowCount(lines.size());
     table->setColumnCount(4);
     table->horizontalHeader()->setStretchLastSection(true);
+    table->verticalHeader()->setDefaultSectionSize
+	(table->verticalHeader()->fontMetrics().height() + 2);
 
     QStringList labels;
     labels << tr("User") << tr("Revision") << tr("Date") << tr("Content");
     table->setHorizontalHeaderLabels(labels);
+
+    table->setShowGrid(false);
+
+    QFont monofont("Monospace");
+    monofont.setStyleHint(QFont::TypeWriter);
 
     int row = 0;
 
     foreach (QString line, lines) {
 	if (annotateLineRE.indexIn(line) == 0) {
 	    QStringList items = annotateLineRE.capturedTexts();
+	    QString id = items[2];
+	    QColor colour = ColourSet::instance()->getColourFor(id);
+	    QColor bg = QColor::fromHsv(colour.hue(),
+					30,
+					230);
 	    // note items[0] is the whole match, so we want 1-4
 	    for (int col = 0; col+1 < items.size(); ++col) {
-		std::cerr << "row " << row << " col " << col << " text "
-			  << items[col+1] << std::endl;
-		table->setItem(row, col, new QTableWidgetItem(items[col+1]));
+		QString item = items[col+1];
+		if (col == 0) item = item.trimmed();
+		QTableWidgetItem *wi = new QTableWidgetItem(item);
+		wi->setFlags(Qt::ItemIsEnabled);
+		wi->setBackground(bg);
+		if (col == 3) { // id, content
+		    wi->setFont(monofont);
+		}
+		table->setItem(row, col, wi);
 	    }
 	} else {
 	    DEBUG << "AnnotateDialog: Failed to match RE in line: " << line << " at row " << row << endl;
