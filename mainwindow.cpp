@@ -2531,7 +2531,6 @@ void MainWindow::createToolBars()
     m_fileToolBar -> setIconSize(QSize(MY_ICON_SIZE, MY_ICON_SIZE));
     m_fileToolBar -> addAction(m_openAct);
     m_fileToolBar -> addAction(m_hgRefreshAct);
-    m_fileToolBar -> addSeparator();
     m_fileToolBar -> setMovable(false);
 
     m_repoToolBar = addToolBar(tr(REPOMENU_TITLE));
