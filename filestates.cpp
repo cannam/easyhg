@@ -63,7 +63,7 @@ FileStates::State FileStates::charToState(QChar c, bool *ok)
 QStringList *FileStates::stateToBucket(State s)
 {
     switch (s) {
-    case Clean: return &m_clean; // not implemented yet
+    case Clean: return &m_clean;
     case Modified: return &m_modified;
     case Added: return &m_added;
     case Unknown: return &m_unknown;
@@ -112,14 +112,19 @@ void FileStates::parseStates(QString text)
           << m_unknown.size() << " unknown" << endl;
 }
 
-QStringList FileStates::getFilesInState(State s) const
+QStringList FileStates::filesInState(State s) const
 {
     QStringList *sl = const_cast<FileStates *>(this)->stateToBucket(s);
     if (sl) return *sl;
     else return QStringList();
 }
 
-FileStates::State FileStates::getStateOfFile(QString file) const
+bool FileStates::isInState(QString file, State s) const
+{
+    return filesInState(s).contains(file);
+}
+
+FileStates::State FileStates::stateOf(QString file) const
 {
     if (m_stateMap.contains(file)) {
         return m_stateMap[file];
@@ -131,3 +136,85 @@ FileStates::State FileStates::getStateOfFile(QString file) const
             << endl;
     return Unknown;
 }
+
+FileStates::Activities FileStates::activitiesSupportedBy(State s)
+{
+    Activities a;
+
+    switch (s) {
+
+    case Modified:
+        a << Annotate << Diff << Commit << Revert << Remove;
+        break;
+
+    case Added:
+        a << Commit << Revert << Remove;
+        break;
+        
+    case Removed:
+        a << Commit << Revert << Add;
+        break;
+
+    case InConflict:
+        a << Annotate << Diff << RedoMerge << MarkResolved << Revert;
+        break;
+
+    case Missing:
+        a << Revert << Remove;
+        break;
+        
+    case Unknown:
+        a << Add << Ignore;
+        break;
+
+    case Clean:
+        a << Annotate << Remove;
+        break;
+
+    case Ignored:
+        a << UnIgnore;
+        break;
+    }
+
+    return a;
+}
+
+bool FileStates::supportsActivity(State s, Activity a)
+{
+    return activitiesSupportedBy(s).contains(a);
+}
+
+int FileStates::activityGroup(Activity a)
+{
+    switch (a) {
+    case Annotate: case Diff: return 0;
+    case Commit: case Revert: return 1;
+    case Add: case Remove: return 2;
+    case RedoMerge: case MarkResolved: return 3;
+    case Ignore: case UnIgnore: return 4;
+    }
+    return 0;
+}
+
+bool FileStates::supportsActivity(QString file, Activity a) const
+{
+    return supportsActivity(stateOf(file), a);
+}
+
+QStringList FileStates::filesSupportingActivity(Activity a) const
+{
+    QStringList f;
+    for (int i = int(FirstState); i <= int(LastState); ++i) {
+        State s = (State)i;
+        if (supportsActivity(s, a)) {
+            f << filesInState(s);
+        }
+    }
+    return f;
+}
+
+FileStates::Activities FileStates::activitiesSupportedBy(QString file) const
+{
+    return activitiesSupportedBy(stateOf(file));
+}
+
