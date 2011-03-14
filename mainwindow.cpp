@@ -44,6 +44,7 @@
 #include "incomingdialog.h"
 #include "settingsdialog.h"
 #include "moreinformationdialog.h"
+#include "annotatedialog.h"
 #include "version.h"
 #include "workstatuswidget.h"
 
@@ -357,15 +358,12 @@ void MainWindow::hgQueryParents()
     m_runner->requestAction(HgAction(ACT_QUERY_PARENTS, m_workFolderPath, params));
 }
 
-void MainWindow::hgAnnotate()
+void MainWindow::hgAnnotateFiles(QStringList files)
 {
     QStringList params;
-    QString currentFile;//!!! = m_hgTabs -> getCurrentFileListLine();
     
-    if (!currentFile.isEmpty())
-    {
-        params << "annotate" << "--" << currentFile.mid(2);   //Jump over status marker characters (e.g "M ")
-
+    if (!files.isEmpty()) {
+        params << "annotate" << "-udqc" << "--" << files;
         m_runner->requestAction(HgAction(ACT_ANNOTATE, m_workFolderPath, params));
     }
 }
@@ -380,12 +378,15 @@ void MainWindow::hgResolveList()
 
 void MainWindow::hgAdd()
 {
-    QStringList params;
-
     // hgExplorer permitted adding "all" files -- I'm not sure
     // that one is a good idea, let's require the user to select
 
-    QStringList files = m_hgTabs->getSelectedAddableFiles();
+    hgAddFiles(m_hgTabs->getSelectedAddableFiles());
+}
+
+void MainWindow::hgAddFiles(QStringList files)
+{
+    QStringList params;
 
     if (!files.empty()) {
         params << "add" << "--" << files;
@@ -393,12 +394,14 @@ void MainWindow::hgAdd()
     }
 }
 
-
 void MainWindow::hgRemove()
 {
-    QStringList params;
+    hgRemoveFiles(m_hgTabs->getSelectedRemovableFiles());
+}
 
-    QStringList files = m_hgTabs->getSelectedRemovableFiles();
+void MainWindow::hgRemoveFiles(QStringList files)
+{
+    QStringList params;
 
     if (!files.empty()) {
         params << "remove" << "--after" << "--force" << "--" << files;
@@ -408,6 +411,11 @@ void MainWindow::hgRemove()
 
 void MainWindow::hgCommit()
 {
+    hgCommitFiles(QStringList());
+}
+
+void MainWindow::hgCommitFiles(QStringList files)
+{
     QStringList params;
     QString comment;
 
@@ -415,7 +423,6 @@ void MainWindow::hgCommit()
         comment = m_mergeCommitComment;
     }
 
-    QStringList files = m_hgTabs->getSelectedCommittableFiles();
     QStringList allFiles = m_hgTabs->getAllCommittableFiles();
     QStringList reportFiles = files;
     if (reportFiles.empty()) {
@@ -498,7 +505,6 @@ void MainWindow::hgNewBranch()
     }
 }
 
-
 void MainWindow::hgNoBranch()
 {
     if (m_currentParents.empty()) return;
@@ -510,7 +516,6 @@ void MainWindow::hgNoBranch()
     params << "branch" << parentBranch;
     m_runner->requestAction(HgAction(ACT_NEW_BRANCH, m_workFolderPath, params));
 }
-
 
 void MainWindow::hgTag(QString id)
 {
@@ -532,7 +537,6 @@ void MainWindow::hgTag(QString id)
         }
     }
 }
-
 
 void MainWindow::hgIgnore()
 {
@@ -568,6 +572,18 @@ void MainWindow::hgIgnore()
     m_runner->requestAction(action);
 }
 
+void MainWindow::hgIgnoreFiles(QStringList files)
+{
+    //!!! not implemented yet
+    DEBUG << "MainWindow::hgIgnoreFiles: Not implemented" << endl;
+}
+
+void MainWindow::hgUnIgnoreFiles(QStringList files)
+{
+    //!!! not implemented yet
+    DEBUG << "MainWindow::hgUnIgnoreFiles: Not implemented" << endl;
+}
+
 QString MainWindow::getDiffBinaryName()
 {
     QSettings settings;
@@ -600,6 +616,11 @@ void MainWindow::hgShowSummary()
 
 void MainWindow::hgFolderDiff()
 {
+    hgDiffFiles(QStringList());
+}
+
+void MainWindow::hgDiffFiles(QStringList files)
+{
     QString diff = getDiffBinaryName();
     if (diff == "") return;
 
@@ -610,11 +631,10 @@ void MainWindow::hgFolderDiff()
     params << "--config" << "extensions.extdiff=" << "extdiff";
     params << "--program" << diff;
 
-    params << m_hgTabs->getSelectedCommittableFiles(); // may be none: whole dir
+    params << "--" << files; // may be none: whole dir
 
     m_runner->requestAction(HgAction(ACT_FOLDERDIFF, m_workFolderPath, params));
 }
-
 
 void MainWindow::hgDiffToCurrent(QString id)
 {
@@ -632,7 +652,6 @@ void MainWindow::hgDiffToCurrent(QString id)
     m_runner->requestAction(HgAction(ACT_FOLDERDIFF, m_workFolderPath, params));
 }
 
-
 void MainWindow::hgDiffToParent(QString child, QString parent)
 {
     QString diff = getDiffBinaryName();
@@ -649,7 +668,7 @@ void MainWindow::hgDiffToParent(QString child, QString parent)
 
     m_runner->requestAction(HgAction(ACT_CHGSETDIFF, m_workFolderPath, params));
 }
-
+    
 
 void MainWindow::hgShowSummaryFor(Changeset *cs)
 {
@@ -687,11 +706,15 @@ void MainWindow::hgUpdateToRev(QString id)
 
 void MainWindow::hgRevert()
 {
+    hgRevertFiles(QStringList());
+}
+
+void MainWindow::hgRevertFiles(QStringList files)
+{
     QStringList params;
     QString comment;
     bool all = false;
 
-    QStringList files = m_hgTabs->getSelectedRevertableFiles();
     QStringList allFiles = m_hgTabs->getAllRevertableFiles();
     if (files.empty() || files == allFiles) {
         files = allFiles;
@@ -758,7 +781,7 @@ void MainWindow::hgRevert()
 }
 
 
-void MainWindow::hgMarkResolved(QStringList files)
+void MainWindow::hgMarkFilesResolved(QStringList files)
 {
     QStringList params;
 
@@ -774,7 +797,13 @@ void MainWindow::hgMarkResolved(QStringList files)
 }
 
 
-void MainWindow::hgRetryMerge()
+void MainWindow::hgRedoMerge()
+{
+    hgRedoFileMerges(QStringList());
+}
+
+
+void MainWindow::hgRedoFileMerges(QStringList files)
 {
     QStringList params;
 
@@ -785,7 +814,6 @@ void MainWindow::hgRetryMerge()
         params << "--tool" << merge;
     }
 
-    QStringList files = m_hgTabs->getSelectedUnresolvedFiles();
     if (files.empty()) {
         params << "--all";
     } else {
@@ -800,12 +828,12 @@ void MainWindow::hgRetryMerge()
 
     m_mergeCommitComment = tr("Merge");
 }
-
+    
 
 void MainWindow::hgMerge()
 {
     if (m_hgTabs->canResolve()) {
-        hgRetryMerge();
+        hgRedoMerge();
         return;
     }
 
@@ -1427,49 +1455,6 @@ void MainWindow::settings()
     }
 }
 
-#define STDOUT_NEEDS_BIG_WINDOW 512
-#define SMALL_WND_W     500
-#define SMALL_WND_H     300
-
-#define BIG_WND_W       1024
-#define BIG_WND_H       768
-
-
-void MainWindow::presentLongStdoutToUser(QString stdo)
-{
-    if (!stdo.isEmpty())
-    {
-        QDialog dlg;
-
-        if (stdo.length() > STDOUT_NEEDS_BIG_WINDOW)
-        {
-            dlg.setMinimumWidth(BIG_WND_W);
-            dlg.setMinimumHeight(BIG_WND_H);
-        }
-        else
-        {
-            dlg.setMinimumWidth(SMALL_WND_W);
-            dlg.setMinimumHeight(SMALL_WND_H);
-        }
-
-        QVBoxLayout *box = new QVBoxLayout;
-        QListWidget *list = new QListWidget;
-        list-> addItems(stdo.split("\n"));
-        QPushButton *btn = new QPushButton(tr("Ok"));
-        connect(btn, SIGNAL(clicked()), &dlg, SLOT(accept()));
-
-        box -> addWidget(list);
-        box -> addWidget(btn);
-        dlg.setLayout(box);
-
-        dlg.exec();
-    }
-    else
-    {
-        QMessageBox::information(this, tr("EasyMercurial"), tr("Mercurial command did not return any output."));
-    }
-}
-
 void MainWindow::updateFileSystemWatcher()
 {
     bool justCreated = false;
@@ -1667,7 +1652,7 @@ void MainWindow::showPullResult(QString output)
     int n = extractChangeCount(output);
     if (n > 0) {
         head = tr("Pulled %n changeset(s)", "", n);
-        report = tr("The new changes will be highlighted in the history.<br>Use Update to bring these changes into your working copy.");
+        report = tr("New changes will be highlighted in yellow in the history.");
     } else if (n == 0) {
         head = tr("No changes to pull");
         report = tr("Your local repository already contains all changes found in the remote repository.");
@@ -1778,7 +1763,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
         // if clone fails, we have no repo
         m_workFolderPath = "";
         enableDisableActions();
-        break;
+        break; // go on to default report
     case ACT_INCOMING:
         // returns non-zero code and no output if the check was
         // successful but there are no changes pending
@@ -1786,7 +1771,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
             showIncoming("");
             return;
         }
-        break;
+        break; // go on to default report
     case ACT_QUERY_HEADS:
         // fails if repo is empty; we don't care (if there's a genuine
         // problem, something else will fail too).  Pretend it
@@ -1805,8 +1790,16 @@ void MainWindow::commandFailed(HgAction action, QString output)
             reportNewRemoteHeads(output);
             return;
         }
+        break; // go on to default report
+    case ACT_MERGE:
+    case ACT_RETRY_MERGE:
+        MoreInformationDialog::information
+            (this, tr("Merge"), tr("Merge failed"),
+             tr("Some files were not merged successfully.<p>You can Merge again to repeat the interactive merge; use Revert to abandon the merge entirely; or edit the files that are in conflict in an editor and, when you are happy with them, choose Mark Resolved in each file's right-button menu."),
+             output);
+        return;
     case ACT_STAT:
-        break; // go on and report
+        break; // go on to default report
     default:
         break;
     }
@@ -1895,9 +1888,12 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
 
     case ACT_ANNOTATE:
-        presentLongStdoutToUser(output);
+    {
+        AnnotateDialog dialog(this, output);
+        dialog.exec();
         m_shouldHgStat = true;
         break;
+    }
         
     case ACT_PULL:
         showPullResult(output);
@@ -1970,7 +1966,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
 
     case ACT_REVERT:
-        hgMarkResolved(m_lastRevertedFiles);
+        hgMarkFilesResolved(m_lastRevertedFiles);
         m_justMerged = false;
         break;
         
@@ -2175,12 +2171,14 @@ void MainWindow::connectActions()
     connect(m_hgPullAct, SIGNAL(triggered()), this, SLOT(hgPull()));
     connect(m_hgPushAct, SIGNAL(triggered()), this, SLOT(hgPush()));
 
-    connect(m_hgAnnotateAct, SIGNAL(triggered()), this, SLOT(hgAnnotate()));
     connect(m_hgServeAct, SIGNAL(triggered()), this, SLOT(hgServe()));
 }
 
 void MainWindow::connectTabsSignals()
 {
+    connect(m_hgTabs, SIGNAL(currentChanged(int)),
+            this, SLOT(enableDisableActions()));
+
     connect(m_hgTabs, SIGNAL(commit()),
             this, SLOT(hgCommit()));
     
@@ -2219,6 +2217,36 @@ void MainWindow::connectTabsSignals()
 
     connect(m_hgTabs, SIGNAL(tag(QString)),
             this, SLOT(hgTag(QString)));
+
+    connect(m_hgTabs, SIGNAL(annotateFiles(QStringList)),
+            this, SLOT(hgAnnotateFiles(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(diffFiles(QStringList)),
+            this, SLOT(hgDiffFiles(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(commitFiles(QStringList)),
+            this, SLOT(hgCommitFiles(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(revertFiles(QStringList)),
+            this, SLOT(hgRevertFiles(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(addFiles(QStringList)),
+            this, SLOT(hgAddFiles(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(removeFiles(QStringList)),
+            this, SLOT(hgRemoveFiles(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(redoFileMerges(QStringList)),
+            this, SLOT(hgRedoFileMerges(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(markFilesResolved(QStringList)),
+            this, SLOT(hgMarkFilesResolved(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(ignoreFiles(QStringList)),
+            this, SLOT(hgIgnoreFiles(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(unIgnoreFiles(QStringList)),
+            this, SLOT(hgUnIgnoreFiles(QStringList)));
 }    
 
 void MainWindow::enableDisableActions()
@@ -2283,7 +2311,6 @@ void MainWindow::enableDisableActions()
     m_hgUpdateAct -> setEnabled(m_localRepoActionsEnabled);
     m_hgCommitAct -> setEnabled(m_localRepoActionsEnabled);
     m_hgMergeAct -> setEnabled(m_localRepoActionsEnabled);
-    m_hgAnnotateAct -> setEnabled(m_localRepoActionsEnabled);
     m_hgServeAct -> setEnabled(m_localRepoActionsEnabled);
     m_hgIgnoreAct -> setEnabled(m_localRepoActionsEnabled);
 
@@ -2459,9 +2486,6 @@ void MainWindow::createActions()
     m_hgMergeAct->setStatusTip(tr("Merge the two independent sets of changes in the local repository into the working folder"));
 
     //Advanced actions
-    //!!! needs to be modified for number
-    m_hgAnnotateAct = new QAction(tr("Annotate"), this);
-    m_hgAnnotateAct -> setStatusTip(tr("Show line-by-line version information for selected file"));
 
     m_hgIgnoreAct = new QAction(tr("Edit .hgignore File"), this);
     m_hgIgnoreAct -> setStatusTip(tr("Edit the .hgignore file, containing the names of files that should be ignored by Mercurial"));
