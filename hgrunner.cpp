@@ -381,6 +381,12 @@ void HgRunner::startCommand(HgAction action)
     bool interactive = false;
     QStringList params = action.params;
 
+    if (action.workingDir.isEmpty()) {
+        // We require a working directory, never just operate in pwd
+        emit commandFailed(action, "EasyMercurial: No working directory supplied, will not run Mercurial command without one");
+        return;
+    }
+
     QSettings settings;
     settings.beginGroup("General");
 
@@ -443,9 +449,7 @@ void HgRunner::startCommand(HgAction action)
     connect(m_proc, SIGNAL(readyReadStandardError()),
             this, SLOT(dataReadyStderr()));
 
-    if (!action.workingDir.isEmpty()) {
-        m_proc->setWorkingDirectory(action.workingDir);
-    }
+    m_proc->setWorkingDirectory(action.workingDir);
 
     if (interactive) {
         openTerminal();

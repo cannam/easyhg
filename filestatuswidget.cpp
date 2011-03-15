@@ -157,6 +157,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     layout->addItem(new QSpacerItem(8, 8), ++row, 0);
 
     m_showAllFiles = new QCheckBox(tr("Show all files"), this);
+    m_showAllFiles->setEnabled(false);
     layout->addWidget(m_showAllFiles, ++row, 0, Qt::AlignLeft);
     connect(m_showAllFiles, SIGNAL(toggled(bool)),
             this, SIGNAL(showAllChanged(bool)));
@@ -365,6 +366,9 @@ FileStatusWidget::setLocalPath(QString p)
                 << endl;
         delete m_dateReference;
         m_dateReference = 0;
+        m_showAllFiles->setEnabled(false);
+    } else {
+        m_showAllFiles->setEnabled(true);
     }
 }
 
