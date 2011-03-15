@@ -2445,7 +2445,11 @@ void MainWindow::createActions()
     m_settingsAct = new QAction(QIcon(":/images/settings.png"), tr("Settings..."), this);
     m_settingsAct -> setStatusTip(tr("View and change application settings"));
 
+#ifdef Q_OS_WIN32
+    m_exitAct = new QAction(QIcon(":/images/exit.png"), tr("Exit"), this);
+#else 
     m_exitAct = new QAction(QIcon(":/images/exit.png"), tr("Quit"), this);
+#endif
     m_exitAct->setShortcuts(QKeySequence::Quit);
     m_exitAct->setStatusTip(tr("Quit EasyMercurial"));
 
