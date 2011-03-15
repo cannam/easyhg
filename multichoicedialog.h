@@ -36,7 +36,9 @@ class MultiChoiceDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit MultiChoiceDialog(QString title, QString heading,
+    explicit MultiChoiceDialog(QString title,
+                               QString heading,
+                               QString helpUrl = "",
                                QWidget *parent = 0);
 
     enum ArgType {
@@ -62,11 +64,14 @@ private slots:
     void choiceChanged();
     void urlChanged(const QString &);
     void fileChanged(const QString &);
+    void helpRequested();
     void browse();
 
 private:
     void updateOkButton();
     
+    QString m_helpUrl;
+
     QMap<QString, QString> m_texts;
     QMap<QString, QString> m_descriptions;
     QMap<QString, ArgType> m_argTypes;

@@ -1053,6 +1053,7 @@ void MainWindow::open()
         MultiChoiceDialog *d = new MultiChoiceDialog
                                (tr("Open Repository"),
                                 tr("<qt><big>What would you like to open?</big></qt>"),
+                                tr("https://code.soundsoftware.ac.uk/projects/easyhg/wiki/HelpOpenDialog"),
                                 this);
 
         d->addChoice("local",
@@ -1134,6 +1135,7 @@ void MainWindow::changeRemoteRepo()
     MultiChoiceDialog *d = new MultiChoiceDialog
         (tr("Change Remote Location"),
          tr("<qt><big>Change the remote location</big></qt>"),
+         "",
          this);
 
     d->addChoice("remote",

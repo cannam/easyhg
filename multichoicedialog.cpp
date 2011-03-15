@@ -27,10 +27,13 @@
 #include <QFont>
 #include <QDir>
 #include <QFileDialog>
+#include <QDesktopServices>
 #include <QUrl>
 
-MultiChoiceDialog::MultiChoiceDialog(QString title, QString heading, QWidget *parent) :
-    QDialog(parent)
+MultiChoiceDialog::MultiChoiceDialog(QString title, QString heading,
+                                     QString helpUrl, QWidget *parent) :
+    QDialog(parent),
+    m_helpUrl(helpUrl)
 {
     setModal(true);
     setWindowTitle(title);
@@ -77,16 +80,32 @@ MultiChoiceDialog::MultiChoiceDialog(QString title, QString heading, QWidget *pa
     outer->addWidget(m_browseButton, 4, 2);
     connect(m_browseButton, SIGNAL(clicked()), this, SLOT(browse()));
 
-    QDialogButtonBox *bbox = new QDialogButtonBox(QDialogButtonBox::Ok |
-                                                  QDialogButtonBox::Cancel);
+    outer->addItem(new QSpacerItem(2, 12), 5, 0);
+
+    QDialogButtonBox *bbox;
+    if (helpUrl != "") {
+        bbox = new QDialogButtonBox(QDialogButtonBox::Help |
+                                    QDialogButtonBox::Ok |
+                                    QDialogButtonBox::Cancel);
+    } else {
+        bbox = new QDialogButtonBox(QDialogButtonBox::Ok |
+                                    QDialogButtonBox::Cancel);
+    }        
     connect(bbox, SIGNAL(accepted()), this, SLOT(accept()));
     connect(bbox, SIGNAL(rejected()), this, SLOT(reject()));
-    outer->addWidget(bbox, 5, 0, 1, 3);
+    connect(bbox, SIGNAL(helpRequested()), this, SLOT(helpRequested()));
+    outer->addWidget(bbox, 6, 0, 1, 3);
 
     m_okButton = bbox->button(QDialogButtonBox::Ok);
     updateOkButton();
 
     setMinimumWidth(480);
+}
+
+void
+MultiChoiceDialog::helpRequested()
+{
+    QDesktopServices::openUrl(m_helpUrl);
 }
 
 QString
