@@ -83,6 +83,8 @@ private:
     QLabel *m_urlLabel;
     QComboBox *m_urlCombo;
     QAbstractButton *m_okButton;
+
+    QString getDefaultPath() const;
 };
 
 #endif // MULTICHOICEDIALOG_H

@@ -165,17 +165,31 @@ MultiChoiceDialog::addChoice(QString id, QString text,
     }
 }
 
+QString
+MultiChoiceDialog::getDefaultPath() const
+{
+    QDir home(QDir::home());
+    QDir dflt;
+
+    dflt = QDir(home.filePath(tr("My Documents")));
+    DEBUG << "testing " << dflt << endl;
+    if (dflt.exists()) return dflt.canonicalPath();
+
+    dflt = QDir(home.filePath(tr("Documents")));
+    DEBUG << "testing " << dflt << endl;
+    if (dflt.exists()) return dflt.canonicalPath();
+
+    DEBUG << "all failed, returning " << home << endl;
+    return home.canonicalPath();
+}
+
 void
 MultiChoiceDialog::browse()
 {
     QString origin = getArgument();
 
     if (origin == "") {
-#ifdef Q_OS_WIN32
-        origin = "c:";
-#else
-        origin = QDir::homePath();
-#endif
+        origin = getDefaultPath();
     }
 
     QString path = origin;
@@ -319,7 +333,7 @@ MultiChoiceDialog::choiceChanged()
         m_fileLabel->setText(tr("&Folder:"));
         m_fileLabel->show();
         m_fileCombo->show();
-        m_fileCombo->lineEdit()->setText(QDir::homePath());
+        m_fileCombo->lineEdit()->setText(getDefaultPath());
         m_browseButton->show();
         break;
     }
