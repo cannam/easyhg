@@ -1055,11 +1055,6 @@ void MainWindow::open()
                                 tr("<qt><big>What would you like to open?</big></qt>"),
                                 this);
 
-        d->addChoice("remote",
-                     tr("<qt><center><img src=\":images/browser-64.png\"><br>Remote repository</center></qt>"),
-                     tr("Open a remote Mercurial repository, by cloning from its URL into a local folder."),
-                     MultiChoiceDialog::UrlToDirectoryArg);
-
         d->addChoice("local",
                      tr("<qt><center><img src=\":images/hglogo-64.png\"><br>Local repository</center></qt>"),
                      tr("Open an existing local Mercurial repository."),
@@ -1069,6 +1064,11 @@ void MainWindow::open()
                      tr("<qt><center><img src=\":images/hdd_unmount-64.png\"><br>File folder</center></qt>"),
                      tr("Open a local folder, by creating a Mercurial repository in it."),
                      MultiChoiceDialog::DirectoryArg);
+
+        d->addChoice("remote",
+                     tr("<qt><center><img src=\":images/browser-64.png\"><br>Remote repository</center></qt>"),
+                     tr("Open a remote Mercurial repository, by cloning from its URL into a local folder."),
+                     MultiChoiceDialog::UrlToDirectoryArg);
 
         QSettings settings;
         settings.beginGroup("General");
