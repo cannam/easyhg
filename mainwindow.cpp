@@ -2254,7 +2254,8 @@ void MainWindow::enableDisableActions()
     DEBUG << "MainWindow::enableDisableActions" << endl;
 
     QString dirname = QDir(m_workFolderPath).dirName();
-    if (dirname != "") {
+
+    if (m_workFolderPath != "") { // dirname of "" is ".", so test path instead
         setWindowTitle(tr("EasyMercurial: %1").arg(dirname));
     } else {
         setWindowTitle(tr("EasyMercurial"));
@@ -2598,7 +2599,7 @@ void MainWindow::readSettings()
     }
 
     QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
-    QSize size = settings.value("size", QSize(400, 400)).toSize();
+    QSize size = settings.value("size", QSize(550, 550)).toSize();
     m_firstStart = settings.value("firststart", QVariant(true)).toBool();
 
     resize(size);
