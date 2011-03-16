@@ -1779,9 +1779,20 @@ void MainWindow::commandFailed(HgAction action, QString output)
     case ACT_INCOMING:
         // returns non-zero code and no output if the check was
         // successful but there are no changes pending
-        if (output.replace(QRegExp("(^|\\n)warning: [^\\n]*\\n"), "").trimmed() == "") {
-            showIncoming("");
-            return;
+        {
+            QString replaced = output;
+            while (1) {
+                QString r1 = replaced;
+                r1.replace(QRegExp("warning: [^\\n]*"), "");
+                if (r1 == replaced) break;
+                replaced = r1.trimmed();
+            }
+//            DEBUG << "incoming: text is " << output << endl;
+//            DEBUG << "replaced is " << replaced << endl;
+            if (replaced == "") {
+                showIncoming("");
+                return;
+            }
         }
         break; // go on to default report
     case ACT_QUERY_HEADS:
