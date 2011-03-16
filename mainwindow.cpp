@@ -1243,14 +1243,25 @@ bool MainWindow::complainAboutCloneToFile(QString arg)
 
 QString MainWindow::complainAboutCloneToExistingFolder(QString arg, QString remote)
 {
-    // If the directory "arg" exists but "arg" plus the last path
-    // component of "remote" does not, then offer the latter as an
-    // alternative path
+    // If the directory "arg" exists but is empty, then we accept it.
+
+    // If the directory "arg" exists and is non-empty, but "arg" plus
+    // the last path component of "remote" does not exist, then offer
+    // the latter as an alternative path.
 
     QString offer;
 
     QDir d(arg);
+
     if (d.exists()) {
+
+        if (d.entryList(QDir::Dirs | QDir::Files |
+                        QDir::NoDotAndDotDot |
+                        QDir::Hidden | QDir::System).empty()) {
+            // directory is empty; accept it
+            return arg;
+        }
+
         if (QRegExp("^\\w+://").indexIn(remote) >= 0) {
             QString rpath = QUrl(remote).path();
             if (rpath != "") {
