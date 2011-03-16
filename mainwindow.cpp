@@ -1961,6 +1961,10 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
 
     case ACT_COMMIT:
+        if (m_currentParents.empty()) {
+            // first commit to empty repo
+            m_needNewLog = true;
+        }
         m_hgTabs->clearSelections();
         m_justMerged = false;
         m_shouldHgStat = true;
