@@ -1042,6 +1042,7 @@ void MainWindow::startupDialog()
 {
     StartupDialog *dlg = new StartupDialog(this);
     if (dlg->exec()) m_firstStart = false;
+    else exit(0);
 }
 
 void MainWindow::open()
