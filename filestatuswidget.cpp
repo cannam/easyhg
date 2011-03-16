@@ -251,8 +251,21 @@ void FileStatusWidget::menuActionActivated()
 void FileStatusWidget::itemDoubleClicked(QListWidgetItem *item)
 {
     QStringList files;
-    files << item->text();
-    emit annotateFiles(files);
+    QString file = item->text();
+    files << file;
+
+    switch (m_fileStates.stateOf(file)) {
+
+    case FileStates::Modified:
+    case FileStates::InConflict:
+        emit diffFiles(files);
+        break;
+
+    case FileStates::Clean:
+    case FileStates::Missing:
+        emit annotateFiles(files);
+        break;
+    }
 }
 
 void FileStatusWidget::itemSelectionChanged()
