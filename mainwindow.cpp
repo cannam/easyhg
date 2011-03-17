@@ -1802,6 +1802,9 @@ void MainWindow::commandFailed(HgAction action, QString output)
         if (output.contains("authorization failed")) {
             reportAuthFailed(output);
             return;
+        } else if (output.contains("entry cancelled")) {
+            // ignore this, user cancelled username or password dialog
+            return;
         } else {
             // Incoming returns non-zero code and no output if the
             // check was successful but there are no changes
@@ -1826,6 +1829,9 @@ void MainWindow::commandFailed(HgAction action, QString output)
         if (output.contains("authorization failed")) {
             reportAuthFailed(output);
             return;
+        } else if (output.contains("entry cancelled")) {
+            // ignore this, user cancelled username or password dialog
+            return;
         }
         break; // go on to default report
     case ACT_PUSH:
@@ -1834,6 +1840,9 @@ void MainWindow::commandFailed(HgAction action, QString output)
             return;
         } else if (output.contains("authorization failed")) {
             reportAuthFailed(output);
+            return;
+        } else if (output.contains("entry cancelled")) {
+            // ignore this, user cancelled username or password dialog
             return;
         }
         break; // go on to default report
