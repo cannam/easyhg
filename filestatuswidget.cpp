@@ -61,6 +61,8 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_actionLabels[FileStates::Diff] = tr("Diff to parent");
     m_actionLabels[FileStates::Commit] = tr("Commit...");
     m_actionLabels[FileStates::Revert] = tr("Revert to last committed state");
+    m_actionLabels[FileStates::Rename] = tr("Rename...");
+    m_actionLabels[FileStates::Copy] = tr("Copy...");
     m_actionLabels[FileStates::Add] = tr("Add to version control");
     m_actionLabels[FileStates::Remove] = tr("Remove from version control");
     m_actionLabels[FileStates::RedoMerge] = tr("Redo merge");
@@ -239,6 +241,8 @@ void FileStatusWidget::menuActionActivated()
     case FileStates::Diff: emit diffFiles(files); break;
     case FileStates::Commit: emit commitFiles(files); break;
     case FileStates::Revert: emit revertFiles(files); break;
+    case FileStates::Rename: emit renameFiles(files); break;
+    case FileStates::Copy: emit copyFiles(files); break;
     case FileStates::Add: emit addFiles(files); break;
     case FileStates::Remove: emit removeFiles(files); break;
     case FileStates::RedoMerge: emit redoFileMerges(files); break;
