@@ -125,6 +125,7 @@ private:
     void readSettings();
     void splitChangeSets(QStringList *list, QString hgLogOutput);
     void reportNewRemoteHeads(QString);
+    void reportAuthFailed(QString);
     void writeSettings();
 
     QStringList listAllUpIpV4Addresses();
