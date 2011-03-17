@@ -52,6 +52,12 @@ HgTabWidget::HgTabWidget(QWidget *parent,
     connect(m_fileStatusWidget, SIGNAL(revertFiles(QStringList)),
             this, SIGNAL(revertFiles(QStringList)));
 
+    connect(m_fileStatusWidget, SIGNAL(renameFiles(QStringList)),
+            this, SIGNAL(renameFiles(QStringList)));
+
+    connect(m_fileStatusWidget, SIGNAL(copyFiles(QStringList)),
+            this, SIGNAL(copyFiles(QStringList)));
+
     connect(m_fileStatusWidget, SIGNAL(addFiles(QStringList)),
             this, SIGNAL(addFiles(QStringList)));
 

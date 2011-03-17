@@ -98,6 +98,8 @@ private slots:
     void hgDiffFiles(QStringList);
     void hgCommitFiles(QStringList);
     void hgRevertFiles(QStringList);
+    void hgRenameFiles(QStringList);
+    void hgCopyFiles(QStringList);
     void hgAddFiles(QStringList);
     void hgRemoveFiles(QStringList);
     void hgRedoFileMerges(QStringList);
