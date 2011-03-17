@@ -1722,6 +1722,16 @@ void MainWindow::reportNewRemoteHeads(QString output)
     }
 }
 
+void MainWindow::reportAuthFailed(QString output)
+{
+    MoreInformationDialog::warning
+        (this,
+         tr("Authorization failed"),
+         tr("Authorization failed"),
+         tr("You may have entered an incorrect user name or password, or the remote URL may be wrong.<br><br>Or you may lack the necessary permissions on the remote repository.<br><br>Check with the administrator of your remote repository if necessary."),
+         output);
+}
+
 void MainWindow::commandStarting(HgAction action)
 {
     // Annoyingly, hg stat actually modifies the working directory --
@@ -1747,7 +1757,14 @@ void MainWindow::commandFailed(HgAction action, QString output)
     setstr = tr("Settings");
 #endif
 
-    // Some commands we just have to ignore bad return values from:
+    // Some commands we just have to ignore bad return values from,
+    // and some output gets special treatment.
+
+    // Note our fallback case should always be to report a
+    // non-specific error and show the text -- in case output scraping
+    // fails (as it surely will).  Note also that we must force the
+    // locale in order to ensure the output is scrapable; this happens
+    // in HgRunner and may break some system encodings.
 
     switch(action.action) {
     case ACT_NONE:
@@ -1777,9 +1794,16 @@ void MainWindow::commandFailed(HgAction action, QString output)
         enableDisableActions();
         break; // go on to default report
     case ACT_INCOMING:
-        // returns non-zero code and no output if the check was
-        // successful but there are no changes pending
-        {
+        if (output.contains("authorization failed")) {
+            reportAuthFailed(output);
+            return;
+        } else {
+            // Incoming returns non-zero code and no output if the
+            // check was successful but there are no changes
+            // pending. This is the only case where we need to remove
+            // warning messages, because it's the only case where a
+            // non-zero code can be returned even though the command
+            // has for our purposes succeeded
             QString replaced = output;
             while (1) {
                 QString r1 = replaced;
@@ -1787,12 +1811,25 @@ void MainWindow::commandFailed(HgAction action, QString output)
                 if (r1 == replaced) break;
                 replaced = r1.trimmed();
             }
-//            DEBUG << "incoming: text is " << output << endl;
-//            DEBUG << "replaced is " << replaced << endl;
             if (replaced == "") {
                 showIncoming("");
                 return;
             }
+        }
+        break; // go on to default report
+    case ACT_PULL:
+        if (output.contains("authorization failed")) {
+            reportAuthFailed(output);
+            return;
+        }
+        break; // go on to default report
+    case ACT_PUSH:
+        if (output.contains("creates new remote heads")) {
+            reportNewRemoteHeads(output);
+            return;
+        } else if (output.contains("authorization failed")) {
+            reportAuthFailed(output);
+            return;
         }
         break; // go on to default report
     case ACT_QUERY_HEADS:
@@ -1808,12 +1845,6 @@ void MainWindow::commandFailed(HgAction action, QString output)
         // and some return with failure codes when something as basic
         // as the user closing the window via the wm happens
         return;
-    case ACT_PUSH:
-        if (output.contains("creates new remote heads")) {
-            reportNewRemoteHeads(output);
-            return;
-        }
-        break; // go on to default report
     case ACT_MERGE:
     case ACT_RETRY_MERGE:
         MoreInformationDialog::information
