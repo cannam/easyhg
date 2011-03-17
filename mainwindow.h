@@ -60,6 +60,7 @@ private slots:
     void open();
     void recentMenuActivated();
     void changeRemoteRepo();
+    void changeRemoteRepo(bool initial);
     void startupDialog();
     void clearSelections();
     void showAllChanged(bool);
