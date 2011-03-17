@@ -54,7 +54,7 @@ def easyhg_prompt(self, msg, default="y"):
         self.write(msg, ' ', default, "\n")
         return default
     if msg == _('user:'):
-        msg = _('User:')
+        msg = _('Username for remote repository:')
     d = QtGui.QInputDialog()
     d.setInputMode(QtGui.QInputDialog.TextInput)
     d.setTextEchoMode(QtGui.QLineEdit.Normal)
@@ -65,7 +65,7 @@ def easyhg_prompt(self, msg, default="y"):
     ok = d.exec_()
     r = d.textValue()
     if not ok:
-        raise util.Abort(_('response expected'))
+        raise util.Abort(_('username entry cancelled'))
     if not r:
         return default
     return r
@@ -74,7 +74,7 @@ def easyhg_getpass(self, prompt=None, default=None):
     if not self.interactive():
         return default
     if not prompt or prompt == _('password:'):
-        prompt = _('Password:');
+        prompt = _('Password for remote repository:');
     d = QtGui.QInputDialog()
     d.setInputMode(QtGui.QInputDialog.TextInput)
     d.setTextEchoMode(QtGui.QLineEdit.Password)
@@ -85,8 +85,9 @@ def easyhg_getpass(self, prompt=None, default=None):
     ok = d.exec_()
     r = d.textValue()
     if not ok:
-        raise util.Abort(_('response expected'))
+        raise util.Abort(_('password entry cancelled'))
     if not r:
         return default
     return r
 
+ 
