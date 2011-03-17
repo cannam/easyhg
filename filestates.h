@@ -51,16 +51,6 @@ public:
     QStringList filesInState(State s) const;
     State stateOf(QString file) const;
 
-/*!!! -- to remove: */
-    QStringList modified() const { return m_modified; }
-    QStringList added() const { return m_added; }
-    QStringList unknown() const { return m_unknown; }
-    QStringList removed() const { return m_removed; }
-    QStringList missing() const { return m_missing; }
-    QStringList inConflict() const { return m_inConflict; }
-    QStringList clean() const { return m_clean; }
-    QStringList ignored() const { return m_ignored; }
-
     enum Activity {
 
         // These are in the order in which they want to be listed in
