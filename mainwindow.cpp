@@ -949,10 +949,15 @@ void MainWindow::hgPull()
 
 void MainWindow::hgPush()
 {
+    QString uncommittedNote;
+    if (m_hgTabs->canCommit()) {
+        uncommittedNote = tr("<p><b>Note:</b> You have uncommitted changes.  If you want to push these changes to the remote repository, you need to commit them first.");
+    }
+
     if (ConfirmCommentDialog::confirm
         (this, tr("Confirm push"),
          tr("<qt><h3>Push to remote repository?</h3></qt>"),
-         tr("<qt><p>You are about to push your changes to the remote repository at <code>%1</code>.</p></qt>").arg(xmlEncode(m_remoteRepoPath)),
+         tr("<qt><p>You are about to push your commits to the remote repository at <code>%1</code>.</p>%2</qt>").arg(xmlEncode(m_remoteRepoPath)).arg(uncommittedNote),
          tr("Push"))) {
 
         QStringList params;
