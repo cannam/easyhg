@@ -58,6 +58,7 @@ private slots:
     void about();
     void settings();
     void open();
+    void recentMenuActivated();
     void changeRemoteRepo();
     void startupDialog();
     void clearSelections();
@@ -115,6 +116,8 @@ private:
     void hgQueryParents();
     void hgLog();
     void hgLogIncremental(QStringList prune);
+
+    void updateRecentMenu();
     void createActions();
     void connectActions();
     void connectTabsSignals();
@@ -215,6 +218,7 @@ private:
 
     // Menus
     QMenu *m_fileMenu;
+    QMenu *m_recentMenu;
     QMenu *m_advancedMenu;
     QMenu *m_helpMenu;
 
