@@ -1005,6 +1005,11 @@ void MainWindow::hgPull()
 
 void MainWindow::hgPush()
 {
+    if (m_remoteRepoPath.isEmpty()) {
+        changeRemoteRepo(true);
+        if (m_remoteRepoPath.isEmpty()) return;
+    }
+
     QString uncommittedNote;
     if (m_hgTabs->canCommit()) {
         uncommittedNote = tr("<p><b>Note:</b> You have uncommitted changes.  If you want to push these changes to the remote repository, you need to commit them first.");
@@ -1187,6 +1192,11 @@ void MainWindow::recentMenuActivated()
 
 void MainWindow::changeRemoteRepo()
 {
+    changeRemoteRepo(false);
+}
+
+void MainWindow::changeRemoteRepo(bool initial)
+{
     // This will involve rewriting the local .hgrc
 
     QDir hgDir(m_workFolderPath + "/.hg");
@@ -1202,13 +1212,20 @@ void MainWindow::changeRemoteRepo()
     }
 
     MultiChoiceDialog *d = new MultiChoiceDialog
-        (tr("Change Remote Location"),
-         tr("<qt><big>Change the remote location</big></qt>"),
+        (tr("Set Remote Location"),
+         tr("<qt><big>Set the remote location</big></qt>"),
          this);
+
+    QString explanation;
+    if (initial) {
+        explanation = tr("Provide a URL to use for push and pull actions from the current local repository.<br>This will be the default for subsequent pushes and pulls.<br>You can change it using &ldquo;Set Remote Location&rdquo; on the File menu.");
+    } else {
+        explanation = tr("Provide a new URL to use for push and pull actions from the current local repository.");
+    }
 
     d->addChoice("remote",
                  tr("<qt><center><img src=\":images/browser-64.png\"><br>Remote repository</center></qt>"),
-                 tr("Provide a new URL to use for push and pull actions from the current local repository."),
+                 explanation,
                  MultiChoiceDialog::UrlArg);
 
     if (d->exec() == QDialog::Accepted) {
@@ -2435,10 +2452,6 @@ void MainWindow::enableDisableActions()
         localRepoExist = false;
     }
 
-    m_hgIncomingAct -> setEnabled(m_remoteRepoActionsEnabled && m_remoteRepoActionsEnabled);
-    m_hgPullAct -> setEnabled(m_remoteRepoActionsEnabled && m_remoteRepoActionsEnabled);
-    m_hgPushAct -> setEnabled(m_remoteRepoActionsEnabled && m_remoteRepoActionsEnabled);
-
     bool haveDiff = false;
     QSettings settings;
     settings.beginGroup("Locations");
@@ -2529,6 +2542,11 @@ void MainWindow::enableDisableActions()
         m_justMerged = true;
     }
         
+    m_hgIncomingAct->setEnabled(m_remoteRepoActionsEnabled);
+    m_hgPullAct->setEnabled(m_remoteRepoActionsEnabled);
+    // permit push even if no remote yet; we'll ask for one
+    m_hgPushAct->setEnabled(m_localRepoActionsEnabled && !emptyRepo);
+
     m_hgMergeAct->setEnabled(m_localRepoActionsEnabled &&
                            (canMerge || m_hgTabs->canResolve()));
     m_hgUpdateAct->setEnabled(m_localRepoActionsEnabled &&
@@ -2600,8 +2618,8 @@ void MainWindow::createActions()
     m_openAct = new QAction(QIcon(":/images/fileopen.png"), tr("Open..."), this);
     m_openAct -> setStatusTip(tr("Open an existing repository or working folder"));
 
-    m_changeRemoteRepoAct = new QAction(tr("Change Remote Location..."), this);
-    m_changeRemoteRepoAct->setStatusTip(tr("Change the default remote repository for pull and push actions"));
+    m_changeRemoteRepoAct = new QAction(tr("Set Remote Location..."), this);
+    m_changeRemoteRepoAct->setStatusTip(tr("Set or change the default remote repository for pull and push actions"));
 
     m_settingsAct = new QAction(QIcon(":/images/settings.png"), tr("Settings..."), this);
     m_settingsAct -> setStatusTip(tr("View and change application settings"));
