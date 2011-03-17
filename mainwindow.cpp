@@ -29,6 +29,7 @@
 #include <QToolButton>
 #include <QSettings>
 #include <QInputDialog>
+#include <QWidgetAction>
 #include <QRegExp>
 #include <QShortcut>
 #include <QUrl>
@@ -129,6 +130,7 @@ MainWindow::MainWindow(QString myDirPath) :
     cs->addDefaultName(getUserInfo());
 
     hgTest();
+    updateRecentMenu();
 }
 
 
@@ -1078,11 +1080,11 @@ void MainWindow::open()
 
         QSettings settings;
         settings.beginGroup("General");
-        QString lastChoice = settings.value("lastopentype", "local").toString();
+        QString lastChoice = settings.value("lastopentype", "remote").toString();
         if (lastChoice != "local" &&
             lastChoice != "remote" &&
             lastChoice != "init") {
-            lastChoice = "local";
+            lastChoice = "remote";
         }
 
         d->setCurrentChoice(lastChoice);
@@ -1119,6 +1121,14 @@ void MainWindow::open()
 
         delete d;
     }
+}
+
+void MainWindow::recentMenuActivated()
+{
+    QAction *a = qobject_cast<QAction *>(sender());
+    if (!a) return;
+    QString local = a->text();
+    open(local);
 }
 
 void MainWindow::changeRemoteRepo()
@@ -1311,7 +1321,7 @@ bool MainWindow::askToInitExisting(QString arg)
 {
     return (QMessageBox::question
             (this, tr("Folder has no repository"),
-             tr("<qt><b>Initialise a repository here?</b><br><br>You asked to open \"%1\".<br>This folder does not contain a Mercurial repository.<br><br>Would you like to initialise a repository here?</qt>")
+             tr("<qt><b>Initialise a repository here?</b><br><br>You asked to open \"%1\".<br>This folder is not a Mercurial working copy.<br><br>Would you like to initialise a repository here?</qt>")
              .arg(xmlEncode(arg)),
              QMessageBox::Ok | QMessageBox::Cancel,
              QMessageBox::Ok)
@@ -2217,6 +2227,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         m_stateUnknown = false;
         enableDisableActions();
         m_hgTabs->updateHistory();
+        updateRecentMenu();
     }
 }
 
@@ -2505,6 +2516,24 @@ void MainWindow::enableDisableActions()
     }
 }
 
+
+void MainWindow::updateRecentMenu()
+{
+    m_recentMenu->clear();
+    RecentFiles rf("Recent-local");
+    QStringList recent = rf.getRecent();
+    if (recent.empty()) {
+        QLabel *label = new QLabel(tr("No recent local repositories"));
+        QWidgetAction *wa = new QWidgetAction(m_recentMenu);
+        wa->setDefaultWidget(label);
+        return;
+    }
+    foreach (QString r, recent) {
+        QAction *a = m_recentMenu->addAction(r);
+        connect(a, SIGNAL(activated()), this, SLOT(recentMenuActivated()));
+    }
+}
+
 void MainWindow::createActions()
 {
     //File actions
@@ -2584,6 +2613,7 @@ void MainWindow::createMenus()
     m_fileMenu = menuBar()->addMenu(tr("File"));
 
     m_fileMenu -> addAction(m_openAct);
+    m_recentMenu = m_fileMenu->addMenu(tr("Open Recent"));
     m_fileMenu -> addAction(m_changeRemoteRepoAct);
     m_fileMenu -> addSeparator();
 
