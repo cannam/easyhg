@@ -56,6 +56,8 @@ enum HGACTIONS
     ACT_TAG,
     ACT_NEW_BRANCH,
     ACT_HG_IGNORE,
+    ACT_COPY_FILE,
+    ACT_RENAME_FILE
 };
 
 struct HgAction

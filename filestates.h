@@ -62,6 +62,9 @@ public:
         Commit,
         Revert,
 
+        Rename,
+        Copy,
+
         Add,
         Remove,
 

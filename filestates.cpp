@@ -144,11 +144,11 @@ FileStates::Activities FileStates::activitiesSupportedBy(State s)
     switch (s) {
 
     case Modified:
-        a << Annotate << Diff << Commit << Revert << Remove;
+        a << Annotate << Diff << Commit << Revert << Rename << Copy << Remove;
         break;
 
     case Added:
-        a << Commit << Revert << Remove;
+        a << Commit << Revert << Rename << Copy << Remove;
         break;
         
     case Removed:
@@ -168,7 +168,7 @@ FileStates::Activities FileStates::activitiesSupportedBy(State s)
         break;
 
     case Clean:
-        a << Annotate << Remove;
+        a << Annotate << Rename << Copy << Remove;
         break;
 
     case Ignored:
@@ -189,9 +189,10 @@ int FileStates::activityGroup(Activity a)
     switch (a) {
     case Annotate: case Diff: return 0;
     case Commit: case Revert: return 1;
-    case Add: case Remove: return 2;
-    case RedoMerge: case MarkResolved: return 3;
-    case Ignore: case UnIgnore: return 4;
+    case Rename: case Copy: return 2;
+    case Add: case Remove: return 3;
+    case RedoMerge: case MarkResolved: return 4;
+    case Ignore: case UnIgnore: return 5;
     }
     return 0;
 }

@@ -62,6 +62,8 @@ signals:
     void diffFiles(QStringList);
     void commitFiles(QStringList);
     void revertFiles(QStringList);
+    void renameFiles(QStringList);
+    void copyFiles(QStringList);
     void addFiles(QStringList);
     void removeFiles(QStringList);
     void redoFileMerges(QStringList);
