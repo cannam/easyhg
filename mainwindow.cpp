@@ -781,6 +781,60 @@ void MainWindow::hgRevertFiles(QStringList files)
 }
 
 
+void MainWindow::hgRenameFiles(QStringList files)
+{
+    QString renameTo;
+
+    QString file;
+    if (files.empty()) return;
+    file = files[0];
+
+    if (ConfirmCommentDialog::confirmAndGetShortComment
+        (this,
+         tr("Rename"),
+         tr("Rename <code>%1</code> to:").arg(xmlEncode(file)),
+         renameTo,
+         tr("Rename"))) {
+        
+        if (renameTo != "" && renameTo != file) {
+
+            QStringList params;
+
+            params << "rename" << "--" << file << renameTo;
+
+            m_runner->requestAction(HgAction(ACT_RENAME_FILE, m_workFolderPath, params));
+        }
+    }
+}
+
+
+void MainWindow::hgCopyFiles(QStringList files)
+{
+    QString copyTo;
+
+    QString file;
+    if (files.empty()) return;
+    file = files[0];
+
+    if (ConfirmCommentDialog::confirmAndGetShortComment
+        (this,
+         tr("Copy"),
+         tr("Copy <code>%1</code> to:").arg(xmlEncode(file)),
+         copyTo,
+         tr("Copy"))) {
+        
+        if (copyTo != "" && copyTo != file) {
+
+            QStringList params;
+
+            params << "copy" << "--" << file << copyTo;
+
+            m_runner->requestAction(HgAction(ACT_COPY_FILE, m_workFolderPath, params));
+        }
+    }
+}
+
+
 void MainWindow::hgMarkFilesResolved(QStringList files)
 {
     QStringList params;
@@ -2301,6 +2355,12 @@ void MainWindow::connectTabsSignals()
 
     connect(m_hgTabs, SIGNAL(revertFiles(QStringList)),
             this, SLOT(hgRevertFiles(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(renameFiles(QStringList)),
+            this, SLOT(hgRenameFiles(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(copyFiles(QStringList)),
+            this, SLOT(hgCopyFiles(QStringList)));
 
     connect(m_hgTabs, SIGNAL(addFiles(QStringList)),
             this, SLOT(hgAddFiles(QStringList)));
