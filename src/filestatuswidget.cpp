@@ -269,6 +269,9 @@ void FileStatusWidget::itemDoubleClicked(QListWidgetItem *item)
     case FileStates::Missing:
         emit annotateFiles(files);
         break;
+       
+    default:
+        break;
     }
 }
 
