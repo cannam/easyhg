@@ -27,76 +27,78 @@ TRANSLATIONS = easyhg_en.ts
 OBJECTS_DIR = o
 MOC_DIR = o
 
-HEADERS = mainwindow.h \
-    hgtabwidget.h \
-    common.h \
-    grapher.h \
-    hgrunner.h \
-    changeset.h \
-    changesetitem.h \
-    changesetdetailitem.h \
-    logparser.h \
-    panner.h \
-    panned.h \
-    connectionitem.h \
-    textabbrev.h \
-    dateitem.h \
-    colourset.h \
-    debug.h \
-    recentfiles.h \
-    startupdialog.h \
-    repositorydialog.h \
-    multichoicedialog.h \
-    selectablelabel.h \
-    filestates.h \
-    filestatuswidget.h \
-    confirmcommentdialog.h \
-    hgaction.h \
-    historywidget.h \
-    changesetscene.h \
-    incomingdialog.h \
-    uncommitteditem.h \
-    settingsdialog.h \
-    clickablelabel.h \
-    workstatuswidget.h \
-    moreinformationdialog.h \
-    annotatedialog.h
-SOURCES = main.cpp \
-    mainwindow.cpp \
-    hgtabwidget.cpp \
-    hgrunner.cpp \
-    grapher.cpp \
-    common.cpp \
-    changeset.cpp \
-    changesetdetailitem.cpp \
-    changesetitem.cpp \
-    logparser.cpp \
-    panner.cpp \
-    panned.cpp \
-    connectionitem.cpp \
-    textabbrev.cpp \
-    dateitem.cpp \
-    colourset.cpp \
-    debug.cpp \
-    recentfiles.cpp \
-    startupdialog.cpp \
-    repositorydialog.cpp \
-    multichoicedialog.cpp \
-    selectablelabel.cpp \
-    filestates.cpp \
-    filestatuswidget.cpp \
-    confirmcommentdialog.cpp \
-    historywidget.cpp \
-    changesetscene.cpp \
-    incomingdialog.cpp \
-    uncommitteditem.cpp \
-    settingsdialog.cpp \
-    workstatuswidget.cpp \
-    moreinformationdialog.cpp \
-    annotatedialog.cpp
+HEADERS = \
+    src/mainwindow.h \
+    src/hgtabwidget.h \
+    src/common.h \
+    src/grapher.h \
+    src/hgrunner.h \
+    src/changeset.h \
+    src/changesetitem.h \
+    src/changesetdetailitem.h \
+    src/logparser.h \
+    src/panner.h \
+    src/panned.h \
+    src/connectionitem.h \
+    src/textabbrev.h \
+    src/dateitem.h \
+    src/colourset.h \
+    src/debug.h \
+    src/recentfiles.h \
+    src/startupdialog.h \
+    src/repositorydialog.h \
+    src/multichoicedialog.h \
+    src/selectablelabel.h \
+    src/filestates.h \
+    src/filestatuswidget.h \
+    src/confirmcommentdialog.h \
+    src/hgaction.h \
+    src/historywidget.h \
+    src/changesetscene.h \
+    src/incomingdialog.h \
+    src/uncommitteditem.h \
+    src/settingsdialog.h \
+    src/clickablelabel.h \
+    src/workstatuswidget.h \
+    src/moreinformationdialog.h \
+    src/annotatedialog.h
+SOURCES = \
+    src/main.cpp \
+    src/mainwindow.cpp \
+    src/hgtabwidget.cpp \
+    src/hgrunner.cpp \
+    src/grapher.cpp \
+    src/common.cpp \
+    src/changeset.cpp \
+    src/changesetdetailitem.cpp \
+    src/changesetitem.cpp \
+    src/logparser.cpp \
+    src/panner.cpp \
+    src/panned.cpp \
+    src/connectionitem.cpp \
+    src/textabbrev.cpp \
+    src/dateitem.cpp \
+    src/colourset.cpp \
+    src/debug.cpp \
+    src/recentfiles.cpp \
+    src/startupdialog.cpp \
+    src/repositorydialog.cpp \
+    src/multichoicedialog.cpp \
+    src/selectablelabel.cpp \
+    src/filestates.cpp \
+    src/filestatuswidget.cpp \
+    src/confirmcommentdialog.cpp \
+    src/historywidget.cpp \
+    src/changesetscene.cpp \
+    src/incomingdialog.cpp \
+    src/uncommitteditem.cpp \
+    src/settingsdialog.cpp \
+    src/workstatuswidget.cpp \
+    src/moreinformationdialog.cpp \
+    src/annotatedialog.cpp
 
 macx-* {
-    SOURCES += common_osx.mm
+    SOURCES += src/common_osx.mm
     LIBS += -framework Foundation
     ICON = easyhg.icns
 }
