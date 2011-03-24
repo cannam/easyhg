@@ -363,8 +363,15 @@ compareChangesetsByDate(Changeset *const &a, Changeset *const &b)
 ChangesetItem *
 Grapher::getItemFor(Changeset *cs)
 {
-    if (!cs || !m_items.contains(cs->id())) return 0;
-    return m_items[cs->id()];
+    if (!cs) return 0;
+    return getItemFor(cs->id());
+}
+
+ChangesetItem *
+Grapher::getItemFor(QString id)
+{
+    if (!m_items.contains(id)) return 0;
+    return m_items[id];
 }
 
 void Grapher::layout(Changesets csets,

@@ -184,7 +184,11 @@ void HistoryWidget::layoutAll()
 	}
         toFocus = g.getUncommittedItem();
         if (!toFocus) {
-            toFocus = g.getItemFor(m_changesets[0]);
+            if (!m_currentIds.empty()) {
+                toFocus = g.getItemFor(m_currentIds[0]);
+            } else {
+                toFocus = g.getItemFor(m_changesets[0]);
+            }
         }
     }
 

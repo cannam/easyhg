@@ -39,6 +39,7 @@ public:
                 QString uncommittedBranch);
 
     ChangesetItem *getItemFor(Changeset *cs);
+    ChangesetItem *getItemFor(QString id);
 
     UncommittedItem *getUncommittedItem() { return m_uncommitted; }
 
