@@ -21,7 +21,7 @@ install_name_tool -id QtNetwork "$app.app/Contents/Frameworks/QtNetwork"
 
 for fwk in QtCore QtGui QtNetwork; do
         find "$app.app" -type f -print | while read x; do
-                current=$(otool -L "$x" | grep "$fwk.framework/" | awk '{ print $1; }')
+                current=$(otool -L "$x" | grep "$fwk" | grep ramework | awk '{ print $1; }')
                 [ -z "$current" ] && continue
                 echo "$x has $current"
                 relative=$(echo "$x" | sed -e "s,$app.app/Contents/,," \
