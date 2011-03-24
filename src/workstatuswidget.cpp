@@ -53,6 +53,7 @@ WorkStatusWidget::WorkStatusWidget(QWidget *parent) :
     ++row;
     layout->addWidget(new QLabel(tr("Remote:")), row, 1);
     m_remoteURLLabel = new QLabel;
+    m_remoteURLLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
     layout->addWidget(m_remoteURLLabel, row, 2, 1, 2);
 
     ++row;
