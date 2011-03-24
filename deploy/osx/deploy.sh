@@ -13,7 +13,7 @@ if [ -z "$source" ] || [ ! -d "$source" ] || [ -z "$dmg" ]; then
 fi
 app=EasyMercurial
 
-version=`perl -p -e 's/^[^"]*"([^"]*)".*$/$1/' version.h`
+version=`perl -p -e 's/^[^"]*"([^"]*)".*$/$1/' src/version.h`
 case "$version" in
     [0-9].[0-9]) bundleVersion="$version".0 ;;
     [0-9].[0-9].[0-9]) bundleVersion="$version" ;;

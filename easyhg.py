@@ -26,8 +26,8 @@ easyhg_import_path = 'NO_EASYHG_IMPORT_PATH'
 if not easyhg_import_path.startswith('NO_'):
     # We have an installation path: append it twice, once with
     # the Python version suffixed
-    version_suffix = "Py" + sys.version_info[0] + "." + sys.version_info[1];
-    sys.path.append(easyhg_import_path + version_suffix)
+    version_suffix = "Py" + str(sys.version_info[0]) + "." + str(sys.version_info[1]);
+    sys.path.append(easyhg_import_path + "/" + version_suffix)
     sys.path.append(easyhg_import_path)
 
 # Try to load the PyQt4 module that we need.  If this fails, we should
