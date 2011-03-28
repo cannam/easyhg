@@ -219,8 +219,6 @@ void MainWindow::hgRefresh()
 void MainWindow::hgTest()
 {
     QStringList params;
-    //!!! should we test version output? Really we want at least 1.7.x
-    //!!! for options such as merge --tool
     params << "--version";
     m_runner->requestAction(HgAction(ACT_TEST_HG, m_myDirPath, params));
 }
@@ -1980,7 +1978,24 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     switch (action) {
 
     case ACT_TEST_HG:
+    {
+        QRegExp versionRE("^Mercurial.*version ([\\d+])\\.([\\d+])");
+        int pos = versionRE.indexIn(output);
+        if (pos >= 0) {
+            int major = versionRE.cap(1).toInt();
+            int minor = versionRE.cap(2).toInt();
+            // We need v1.7 or newer
+            if (major < 1 || (major == 1 && minor < 7)) {
+                MoreInformationDialog::warning
+                    (this,
+                     tr("Newer Mercurial version required"),
+                     tr("Newer Mercurial version required"),
+                     tr("To use EasyMercurial, you should have at least Mercurial v1.7 installed.<br><br>The version found on this system (v%1.%2) does not support all of the features required by EasyMercurial.").arg(major).arg(minor),
+                     output);
+            }
+        }
         break;
+    }
 
     case ACT_TEST_HG_EXT:
         break;
