@@ -18,5 +18,5 @@ if not "%SEARCH%"=="" goto loop;
 if "%found%"=="" (
     echo. "Failed to find kdiff.exe in path"
 ) else (
-    "%found%" "%~2" "%~1" "%~3" -o "%~1"
+    "%found%" "%~2" "%~1" "%~3" -o "%~1" --auto -L1 "%~1 (Common ancestor)" -L2 "%~1 (Your current version)" -L3 "%~1 (Version being merged)"
 )

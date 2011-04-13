@@ -13,10 +13,15 @@ left="$1"
 ancestor="$2"
 right="$3"
 for d in kdiff3 kdiff3.exe; do
-    if [ -x "$p/$d" ]; then
-	exec "$p/$d" "$ancestor" "$left" "$right" -o "$out"
-    elif [ -x "$(type -path $d)" ]; then
-	exec "$d" "$ancestor" "$left" "$right" -o "$out"
+    exe="$p/$d"
+    if [ ! -x "$exe" ]; then
+	exe="$(type -path $d)"
+	if [ ! -x "$exe" ]; then
+	    exe=""
+	fi
+    fi
+    if [ -n "$exe" ]; then
+	exec "$exe" "$ancestor" "$left" "$right" --output "$out" --auto -L1 "`basename $left` (Common ancestor)" -L2 "$left (Your current version)" -L3 "`basename $left` (Version being merged)"
     fi
 done
 fm=/Developer/Applications/Utilities/FileMerge.app/Contents/MacOS/FileMerge
