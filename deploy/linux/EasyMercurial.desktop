@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+Categories=Development
+Exec=EasyMercurial %f
+MimeType=
+X-KDE-NativeMimeType=
+Icon=easyhg-icon.png
+Comment=A simple user interface for the Mercurial version-control system
+Terminal=false
+Name=EasyMercurial
