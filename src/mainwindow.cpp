@@ -220,14 +220,22 @@ void MainWindow::hgTest()
 {
     QStringList params;
     params << "--version";
-    m_runner->requestAction(HgAction(ACT_TEST_HG, m_myDirPath, params));
+    // The path is not necessarily set here, but we need something for
+    // this test or else HgRunner will (cautiously) refuse to run
+    QString path = m_myDirPath;
+    if (path == "") path = QDir::homePath();
+    m_runner->requestAction(HgAction(ACT_TEST_HG, path, params));
 }
 
 void MainWindow::hgTestExtension()
 {
     QStringList params;
     params << "--version";
-    m_runner->requestAction(HgAction(ACT_TEST_HG_EXT, m_myDirPath, params));
+    // The path is not necessarily set here, but we need something for
+    // this test or else HgRunner will (cautiously) refuse to run
+    QString path = m_myDirPath;
+    if (path == "") path = QDir::homePath();
+    m_runner->requestAction(HgAction(ACT_TEST_HG_EXT, path, params));
 }
 
 void MainWindow::hgStat()
