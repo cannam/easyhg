@@ -122,6 +122,12 @@ RecentFiles::addFile(QString name)
 {
     static QRegExp schemeRE("^[a-zA-Z]{2,5}://");
     static QRegExp tempRE("[\\/][Tt]e?mp[\\/]");
+    if (name.endsWith("/")) {
+        name = name.left(name.length()-1);
+    }
+    if (name == "") {
+        return;
+    }
     if (schemeRE.indexIn(name) == 0) {
         add(name);
     } else {
