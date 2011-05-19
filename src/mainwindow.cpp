@@ -2091,7 +2091,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         MoreInformationDialog::information
             (this,
              tr("Clone"),
-             tr("Clone successful"),
+             tr("Open successful"),
              tr("The remote repository was successfully cloned to the local folder <code>%1</code>.").arg(xmlEncode(m_workFolderPath)),
              output);
         enableDisableActions();
