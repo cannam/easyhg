@@ -68,6 +68,7 @@ ChangesetItem::showDetail()
     scene()->addItem(m_detail);
     int w = 100;
     if (m_wide) w = 180;
+    if (isMerge()) w = 60;
     int h = 80;
 //    m_detail->moveBy(x() - (m_detail->boundingRect().width() - 50) / 2,
 //                     y() + 60);
@@ -240,6 +241,22 @@ void ChangesetItem::newBranchActivated() { emit newBranch(getId()); }
 void
 ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget *)
 {
+    if (isMerge()) {
+        paintMerge(paint);
+    } else {
+        paintNormal(paint);
+    }
+}
+
+bool
+ChangesetItem::isMerge() const
+{
+    return (m_changeset && m_changeset->parents().size() > 1);
+}
+
+void
+ChangesetItem::paintNormal(QPainter *paint)
+{
     paint->save();
     
     ColourSet *colourSet = ColourSet::instance();
@@ -391,3 +408,59 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget 
 
     paint->restore();
 }
+
+void
+ChangesetItem::paintMerge(QPainter *paint)
+{
+    paint->save();
+    
+    ColourSet *colourSet = ColourSet::instance();
+    QColor branchColour = colourSet->getColourFor(m_changeset->branch());
+    QColor userColour = colourSet->getColourFor(m_changeset->author());
+
+    QFont f(m_font);
+
+    QTransform t = paint->worldTransform();
+    float scale = std::min(t.m11(), t.m22());
+    if (scale > 1.0) {
+	int ps = int((f.pixelSize() / scale) + 0.5);
+	if (ps < 8) ps = 8;
+	f.setPixelSize(ps);
+    }
+
+    bool showText = (scale >= 0.2);
+    bool showProperLines = (scale >= 0.1);
+
+    if (!showProperLines) {
+	paint->setPen(QPen(branchColour, 0));
+    } else {
+	paint->setPen(QPen(branchColour, 2));
+    }
+	
+    paint->setFont(f);
+    QFontMetrics fm(f);
+    int fh = fm.height();
+    int size = fh * 2;
+    int x0 = -size/2 + 25;
+
+    paint->setBrush(Qt::white);
+    paint->drawEllipse(QRectF(x0, fh, size, size));
+
+    if (m_showBranch) {
+	// write branch name
+        paint->save();
+	f.setBold(true);
+	paint->setFont(f);
+	paint->setPen(QPen(branchColour));
+	QString branch = m_changeset->branch();
+        if (branch == "") branch = "default";
+	int wid = size * 3;
+	branch = TextAbbrev::abbreviate(branch, QFontMetrics(f), wid);
+	paint->drawText(-wid/2 + 25, fm.ascent() - 4, branch);
+	f.setBold(false);
+        paint->restore();
+    }
+
+    paint->restore();
+}
+
