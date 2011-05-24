@@ -38,9 +38,11 @@ ColourSet::getColourFor(QString n)
     QColor c;
 
     if (m_colours.empty()) {
-	c = QColor::fromHsv(0, 200, 100);
+	c = QColor::fromHsv(0, 200, 150);
     } else {
-	c = QColor::fromHsv((m_lastColour.hue() + 70) % 360, 200, 100);
+        int hue = m_lastColour.hue() - 130;
+        if (hue < 0) hue += 360;
+	c = QColor::fromHsv(hue, 200, 150);
     }
 
     m_colours[n] = c;
