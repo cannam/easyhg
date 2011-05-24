@@ -324,20 +324,23 @@ ChangesetItem::paintNormal(QPainter *paint)
 
     if (showProperLines) {
 
-        paint->setBrush(Qt::white);
+        if (m_new) {
+            paint->setBrush(QColor(255, 255, 156));
+        } else {
+            paint->setBrush(Qt::white);
+        }            
 
         if (m_current) {
             paint->drawRoundedRect(QRectF(x0 - 4, -4, width + 5, height + 8),
                                    10, 10);
-        }
-
-        if (m_new) {
-            paint->save();
-            paint->setPen(Qt::yellow);
-            paint->setBrush(Qt::NoBrush);
-            paint->drawRoundedRect(QRectF(x0 - 2, -2, width + 1, height + 4),
-                                   10, 10);
-            paint->restore();
+            if (m_new) {
+                paint->save();
+                paint->setPen(Qt::yellow);
+                paint->setBrush(Qt::NoBrush);
+                paint->drawRoundedRect(QRectF(x0 - 2, -2, width + 1, height + 4),
+                                       10, 10);
+                paint->restore();
+            }
         }
     }
 
@@ -455,20 +458,24 @@ ChangesetItem::paintMerge(QPainter *paint)
     int size = fh * 2;
     int x0 = -size/2 + 25;
 
-    paint->setBrush(Qt::white);
+    if (m_new) {
+        paint->setBrush(QColor(255, 255, 156));
+    } else {
+        paint->setBrush(Qt::white);
+    }
 
     if (showProperLines) {
 
         if (m_current) {
             paint->drawEllipse(QRectF(x0 - 4, fh - 4, size + 8, size + 8));
-        }
 
-        if (m_new) {
-            paint->save();
-            paint->setPen(Qt::yellow);
-            paint->setBrush(Qt::NoBrush);
-            paint->drawEllipse(QRectF(x0 - 2, fh - 2, size + 4, size + 4));
-            paint->restore();
+            if (m_new) {
+                paint->save();
+                paint->setPen(Qt::yellow);
+                paint->setBrush(Qt::NoBrush);
+                paint->drawEllipse(QRectF(x0 - 2, fh - 2, size + 4, size + 4));
+                paint->restore();
+            }
         }
     }
 
