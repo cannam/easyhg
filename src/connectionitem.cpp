@@ -42,7 +42,7 @@ ConnectionItem::boundingRect() const
 
     return QRectF(xscale * c_col + size/2 - 2,
 		  yscale * c_row + size - 22,
-		  xscale * p_col - xscale * c_col + 4,
+		  xscale * p_col - xscale * c_col + 6,
 		  yscale * p_row - yscale * c_row - size + 44)
 	.normalized();
 }

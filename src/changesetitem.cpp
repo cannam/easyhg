@@ -33,6 +33,8 @@
 #include <QApplication>
 #include <QClipboard>
 
+QImage *ChangesetItem::m_star = 0;
+
 ChangesetItem::ChangesetItem(Changeset *cs) :
     m_changeset(cs), m_detail(0),
     m_showBranch(false), m_column(0), m_row(0), m_wide(false),
@@ -43,6 +45,8 @@ ChangesetItem::ChangesetItem(Changeset *cs) :
     m_font.setBold(false);
     m_font.setItalic(false);
     setCursor(Qt::ArrowCursor);
+
+    if (!m_star) m_star = new QImage(":images/star.png");
 }
 
 QString
@@ -385,6 +389,14 @@ ChangesetItem::paintNormal(QPainter *paint)
     paint->setBrush(Qt::NoBrush);
     paint->drawRoundedRect(r, 7, 7);
 
+    if (m_current && showProperLines) {
+        paint->setRenderHint(QPainter::SmoothPixmapTransform, true);
+        int starSize = fh * 1.5;
+        paint->drawImage(QRectF(x0 + width - starSize,
+                                -fh, starSize, starSize),
+                         *m_star);
+    }
+
     if (m_showBranch) {
 	// write branch name
         paint->save();
@@ -444,6 +456,22 @@ ChangesetItem::paintMerge(QPainter *paint)
     int x0 = -size/2 + 25;
 
     paint->setBrush(Qt::white);
+
+    if (showProperLines) {
+
+        if (m_current) {
+            paint->drawEllipse(QRectF(x0 - 4, fh - 4, size + 8, size + 8));
+        }
+
+        if (m_new) {
+            paint->save();
+            paint->setPen(Qt::yellow);
+            paint->setBrush(Qt::NoBrush);
+            paint->drawEllipse(QRectF(x0 - 2, fh - 2, size + 4, size + 4));
+            paint->restore();
+        }
+    }
+
     paint->drawEllipse(QRectF(x0, fh, size, size));
 
     if (m_showBranch) {
@@ -459,6 +487,14 @@ ChangesetItem::paintMerge(QPainter *paint)
 	paint->drawText(-wid/2 + 25, fm.ascent() - 4, branch);
 	f.setBold(false);
         paint->restore();
+    }
+
+    if (m_current && showProperLines) {
+        paint->setRenderHint(QPainter::SmoothPixmapTransform, true);
+        int starSize = fh * 1.5;
+        paint->drawImage(QRectF(x0 + size - starSize/2,
+                                0, starSize, starSize),
+                         *m_star);
     }
 
     paint->restore();
