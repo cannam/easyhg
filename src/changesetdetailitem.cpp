@@ -86,7 +86,7 @@ ChangesetDetailItem::paint(QPainter *paint,
 
     QRectF r(0.5, 0.5, width - 1, height - 1);
     paint->setBrush(Qt::white);
-    paint->drawRect(r);
+    paint->drawRoundedRect(r, 10, 10);
 
     if (scale < 0.1) {
 	paint->restore();
