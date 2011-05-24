@@ -279,6 +279,7 @@ bool HgRunner::checkPrompts(QString chunk)
 void HgRunner::dataReadyStdout()
 {
     DEBUG << "dataReadyStdout" << endl;
+	if (!m_proc) return;
     QString chunk = QString::fromUtf8(m_proc->readAllStandardOutput());
     if (!checkPrompts(chunk)) {
         m_stdout += chunk;
@@ -288,6 +289,7 @@ void HgRunner::dataReadyStdout()
 void HgRunner::dataReadyStderr()
 {
     DEBUG << "dataReadyStderr" << endl;
+	if (!m_proc) return;
     QString chunk = QString::fromUtf8(m_proc->readAllStandardError());
     DEBUG << chunk;
     if (!checkPrompts(chunk)) {
@@ -312,7 +314,9 @@ void HgRunner::error(QProcess::ProcessError)
 
 void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
 {
-    // Save the current action and reset m_currentAction before we
+	if (!m_proc) return;
+
+	// Save the current action and reset m_currentAction before we
     // emit a signal to mark the completion; otherwise we may be
     // resetting the action after a slot has already tried to set it
     // to something else to start a new action
@@ -356,7 +360,7 @@ void HgRunner::killCurrentCommand()
 {
     if (m_isRunning) {
         m_currentAction.action = ACT_NONE; // so that we don't bother to notify
-        m_proc->kill();
+        if (m_proc) m_proc->kill();
     }
 }
 
@@ -483,7 +487,7 @@ void HgRunner::closeProcInput()
 {
     DEBUG << "closeProcInput" << endl;
 
-    m_proc->closeWriteChannel();
+    if (m_proc) m_proc->closeWriteChannel();
 }
 
 void HgRunner::openTerminal()
