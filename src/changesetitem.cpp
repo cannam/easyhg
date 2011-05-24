@@ -352,7 +352,7 @@ ChangesetItem::paintNormal(QPainter *paint)
     paint->drawRoundedRect(r, 7, 7);
     paint->setBrush(QBrush(userColour));
     paint->drawRoundedRect(QRectF(x0 + 0.5, 0.5, width - 4, fh - 0.5), 7, 7);
-    paint->drawRect(QRectF(x0 + 0.5, fh/2, width - 4, fh/2));
+    paint->drawRect(QRectF(x0 + 0.5, fh/2.0, width - 4, fh/2.0));
     paint->restore();
 
     paint->setPen(QPen(Qt::white));
