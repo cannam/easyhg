@@ -452,7 +452,7 @@ void Grapher::layout(Changesets csets,
             ChangesetItem *pitem = m_items[p];
             conn->setParent(pitem);
             conn->setChild(m_uncommitted);
-            conn->setZValue(0);
+            conn->setZValue(-1);
             m_scene->addItem(conn);
             if (pitem) {
                 if (pitem->getChangeset()->branch() == uncommittedBranch) {
