@@ -389,14 +389,6 @@ ChangesetItem::paintNormal(QPainter *paint)
     paint->setBrush(Qt::NoBrush);
     paint->drawRoundedRect(r, 7, 7);
 
-    if (m_current && showProperLines) {
-        paint->setRenderHint(QPainter::SmoothPixmapTransform, true);
-        int starSize = fh * 1.5;
-        paint->drawImage(QRectF(x0 + width - starSize,
-                                -fh, starSize, starSize),
-                         *m_star);
-    }
-
     if (m_showBranch) {
 	// write branch name
         paint->save();
@@ -410,6 +402,14 @@ ChangesetItem::paintNormal(QPainter *paint)
 	paint->drawText(x0, -fh + fm.ascent() - 4, branch);
 	f.setBold(false);
         paint->restore();
+    }
+
+    if (m_current && showProperLines) {
+        paint->setRenderHint(QPainter::SmoothPixmapTransform, true);
+        int starSize = fh * 1.5;
+        paint->drawImage(QRectF(x0 + width - starSize,
+                                -fh, starSize, starSize),
+                         *m_star);
     }
 
     paint->setFont(f);
