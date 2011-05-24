@@ -306,27 +306,33 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget 
         paint->setBrush(Qt::white);
 
         if (m_current) {
-            paint->drawRect(QRectF(x0 - 4, -4, width + 5, height + 8));
+            paint->drawRoundedRect(QRectF(x0 - 4, -4, width + 5, height + 8),
+                                   10, 10);
         }
 
         if (m_new) {
             paint->save();
             paint->setPen(Qt::yellow);
             paint->setBrush(Qt::NoBrush);
-            paint->drawRect(QRectF(x0 - 2, -2, width + 1, height + 4));
+            paint->drawRoundedRect(QRectF(x0 - 2, -2, width + 1, height + 4),
+                                   10, 10);
             paint->restore();
         }
     }
 
-    paint->drawRect(r);
-
     if (!showText) {
+        paint->drawRoundedRect(r, 7, 7);
 	paint->restore();
 	return;
     }
 
-    paint->fillRect(QRectF(x0 + 0.5, 0.5, width - 4, fh - 0.5),
-		    QBrush(userColour));
+    paint->save();
+    paint->setPen(Qt::NoPen);
+    paint->drawRoundedRect(r, 7, 7);
+    paint->setBrush(QBrush(userColour));
+    paint->drawRoundedRect(QRectF(x0 + 0.5, 0.5, width - 4, fh - 0.5), 7, 7);
+    paint->drawRect(QRectF(x0 + 0.5, fh/2, width - 4, fh/2));
+    paint->restore();
 
     paint->setPen(QPen(Qt::white));
 
@@ -357,6 +363,10 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget 
             paint->drawText(x0 + width - 6 - tw, fm.ascent(), tagText);
         }
     }
+
+    paint->setPen(QPen(branchColour, 2));
+    paint->setBrush(Qt::NoBrush);
+    paint->drawRoundedRect(r, 7, 7);
 
     if (m_showBranch) {
 	// write branch name

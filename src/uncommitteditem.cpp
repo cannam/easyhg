@@ -137,7 +137,7 @@ UncommittedItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     int height = 49;
     QRectF r(x0, 0, width - 3, height);
     paint->setBrush(Qt::white);
-    paint->drawRect(r);
+    paint->drawRoundedRect(r, 7, 7);
 
     if (m_wide) {
         QString label = tr("Uncommitted changes");
