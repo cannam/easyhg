@@ -325,7 +325,7 @@ ChangesetItem::paintNormal(QPainter *paint)
     if (showProperLines) {
 
         if (m_new) {
-            paint->setBrush(QColor(255, 255, 190));
+            paint->setBrush(QColor(255, 255, 220));
         } else {
             paint->setBrush(Qt::white);
         }            
@@ -459,7 +459,7 @@ ChangesetItem::paintMerge(QPainter *paint)
     int x0 = -size/2 + 25;
 
     if (m_new) {
-        paint->setBrush(QColor(255, 255, 190));
+        paint->setBrush(QColor(255, 255, 220));
     } else {
         paint->setBrush(Qt::white);
     }
