@@ -41,9 +41,9 @@ ConnectionItem::boundingRect() const
     }
 
     return QRectF(xscale * c_col + size/2 - 2,
-		  yscale * c_row + size - 2,
+		  yscale * c_row + size - 22,
 		  xscale * p_col - xscale * c_col + 4,
-		  yscale * p_row - yscale * c_row - size + 4)
+		  yscale * p_row - yscale * c_row - size + 44)
 	.normalized();
 }
 
@@ -124,6 +124,10 @@ ConnectionItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget
 	    p.lineTo(p_x, yscale * p_row);
 	}
     }
+
+    // ensure line reaches the node -- again doesn't matter if we
+    // overshoot
+    p.lineTo(p_x, yscale * p_row + 20);
 
     paint->drawPath(p);
     paint->restore();

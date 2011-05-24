@@ -100,6 +100,10 @@ private:
 
     QMap<QAction *, QString> m_parentDiffActions;
     QMap<QAction *, QString> m_summaryActions;
+
+    bool isMerge() const;
+    virtual void paintNormal(QPainter *);
+    virtual void paintMerge(QPainter *);
 };
 
 #endif // CHANGESETITEM_H
