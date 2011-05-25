@@ -33,6 +33,8 @@
 #include <QApplication>
 #include <QClipboard>
 
+QImage *ChangesetItem::m_star = 0;
+
 ChangesetItem::ChangesetItem(Changeset *cs) :
     m_changeset(cs), m_detail(0),
     m_showBranch(false), m_column(0), m_row(0), m_wide(false),
@@ -43,6 +45,8 @@ ChangesetItem::ChangesetItem(Changeset *cs) :
     m_font.setBold(false);
     m_font.setItalic(false);
     setCursor(Qt::ArrowCursor);
+
+    if (!m_star) m_star = new QImage(":images/star.png");
 }
 
 QString
@@ -68,6 +72,7 @@ ChangesetItem::showDetail()
     scene()->addItem(m_detail);
     int w = 100;
     if (m_wide) w = 180;
+    if (isMerge()) w = 60;
     int h = 80;
 //    m_detail->moveBy(x() - (m_detail->boundingRect().width() - 50) / 2,
 //                     y() + 60);
@@ -240,6 +245,22 @@ void ChangesetItem::newBranchActivated() { emit newBranch(getId()); }
 void
 ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget *)
 {
+    if (isMerge()) {
+        paintMerge(paint);
+    } else {
+        paintNormal(paint);
+    }
+}
+
+bool
+ChangesetItem::isMerge() const
+{
+    return (m_changeset && m_changeset->parents().size() > 1);
+}
+
+void
+ChangesetItem::paintNormal(QPainter *paint)
+{
     paint->save();
     
     ColourSet *colourSet = ColourSet::instance();
@@ -303,30 +324,39 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget 
 
     if (showProperLines) {
 
-        paint->setBrush(Qt::white);
+        if (m_new) {
+            paint->setBrush(QColor(255, 255, 220));
+        } else {
+            paint->setBrush(Qt::white);
+        }            
 
         if (m_current) {
-            paint->drawRect(QRectF(x0 - 4, -4, width + 5, height + 8));
-        }
-
-        if (m_new) {
-            paint->save();
-            paint->setPen(Qt::yellow);
-            paint->setBrush(Qt::NoBrush);
-            paint->drawRect(QRectF(x0 - 2, -2, width + 1, height + 4));
-            paint->restore();
+            paint->drawRoundedRect(QRectF(x0 - 4, -4, width + 5, height + 8),
+                                   10, 10);
+            if (m_new) {
+                paint->save();
+                paint->setPen(Qt::yellow);
+                paint->setBrush(Qt::NoBrush);
+                paint->drawRoundedRect(QRectF(x0 - 2, -2, width + 1, height + 4),
+                                       10, 10);
+                paint->restore();
+            }
         }
     }
 
-    paint->drawRect(r);
-
     if (!showText) {
+        paint->drawRoundedRect(r, 7, 7);
 	paint->restore();
 	return;
     }
 
-    paint->fillRect(QRectF(x0 + 0.5, 0.5, width - 4, fh - 0.5),
-		    QBrush(userColour));
+    paint->save();
+    paint->setPen(Qt::NoPen);
+    paint->drawRoundedRect(r, 7, 7);
+    paint->setBrush(QBrush(userColour));
+    paint->drawRoundedRect(QRectF(x0 + 0.5, 0.5, width - 4, fh - 0.5), 7, 7);
+    paint->drawRect(QRectF(x0 + 0.5, fh/2.0, width - 4, fh/2.0));
+    paint->restore();
 
     paint->setPen(QPen(Qt::white));
 
@@ -358,6 +388,10 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget 
         }
     }
 
+    paint->setPen(QPen(branchColour, 2));
+    paint->setBrush(Qt::NoBrush);
+    paint->drawRoundedRect(r, 7, 7);
+
     if (m_showBranch) {
 	// write branch name
         paint->save();
@@ -373,6 +407,14 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget 
         paint->restore();
     }
 
+    if (m_current && showProperLines) {
+        paint->setRenderHint(QPainter::SmoothPixmapTransform, true);
+        int starSize = fh * 1.5;
+        paint->drawImage(QRectF(x0 + width - starSize,
+                                -fh, starSize, starSize),
+                         *m_star);
+    }
+
     paint->setFont(f);
 
     for (int i = 0; i < lines.size(); ++i) {
@@ -381,3 +423,87 @@ ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget 
 
     paint->restore();
 }
+
+void
+ChangesetItem::paintMerge(QPainter *paint)
+{
+    paint->save();
+    
+    ColourSet *colourSet = ColourSet::instance();
+    QColor branchColour = colourSet->getColourFor(m_changeset->branch());
+    QColor userColour = colourSet->getColourFor(m_changeset->author());
+
+    QFont f(m_font);
+
+    QTransform t = paint->worldTransform();
+    float scale = std::min(t.m11(), t.m22());
+    if (scale > 1.0) {
+	int ps = int((f.pixelSize() / scale) + 0.5);
+	if (ps < 8) ps = 8;
+	f.setPixelSize(ps);
+    }
+
+    bool showText = (scale >= 0.2);
+    bool showProperLines = (scale >= 0.1);
+
+    if (!showProperLines) {
+	paint->setPen(QPen(branchColour, 0));
+    } else {
+	paint->setPen(QPen(branchColour, 2));
+    }
+	
+    paint->setFont(f);
+    QFontMetrics fm(f);
+    int fh = fm.height();
+    int size = fh * 2;
+    int x0 = -size/2 + 25;
+
+    if (m_new) {
+        paint->setBrush(QColor(255, 255, 220));
+    } else {
+        paint->setBrush(Qt::white);
+    }
+
+    if (showProperLines) {
+
+        if (m_current) {
+            paint->drawEllipse(QRectF(x0 - 4, fh - 4, size + 8, size + 8));
+
+            if (m_new) {
+                paint->save();
+                paint->setPen(Qt::yellow);
+                paint->setBrush(Qt::NoBrush);
+                paint->drawEllipse(QRectF(x0 - 2, fh - 2, size + 4, size + 4));
+                paint->restore();
+            }
+        }
+    }
+
+    paint->drawEllipse(QRectF(x0, fh, size, size));
+
+    if (m_showBranch) {
+	// write branch name
+        paint->save();
+	f.setBold(true);
+	paint->setFont(f);
+	paint->setPen(QPen(branchColour));
+	QString branch = m_changeset->branch();
+        if (branch == "") branch = "default";
+	int wid = size * 3;
+	branch = TextAbbrev::abbreviate(branch, QFontMetrics(f), wid);
+	paint->drawText(-wid/2 + 25, fm.ascent() - 4, branch);
+	f.setBold(false);
+        paint->restore();
+    }
+
+    if (m_current && showProperLines) {
+        paint->setRenderHint(QPainter::SmoothPixmapTransform, true);
+        int starSize = fh * 1.5;
+        paint->drawImage(QRectF(x0 + size - starSize/2,
+                                0, starSize, starSize),
+                         *m_star);
+    }
+
+    paint->restore();
+}
+

@@ -17,7 +17,6 @@
 
 #include "grapher.h"
 #include "connectionitem.h"
-#include "dateitem.h"
 #include "debug.h"
 #include "changesetscene.h"
 
@@ -452,7 +451,7 @@ void Grapher::layout(Changesets csets,
             ChangesetItem *pitem = m_items[p];
             conn->setParent(pitem);
             conn->setChild(m_uncommitted);
-            conn->setZValue(0);
+            conn->setZValue(-1);
             m_scene->addItem(conn);
             if (pitem) {
                 if (pitem->getChangeset()->branch() == uncommittedBranch) {
@@ -465,6 +464,9 @@ void Grapher::layout(Changesets csets,
         // tell it it has a new branch (the "show branch" flag is set
         // elsewhere for this item)
         m_uncommitted->setIsNewBranch(!haveParentOnBranch);
+
+        // Uncommitted is a merge if it has more than one parent
+        m_uncommitted->setIsMerge(m_uncommittedParents.size() > 1);
     }
 
     // Add the branch labels
@@ -581,13 +583,7 @@ void Grapher::layout(Changesets csets,
 
         if (date != prevDate) {
             if (prevDate != "") {
-                DateItem *item = new DateItem();
-                item->setDateString(prevDate);
-                item->setCols(datemincol, datemaxcol - datemincol + 1);
-                item->setRows(changeRow, n);
-                item->setEven(even);
-                item->setZValue(-2);
-                m_scene->addDateItem(item);
+                m_scene->addDateRange(prevDate, changeRow, n, even);
                 even = !even;
             }
             prevDate = date;
@@ -597,14 +593,10 @@ void Grapher::layout(Changesets csets,
     }
     
     if (n > 0) {
-        DateItem *item = new DateItem();
-        item->setDateString(prevDate);
-        item->setCols(datemincol, datemaxcol - datemincol + 1);
-        item->setRows(changeRow, n+1);
-        item->setEven(even);
-        item->setZValue(-2);
-        m_scene->addDateItem(item);
+        m_scene->addDateRange(prevDate, changeRow, n+1, even);
         even = !even;
     }
+
+    m_scene->itemAddCompleted();
 }
 

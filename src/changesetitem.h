@@ -25,6 +25,7 @@ class Changeset;
 class ChangesetDetailItem;
 
 class QAction;
+class QImage;
 
 class ChangesetItem : public QGraphicsObject
 {
@@ -100,6 +101,12 @@ private:
 
     QMap<QAction *, QString> m_parentDiffActions;
     QMap<QAction *, QString> m_summaryActions;
+
+    static QImage *m_star;
+
+    bool isMerge() const;
+    void paintNormal(QPainter *);
+    void paintMerge(QPainter *);
 };
 
 #endif // CHANGESETITEM_H

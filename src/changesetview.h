@@ -15,40 +15,23 @@
     COPYING included with this distribution for more information.
 */
 
+#ifndef CHANGESETVIEW_H
+#define CHANGESETVIEW_H
 
-#include "colourset.h"
+#include "panned.h"
 
-ColourSet
-ColourSet::m_instance;
-
-ColourSet::ColourSet() { }
-
-ColourSet *
-ColourSet::instance()
+class ChangesetView : public Panned
 {
-    return &m_instance;
-}
-
-QColor
-ColourSet::getColourFor(QString n)
-{
-    if (m_defaultNames.contains(n)) return Qt::black;
-    if (m_colours.contains(n)) return m_colours[n];
-
-    QColor c;
-
-    if (m_colours.empty()) {
-	c = QColor::fromHsv(0, 200, 150);
-    } else {
-        int hue = m_lastColour.hue() - 130;
-        if (hue < 0) hue += 360;
-	c = QColor::fromHsv(hue, 200, 150);
-    }
-
-    m_colours[n] = c;
-    m_lastColour = c;
-    return c;
-}
-
-
+    Q_OBJECT
     
+public:
+    ChangesetView();
+
+private slots:
+    void horizontalScrollHappened();
+
+protected:
+    void drawBackground(QPainter *, const QRectF &);
+};
+
+#endif

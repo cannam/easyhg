@@ -68,6 +68,7 @@ protected:
                            const QStyleOptionGraphicsItem []);
 
     bool m_clicked;
+    bool m_moved;
     QRectF m_clickedRect;
     QPoint m_clickedPoint;
 

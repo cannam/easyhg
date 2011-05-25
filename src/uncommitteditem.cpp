@@ -29,7 +29,7 @@
 #include <QWidgetAction>
 
 UncommittedItem::UncommittedItem() :
-    m_showBranch(false), m_isNewBranch(false),
+    m_showBranch(false), m_isNewBranch(false), m_isMerge(false),
     m_column(0), m_row(0), m_wide(false)
 {
     m_font = QFont();
@@ -70,7 +70,10 @@ void
 UncommittedItem::activateMenu()
 {
     QMenu *menu = new QMenu;
-    QLabel *label = new QLabel(tr("<qt><b>&nbsp;Uncommitted changes</b></qt>"));
+    QLabel *label = new QLabel
+        (m_isMerge ?
+         tr("<qt><b>&nbsp;Uncommitted merge</b></qt>") :
+         tr("<qt><b>&nbsp;Uncommitted changes</b></qt>"));
     QWidgetAction *wa = new QWidgetAction(menu);
     wa->setDefaultWidget(label);
     menu->addAction(wa);
@@ -102,8 +105,17 @@ UncommittedItem::activateMenu()
 }
 
 void
-UncommittedItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
-		       QWidget *w)
+UncommittedItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget *)
+{
+    if (isMerge()) {
+        paintMerge(paint);
+    } else {
+        paintNormal(paint);
+    }
+}
+
+void
+UncommittedItem::paintNormal(QPainter *paint)
 {
     paint->save();
     
@@ -137,7 +149,7 @@ UncommittedItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
     int height = 49;
     QRectF r(x0, 0, width - 3, height);
     paint->setBrush(Qt::white);
-    paint->drawRect(r);
+    paint->drawRoundedRect(r, 7, 7);
 
     if (m_wide) {
         QString label = tr("Uncommitted changes");
@@ -163,6 +175,69 @@ UncommittedItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *option,
         QString b = TextAbbrev::abbreviate(m_branch, QFontMetrics(f), wid);
         paint->drawText(x0, -fh + fm.ascent() - 4, b);
         f.setBold(false);
+    }
+
+    paint->restore();
+    return;
+}
+
+void
+UncommittedItem::paintMerge(QPainter *paint)
+{
+    paint->save();
+    
+    ColourSet *colourSet = ColourSet::instance();
+    QColor branchColour = colourSet->getColourFor(m_branch);
+
+    QFont f(m_font);
+
+    QTransform t = paint->worldTransform();
+    float scale = std::min(t.m11(), t.m22());
+    if (scale > 1.0) {
+	int ps = int((f.pixelSize() / scale) + 0.5);
+	if (ps < 8) ps = 8;
+	f.setPixelSize(ps);
+    }
+
+    if (scale < 0.1) {
+	paint->setPen(QPen(branchColour, 0, Qt::DashLine));
+    } else {
+	paint->setPen(QPen(branchColour, 2, Qt::DashLine));
+    }
+	
+    paint->setFont(f);
+    QFontMetrics fm(f);
+    int fh = fm.height();
+
+    int size = fh * 2;
+    int x0 = -size/2 + 25;
+
+    paint->setBrush(Qt::white);
+    paint->drawEllipse(QRectF(x0, fh, size, size));
+    
+    if (m_wide) {
+        QString label = tr("Uncommitted merge");
+        paint->drawText(size/2 + 28,
+                        25 - fm.height()/2 + fm.ascent(),
+                        label);
+    } else {
+        QString label = tr("Uncommitted");
+        paint->drawText(size/2 + 28,
+                        25 - fm.height() + fm.ascent(),
+                        label);
+        label = tr("merge");
+        paint->drawText(size/2 + 28,
+                        25 + fm.ascent(),
+                        label);
+    }        
+
+    if (m_showBranch && m_branch != "") {
+        // write branch name
+        f.setBold(true);
+        paint->setFont(f);
+	int wid = size * 3;
+	QString branch = TextAbbrev::abbreviate(m_branch, QFontMetrics(f), wid);
+	paint->drawText(-wid/2 + 25, fm.ascent() - 4, branch);
     }
 
     paint->restore();
