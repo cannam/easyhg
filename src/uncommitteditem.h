@@ -39,6 +39,9 @@ public:
 
     bool isNewBranch() const { return m_isNewBranch; }
     void setIsNewBranch(bool s) { m_isNewBranch = s; }
+
+    bool isMerge() const { return m_isMerge; }
+    void setIsMerge(bool m) { m_isMerge = m; }
     
     int column() const { return m_column; }
     int row() const { return m_row; }
@@ -67,10 +70,14 @@ private:
     QString m_branch;
     bool m_showBranch;
     bool m_isNewBranch;
+    bool m_isMerge;
     QFont m_font;
     int m_column;
     int m_row;
     bool m_wide;
+
+    void paintNormal(QPainter *);
+    void paintMerge(QPainter *);
 };
 
 #endif // UNCOMMITTEDITEM_H

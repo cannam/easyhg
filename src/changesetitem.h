@@ -105,8 +105,8 @@ private:
     static QImage *m_star;
 
     bool isMerge() const;
-    virtual void paintNormal(QPainter *);
-    virtual void paintMerge(QPainter *);
+    void paintNormal(QPainter *);
+    void paintMerge(QPainter *);
 };
 
 #endif // CHANGESETITEM_H
