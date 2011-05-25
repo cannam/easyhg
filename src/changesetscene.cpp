@@ -129,12 +129,15 @@ ChangesetScene::changesetDetailShown()
 	m_detailShown->hideDetail();
     }
     m_detailShown = csi;
+    itemAddCompleted();
+    csi->ensureVisible();
 }
 
 void
 ChangesetScene::changesetDetailHidden()
 {
     m_detailShown = 0;
+    itemAddCompleted();
 }
 
 void
