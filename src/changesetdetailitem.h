@@ -39,6 +39,8 @@ private:
     Changeset *m_changeset;
     QTextDocument *m_doc;
 
+    QVariant itemChange(GraphicsItemChange, const QVariant &);
+
     void makeDocument();
 };
 
