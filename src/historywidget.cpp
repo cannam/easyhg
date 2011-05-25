@@ -18,7 +18,7 @@
 #include "historywidget.h"
 
 #include "changesetscene.h"
-#include "panned.h"
+#include "changesetview.h"
 #include "panner.h"
 #include "grapher.h"
 #include "debug.h"
@@ -32,11 +32,12 @@ HistoryWidget::HistoryWidget() :
     m_showUncommitted(false),
     m_refreshNeeded(false)
 {
-    m_panned = new Panned;
+    m_panned = new ChangesetView;
     m_panner = new Panner;
 
     m_panned->setDragMode(QGraphicsView::ScrollHandDrag);
     m_panned->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
+    m_panned->setCacheMode(QGraphicsView::CacheNone);
 
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(m_panned, 0, 0);

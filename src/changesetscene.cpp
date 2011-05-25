@@ -18,10 +18,16 @@
 #include "changesetscene.h"
 #include "changesetitem.h"
 #include "uncommitteditem.h"
-#include "dateitem.h"
+#include "debug.h"
+
+#include <QPainter>
+
 
 ChangesetScene::ChangesetScene()
-    : QGraphicsScene(), m_detailShown(0)
+    // Supply a non-NULL but trivial scene rect to inhibit automatic
+    // updates from QGraphicsScene, because we will set the rect
+    // explicitly in itemAddCompleted
+    : QGraphicsScene(QRectF(0, 0, 1, 1)), m_detailShown(0)
 {
 }
 
@@ -87,12 +93,30 @@ ChangesetScene::addUncommittedItem(UncommittedItem *item)
 }
 
 void
-ChangesetScene::addDateItem(DateItem *item)
+ChangesetScene::addDateRange(QString label, int minrow, int nrows, bool even)
 {
-    addItem(item);
+    DateRange dr;
+    dr.label = label;
+    dr.minrow = minrow;
+    dr.nrows = nrows;
+    dr.even = even;
+    m_dateRanges[minrow] = dr;
+}
 
-    connect(item, SIGNAL(clicked()),
-            this, SLOT(dateItemClicked()));
+void
+ChangesetScene::itemAddCompleted()
+{
+    QRectF r = itemsBoundingRect();
+    float minwidth = 300; //!!!
+    DEBUG << "ChangesetScene::itemAddCompleted: minwidth = " << minwidth
+          << ", r = " << r << endl;
+    if (r.width() < minwidth) {
+        float edgediff = (minwidth - r.width()) / 2;
+        r.setLeft(r.left() - edgediff);
+        r.setRight(r.right() + edgediff);
+    }
+    DEBUG << "ChangesetScene::itemAddCompleted: r now is " << r << endl;
+    setSceneRect(r);
 }
 
 void
@@ -114,12 +138,11 @@ ChangesetScene::changesetDetailHidden()
 }
 
 void
-ChangesetScene::dateItemClicked()
+ChangesetScene::drawBackground(QPainter *paint, const QRectF &rect)
 {
-    if (m_detailShown) {
-        m_detailShown->hideDetail();
-    }
+    QGraphicsScene::drawBackground(paint, rect);
 }
+        
 
 ChangesetItem *
 ChangesetScene::getItemById(QString id)

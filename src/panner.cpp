@@ -32,7 +32,8 @@ public:
 };
 
 Panner::Panner() :
-    m_clicked(false)
+    m_clicked(false),
+    m_moved(false)
 {
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -209,6 +210,7 @@ Panner::mousePressEvent(QMouseEvent *e)
         return;
     }
     m_clicked = true;
+    m_moved = false;
     m_clickedRect = m_pannedRect;
     m_clickedPoint = e->pos();
 }
@@ -231,6 +233,13 @@ Panner::mouseMoveEvent(QMouseEvent *e)
     QPointF cp = mapToScene(m_clickedPoint);
     QPointF mp = mapToScene(e->pos());
     QPointF delta = mp - cp;
+    if (!m_moved) {
+        if ((m_clickedPoint - e->pos()).manhattanLength() > 2) {
+            m_moved = true;
+        } else {
+            return;
+        }
+    }
     QRectF nr = m_clickedRect;
     nr.translate(delta);
     m_pannedRect = nr;
@@ -247,7 +256,11 @@ Panner::mouseReleaseEvent(QMouseEvent *e)
     }
 
     if (m_clicked) {
-        mouseMoveEvent(e);
+        if (m_moved) {
+            mouseMoveEvent(e);
+        } else {
+            moveTo(e->pos());
+        }
     }
 
     m_clicked = false;
@@ -276,8 +289,9 @@ Panner::moveTo(QPoint p)
 {
     QPointF sp = mapToScene(p);
     QRectF nr = m_pannedRect;
-    double d = sp.x() - nr.center().x();
-    nr.translate(d, 0);
+    double dx = sp.x() - nr.center().x();
+    double dy = sp.y() - nr.center().y();
+    nr.translate(dx, dy);
     slotSetPannedRect(nr);
     emit pannedRectChanged(m_pannedRect);
     viewport()->update();
