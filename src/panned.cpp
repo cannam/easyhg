@@ -174,12 +174,55 @@ Panned::mousePressEvent(QMouseEvent *ev)
         ev->accept();
         m_dragging = true;
         m_lastDragPos = ev->pos();
+        m_lastDragStart = ev->pos();
         m_lastOrigin = QPoint(horizontalScrollBar()->value(),
                               verticalScrollBar()->value());
         m_velocity = QPointF(0, 0);
         m_dragTimer->start(m_dragTimerMs);
+        m_dragDirection = UnknownDrag;
+    }
+}
+
+void
+Panned::updateDragDirection(QPoint pos)
+{
+    if (m_dragDirection == FreeDrag) {
+        return;
     }
 
+    QPoint overall = pos - m_lastDragStart;
+
+    int smallThreshold = 10;
+    int largeThreshold = 30;
+    int dx = qAbs(overall.x());
+    int dy = qAbs(overall.y());
+
+    switch (m_dragDirection) {
+
+    case UnknownDrag:
+        if (dx > smallThreshold) {
+            if (dy > smallThreshold) {
+                m_dragDirection = FreeDrag;
+            } else {
+                m_dragDirection = HorizontalDrag;
+            }
+        } else if (dy > smallThreshold) {
+            m_dragDirection = VerticalDrag;
+        }
+        break;
+
+    case HorizontalDrag:
+        if (dy > largeThreshold) {
+            m_dragDirection = FreeDrag;
+        }
+        break;
+
+    case VerticalDrag:
+        if (dx > largeThreshold) {
+            m_dragDirection = FreeDrag;
+        }
+        break;
+    };
 }
 
 void
@@ -191,11 +234,17 @@ Panned::mouseMoveEvent(QMouseEvent *ev)
     }
     DEBUG << "Panned::mouseMoveEvent: dragging" << endl;
     ev->accept();
+    updateDragDirection(ev->pos());
     QScrollBar *hBar = horizontalScrollBar();
     QScrollBar *vBar = verticalScrollBar();
     QPoint delta = ev->pos() - m_lastDragPos;
-    hBar->setValue(hBar->value() + (isRightToLeft() ? delta.x() : -delta.x()));
-    vBar->setValue(vBar->value() - delta.y());
+    if (m_dragDirection != VerticalDrag) {
+        hBar->setValue(hBar->value() +
+                       (isRightToLeft() ? delta.x() : -delta.x()));
+    }
+    if (m_dragDirection != HorizontalDrag) {
+        vBar->setValue(vBar->value() - delta.y());
+    }
     m_lastDragPos = ev->pos();
 }
 
@@ -235,10 +284,14 @@ Panned::dragTimerTimeout()
         DEBUG << "Panned::dragTimerTimeout: velocity adjusted to " << m_velocity << endl;
         m_lastOrigin = origin;
         //!!! need to store origin in floats
-        horizontalScrollBar()->setValue(m_lastOrigin.x() +
-                                        m_velocity.x() * m_dragTimerMs);
-        verticalScrollBar()->setValue(m_lastOrigin.y() +
-                                      m_velocity.y() * m_dragTimerMs);
+        if (m_dragDirection != VerticalDrag) {
+            horizontalScrollBar()->setValue(m_lastOrigin.x() +
+                                            m_velocity.x() * m_dragTimerMs);
+        }
+        if (m_dragDirection != HorizontalDrag) {
+            verticalScrollBar()->setValue(m_lastOrigin.y() +
+                                          m_velocity.y() * m_dragTimerMs);
+        }
     }
 }
 

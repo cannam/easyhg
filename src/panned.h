@@ -54,11 +54,21 @@ protected:
     QRectF m_pannedRect;
 
     QPoint m_lastDragPos;
+    QPoint m_lastDragStart;
     QPoint m_lastOrigin;
     QPointF m_velocity;
     bool m_dragging;
     int m_dragTimerMs;
     QTimer *m_dragTimer;
+
+    enum DragDirection {
+        UnknownDrag,
+        HorizontalDrag,
+        VerticalDrag,
+        FreeDrag
+    };
+    DragDirection m_dragDirection;
+    void updateDragDirection(QPoint);
 
     virtual void mousePressEvent(QMouseEvent *);
     virtual void mouseMoveEvent(QMouseEvent *);
