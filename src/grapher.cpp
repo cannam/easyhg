@@ -464,6 +464,9 @@ void Grapher::layout(Changesets csets,
         // tell it it has a new branch (the "show branch" flag is set
         // elsewhere for this item)
         m_uncommitted->setIsNewBranch(!haveParentOnBranch);
+
+        // Uncommitted is a merge if it has more than one parent
+        m_uncommitted->setIsMerge(m_uncommittedParents.size() > 1);
     }
 
     // Add the branch labels
