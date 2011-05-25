@@ -19,11 +19,11 @@
 #define CHANGESETSCENE_H
 
 #include <QGraphicsScene>
+#include <QMap>
 
 class ChangesetItem;
 class Changeset;
 class UncommittedItem;
-class DateItem;
 
 class ChangesetScene : public QGraphicsScene
 {
@@ -34,7 +34,20 @@ public:
 
     void addChangesetItem(ChangesetItem *item);
     void addUncommittedItem(UncommittedItem *item);
-    void addDateItem(DateItem *item);
+
+    void addDateRange(QString label, int minrow, int nrows, bool even);
+
+    struct DateRange {
+        QString label;
+        int minrow;
+        int nrows;
+        bool even;
+    };
+
+    typedef QMap<int, DateRange> DateRanges; // key is minrow
+    DateRanges getDateRanges() const { return m_dateRanges; }
+
+    void itemAddCompleted(); // recalculate scene rect
 
     ChangesetItem *getItemById(QString id); // Slow: traversal required
 
@@ -58,10 +71,13 @@ signals:
 private slots:
     void changesetDetailShown();
     void changesetDetailHidden();
-    void dateItemClicked();
+
+protected:
+    void drawBackground(QPainter *, const QRectF &);
 
 private:
     ChangesetItem *m_detailShown;
+    DateRanges m_dateRanges;
 };
 
 #endif

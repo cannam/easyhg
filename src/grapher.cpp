@@ -17,7 +17,6 @@
 
 #include "grapher.h"
 #include "connectionitem.h"
-#include "dateitem.h"
 #include "debug.h"
 #include "changesetscene.h"
 
@@ -581,13 +580,7 @@ void Grapher::layout(Changesets csets,
 
         if (date != prevDate) {
             if (prevDate != "") {
-                DateItem *item = new DateItem();
-                item->setDateString(prevDate);
-                item->setCols(datemincol, datemaxcol - datemincol + 1);
-                item->setRows(changeRow, n);
-                item->setEven(even);
-                item->setZValue(-2);
-                m_scene->addDateItem(item);
+                m_scene->addDateRange(prevDate, changeRow, n, even);
                 even = !even;
             }
             prevDate = date;
@@ -597,14 +590,10 @@ void Grapher::layout(Changesets csets,
     }
     
     if (n > 0) {
-        DateItem *item = new DateItem();
-        item->setDateString(prevDate);
-        item->setCols(datemincol, datemaxcol - datemincol + 1);
-        item->setRows(changeRow, n+1);
-        item->setEven(even);
-        item->setZValue(-2);
-        m_scene->addDateItem(item);
+        m_scene->addDateRange(prevDate, changeRow, n+1, even);
         even = !even;
     }
+
+    m_scene->itemAddCompleted();
 }
 

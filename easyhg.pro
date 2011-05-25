@@ -1,5 +1,5 @@
 
-CONFIG += release
+CONFIG += debug
 
 TEMPLATE = app
 TARGET = EasyMercurial
@@ -41,7 +41,6 @@ HEADERS = \
     src/panned.h \
     src/connectionitem.h \
     src/textabbrev.h \
-    src/dateitem.h \
     src/colourset.h \
     src/debug.h \
     src/recentfiles.h \
@@ -55,6 +54,7 @@ HEADERS = \
     src/hgaction.h \
     src/historywidget.h \
     src/changesetscene.h \
+    src/changesetview.h \
     src/incomingdialog.h \
     src/uncommitteditem.h \
     src/settingsdialog.h \
@@ -77,7 +77,6 @@ SOURCES = \
     src/panned.cpp \
     src/connectionitem.cpp \
     src/textabbrev.cpp \
-    src/dateitem.cpp \
     src/colourset.cpp \
     src/debug.cpp \
     src/recentfiles.cpp \
@@ -90,6 +89,7 @@ SOURCES = \
     src/confirmcommentdialog.cpp \
     src/historywidget.cpp \
     src/changesetscene.cpp \
+    src/changesetview.cpp \
     src/incomingdialog.cpp \
     src/uncommitteditem.cpp \
     src/settingsdialog.cpp \
