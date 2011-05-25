@@ -78,6 +78,7 @@ ChangesetItem::showDetail()
 //                     y() + 60);
     m_detail->moveBy(x() + (w + 50) / 2 + 10 + 0.5,
                      y() - (m_detail->boundingRect().height() - h) / 2 + 0.5);
+    m_detail->ensureVisible();
     emit detailShown();
 }    
 
