@@ -49,6 +49,19 @@ ChangesetDetailItem::boundingRect() const
     return QRectF(-10, -10, w + 10, m_doc->size().height() + 10);
 }
 
+QVariant
+ChangesetDetailItem::itemChange(GraphicsItemChange c, const QVariant &v)
+{
+    if (c == ItemVisibleHasChanged) {
+        bool visible = v.toBool();
+        DEBUG << "ChangesetDetailItem::itemChange: visible = " << visible << endl;
+        if (visible && scene()) {
+            ensureVisible();
+        }
+    }
+    return v;
+}
+
 void
 ChangesetDetailItem::paint(QPainter *paint,
 			   const QStyleOptionGraphicsItem *option,

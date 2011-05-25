@@ -106,17 +106,28 @@ ChangesetScene::addDateRange(QString label, int minrow, int nrows, bool even)
 void
 ChangesetScene::itemAddCompleted()
 {
+    connect(this, SIGNAL(changed(const QList<QRectF> &)),
+            this, SLOT(recalculateSceneRect()));
+    recalculateSceneRect();
+}
+
+void
+ChangesetScene::recalculateSceneRect()
+{
+    QRectF existingSr = sceneRect();
+
     QRectF r = itemsBoundingRect();
     float minwidth = 300; //!!!
-    DEBUG << "ChangesetScene::itemAddCompleted: minwidth = " << minwidth
+    DEBUG << "ChangesetScene::recalculateSceneRect: minwidth = " << minwidth
           << ", r = " << r << endl;
     if (r.width() < minwidth) {
         float edgediff = (minwidth - r.width()) / 2;
         r.setLeft(r.left() - edgediff);
         r.setRight(r.right() + edgediff);
     }
-    DEBUG << "ChangesetScene::itemAddCompleted: r now is " << r << endl;
-    setSceneRect(r);
+    DEBUG << "ChangesetScene::recalculateSceneRect: r now is " << r << endl;
+
+    setSceneRect(r.united(existingSr));
 }
 
 void
@@ -129,8 +140,6 @@ ChangesetScene::changesetDetailShown()
 	m_detailShown->hideDetail();
     }
     m_detailShown = csi;
-    itemAddCompleted();
-    csi->ensureVisible();
 }
 
 void

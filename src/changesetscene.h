@@ -71,6 +71,7 @@ signals:
 private slots:
     void changesetDetailShown();
     void changesetDetailHidden();
+    void recalculateSceneRect();
 
 protected:
     void drawBackground(QPainter *, const QRectF &);
