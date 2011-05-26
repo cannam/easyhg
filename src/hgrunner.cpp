@@ -160,6 +160,13 @@ QString HgRunner::getHgBinaryName()
     return settings.value("hgbinary", "").toString();
 }
 
+QString HgRunner::getSshBinaryName()
+{
+    QSettings settings;
+    settings.beginGroup("Locations");
+    return settings.value("sshbinary", "").toString();
+}
+
 QString HgRunner::getExtensionLocation()
 {
     QSettings settings;
@@ -397,6 +404,13 @@ void HgRunner::startCommand(HgAction action)
     if (executable == "") {
         // This is a Hg command
         executable = getHgBinaryName();
+        if (executable == "") executable = "hg";
+
+        QString ssh = getSshBinaryName();
+        if (ssh != "") {
+            params.push_front(QString("ui.ssh=\"%1\"").arg(ssh));
+            params.push_front("--config");
+        }
 
         if (action.mayBeInteractive()) {
             params.push_front("ui.interactive=true");
@@ -404,7 +418,7 @@ void HgRunner::startCommand(HgAction action)
 
             if (settings.value("useextension", true).toBool()) {
                 QString extpath = getExtensionLocation();
-                params.push_front(QString("extensions.easyhg=%1").arg(extpath));
+                params.push_front(QString("extensions.easyhg=\"%1\"").arg(extpath));
                 params.push_front("--config");
             }
             interactive = true;

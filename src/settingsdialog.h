@@ -43,6 +43,7 @@ private slots:
     void hgPathBrowse();
     void diffPathBrowse();
     void mergePathBrowse();
+    void sshPathBrowse();
     void editPathBrowse();
     void extensionPathBrowse();
 
@@ -57,6 +58,7 @@ private:
     QLineEdit *m_hgPathLabel;
     QLineEdit *m_diffPathLabel;
     QLineEdit *m_mergePathLabel;
+    QLineEdit *m_sshPathLabel;
     QLineEdit *m_editPathLabel;
 
     QCheckBox *m_useExtension;
@@ -79,6 +81,7 @@ private:
     static void findExtension();
     static void findDiffBinaryName();
     static void findMergeBinaryName();
+    static void findSshBinaryName();
     static void findEditorBinaryName();
 
     static QString m_installPath;
