@@ -418,7 +418,10 @@ void HgRunner::startCommand(HgAction action)
 
             if (settings.value("useextension", true).toBool()) {
                 QString extpath = getExtensionLocation();
-                params.push_front(QString("extensions.easyhg=\"%1\"").arg(extpath));
+                // Looks like this one must be without quotes, even though the SSH
+                // one above only works on Windows if it has quotes (at least where
+                // there is a space in the path).  Odd
+                params.push_front(QString("extensions.easyhg=%1").arg(extpath));
                 params.push_front("--config");
             }
             interactive = true;
