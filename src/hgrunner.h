@@ -66,8 +66,9 @@ private:
 
     void openTerminal();
     void closeTerminal();
-
+    
     QString getHgBinaryName();
+    QString getSshBinaryName();
     QString getExtensionLocation();
 
     QString getUnbundledFileName();

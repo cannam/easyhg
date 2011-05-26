@@ -125,6 +125,15 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     pathsLayout->addWidget(browse, row++, 1);
     connect(browse, SIGNAL(clicked()), this, SLOT(mergePathBrowse()));
 
+    pathsLayout->addWidget(new QLabel(tr("SSH program (for ssh URLs):")), row, 0);
+
+    m_sshPathLabel = new QLineEdit();
+    pathsLayout->addWidget(m_sshPathLabel, row, 2);
+
+    browse = new QPushButton(tr("Browse..."));
+    pathsLayout->addWidget(browse, row++, 1);
+    connect(browse, SIGNAL(clicked()), this, SLOT(sshPathBrowse()));
+
     pathsLayout->addWidget(new QLabel(tr("External text editor:")), row, 0);
 
     m_editPathLabel = new QLineEdit();
@@ -175,6 +184,12 @@ void
 SettingsDialog::mergePathBrowse()
 {
     browseFor(tr("External file-merge program"), m_mergePathLabel);
+}
+
+void
+SettingsDialog::sshPathBrowse()
+{
+    browseFor(tr("SSH program"), m_sshPathLabel);
 }
 
 void
@@ -230,6 +245,7 @@ SettingsDialog::findDefaultLocations(QString installPath)
     findExtension();
     findDiffBinaryName();
     findMergeBinaryName();
+    findSshBinaryName();
     findEditorBinaryName();
 }
 
@@ -335,6 +351,34 @@ SettingsDialog::findMergeBinaryName()
 }
 
 void
+SettingsDialog::findSshBinaryName()
+{
+    QSettings settings;
+    settings.beginGroup("Locations");
+    if (settings.contains("sshbinary")) {
+        return;
+    }
+    QString ssh;
+    QStringList bases;
+#ifdef Q_OS_WIN32
+    bases << "TortoisePlink.exe";
+#else
+    bases << "ssh";
+#endif
+    bool found = false;
+    foreach (QString base, bases) {
+        ssh = findInPath(base, m_installPath, true);
+        if (ssh != "") {
+            found = true;
+            break;
+        }
+    }
+    if (found) {
+        settings.setValue("sshbinary", ssh);
+    }
+}
+
+void
 SettingsDialog::findEditorBinaryName()
 {
     QSettings settings;
@@ -381,6 +425,7 @@ SettingsDialog::clear()
     settings.remove("hgbinary");
     settings.remove("extdiffbinary");
     settings.remove("mergebinary");
+    settings.remove("sshbinary");
     settings.remove("editorbinary");
     settings.remove("extensionpath");
     settings.endGroup();
@@ -410,6 +455,7 @@ SettingsDialog::reset()
     m_hgPathLabel->setText(settings.value("hgbinary").toString());
     m_diffPathLabel->setText(settings.value("extdiffbinary").toString());
     m_mergePathLabel->setText(settings.value("mergebinary").toString());
+    m_sshPathLabel->setText(settings.value("sshbinary").toString());
     m_editPathLabel->setText(settings.value("editorbinary").toString());
     m_extensionPathLabel->setText(settings.value("extensionpath").toString());
     settings.endGroup();
@@ -457,6 +503,7 @@ SettingsDialog::accept()
     settings.setValue("hgbinary", m_hgPathLabel->text());
     settings.setValue("extdiffbinary", m_diffPathLabel->text());
     settings.setValue("mergebinary", m_mergePathLabel->text());
+    settings.setValue("sshbinary", m_sshPathLabel->text());
     settings.setValue("editorbinary", m_editPathLabel->text());
     settings.setValue("extensionpath", m_extensionPathLabel->text());
     settings.endGroup();
