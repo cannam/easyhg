@@ -17,6 +17,7 @@
 
 #include "logparser.h"
 
+#include "common.h"
 #include "debug.h"
 
 #include <QStringList>
@@ -45,7 +46,7 @@ LogList LogParser::parse()
             if (re.indexIn(line) == 0) {
                 QString key = re.cap(1);
                 QString value = re.cap(2);
-                dictionary[key.trimmed()] = value;
+                dictionary[key.trimmed()] = uniDecode(value);
             }
         }
         results.push_back(dictionary);
