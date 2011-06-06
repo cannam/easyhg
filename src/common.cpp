@@ -257,3 +257,19 @@ QString xmlEncode(QString s)
 
     return s;
 }
+
+QString uniDecode(QString s)
+{
+    QString d;
+    for (int i = 0; i < s.length(); ++i) {
+        if (i+5 < s.length() && s[i] == '\\' && s[i+1] == 'u') {
+            QString uni = s.mid(i+2, 4);
+            QByteArray ba = QByteArray::fromHex(uni.toAscii());
+            d += QChar(ba[1], ba[0]);
+            i += 5;
+        } else {
+            d += s[i];
+        }
+    }
+    return d;
+}

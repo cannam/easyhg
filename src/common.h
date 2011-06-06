@@ -62,6 +62,8 @@ FolderStatus getFolderStatus(QString path);
 QString getContainingRepoFolder(QString path);
 
 QString xmlEncode(QString);
+
+QString uniDecode(QString);
     
 
 #endif 	//COMMON_H

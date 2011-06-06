@@ -286,7 +286,7 @@ bool HgRunner::checkPrompts(QString chunk)
 void HgRunner::dataReadyStdout()
 {
     DEBUG << "dataReadyStdout" << endl;
-	if (!m_proc) return;
+    if (!m_proc) return;
     QString chunk = QString::fromUtf8(m_proc->readAllStandardOutput());
     if (!checkPrompts(chunk)) {
         m_stdout += chunk;
@@ -296,7 +296,7 @@ void HgRunner::dataReadyStdout()
 void HgRunner::dataReadyStderr()
 {
     DEBUG << "dataReadyStderr" << endl;
-	if (!m_proc) return;
+    if (!m_proc) return;
     QString chunk = QString::fromUtf8(m_proc->readAllStandardError());
     DEBUG << chunk;
     if (!checkPrompts(chunk)) {
@@ -457,6 +457,7 @@ void HgRunner::startCommand(HgAction action)
 
     env.insert("LANG", "en_US.utf8");
     env.insert("LC_ALL", "en_US.utf8");
+    env.insert("HGENCODING", "utf8");
     env.insert("HGPLAIN", "1");
     m_proc->setProcessEnvironment(env);
 
