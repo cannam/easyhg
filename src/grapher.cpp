@@ -454,7 +454,7 @@ void Grapher::layout(Changesets csets,
             conn->setZValue(-1);
             m_scene->addItem(conn);
             if (pitem) {
-                if (pitem->getChangeset()->branch() == uncommittedBranch) {
+                if (pitem->getChangeset()->isOnBranch(uncommittedBranch)) {
                     haveParentOnBranch = true;
                 }
             }
