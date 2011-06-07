@@ -264,9 +264,9 @@ QString uniDecode(QString s)
     for (int i = 0; i < s.length(); ++i) {
         // backslash-u escaped with another backslash: replace with a
         // single backslash and skip on
-        if (i+2 < s.length() && s[i] == '\\' && s[i+1] == '\\' && s[i+2] == 'u') {
-            d += "\\u";
-            i += 2;
+        if (i+1 < s.length() && s[i] == '\\' && s[i+1] == '\\') {
+            d += '\\';
+            i += 1;
             continue;
         }
         // unescaped backslash followed by u and at least four more
