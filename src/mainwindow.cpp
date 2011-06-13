@@ -546,7 +546,7 @@ void MainWindow::hgTag(QString id)
     }
 }
 
-void MainWindow::hgIgnore()
+void MainWindow::hgEditIgnore()
 {
     QString hgIgnorePath;
     QStringList params;
@@ -583,6 +583,26 @@ void MainWindow::hgIgnore()
 void MainWindow::hgIgnoreFiles(QStringList files)
 {
     //!!! not implemented yet
+
+    // we should:
+    //
+    // * show the user the list of file names selected
+    // 
+    // * offer a choice (depending on the files selected?)
+    // 
+    //   - ignore only these files
+    //
+    //   - ignore files with these names, in any subdirectories?
+    //
+    //   - ignore all files with this extension (if they have a common
+    //     extension)?
+    //   
+    //   - ignore all files with these extensions (if they have any
+    //     extensions?)
+    //
+    // Do we need different mechanisms based on whether we have glob
+    // or regex syntax?
+
     DEBUG << "MainWindow::hgIgnoreFiles: Not implemented" << endl;
 }
 
@@ -2339,7 +2359,7 @@ void MainWindow::connectActions()
     connect(m_hgUpdateAct, SIGNAL(triggered()), this, SLOT(hgUpdate()));
     connect(m_hgRevertAct, SIGNAL(triggered()), this, SLOT(hgRevert()));
     connect(m_hgMergeAct, SIGNAL(triggered()), this, SLOT(hgMerge()));
-    connect(m_hgIgnoreAct, SIGNAL(triggered()), this, SLOT(hgIgnore()));
+    connect(m_hgEditIgnoreAct, SIGNAL(triggered()), this, SLOT(hgEditIgnore()));
 
     connect(m_settingsAct, SIGNAL(triggered()), this, SLOT(settings()));
     connect(m_openAct, SIGNAL(triggered()), this, SLOT(open()));
@@ -2493,7 +2513,7 @@ void MainWindow::enableDisableActions()
     m_hgCommitAct->setEnabled(m_localRepoActionsEnabled);
     m_hgMergeAct->setEnabled(m_localRepoActionsEnabled);
     m_hgServeAct->setEnabled(m_localRepoActionsEnabled);
-    m_hgIgnoreAct->setEnabled(m_localRepoActionsEnabled);
+    m_hgEditIgnoreAct->setEnabled(m_localRepoActionsEnabled);
 
     DEBUG << "m_localRepoActionsEnabled = " << m_localRepoActionsEnabled << endl;
     DEBUG << "canCommit = " << m_hgTabs->canCommit() << endl;
@@ -2710,8 +2730,8 @@ void MainWindow::createActions()
 
     //Advanced actions
 
-    m_hgIgnoreAct = new QAction(tr("Edit .hgignore File"), this);
-    m_hgIgnoreAct->setStatusTip(tr("Edit the .hgignore file, containing the names of files that should be ignored by Mercurial"));
+    m_hgEditIgnoreAct = new QAction(tr("Edit .hgignore File"), this);
+    m_hgEditIgnoreAct->setStatusTip(tr("Edit the .hgignore file, containing the names of files that should be ignored by Mercurial"));
 
     m_hgServeAct = new QAction(tr("Serve via HTTP"), this);
     m_hgServeAct->setStatusTip(tr("Serve local repository via http for workgroup access"));
@@ -2760,7 +2780,7 @@ void MainWindow::createMenus()
     remoteMenu->addAction(m_changeRemoteRepoAct);
 
     m_advancedMenu = menuBar()->addMenu(tr("&Advanced"));
-    m_advancedMenu->addAction(m_hgIgnoreAct);
+    m_advancedMenu->addAction(m_hgEditIgnoreAct);
     m_advancedMenu->addSeparator();
     m_advancedMenu->addAction(m_hgServeAct);
 
