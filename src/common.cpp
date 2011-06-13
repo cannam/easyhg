@@ -262,7 +262,7 @@ QString uniDecode(QString s)
 {
     QString d;
     for (int i = 0; i < s.length(); ++i) {
-        // backslash-u escaped with another backslash: replace with a
+        // backslash escaped with another backslash: replace with a
         // single backslash and skip on
         if (i+1 < s.length() && s[i] == '\\' && s[i+1] == '\\') {
             d += '\\';
