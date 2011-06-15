@@ -48,6 +48,7 @@
 #include "annotatedialog.h"
 #include "version.h"
 #include "workstatuswidget.h"
+#include "hgignoredialog.h"
 
 
 MainWindow::MainWindow(QString myDirPath) :
@@ -603,7 +604,20 @@ void MainWindow::hgIgnoreFiles(QStringList files)
     // Do we need different mechanisms based on whether we have glob
     // or regex syntax?
 
-    DEBUG << "MainWindow::hgIgnoreFiles: Not implemented" << endl;
+    DEBUG << "MainWindow::hgIgnoreFiles: File names are:" << endl;
+    foreach (QString file, files) DEBUG << file << endl;
+
+    QSet<QString> suffixes;
+    foreach (QString file, files) {
+        QString s = QFileInfo(file).suffix();
+        if (s != "") suffixes.insert(s);
+    }
+
+    HgIgnoreDialog::IgnoreType itype =
+        HgIgnoreDialog::confirmIgnore(files, QStringList::fromSet(suffixes));
+
+    
+    
 }
 
 void MainWindow::hgUnIgnoreFiles(QStringList files)
