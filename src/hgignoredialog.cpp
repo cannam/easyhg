@@ -51,8 +51,12 @@ HgIgnoreDialog::HgIgnoreDialog(QWidget *parent,
 	foreach (QString option, options) {
 	    QRadioButton *b = new QRadioButton(option);
 	    layout->addWidget(b, row++, 1);
-	    b->setChecked(first);
-	    first = false;
+	    if (first) {
+		m_option = option;
+		b->setChecked(true);
+		first = false;
+	    }
+	    connect(b, SIGNAL(toggled(bool)), this, SLOT(optionToggled(bool)));
 	}
     }
 
@@ -65,6 +69,16 @@ HgIgnoreDialog::HgIgnoreDialog(QWidget *parent,
 
     connect(bbox, SIGNAL(accepted()), this, SLOT(accept()));
     connect(bbox, SIGNAL(rejected()), this, SLOT(reject()));
+}
+
+void
+HgIgnoreDialog::optionToggled(bool checked)
+{
+    QObject *s = sender();
+    QRadioButton *rb = qobject_cast<QRadioButton *>(s);
+    if (rb && checked) {
+	m_option = rb->text();
+    }
 }
 
 HgIgnoreDialog::IgnoreType
@@ -104,9 +118,11 @@ HgIgnoreDialog::confirmIgnore(QWidget *parent,
 			 options, tr("Ignore"));
 
 	if (d.exec() == QDialog::Accepted) {
-
-	    //...
-
+	    QString option = d.getOption();
+	    DEBUG << "HgIgnoreDialog::confirmIgnore: option = " << option << endl;
+	    if (option == options[0]) return IgnoreGivenFilesOnly;
+	    else if (option == options[1]) return IgnoreAllFilesOfGivenNames;
+	    else return IgnoreAllFilesOfGivenSuffixes;
 	}
     
     } else {
@@ -120,9 +136,10 @@ HgIgnoreDialog::confirmIgnore(QWidget *parent,
 			 options, tr("Ignore"));
 
 	if (d.exec() == QDialog::Accepted) {
-
-	    //...
-
+	    QString option = d.getOption();
+	    DEBUG << "HgIgnoreDialog::confirmIgnore: option = " << option << endl;
+	    if (option == options[0]) return IgnoreGivenFilesOnly;
+	    else return IgnoreAllFilesOfGivenNames;
 	}
     }	
 

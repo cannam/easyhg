@@ -35,6 +35,9 @@ public:
     static IgnoreType confirmIgnore(QWidget *parent,
 				    QStringList files, QStringList suffixes);
 
+private slots:
+    void optionToggled(bool);
+
 private:
     HgIgnoreDialog(QWidget *parent,
 		   QString title,
@@ -43,7 +46,9 @@ private:
 		   QStringList options,
 		   QString okButtonText);
 
-    
+    QString getOption() const { return m_option; }
+
+    QString m_option;
 };
 
 #endif
