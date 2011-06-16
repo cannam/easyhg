@@ -17,6 +17,7 @@
 
 #include "confirmcommentdialog.h"
 #include "common.h"
+#include "debug.h"
 
 #include <QMessageBox>
 #include <QInputDialog>
@@ -67,7 +68,17 @@ void ConfirmCommentDialog::commentChanged()
 
 QString ConfirmCommentDialog::getComment() const
 {
-    return m_textEdit->document()->toPlainText();
+/*
+    DEBUG << "ConfirmCommentDialog: as html is:" << endl;
+    DEBUG << m_textEdit->document()->toHtml() << endl;
+    DEBUG << "ConfirmCommentDialog: as plain text is:" << endl;
+    QString t = m_textEdit->document()->toPlainText();
+    DEBUG << t << endl;
+    DEBUG << "Characters: " << endl;
+    for (int i = 0; i < t.length(); ++i) DEBUG << t[i].unicode();
+    DEBUG << endl;
+    return t;
+*/
 }
 
 QString ConfirmCommentDialog::buildFilesText(QString intro, QStringList files)

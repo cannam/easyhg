@@ -617,9 +617,20 @@ void MainWindow::hgIgnoreFiles(QStringList files)
         if (s != "") suffixes.insert(s);
     }
 
+    QString directory;
+    bool dirCount = 0;
+    foreach (QString file, files) {
+        QString d = QFileInfo(file).path();
+        if (d != directory) {
+            ++dirCount;
+            directory = d;
+        }
+    }
+    if (dirCount != 1) directory = "";
+
     HgIgnoreDialog::IgnoreType itype =
         HgIgnoreDialog::confirmIgnore
-        (this, files, QStringList::fromSet(suffixes));
+        (this, files, QStringList::fromSet(suffixes), directory);
 
     DEBUG << "hgIgnoreFiles: Ignore type is " << itype << endl;
 
@@ -674,17 +685,28 @@ void MainWindow::hgIgnoreFiles(QStringList files)
         // anywhere -- anchor the path to / to make it specific to
         // this file only
         //!!! check this!
+        //!!! ... no, it doesn't work. does this mean we need regex syntax?
         foreach (QString f, files) {
             out << "/" + f << endl;
         }
-    } else {
+    } else if (itype == HgIgnoreDialog::IgnoreAllFilesOfGivenNames) {
         foreach (QString f, files) {
-            out << f << endl;
+            out << QFileInfo(f).fileName() << endl;
         }
+    } else if (itype == HgIgnoreDialog::IgnoreWholeDirectory) {
+        out << directory + "/" << endl;
     }
 
-    //!!! report, and offer to edit .hgignore now
+    f.close();
     
+
+    //!!! report, and offer to edit .hgignore now
+
+    // (tell the user at least what lines have been added to the
+    // hgignore file and how to edit it)
+    
+    // (also, if the hgignore is not tracked, suggest that they add
+    // it)
     
     hgRefresh();
 }

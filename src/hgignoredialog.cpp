@@ -83,7 +83,9 @@ HgIgnoreDialog::optionToggled(bool checked)
 
 HgIgnoreDialog::IgnoreType
 HgIgnoreDialog::confirmIgnore(QWidget *parent,
-			      QStringList files, QStringList suffixes)
+			      QStringList files,
+                              QStringList suffixes,
+                              QString directory)
 {
     QString intro = "<qt><h3>";
     intro += tr("Ignore files");
@@ -99,49 +101,54 @@ HgIgnoreDialog::confirmIgnore(QWidget *parent,
 
     intro += "</p></qt>";
 
-    if (suffixes.size() > 0) {
-
-	QStringList options;
-	options << tr("Ignore these files only");
-	options << tr("Ignore files with these names in any subdirectory");
-
-	if (suffixes.size() > 1) {
-	    options << tr("Ignore all files with these extensions:\n%1")
-		.arg(suffixes.join(", "));
-	} else {
-	    options << tr("Ignore all files with the extension \"%1\"")
-		.arg(suffixes[0]);
-	}
-
-	HgIgnoreDialog d(parent, tr("Ignore files"),
-			 intro, tr("<p>Please choose whether to:</p>"),
-			 options, tr("Ignore"));
-
-	if (d.exec() == QDialog::Accepted) {
-	    QString option = d.getOption();
-	    DEBUG << "HgIgnoreDialog::confirmIgnore: option = " << option << endl;
-	    if (option == options[0]) return IgnoreGivenFilesOnly;
-	    else if (option == options[1]) return IgnoreAllFilesOfGivenNames;
-	    else return IgnoreAllFilesOfGivenSuffixes;
-	}
-    
+    QString textTheseFiles;
+    QString textTheseNames;
+    if (files.size() > 1) {
+        textTheseFiles = tr("Ignore these files only");
+        textTheseNames = tr("Ignore files with these names, in any folder");
     } else {
+        textTheseFiles = tr("Ignore this file only");
+        textTheseNames = tr("Ignore files with the same name as this, in any folder");
+    }        
 
-	QStringList options;
-	options << tr("Ignore these files only");
-	options << tr("Ignore files with these names in any subdirectory");
+    QString textThisFolder;
+    QString textTheseSuffixes;
 
-	HgIgnoreDialog d(parent, tr("Ignore files"),
-			 intro, tr("<p>Please choose whether to:</p>"),
-			 options, tr("Ignore"));
+    QStringList options;
+    options << textTheseFiles;
+    options << textTheseNames;
 
-	if (d.exec() == QDialog::Accepted) {
-	    QString option = d.getOption();
-	    DEBUG << "HgIgnoreDialog::confirmIgnore: option = " << option << endl;
-	    if (option == options[0]) return IgnoreGivenFilesOnly;
-	    else return IgnoreAllFilesOfGivenNames;
-	}
-    }	
+    if (directory != "") {
+        textThisFolder = tr("Ignore the whole folder \"%1\"")
+            .arg(directory);
+        options << textThisFolder;
+    }
+
+    if (suffixes.size() > 1) {
+
+        textTheseSuffixes = tr("Ignore all files with these extensions:\n%1")
+            .arg(suffixes.join(", "));
+        options << textTheseSuffixes;
+
+    } else if (suffixes.size() > 0) {
+
+        textTheseSuffixes = tr("Ignore all files with the extension \"%1\"")
+            .arg(suffixes[0]);
+        options << textTheseSuffixes;
+    }
+
+    HgIgnoreDialog d(parent, tr("Ignore files"),
+                     intro, tr("<p>Please choose whether to:</p>"),
+                     options, tr("Ignore"));
+
+    if (d.exec() == QDialog::Accepted) {
+        QString option = d.getOption();
+        DEBUG << "HgIgnoreDialog::confirmIgnore: option = " << option << endl;
+        if (option == textTheseFiles) return IgnoreGivenFilesOnly;
+        else if (option == textTheseNames) return IgnoreAllFilesOfGivenNames;
+        else if (option == textTheseSuffixes) return IgnoreAllFilesOfGivenSuffixes;
+        else if (option == textThisFolder) return IgnoreWholeDirectory;
+    }
 
     return IgnoreNothing;
 }
