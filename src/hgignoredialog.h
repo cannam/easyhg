@@ -32,8 +32,18 @@ public:
 	IgnoreAllFilesOfGivenSuffixes
     };
 
-    static IgnoreType confirmIgnore(QStringList files, QStringList suffixes);
+    static IgnoreType confirmIgnore(QWidget *parent,
+				    QStringList files, QStringList suffixes);
 
+private:
+    HgIgnoreDialog(QWidget *parent,
+		   QString title,
+		   QString introText,
+		   QString question,
+		   QStringList options,
+		   QString okButtonText);
+
+    
 };
 
 #endif

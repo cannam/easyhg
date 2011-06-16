@@ -19,34 +19,112 @@
 #include "common.h"
 #include "debug.h"
 
-HgIgnoreDialog::IgnoreType
-HgIgnoreDialog::confirmIgnore(QStringList files, QStringList suffixes)
+#include <QGridLayout>
+#include <QRadioButton>
+#include <QLabel>
+#include <QDialogButtonBox>
+#include <QPushButton>
+
+HgIgnoreDialog::HgIgnoreDialog(QWidget *parent,
+			       QString title,
+			       QString introText,
+			       QString question,
+			       QStringList options,
+			       QString okButtonText) :
+    QDialog(parent)
 {
-    QString text = "<qt>";
+    setWindowTitle(title);
+
+    QGridLayout *layout = new QGridLayout;
+    setLayout(layout);
+    
+    int row = 0;
+
+    QLabel *label = new QLabel(QString("%1%2").arg(introText).arg(question));
+    label->setWordWrap(true);
+    layout->addWidget(label, row++, 0, 1, 2);
+
+    if (!options.empty()) {
+	layout->addWidget(new QLabel("  "), row, 0);
+	layout->setColumnStretch(1, 10);
+	bool first = true;
+	foreach (QString option, options) {
+	    QRadioButton *b = new QRadioButton(option);
+	    layout->addWidget(b, row++, 1);
+	    b->setChecked(first);
+	    first = false;
+	}
+    }
+
+    QDialogButtonBox *bbox = new QDialogButtonBox(QDialogButtonBox::Ok |
+                                                  QDialogButtonBox::Cancel);
+    layout->addWidget(bbox, row++, 0, 1, 2);
+    bbox->button(QDialogButtonBox::Ok)->setDefault(true);
+    bbox->button(QDialogButtonBox::Ok)->setText(okButtonText);
+    bbox->button(QDialogButtonBox::Cancel)->setAutoDefault(false);
+
+    connect(bbox, SIGNAL(accepted()), this, SLOT(accept()));
+    connect(bbox, SIGNAL(rejected()), this, SLOT(reject()));
+}
+
+HgIgnoreDialog::IgnoreType
+HgIgnoreDialog::confirmIgnore(QWidget *parent,
+			      QStringList files, QStringList suffixes)
+{
+    QString intro = "<qt><h3>";
+    intro += tr("Ignore files");
+    intro += "</h3><p>";
 
     if (files.size() < 10) {
-        text += tr("You have asked to ignore the following files:");
-        text += "<p><code>";
-        foreach (QString f, files) {
-            text += "&nbsp;&nbsp;&nbsp;" + xmlEncode(f) + "<br>";
-        }
-        text += "</code>";
+        intro += tr("You have asked to ignore the following files:</p><p>");
+        intro += "<code>&nbsp;&nbsp;&nbsp;"
+	    + files.join("<br>&nbsp;&nbsp;&nbsp;") + "</code>";
     } else {
-        text += "<p>";
-        text += tr("You have asked to ignore %1 file(s).", "", files.size());
-        text += "</p>";
+        intro += tr("You have asked to ignore %n file(s).", "", files.size());
     }
+
+    intro += "</p></qt>";
 
     if (suffixes.size() > 0) {
 
-        text += "<p>";
-        text += tr("Would you like to:");
-        text += "<ul>";
+	QStringList options;
+	options << tr("Ignore these files only");
+	options << tr("Ignore files with these names in any subdirectory");
 
+	if (suffixes.size() > 1) {
+	    options << tr("Ignore all files with these extensions:\n%1")
+		.arg(suffixes.join(", "));
+	} else {
+	    options << tr("Ignore all files with the extension \"%1\"")
+		.arg(suffixes[0]);
+	}
 
-	//...
+	HgIgnoreDialog d(parent, tr("Ignore files"),
+			 intro, tr("<p>Please choose whether to:</p>"),
+			 options, tr("Ignore"));
+
+	if (d.exec() == QDialog::Accepted) {
+
+	    //...
+
+	}
     
-    }
+    } else {
+
+	QStringList options;
+	options << tr("Ignore these files only");
+	options << tr("Ignore files with these names in any subdirectory");
+
+	HgIgnoreDialog d(parent, tr("Ignore files"),
+			 intro, tr("<p>Please choose whether to:</p>"),
+			 options, tr("Ignore"));
+
+	if (d.exec() == QDialog::Accepted) {
+
+	    //...
+
+	}
+    }	
 
 
     return IgnoreNothing;
