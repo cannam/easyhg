@@ -29,11 +29,14 @@ public:
 	IgnoreNothing,
 	IgnoreGivenFilesOnly,
 	IgnoreAllFilesOfGivenNames,
-	IgnoreAllFilesOfGivenSuffixes
+	IgnoreAllFilesOfGivenSuffixes,
+        IgnoreWholeDirectory
     };
 
     static IgnoreType confirmIgnore(QWidget *parent,
-				    QStringList files, QStringList suffixes);
+				    QStringList files,
+                                    QStringList suffixes,
+                                    QString directory);
 
 private slots:
     void optionToggled(bool);
