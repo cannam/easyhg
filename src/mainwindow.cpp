@@ -617,7 +617,7 @@ void MainWindow::hgIgnoreFiles(QStringList files)
         HgIgnoreDialog::confirmIgnore
         (this, files, QStringList::fromSet(suffixes));
 
-    
+    DEBUG << "hgIgnoreFiles: Ignore type is " << itype << endl;
     
 }
 
