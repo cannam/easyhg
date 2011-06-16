@@ -547,15 +547,11 @@ void MainWindow::hgTag(QString id)
     }
 }
 
-void MainWindow::hgEditIgnore()
+void MainWindow::initHgIgnore()
 {
-    QString hgIgnorePath;
-    QStringList params;
-    
-    hgIgnorePath = m_workFolderPath;
-    hgIgnorePath += "/.hgignore";
-
     if (!QDir(m_workFolderPath).exists()) return;
+    QString hgIgnorePath = m_workFolderPath + "/.hgignore";
+
     QFile f(hgIgnorePath);
     if (!f.exists()) {
         f.open(QFile::WriteOnly);
@@ -564,14 +560,25 @@ void MainWindow::hgEditIgnore()
         delete ts;
         f.close();
     }
-    
+}    
+
+void MainWindow::hgEditIgnore()
+{
+    if (!QDir(m_workFolderPath).exists()) return;
+
+    initHgIgnore();
+
+    QString hgIgnorePath = m_workFolderPath + "/.hgignore";
+    QStringList params;
+
     params << hgIgnorePath;
     
     QString editor = getEditorBinaryName();
 
     if (editor == "") {
-        DEBUG << "Failed to find a text editor" << endl;
-        //!!! visible error!
+        QMessageBox::critical
+            (this, tr("Edit .hgignore"),
+             tr("Failed to locate a system text editor program!"));
         return;
     }
 
@@ -583,7 +590,7 @@ void MainWindow::hgEditIgnore()
 
 void MainWindow::hgIgnoreFiles(QStringList files)
 {
-    //!!! not implemented yet
+    if (!QDir(m_workFolderPath).exists() || files.empty()) return;
 
     // we should:
     //
@@ -600,9 +607,6 @@ void MainWindow::hgIgnoreFiles(QStringList files)
     //   
     //   - ignore all files with these extensions (if they have any
     //     extensions?)
-    //
-    // Do we need different mechanisms based on whether we have glob
-    // or regex syntax?
 
     DEBUG << "MainWindow::hgIgnoreFiles: File names are:" << endl;
     foreach (QString file, files) DEBUG << file << endl;
@@ -618,7 +622,63 @@ void MainWindow::hgIgnoreFiles(QStringList files)
         (this, files, QStringList::fromSet(suffixes));
 
     DEBUG << "hgIgnoreFiles: Ignore type is " << itype << endl;
+
+    // Now, .hgignore can be switched from regex to glob syntax
+    // part-way through -- and glob is much simpler for us, so we
+    // should do that if it's in regex mode at the end of the file.
+
+    initHgIgnore();
+
+    QString hgIgnorePath = m_workFolderPath + "/.hgignore";
+
+    // hgignore file should now exist (initHgIgnore should have
+    // created it if it didn't).  Check for glob status first
+
+    QFile f(hgIgnorePath);
+    if (!f.exists()) {
+        std::cerr << "MainWindow::ignoreFiles: Internal error: .hgignore file not found (even though we were supposed to have created it)" << std::endl;
+        return;
+    }
+
+    f.open(QFile::ReadOnly);
+    bool glob = false;
+    while (!f.atEnd()) {
+        QByteArray ba = f.readLine();
+        QString s = QString::fromLocal8Bit(ba).trimmed();
+        if (s.startsWith("syntax:")) {
+            if (s.endsWith("glob")) {
+                glob = true;
+            } else {
+                glob = false;
+            }
+        }
+    }
+    f.close();
+
+    f.open(QFile::Append);
+    QTextStream out(&f);
+
+    if (!glob) {
+        out << "syntax: glob" << endl;
+    }
+
+    if (itype == HgIgnoreDialog::IgnoreAllFilesOfGivenSuffixes) {
+        foreach (QString s, suffixes) {
+            out << "*." << s << endl;
+        }
+    } else if (itype == HgIgnoreDialog::IgnoreGivenFilesOnly) {
+        foreach (QString f, files) {
+            out << f << endl;
+        }
+    } else {
+
+        //!!! uh, can we do this in glob mode??
+    }
+
+    //!!! report, and offer to edit .hgignore now
     
+    
+    hgRefresh();
 }
 
 void MainWindow::hgUnIgnoreFiles(QStringList files)

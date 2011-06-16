@@ -120,6 +120,8 @@ private:
     void hgLog();
     void hgLogIncremental(QStringList prune);
 
+    void initHgIgnore();
+
     void updateRecentMenu();
     void createActions();
     void connectActions();
