@@ -143,7 +143,6 @@ HgIgnoreDialog::confirmIgnore(QWidget *parent,
 	}
     }	
 
-
     return IgnoreNothing;
 }
 
