@@ -662,17 +662,25 @@ void MainWindow::hgIgnoreFiles(QStringList files)
         out << "syntax: glob" << endl;
     }
 
+    //!!! should we be warning the user which files this will mean
+    //!!! they ignore? -- probably
+
     if (itype == HgIgnoreDialog::IgnoreAllFilesOfGivenSuffixes) {
         foreach (QString s, suffixes) {
             out << "*." << s << endl;
         }
     } else if (itype == HgIgnoreDialog::IgnoreGivenFilesOnly) {
+        // The default for glob seems to be to ignore the file
+        // anywhere -- anchor the path to / to make it specific to
+        // this file only
+        //!!! check this!
+        foreach (QString f, files) {
+            out << "/" + f << endl;
+        }
+    } else {
         foreach (QString f, files) {
             out << f << endl;
         }
-    } else {
-
-        //!!! uh, can we do this in glob mode??
     }
 
     //!!! report, and offer to edit .hgignore now
