@@ -68,7 +68,8 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_actionLabels[FileStates::RedoMerge] = tr("Redo merge");
     m_actionLabels[FileStates::MarkResolved] = tr("Mark conflict as resolved");
     m_actionLabels[FileStates::Ignore] = tr("Ignore...");
-    m_actionLabels[FileStates::UnIgnore] = tr("Stop ignoring...");
+    // Unignore is too difficult in fact, so we just offer to edit the hgignore
+    m_actionLabels[FileStates::UnIgnore] = tr("Edit .hgignore File");
 
     m_descriptions[FileStates::Clean] = tr("You have not changed these files.");
     m_descriptions[FileStates::Modified] = tr("You have changed these files since you last committed them.");

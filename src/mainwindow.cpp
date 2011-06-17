@@ -588,6 +588,17 @@ void MainWindow::hgEditIgnore()
     m_runner->requestAction(action);
 }
 
+static QString regexEscape(QString filename)
+{
+    return filename
+        .replace(".", "\\.")
+        .replace("[", "\\[")
+        .replace("]", "\\]")
+        .replace("(", "\\(")
+        .replace(")", "\\)")
+        .replace("?", "\\?");
+}
+
 void MainWindow::hgIgnoreFiles(QStringList files)
 {
     if (!QDir(m_workFolderPath).exists() || files.empty()) return;
@@ -626,13 +637,15 @@ void MainWindow::hgIgnoreFiles(QStringList files)
             directory = d;
         }
     }
-    if (dirCount != 1) directory = "";
+    if (dirCount != 1 || directory == ".") directory = "";
 
     HgIgnoreDialog::IgnoreType itype =
         HgIgnoreDialog::confirmIgnore
         (this, files, QStringList::fromSet(suffixes), directory);
 
     DEBUG << "hgIgnoreFiles: Ignore type is " << itype << endl;
+
+    if (itype == HgIgnoreDialog::IgnoreNothing) return;
 
     // Now, .hgignore can be switched from regex to glob syntax
     // part-way through -- and glob is much simpler for us, so we
@@ -673,48 +686,63 @@ void MainWindow::hgIgnoreFiles(QStringList files)
         out << "syntax: glob" << endl;
     }
 
-    //!!! should we be warning the user which files this will mean
-    //!!! they ignore? -- probably
+    QString info = "<qt><h3>" + tr("Ignored files") + "</h3><p>";
+    info += tr("The following lines have been added to the .hgignore file for this working copy:");
+    info += "</p><code>";
 
+    QStringList args;
     if (itype == HgIgnoreDialog::IgnoreAllFilesOfGivenSuffixes) {
-        foreach (QString s, suffixes) {
-            out << "*." << s << endl;
-        }
+        args = QStringList::fromSet(suffixes);
     } else if (itype == HgIgnoreDialog::IgnoreGivenFilesOnly) {
-        // The default for glob seems to be to ignore the file
-        // anywhere -- anchor the path to / to make it specific to
-        // this file only
-        //!!! check this!
-        //!!! ... no, it doesn't work. does this mean we need regex syntax?
-        foreach (QString f, files) {
-            out << "/" + f << endl;
-        }
+        args = files;
     } else if (itype == HgIgnoreDialog::IgnoreAllFilesOfGivenNames) {
+        QSet<QString> names;
         foreach (QString f, files) {
-            out << QFileInfo(f).fileName() << endl;
+            names << QFileInfo(f).fileName();
         }
+        args = QStringList::fromSet(names);
     } else if (itype == HgIgnoreDialog::IgnoreWholeDirectory) {
-        out << directory + "/" << endl;
+        args << directory;
+    }
+
+    bool first = true;
+
+    foreach (QString a, args) {
+        QString line;
+        if (itype == HgIgnoreDialog::IgnoreAllFilesOfGivenSuffixes) {
+            line = "*." + a;
+        } else if (itype == HgIgnoreDialog::IgnoreGivenFilesOnly) {
+            // Doesn't seem to be possible to do this with a glob,
+            // because the glob is always unanchored and there is no
+            // equivalent of ^ to anchor it
+            line = "re:^" + regexEscape(a);
+        } else if (itype == HgIgnoreDialog::IgnoreAllFilesOfGivenNames) {
+            line = a;
+        } else if (itype == HgIgnoreDialog::IgnoreWholeDirectory) {
+            line = "re:^" + regexEscape(a) + "/";
+        }
+        if (line != "") {
+            out << line << endl;
+            if (!first) info += "<br>";
+            first = false;
+            info += xmlEncode(line);
+        }
     }
 
     f.close();
     
+    info += "</code></qt>";
 
-    //!!! report, and offer to edit .hgignore now
+    QMessageBox::information(this, tr("Ignored files"),
+                             info);
 
-    // (tell the user at least what lines have been added to the
-    // hgignore file and how to edit it)
-    
-    // (also, if the hgignore is not tracked, suggest that they add
-    // it)
-    
     hgRefresh();
 }
 
 void MainWindow::hgUnIgnoreFiles(QStringList files)
 {
-    //!!! not implemented yet
-    DEBUG << "MainWindow::hgUnIgnoreFiles: Not implemented" << endl;
+    // Not implemented: edit the .hgignore instead
+    hgEditIgnore();
 }
 
 QString MainWindow::getDiffBinaryName()
