@@ -21,3 +21,5 @@ Makefile.Release
 .DS_Store
 *.pdb
 
+re:^EasyMercurial
+re:^kdiff3

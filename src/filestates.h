@@ -50,6 +50,7 @@ public:
     bool isInState(QString file, State s) const;
     QStringList filesInState(State s) const;
     State stateOf(QString file) const;
+    bool isKnown(QString file) const;
 
     enum Activity {
 
