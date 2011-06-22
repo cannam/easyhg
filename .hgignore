@@ -21,5 +21,6 @@ Makefile.Release
 .DS_Store
 *.pdb
 
-re:^EasyMercurial
-re:^kdiff3
+re:^EasyMercurial$
+re:^kdiff3$
+re:^_UpgradeReport_Files/
