@@ -715,7 +715,7 @@ void MainWindow::hgIgnoreFiles(QStringList files)
             // Doesn't seem to be possible to do this with a glob,
             // because the glob is always unanchored and there is no
             // equivalent of ^ to anchor it
-            line = "re:^" + regexEscape(a);
+            line = "re:^" + regexEscape(a) + "$";
         } else if (itype == HgIgnoreDialog::IgnoreAllFilesOfGivenNames) {
             line = a;
         } else if (itype == HgIgnoreDialog::IgnoreWholeDirectory) {
