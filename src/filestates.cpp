@@ -137,6 +137,11 @@ FileStates::State FileStates::stateOf(QString file) const
     return Unknown;
 }
 
+bool FileStates::isKnown(QString file) const
+{
+    return (m_stateMap.contains(file));
+}
+
 FileStates::Activities FileStates::activitiesSupportedBy(State s)
 {
     Activities a;

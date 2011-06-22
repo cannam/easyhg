@@ -93,7 +93,7 @@ private slots:
     void hgNewBranch();
     void hgNoBranch();
     void hgServe();
-    void hgIgnore();
+    void hgEditIgnore();
 
     void hgAnnotateFiles(QStringList);
     void hgDiffFiles(QStringList);
@@ -119,6 +119,8 @@ private:
     void hgQueryParents();
     void hgLog();
     void hgLogIncremental(QStringList prune);
+
+    void initHgIgnore();
 
     void updateRecentMenu();
     void createActions();
@@ -211,12 +213,13 @@ private:
     QAction *m_hgRevertAct;
     QAction *m_hgAddAct;
     QAction *m_hgRemoveAct;
+    QAction *m_hgIgnoreAct;
     QAction *m_hgUpdateAct;
     QAction *m_hgCommitAct;
     QAction *m_hgMergeAct;
     QAction *m_hgUpdateToRevAct;
     QAction *m_hgAnnotateAct;
-    QAction *m_hgIgnoreAct;
+    QAction *m_hgEditIgnoreAct;
     QAction *m_hgServeAct;
 
     // Menus

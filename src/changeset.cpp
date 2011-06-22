@@ -17,6 +17,7 @@
 
 #include "changeset.h"
 #include "common.h"
+#include "debug.h"
 
 #include <QVariant>
 
@@ -52,6 +53,8 @@ QString Changeset::formatHtml()
     QString rowTemplate = "<tr><td><b>%1</b>&nbsp;</td><td>%2</td></tr>";
 
     description = "<qt><table border=0>";
+
+//    DEBUG << "comment is " << comment() << endl;
 
     QString c = comment().trimmed();
     c = c.replace(QRegExp("^\""), "");

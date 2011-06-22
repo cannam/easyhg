@@ -4,6 +4,9 @@ CONFIG += release
 TEMPLATE = app
 TARGET = EasyMercurial
 
+QMAKE_CXX = clang++
+QMAKE_LINK = clang++
+
 # We use the 10.4 SDK and Carbon for all 32-bit OS/X,
 # and 10.6 with Cocoa for all 64-bit
 macx-g++40 {
@@ -61,7 +64,8 @@ HEADERS = \
     src/clickablelabel.h \
     src/workstatuswidget.h \
     src/moreinformationdialog.h \
-    src/annotatedialog.h
+    src/annotatedialog.h \
+    src/hgignoredialog.h
 SOURCES = \
     src/main.cpp \
     src/mainwindow.cpp \
@@ -95,7 +99,8 @@ SOURCES = \
     src/settingsdialog.cpp \
     src/workstatuswidget.cpp \
     src/moreinformationdialog.cpp \
-    src/annotatedialog.cpp
+    src/annotatedialog.cpp \
+    src/hgignoredialog.cpp
 
 macx-* {
     SOURCES += src/common_osx.mm
