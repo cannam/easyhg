@@ -48,6 +48,7 @@
 #include "annotatedialog.h"
 #include "version.h"
 #include "workstatuswidget.h"
+#include "hgignoredialog.h"
 
 
 MainWindow::MainWindow(QString myDirPath) :
@@ -546,15 +547,11 @@ void MainWindow::hgTag(QString id)
     }
 }
 
-void MainWindow::hgIgnore()
+void MainWindow::initHgIgnore()
 {
-    QString hgIgnorePath;
-    QStringList params;
-    
-    hgIgnorePath = m_workFolderPath;
-    hgIgnorePath += "/.hgignore";
-
     if (!QDir(m_workFolderPath).exists()) return;
+    QString hgIgnorePath = m_workFolderPath + "/.hgignore";
+
     QFile f(hgIgnorePath);
     if (!f.exists()) {
         f.open(QFile::WriteOnly);
@@ -563,14 +560,25 @@ void MainWindow::hgIgnore()
         delete ts;
         f.close();
     }
-    
+}    
+
+void MainWindow::hgEditIgnore()
+{
+    if (!QDir(m_workFolderPath).exists()) return;
+
+    initHgIgnore();
+
+    QString hgIgnorePath = m_workFolderPath + "/.hgignore";
+    QStringList params;
+
     params << hgIgnorePath;
     
     QString editor = getEditorBinaryName();
 
     if (editor == "") {
-        DEBUG << "Failed to find a text editor" << endl;
-        //!!! visible error!
+        QMessageBox::critical
+            (this, tr("Edit .hgignore"),
+             tr("Failed to locate a system text editor program!"));
         return;
     }
 
@@ -580,16 +588,161 @@ void MainWindow::hgIgnore()
     m_runner->requestAction(action);
 }
 
+static QString regexEscape(QString filename)
+{
+    return filename
+        .replace(".", "\\.")
+        .replace("[", "\\[")
+        .replace("]", "\\]")
+        .replace("(", "\\(")
+        .replace(")", "\\)")
+        .replace("?", "\\?");
+}
+
 void MainWindow::hgIgnoreFiles(QStringList files)
 {
-    //!!! not implemented yet
-    DEBUG << "MainWindow::hgIgnoreFiles: Not implemented" << endl;
+    if (!QDir(m_workFolderPath).exists() || files.empty()) return;
+
+    // we should:
+    //
+    // * show the user the list of file names selected
+    // 
+    // * offer a choice (depending on the files selected?)
+    // 
+    //   - ignore only these files
+    //
+    //   - ignore files with these names, in any subdirectories?
+    //
+    //   - ignore all files with this extension (if they have a common
+    //     extension)?
+    //   
+    //   - ignore all files with these extensions (if they have any
+    //     extensions?)
+
+    DEBUG << "MainWindow::hgIgnoreFiles: File names are:" << endl;
+    foreach (QString file, files) DEBUG << file << endl;
+
+    QSet<QString> suffixes;
+    foreach (QString file, files) {
+        QString s = QFileInfo(file).suffix();
+        if (s != "") suffixes.insert(s);
+    }
+
+    QString directory;
+    bool dirCount = 0;
+    foreach (QString file, files) {
+        QString d = QFileInfo(file).path();
+        if (d != directory) {
+            ++dirCount;
+            directory = d;
+        }
+    }
+    if (dirCount != 1 || directory == ".") directory = "";
+
+    HgIgnoreDialog::IgnoreType itype =
+        HgIgnoreDialog::confirmIgnore
+        (this, files, QStringList::fromSet(suffixes), directory);
+
+    DEBUG << "hgIgnoreFiles: Ignore type is " << itype << endl;
+
+    if (itype == HgIgnoreDialog::IgnoreNothing) return;
+
+    // Now, .hgignore can be switched from regex to glob syntax
+    // part-way through -- and glob is much simpler for us, so we
+    // should do that if it's in regex mode at the end of the file.
+
+    initHgIgnore();
+
+    QString hgIgnorePath = m_workFolderPath + "/.hgignore";
+
+    // hgignore file should now exist (initHgIgnore should have
+    // created it if it didn't).  Check for glob status first
+
+    QFile f(hgIgnorePath);
+    if (!f.exists()) {
+        std::cerr << "MainWindow::ignoreFiles: Internal error: .hgignore file not found (even though we were supposed to have created it)" << std::endl;
+        return;
+    }
+
+    f.open(QFile::ReadOnly);
+    bool glob = false;
+    while (!f.atEnd()) {
+        QByteArray ba = f.readLine();
+        QString s = QString::fromLocal8Bit(ba).trimmed();
+        if (s.startsWith("syntax:")) {
+            if (s.endsWith("glob")) {
+                glob = true;
+            } else {
+                glob = false;
+            }
+        }
+    }
+    f.close();
+
+    f.open(QFile::Append);
+    QTextStream out(&f);
+
+    if (!glob) {
+        out << "syntax: glob" << endl;
+    }
+
+    QString info = "<qt><h3>" + tr("Ignored files") + "</h3><p>";
+    info += tr("The following lines have been added to the .hgignore file for this working copy:");
+    info += "</p><code>";
+
+    QStringList args;
+    if (itype == HgIgnoreDialog::IgnoreAllFilesOfGivenSuffixes) {
+        args = QStringList::fromSet(suffixes);
+    } else if (itype == HgIgnoreDialog::IgnoreGivenFilesOnly) {
+        args = files;
+    } else if (itype == HgIgnoreDialog::IgnoreAllFilesOfGivenNames) {
+        QSet<QString> names;
+        foreach (QString f, files) {
+            names << QFileInfo(f).fileName();
+        }
+        args = QStringList::fromSet(names);
+    } else if (itype == HgIgnoreDialog::IgnoreWholeDirectory) {
+        args << directory;
+    }
+
+    bool first = true;
+
+    foreach (QString a, args) {
+        QString line;
+        if (itype == HgIgnoreDialog::IgnoreAllFilesOfGivenSuffixes) {
+            line = "*." + a;
+        } else if (itype == HgIgnoreDialog::IgnoreGivenFilesOnly) {
+            // Doesn't seem to be possible to do this with a glob,
+            // because the glob is always unanchored and there is no
+            // equivalent of ^ to anchor it
+            line = "re:^" + regexEscape(a);
+        } else if (itype == HgIgnoreDialog::IgnoreAllFilesOfGivenNames) {
+            line = a;
+        } else if (itype == HgIgnoreDialog::IgnoreWholeDirectory) {
+            line = "re:^" + regexEscape(a) + "/";
+        }
+        if (line != "") {
+            out << line << endl;
+            if (!first) info += "<br>";
+            first = false;
+            info += xmlEncode(line);
+        }
+    }
+
+    f.close();
+    
+    info += "</code></qt>";
+
+    QMessageBox::information(this, tr("Ignored files"),
+                             info);
+
+    hgRefresh();
 }
 
 void MainWindow::hgUnIgnoreFiles(QStringList files)
 {
-    //!!! not implemented yet
-    DEBUG << "MainWindow::hgUnIgnoreFiles: Not implemented" << endl;
+    // Not implemented: edit the .hgignore instead
+    hgEditIgnore();
 }
 
 QString MainWindow::getDiffBinaryName()
@@ -2339,7 +2492,7 @@ void MainWindow::connectActions()
     connect(m_hgUpdateAct, SIGNAL(triggered()), this, SLOT(hgUpdate()));
     connect(m_hgRevertAct, SIGNAL(triggered()), this, SLOT(hgRevert()));
     connect(m_hgMergeAct, SIGNAL(triggered()), this, SLOT(hgMerge()));
-    connect(m_hgIgnoreAct, SIGNAL(triggered()), this, SLOT(hgIgnore()));
+    connect(m_hgEditIgnoreAct, SIGNAL(triggered()), this, SLOT(hgEditIgnore()));
 
     connect(m_settingsAct, SIGNAL(triggered()), this, SLOT(settings()));
     connect(m_openAct, SIGNAL(triggered()), this, SLOT(open()));
@@ -2493,7 +2646,7 @@ void MainWindow::enableDisableActions()
     m_hgCommitAct->setEnabled(m_localRepoActionsEnabled);
     m_hgMergeAct->setEnabled(m_localRepoActionsEnabled);
     m_hgServeAct->setEnabled(m_localRepoActionsEnabled);
-    m_hgIgnoreAct->setEnabled(m_localRepoActionsEnabled);
+    m_hgEditIgnoreAct->setEnabled(m_localRepoActionsEnabled);
 
     DEBUG << "m_localRepoActionsEnabled = " << m_localRepoActionsEnabled << endl;
     DEBUG << "canCommit = " << m_hgTabs->canCommit() << endl;
@@ -2710,8 +2863,8 @@ void MainWindow::createActions()
 
     //Advanced actions
 
-    m_hgIgnoreAct = new QAction(tr("Edit .hgignore File"), this);
-    m_hgIgnoreAct->setStatusTip(tr("Edit the .hgignore file, containing the names of files that should be ignored by Mercurial"));
+    m_hgEditIgnoreAct = new QAction(tr("Edit .hgignore File"), this);
+    m_hgEditIgnoreAct->setStatusTip(tr("Edit the .hgignore file, containing the names of files that should be ignored by Mercurial"));
 
     m_hgServeAct = new QAction(tr("Serve via HTTP"), this);
     m_hgServeAct->setStatusTip(tr("Serve local repository via http for workgroup access"));
@@ -2760,7 +2913,7 @@ void MainWindow::createMenus()
     remoteMenu->addAction(m_changeRemoteRepoAct);
 
     m_advancedMenu = menuBar()->addMenu(tr("&Advanced"));
-    m_advancedMenu->addAction(m_hgIgnoreAct);
+    m_advancedMenu->addAction(m_hgEditIgnoreAct);
     m_advancedMenu->addSeparator();
     m_advancedMenu->addAction(m_hgServeAct);
 

@@ -67,8 +67,9 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_actionLabels[FileStates::Remove] = tr("Remove from version control");
     m_actionLabels[FileStates::RedoMerge] = tr("Redo merge");
     m_actionLabels[FileStates::MarkResolved] = tr("Mark conflict as resolved");
-    m_actionLabels[FileStates::Ignore] = tr("Ignore");
-    m_actionLabels[FileStates::UnIgnore] = tr("Stop ignoring");
+    m_actionLabels[FileStates::Ignore] = tr("Ignore...");
+    // Unignore is too difficult in fact, so we just offer to edit the hgignore
+    m_actionLabels[FileStates::UnIgnore] = tr("Edit .hgignore File");
 
     m_descriptions[FileStates::Clean] = tr("You have not changed these files.");
     m_descriptions[FileStates::Modified] = tr("You have changed these files since you last committed them.");
@@ -125,11 +126,6 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
         FileStates::Activities activities = m_fileStates.activitiesSupportedBy(s);
         int prevGroup = -1;
         foreach (FileStates::Activity a, activities) {
-            // Skip activities which are not yet implemented
-            if (a == FileStates::Ignore ||
-                a == FileStates::UnIgnore) {
-                continue;
-            }
             int group = FileStates::activityGroup(a);
             if (group != prevGroup && prevGroup != -1) {
                 QAction *sep = new QAction("", w);
