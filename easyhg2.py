@@ -115,7 +115,7 @@ def find_user_password(self, realm, authuri):
     layout = QtGui.QGridLayout()
     dialog.setLayout(layout)
 
-    layout.addWidget(QtGui.QLabel(_('Please supply your user name and password for\n%s:') % uri), 0, 0, 1, 2)
+    layout.addWidget(QtGui.QLabel(_('<h3>Login required</h3><p>Please provide your user name and password for the repository at<br><code>%s:</code>') % uri), 0, 0, 1, 2)
 
     userfield = QtGui.QLineEdit()
     if user:
@@ -126,7 +126,7 @@ def find_user_password(self, realm, authuri):
     passfield = QtGui.QLineEdit()
     passfield.setEchoMode(QtGui.QLineEdit.Password)
     if passwd:
-        userfield.setText(passwd)
+        passfield.setText(passwd)
     layout.addWidget(QtGui.QLabel(_('Password:')), 2, 0)
     layout.addWidget(passfield, 2, 1)
 
@@ -140,8 +140,14 @@ def find_user_password(self, realm, authuri):
     bb.connect(cancel, Qt.SIGNAL("clicked()"), dialog, Qt.SLOT("reject()"))
     layout.addWidget(bb, 3, 0, 1, 2)
     
-    dialog.setWindowTitle(_('EasyMercurial: Password'))
+    dialog.setWindowTitle(_('EasyMercurial: Login'))
     dialog.show()
+
+    if not user:
+        userfield.setFocus(True)
+    elif not passwd:
+        passfield.setFocus(True)
+
     dialog.raise_()
     ok = dialog.exec_()
     if ok:
@@ -150,7 +156,7 @@ def find_user_password(self, realm, authuri):
         passwd = passfield.text()
         if passwd and keyring_key != '' and not from_keyring:
             keyring_key = '%s@@%s' % (uri, user)
-            keyring.set_password('Mercurial', keyring_key, passwd)
+#            keyring.set_password('Mercurial', keyring_key, passwd)
         self.add_password(realm, authuri, user, passwd)
     else:
         raise util.Abort(_('password entry cancelled'))
