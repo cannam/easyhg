@@ -57,8 +57,10 @@ def easyhg_prompt(self, msg, default="y"):
     if not self.interactive():
         self.write(msg, ' ', default, "\n")
         return default
+    isusername = False
     if msg == _('user:'):
         msg = _('Username for remote repository:')
+        isusername = True
     d = QtGui.QInputDialog()
     d.setInputMode(QtGui.QInputDialog.TextInput)
     d.setTextEchoMode(QtGui.QLineEdit.Normal)
@@ -69,7 +71,10 @@ def easyhg_prompt(self, msg, default="y"):
     ok = d.exec_()
     r = d.textValue()
     if not ok:
-        raise util.Abort(_('username entry cancelled'))
+        if isusername:
+            raise util.Abort(_('username entry cancelled'))
+        else:
+            raise util.Abort(_('information entry cancelled'))
     if not r:
         return default
     return r
