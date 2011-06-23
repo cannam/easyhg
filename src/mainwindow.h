@@ -93,6 +93,7 @@ private slots:
     void hgNewBranch();
     void hgNoBranch();
     void hgServe();
+    void hgIgnore();
     void hgEditIgnore();
 
     void hgAnnotateFiles(QStringList);
@@ -225,7 +226,6 @@ private:
     // Menus
     QMenu *m_fileMenu;
     QMenu *m_recentMenu;
-    QMenu *m_advancedMenu;
     QMenu *m_helpMenu;
 
     // Help menu actions
