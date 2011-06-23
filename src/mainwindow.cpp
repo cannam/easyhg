@@ -562,6 +562,14 @@ void MainWindow::initHgIgnore()
     }
 }    
 
+void MainWindow::hgIgnore()
+{
+    // hgExplorer permitted adding "all" files -- I'm not sure
+    // that one is a good idea, let's require the user to select
+
+    hgIgnoreFiles(m_hgTabs->getSelectedAddableFiles());
+}
+
 void MainWindow::hgEditIgnore()
 {
     if (!QDir(m_workFolderPath).exists()) return;
@@ -1246,19 +1254,21 @@ void MainWindow::hgServe()
     //!!! should find available port as well
 
     QTextStream ts(&msg);
-    ts << QString("<qt><p>%1</p>")
-        .arg(tr("Running temporary server at %n address(es):", "", addrs.size()));
+    ts << QString("<qt><h3>%1</h3><p>%2</p><p>%3</p>")
+        .arg(tr("Sharing Repository"))
+        .arg(tr("Your local repository is now being made temporarily available via HTTP for workgroup access."))
+        .arg(tr("Users who have network access to your computer can now clone your repository by using the following URL as a remote location:"));
     foreach (QString addr, addrs) {
         ts << QString("<pre>&nbsp;&nbsp;http://%1:8000</pre>").arg(xmlEncode(addr));
     }
-    ts << tr("<p>Press Close to stop the server and return.</p>");
+    ts << tr("<p>Press Close to terminate this server, end remote access, and return.</p>");
     ts.flush();
              
     params << "serve";
 
     m_runner->requestAction(HgAction(ACT_SERVE, m_workFolderPath, params));
     
-    QMessageBox::information(this, tr("Serve"), msg, QMessageBox::Close);
+    QMessageBox::information(this, tr("Share Repository"), msg, QMessageBox::Close);
 
     m_runner->killCurrentActions();
 }
@@ -2488,11 +2498,12 @@ void MainWindow::connectActions()
     connect(m_hgRemoveAct, SIGNAL(triggered()), this, SLOT(hgRemove()));
     connect(m_hgAddAct, SIGNAL(triggered()), this, SLOT(hgAdd()));
     connect(m_hgCommitAct, SIGNAL(triggered()), this, SLOT(hgCommit()));
+    connect(m_hgIgnoreAct, SIGNAL(triggered()), this, SLOT(hgIgnore()));
+    connect(m_hgEditIgnoreAct, SIGNAL(triggered()), this, SLOT(hgEditIgnore()));
     connect(m_hgFolderDiffAct, SIGNAL(triggered()), this, SLOT(hgFolderDiff()));
     connect(m_hgUpdateAct, SIGNAL(triggered()), this, SLOT(hgUpdate()));
     connect(m_hgRevertAct, SIGNAL(triggered()), this, SLOT(hgRevert()));
     connect(m_hgMergeAct, SIGNAL(triggered()), this, SLOT(hgMerge()));
-    connect(m_hgEditIgnoreAct, SIGNAL(triggered()), this, SLOT(hgEditIgnore()));
 
     connect(m_settingsAct, SIGNAL(triggered()), this, SLOT(settings()));
     connect(m_openAct, SIGNAL(triggered()), this, SLOT(open()));
@@ -2642,6 +2653,7 @@ void MainWindow::enableDisableActions()
     m_hgRevertAct->setEnabled(m_localRepoActionsEnabled);
     m_hgAddAct->setEnabled(m_localRepoActionsEnabled);
     m_hgRemoveAct->setEnabled(m_localRepoActionsEnabled);
+    m_hgIgnoreAct->setEnabled(m_localRepoActionsEnabled);
     m_hgUpdateAct->setEnabled(m_localRepoActionsEnabled);
     m_hgCommitAct->setEnabled(m_localRepoActionsEnabled);
     m_hgMergeAct->setEnabled(m_localRepoActionsEnabled);
@@ -2656,6 +2668,7 @@ void MainWindow::enableDisableActions()
     m_hgCommitAct->setEnabled(m_localRepoActionsEnabled && m_hgTabs->canCommit());
     m_hgRevertAct->setEnabled(m_localRepoActionsEnabled && m_hgTabs->canRevert());
     m_hgFolderDiffAct->setEnabled(m_localRepoActionsEnabled && m_hgTabs->canDiff());
+    m_hgIgnoreAct->setEnabled(m_localRepoActionsEnabled && m_hgTabs->canIgnore());
 
     // A default merge makes sense if:
     //  * there is only one parent (if there are two, we have an uncommitted merge) and
@@ -2848,6 +2861,12 @@ void MainWindow::createActions()
     m_hgRemoveAct->setShortcut(tr("Del"));
     m_hgRemoveAct->setStatusTip(tr("Mark the selected files to be removed from version control on the next commit"));
 
+    m_hgIgnoreAct = new QAction(tr("&Ignore Files..."), this);
+    m_hgIgnoreAct->setStatusTip(tr("Add the selected filenames to the ignored list, of files that should never be tracked in this repository"));
+
+    m_hgEditIgnoreAct = new QAction(tr("Edit Ignored List"), this);
+    m_hgEditIgnoreAct->setStatusTip(tr("Edit the .hgignore file, containing the names of files that should be ignored by Mercurial"));
+
     m_hgUpdateAct = new QAction(QIcon(":/images/update.png"), tr("&Update to Branch Head"), this);
     m_hgUpdateAct->setIconText(tr("Update"));
     m_hgUpdateAct->setShortcut(tr("Ctrl+U"));
@@ -2861,13 +2880,8 @@ void MainWindow::createActions()
     m_hgMergeAct->setShortcut(tr("Ctrl+M"));
     m_hgMergeAct->setStatusTip(tr("Merge the two independent sets of changes in the local repository into the working folder"));
 
-    //Advanced actions
-
-    m_hgEditIgnoreAct = new QAction(tr("Edit .hgignore File"), this);
-    m_hgEditIgnoreAct->setStatusTip(tr("Edit the .hgignore file, containing the names of files that should be ignored by Mercurial"));
-
-    m_hgServeAct = new QAction(tr("Serve via HTTP"), this);
-    m_hgServeAct->setStatusTip(tr("Serve local repository via http for workgroup access"));
+    m_hgServeAct = new QAction(tr("Share Repository"), this);
+    m_hgServeAct->setStatusTip(tr("Serve local repository temporarily via HTTP for workgroup access"));
 
     //Help actions
     m_aboutAct = new QAction(tr("About EasyMercurial"), this);
@@ -2886,6 +2900,8 @@ void MainWindow::createMenus()
     m_recentMenu = m_fileMenu->addMenu(tr("Open Re&cent"));
     m_fileMenu->addAction(m_hgRefreshAct);
     m_fileMenu->addSeparator();
+    m_fileMenu->addAction(m_hgServeAct);
+    m_fileMenu->addSeparator();
     m_fileMenu->addAction(m_settingsAct);
     m_fileMenu->addSeparator();
     m_fileMenu->addAction(m_exitAct);
@@ -2901,21 +2917,19 @@ void MainWindow::createMenus()
     workMenu->addAction(m_hgAddAct);
     workMenu->addAction(m_hgRemoveAct);
     workMenu->addSeparator();
+    workMenu->addAction(m_hgIgnoreAct);
+    workMenu->addAction(m_hgEditIgnoreAct);
+    workMenu->addSeparator();
     workMenu->addAction(m_hgRevertAct);
 
     QMenu *remoteMenu;
     remoteMenu = menuBar()->addMenu(tr("&Remote"));
+    remoteMenu->addAction(m_changeRemoteRepoAct);
+    remoteMenu->addSeparator();
     remoteMenu->addAction(m_hgIncomingAct);
     remoteMenu->addSeparator();
     remoteMenu->addAction(m_hgPullAct);
     remoteMenu->addAction(m_hgPushAct);
-    remoteMenu->addSeparator();
-    remoteMenu->addAction(m_changeRemoteRepoAct);
-
-    m_advancedMenu = menuBar()->addMenu(tr("&Advanced"));
-    m_advancedMenu->addAction(m_hgEditIgnoreAct);
-    m_advancedMenu->addSeparator();
-    m_advancedMenu->addAction(m_hgServeAct);
 
     m_helpMenu = menuBar()->addMenu(tr("&Help"));
     m_helpMenu->addAction(m_aboutAct);

@@ -60,6 +60,7 @@ public:
     bool canAdd() const;
     bool canRemove() const;
     bool canResolve() const;
+    bool canIgnore() const;
     bool haveChangesToCommit() const;
 
     QStringList getAllCommittableFiles() const;

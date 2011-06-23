@@ -196,6 +196,11 @@ bool HgTabWidget::canResolve() const
     return !m_fileStatusWidget->getAllUnresolvedFiles().empty();
 }
 
+bool HgTabWidget::canIgnore() const
+{
+    return canAdd();
+}
+
 bool HgTabWidget::haveChangesToCommit() const
 {
     return m_fileStatusWidget->haveChangesToCommit();
