@@ -637,7 +637,7 @@ void MainWindow::hgIgnoreFiles(QStringList files)
     }
 
     QString directory;
-    bool dirCount = 0;
+    int dirCount = 0;
     foreach (QString file, files) {
         QString d = QFileInfo(file).path();
         if (d != directory) {
@@ -1254,10 +1254,16 @@ void MainWindow::hgServe()
     //!!! should find available port as well
 
     QTextStream ts(&msg);
-    ts << QString("<qt><h3>%1</h3><p>%2</p><p>%3</p>")
+    ts << QString("<qt><h3>%1</h3><p>%2</p>")
         .arg(tr("Sharing Repository"))
-        .arg(tr("Your local repository is now being made temporarily available via HTTP for workgroup access."))
-        .arg(tr("Users who have network access to your computer can now clone your repository by using the following URL as a remote location:"));
+        .arg(tr("Your local repository is now being made temporarily available via HTTP for workgroup access."));
+    if (addrs.size() > 1) {
+        ts << QString("<p>%3</p>")
+            .arg(tr("Users who have network access to your computer can now clone your repository, by using one of the following URLs as a remote location:"));
+    } else {
+        ts << QString("<p>%3</p>")
+            .arg(tr("Users who have network access to your computer can now clone your repository, by using the following URL as a remote location:"));
+    }
     foreach (QString addr, addrs) {
         ts << QString("<pre>&nbsp;&nbsp;http://%1:8000</pre>").arg(xmlEncode(addr));
     }
