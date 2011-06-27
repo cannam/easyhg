@@ -17,16 +17,13 @@ import sys
 
 import urllib, urllib2, urlparse
 
-from mercurial import ui, getpass, util
+from mercurial import ui, util, config, error
 try:
     from mercurial.url import passwordmgr
 except:
     from mercurial.httprepo import passwordmgr
 
 from mercurial.i18n import _
-
-#!!! do this later? as for Qt? also see notes on demandimport in mercurial_keyring
-import keyring
 
 # The value assigned here may be modified during installation, by
 # replacing its default value with another one.  We can't compare
@@ -55,6 +52,24 @@ except ImportError:
     easyhg_pyqt_ok = False
 
 easyhg_qtapp = None
+
+#!!! same as above for this?
+from Crypto.Cipher import AES
+import base64
+
+#!!! should be in a class here
+
+def encrypt(text, key):
+    text = '%d.%s' % (len(text), text)
+    text += (16 - len(text) % 16) * ' '
+    cipher = AES.new(key)
+    return base64.b64encode(cipher.encrypt(text))
+
+def decrypt(ctext, key):
+    cipher = AES.new(key)
+    text = cipher.decrypt(base64.b64decode(ctext))
+    (tlen, d, text) = text.partition('.')
+    return text[0:int(tlen)]
 
 def monkeypatch_method(cls):
     def decorator(func):
@@ -101,21 +116,19 @@ def find_user_password(self, realm, authuri):
 
     uri = canonical_url(authuri)
 
-    from_keyring = False
-    keyring_key = ''
-    if user and not passwd:
-        keyring_key = '%s@@%s' % (uri, user)
-        self.ui.write("keyring_key is %s" % keyring_key)
-#        passwd = keyring.get_password('Mercurial', keyring_key)
-        self.ui.write("got passwd: %s\n" % passwd)
-        if passwd:
-            from_keyring = True
+    pkey = ('%s@@%s' % (uri, user)).replace('=', '__')
+    pekey = self.ui.config('easyhg', 'authkey')
+    pfile = self.ui.config('easyhg', 'authfile')
+    pdata = None
+
+    self.ui.write("pekey is %s\n" % pekey)
+    self.ui.write("pfile is %s\n" % pfile)
 
     dialog = QtGui.QDialog()
     layout = QtGui.QGridLayout()
     dialog.setLayout(layout)
 
-    layout.addWidget(QtGui.QLabel(_('<h3>Login required</h3><p>Please provide your user name and password for the repository at<br><code>%s:</code>') % uri), 0, 0, 1, 2)
+    layout.addWidget(QtGui.QLabel(_('<h3>Login required</h3><p>Please log in to the repository at<br><code>%s</code>') % uri), 0, 0, 1, 2)
 
     userfield = QtGui.QLineEdit()
     if user:
@@ -130,6 +143,25 @@ def find_user_password(self, realm, authuri):
     layout.addWidget(QtGui.QLabel(_('Password:')), 2, 0)
     layout.addWidget(passfield, 2, 1)
 
+    remember = None
+    if pekey and pfile:
+        # load pwd from our cache file, decrypt with given key
+        pcfg = config.config()
+        fp = None
+        try:
+            fp = open(pfile)
+        except:
+            self.ui.write("failed to open authfile %s\n" % pfile)
+        if fp:
+            pcfg.read(pfile)
+            pdata = pcfg.get('auth', pkey)
+            cachedpwd = decrypt(pdata, pekey)
+            if not passwd:
+                passfield.setText(cachedpwd)
+        remember = QtGui.QCheckBox()
+        remember.setText(_('Remember this password until EasyMercurial exits'))
+        layout.addWidget(remember, 3, 1)
+
     bb = QtGui.QDialogButtonBox()
     ok = bb.addButton(bb.Ok)
     cancel = bb.addButton(bb.Cancel)
@@ -138,7 +170,7 @@ def find_user_password(self, realm, authuri):
     ok.setDefault(True)
     bb.connect(ok, Qt.SIGNAL("clicked()"), dialog, Qt.SLOT("accept()"))
     bb.connect(cancel, Qt.SIGNAL("clicked()"), dialog, Qt.SLOT("reject()"))
-    layout.addWidget(bb, 3, 0, 1, 2)
+    layout.addWidget(bb, 4, 0, 1, 2)
     
     dialog.setWindowTitle(_('EasyMercurial: Login'))
     dialog.show()
@@ -154,9 +186,12 @@ def find_user_password(self, realm, authuri):
         self.ui.write('Dialog accepted\n')
         user = userfield.text()
         passwd = passfield.text()
-        if passwd and keyring_key != '' and not from_keyring:
-            keyring_key = '%s@@%s' % (uri, user)
-#            keyring.set_password('Mercurial', keyring_key, passwd)
+
+        #!!! create pfile if necessary (with proper permissions), append auth data to it
+
+#        if passwd and keyring_key != '' and not from_keyring:
+#            keyring_key = '%s@@%s' % (uri, user)
+##            keyring.set_password('Mercurial', keyring_key, passwd)
         self.add_password(realm, authuri, user, passwd)
     else:
         raise util.Abort(_('password entry cancelled'))
