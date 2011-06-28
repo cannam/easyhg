@@ -62,16 +62,18 @@ except ImportError:
 
 #!!! should be in a class here
 
-def encrypt(text, key):
-    text = '%d.%s' % (len(text), text)
+def encrypt_salted(text, key):
+    salt = os.urandom(8)
+    text = '%d.%s.%s' % (len(text), base64.b64encode(salt), text)
     text += (16 - len(text) % 16) * ' '
     cipher = AES.new(key)
     return base64.b64encode(cipher.encrypt(text))
 
-def decrypt(ctext, key):
+def decrypt_salted(ctext, key):
     cipher = AES.new(key)
     text = cipher.decrypt(base64.b64decode(ctext))
     (tlen, d, text) = text.partition('.')
+    (salt, d, text) = text.partition('.')
     return text[0:int(tlen)]
 
 def monkeypatch_method(cls):
@@ -212,7 +214,7 @@ def find_user_password(self, realm, authuri):
         remember_default = get_boolean_from_config(pcfg, 'preferences', 'remember', False)
         pdata = get_from_config(pcfg, 'auth', remote_key(uri, user))
         if pdata:
-            cachedpwd = decrypt(pdata, pekey)
+            cachedpwd = decrypt_salted(pdata, pekey)
             passfield.setText(cachedpwd)
         remember = QtGui.QCheckBox()
         remember.setChecked(remember_default)
@@ -250,7 +252,7 @@ def find_user_password(self, realm, authuri):
         set_to_config(pcfg, 'preferences', 'remember', remember.isChecked())
         if user:
             if passwd and remember.isChecked():
-                pdata = encrypt(passwd, pekey)
+                pdata = encrypt_salted(passwd, pekey)
                 set_to_config(pcfg, 'auth', remote_key(uri, user), pdata)
             else:
                 set_to_config(pcfg, 'auth', remote_key(uri, user), '')
