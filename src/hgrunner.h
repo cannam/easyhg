@@ -74,6 +74,8 @@ private:
     QString getUnbundledFileName();
     QString unbundleExtension();
 
+    QStringList addExtensionOptions(QStringList);
+
     int m_ptyMasterFd;
     int m_ptySlaveFd;
     QString m_ptySlaveFilename;
@@ -89,6 +91,9 @@ private:
 
     QString m_myDirPath;
     QString m_extensionPath;
+
+    QString m_authKey;
+    QString m_authFilePath;
 
     typedef std::deque<HgAction> ActionQueue;
     ActionQueue m_queue;

@@ -79,7 +79,7 @@ MoreInformationDialog::MoreInformationDialog(QString title,
     m_moreText->hide();
     if (more == "") m_moreButton->hide();
 
-    layout->setRowStretch(1, 20);
+    layout->setRowStretch(1, 10);
     layout->setColumnStretch(1, 20);
     setMinimumWidth(400);
 }

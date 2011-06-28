@@ -27,6 +27,7 @@
 #include <QVBoxLayout>
 #include <QSettings>
 #include <QInputDialog>
+#include <QDesktopServices>
 #include <QTemporaryFile>
 #include <QDir>
 
@@ -68,6 +69,10 @@ HgRunner::~HgRunner()
         m_proc->kill();
         m_proc->deleteLater();
     }
+    if (m_authFilePath != "") {
+        QFile(m_authFilePath).remove();
+    }
+    //!!! and remove any other misc auth file paths...
 }
 
 QString HgRunner::getUnbundledFileName()
@@ -386,6 +391,57 @@ void HgRunner::checkQueue()
     startCommand(toRun);
 }
 
+QStringList HgRunner::addExtensionOptions(QStringList params)
+{
+    QString extpath = getExtensionLocation();
+    if (extpath == "") {
+        DEBUG << "HgRunner::addExtensionOptions: Failed to get extension location" << endl;
+        return params;
+    }
+    
+    if (m_authFilePath == "") {
+
+        QByteArray key = randomKey();
+        if (key == QByteArray()) {
+            DEBUG << "HgRunner::addExtensionOptions: Failed to get proper auth key" << endl;
+            return params;
+        }
+        QString key16 = QString::fromLocal8Bit(key.toBase64()).left(16);
+
+        QByteArray fileExt = randomKey();
+        if (fileExt == QByteArray()) {
+            DEBUG << "HgRunner::addExtensionOptions: Failed to get proper auth file ext" << endl;
+            return params;
+        }
+        QString fileExt16 = QString::fromLocal8Bit(fileExt.toBase64()).left(16)
+            .replace('+', '-').replace('/', '.');
+        QString path = QDesktopServices::storageLocation
+            (QDesktopServices::CacheLocation);
+        QDir().mkpath(path);
+        if (path == "") {
+            DEBUG << "HgRunner::addExtensionOptions: Failed to get cache location" << endl;
+            return params;
+        }
+
+        m_authKey = key16;
+        m_authFilePath = QString("%1/easyhg_%2.dat").arg(path).arg(fileExt16);
+    }
+
+    params.push_front(QString("easyhg.authkey=%1").arg(m_authKey));
+    params.push_front("--config");
+
+    params.push_front(QString("easyhg.authfile=%1").arg(m_authFilePath));
+    params.push_front("--config");
+
+    // Looks like this one must be without quotes, even though the SSH
+    // one above only works on Windows if it has quotes (at least where
+    // there is a space in the path).  Odd
+    params.push_front(QString("extensions.easyhg=%1").arg(extpath));
+    params.push_front("--config");
+
+    return params;
+}
+
 void HgRunner::startCommand(HgAction action)
 {
     QString executable = action.executable;
@@ -415,14 +471,8 @@ void HgRunner::startCommand(HgAction action)
         if (action.mayBeInteractive()) {
             params.push_front("ui.interactive=true");
             params.push_front("--config");
-
             if (settings.value("useextension", true).toBool()) {
-                QString extpath = getExtensionLocation();
-                // Looks like this one must be without quotes, even though the SSH
-                // one above only works on Windows if it has quotes (at least where
-                // there is a space in the path).  Odd
-                params.push_front(QString("extensions.easyhg=%1").arg(extpath));
-                params.push_front("--config");
+                params = addExtensionOptions(params);
             }
             interactive = true;
         }            

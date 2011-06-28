@@ -90,19 +90,19 @@ def load_config(pcfg, pfile):
     pcfg.readfp(fp)
     fp.close()
 
-def save_config(pcfg, pfile):
+def save_config(ui, pcfg, pfile):
     ofp = None
     try:
         ofp = open(pfile, 'w')
     except:
-        self.ui.write("failed to open authfile %s for writing\n" % pfile)
+        ui.write("failed to open authfile %s for writing\n" % pfile)
         raise
     try:
         #!!! Windows equivalent?
         os.fchmod(ofp.fileno(), stat.S_IRUSR | stat.S_IWUSR)
     except:
         ofp.close()
-        self.ui.write("failed to set permissions on authfile %s\n" % pfile)
+        ui.write("failed to set permissions on authfile %s\n" % pfile)
         raise
     pcfg.write(ofp)
     ofp.close()
@@ -212,7 +212,7 @@ def find_user_password(self, realm, authuri):
             passwd_field.setText(cachedpwd)
         remember_field = QtGui.QCheckBox()
         remember_field.setChecked(remember)
-        remember_field.setText(_('Remember this password until EasyMercurial exits'))
+        remember_field.setText(_('Remember passwords while EasyMercurial is running'))
         layout.addWidget(remember_field, 3, 1)
 
     bb = QtGui.QDialogButtonBox()
@@ -250,7 +250,7 @@ def find_user_password(self, realm, authuri):
                 set_to_config(authconfig, 'auth', remote_key(short_uri, user), authdata)
             else:
                 set_to_config(authconfig, 'auth', remote_key(short_uri, user), '')
-        save_config(authconfig, authfile)
+        save_config(self.ui, authconfig, authfile)
 
     self.add_password(realm, authuri, user, passwd)
     return (user, passwd)
