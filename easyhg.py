@@ -13,9 +13,14 @@
 #    License, or (at your option) any later version.  See the file
 #    COPYING included with this distribution for more information.
 
-import sys
-from mercurial import ui, getpass, util
+import sys, os, stat, urllib, urllib2, urlparse
+
 from mercurial.i18n import _
+from mercurial import ui, util, error
+try:
+    from mercurial.url import passwordmgr
+except:
+    from mercurial.httprepo import passwordmgr
 
 # The value assigned here may be modified during installation, by
 # replacing its default value with another one.  We can't compare
@@ -26,7 +31,7 @@ easyhg_import_path = 'NO_EASYHG_IMPORT_PATH'
 if not easyhg_import_path.startswith('NO_'):
     # We have an installation path: append it twice, once with
     # the Python version suffixed
-    version_suffix = "Py" + str(sys.version_info[0]) + "." + str(sys.version_info[1]);
+    version_suffix = 'Py%d.%d' % (sys.version_info[0], sys.version_info[1])
     sys.path.append(easyhg_import_path + "/" + version_suffix)
     sys.path.append(easyhg_import_path)
 
@@ -39,64 +44,215 @@ if not easyhg_import_path.startswith('NO_'):
 #
 easyhg_pyqt_ok = True
 try:
-    from PyQt4 import QtGui
+    from PyQt4 import Qt, QtGui
 except ImportError:
     easyhg_pyqt_ok = False
-
 easyhg_qtapp = None
+
+# These imports are optional, we just can't use the authfile (i.e.
+# "remember this password") feature without them
+#
+easyhg_authfile_imports_ok = True
+try:
+    from Crypto.Cipher import AES
+    import ConfigParser # Mercurial version won't write files
+    import base64
+except ImportError:
+    easyhg_authfile_imports_ok = False
+
+
+def encrypt_salted(text, key):
+    salt = os.urandom(8)
+    text = '%d.%s.%s' % (len(text), base64.b64encode(salt), text)
+    text += (16 - len(text) % 16) * ' '
+    cipher = AES.new(key)
+    return base64.b64encode(cipher.encrypt(text))
+
+def decrypt_salted(ctext, key):
+    cipher = AES.new(key)
+    text = cipher.decrypt(base64.b64decode(ctext))
+    (tlen, d, text) = text.partition('.')
+    (salt, d, text) = text.partition('.')
+    return text[0:int(tlen)]
+
+# from mercurial_keyring by Marcin Kasperski
+def canonical_url(authuri):
+    parsed_url = urlparse.urlparse(authuri)
+    return "%s://%s%s" % (parsed_url.scheme, parsed_url.netloc,
+                          parsed_url.path)
+
+def load_config(pcfg, pfile):
+    fp = None
+    try:
+        fp = open(pfile)
+    except:
+        return
+    pcfg.readfp(fp)
+    fp.close()
+
+def save_config(pcfg, pfile):
+    ofp = None
+    try:
+        ofp = open(pfile, 'w')
+    except:
+        self.ui.write("failed to open authfile %s for writing\n" % pfile)
+        raise
+    try:
+        #!!! Windows equivalent?
+        os.fchmod(ofp.fileno(), stat.S_IRUSR | stat.S_IWUSR)
+    except:
+        ofp.close()
+        self.ui.write("failed to set permissions on authfile %s\n" % pfile)
+        raise
+    pcfg.write(ofp)
+    ofp.close()
+
+def get_from_config(pcfg, sect, key):
+    data = None
+    try:
+        data = pcfg.get(sect, key)
+    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        pass
+    return data
+
+def get_boolean_from_config(pcfg, sect, key, deflt):
+    data = deflt
+    try:
+        data = pcfg.getboolean(sect, key)
+    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        pass
+    return data
+
+def set_to_config(pcfg, sect, key, data):
+    if not pcfg.has_section(sect):
+        pcfg.add_section(sect)
+    pcfg.set(sect, key, data)
+
+def remote_key(uri, user):
+    # generate a "safe-for-config-file" key representing uri+user
+    # tuple (n.b. trailing = on base64 is not safe)
+    return base64.b64encode('%s@@%s' % (uri, user)).replace('=', '_')
+
 
 def uisetup(ui):
     if not easyhg_pyqt_ok:
         raise util.Abort(_('Failed to load PyQt4 module required by easyhg.py'))
-    ui.__class__.prompt = easyhg_prompt
-    ui.__class__.getpass = easyhg_getpass
     global easyhg_qtapp
     easyhg_qtapp = QtGui.QApplication([])
 
-def easyhg_prompt(self, msg, default="y"):
-    if not self.interactive():
-        self.write(msg, ' ', default, "\n")
-        return default
-    isusername = False
-    if msg == _('user:'):
-        msg = _('Username for remote repository:')
-        isusername = True
-    d = QtGui.QInputDialog()
-    d.setInputMode(QtGui.QInputDialog.TextInput)
-    d.setTextEchoMode(QtGui.QLineEdit.Normal)
-    d.setLabelText(msg)
-    d.setWindowTitle(_('EasyMercurial: Information'))
-    d.show()
-    d.raise_()
-    ok = d.exec_()
-    r = d.textValue()
-    if not ok:
-        if isusername:
-            raise util.Abort(_('username entry cancelled'))
-        else:
-            raise util.Abort(_('information entry cancelled'))
-    if not r:
-        return default
-    return r
+def monkeypatch_method(cls):
+    def decorator(func):
+        setattr(cls, func.__name__, func)
+        return func
+    return decorator
 
-def easyhg_getpass(self, prompt=None, default=None):
-    if not self.interactive():
-        return default
-    if not prompt or prompt == _('password:'):
-        prompt = _('Password for remote repository:');
-    d = QtGui.QInputDialog()
-    d.setInputMode(QtGui.QInputDialog.TextInput)
-    d.setTextEchoMode(QtGui.QLineEdit.Password)
-    d.setLabelText(prompt)
-    d.setWindowTitle(_('EasyMercurial: Password'))
-    d.show()
-    d.raise_()
-    ok = d.exec_()
-    r = d.textValue()
+orig_find = passwordmgr.find_user_password
+
+@monkeypatch_method(passwordmgr)
+def find_user_password(self, realm, authuri):
+
+    if not self.ui.interactive():
+        return orig_find(self, realm, authuri)
+    if not easyhg_pyqt_ok:
+        return orig_find(self, realm, authuri)
+
+    authinfo = urllib2.HTTPPasswordMgrWithDefaultRealm.find_user_password(
+        self, realm, authuri)
+    user, passwd = authinfo
+
+    if user and passwd:
+        return orig_find(self, realm, authuri)
+
+#    self.ui.write("want username and/or password for %s\n" % authuri)
+
+    short_uri = canonical_url(authuri)
+
+    authkey = self.ui.config('easyhg', 'authkey')
+    authfile = self.ui.config('easyhg', 'authfile')
+    use_authfile = (easyhg_authfile_imports_ok and authkey and authfile)
+    if authfile:
+        authfile = os.path.expanduser(authfile)
+    authdata = None
+
+    dialog = QtGui.QDialog()
+    layout = QtGui.QGridLayout()
+    dialog.setLayout(layout)
+
+    layout.addWidget(QtGui.QLabel(_('<h3>Login required</h3><p>Please provide your login details for the repository at<br><code>%s</code>:') % short_uri), 0, 0, 1, 2)
+
+    user_field = QtGui.QLineEdit()
+    if user:
+        user_field.setText(user)
+    layout.addWidget(QtGui.QLabel(_('User:')), 1, 0)
+    layout.addWidget(user_field, 1, 1)
+
+    passwd_field = QtGui.QLineEdit()
+    passwd_field.setEchoMode(QtGui.QLineEdit.Password)
+    if passwd:
+        passwd_field.setText(passwd)
+    layout.addWidget(QtGui.QLabel(_('Password:')), 2, 0)
+    layout.addWidget(passwd_field, 2, 1)
+
+    user_field.connect(user_field, Qt.SIGNAL("textChanged(QString)"),
+                       passwd_field, Qt.SLOT("clear()"))
+
+    remember_field = None
+    remember = False
+    authconfig = None
+
+    if use_authfile:
+        authconfig = ConfigParser.RawConfigParser()
+        load_config(authconfig, authfile)
+        remember = get_boolean_from_config(authconfig, 'preferences',
+                                           'remember', False)
+        authdata = get_from_config(authconfig, 'auth',
+                                   remote_key(short_uri, user))
+        if authdata:
+            cachedpwd = decrypt_salted(authdata, authkey)
+            passwd_field.setText(cachedpwd)
+        remember_field = QtGui.QCheckBox()
+        remember_field.setChecked(remember)
+        remember_field.setText(_('Remember this password until EasyMercurial exits'))
+        layout.addWidget(remember_field, 3, 1)
+
+    bb = QtGui.QDialogButtonBox()
+    ok = bb.addButton(bb.Ok)
+    cancel = bb.addButton(bb.Cancel)
+    cancel.setDefault(False)
+    cancel.setAutoDefault(False)
+    ok.setDefault(True)
+    bb.connect(ok, Qt.SIGNAL("clicked()"), dialog, Qt.SLOT("accept()"))
+    bb.connect(cancel, Qt.SIGNAL("clicked()"), dialog, Qt.SLOT("reject()"))
+    layout.addWidget(bb, 4, 0, 1, 2)
+    
+    dialog.setWindowTitle(_('EasyMercurial: Login'))
+    dialog.show()
+
+    if not user:
+        user_field.setFocus(True)
+    elif not passwd:
+        passwd_field.setFocus(True)
+
+    dialog.raise_()
+    ok = dialog.exec_()
     if not ok:
         raise util.Abort(_('password entry cancelled'))
-    if not r:
-        return default
-    return r
 
- 
+    user = user_field.text()
+    passwd = passwd_field.text()
+
+    if use_authfile:
+        remember = remember_field.isChecked()
+        set_to_config(authconfig, 'preferences', 'remember', remember)
+        if user:
+            if passwd and remember:
+                authdata = encrypt_salted(passwd, authkey)
+                set_to_config(authconfig, 'auth', remote_key(short_uri, user), authdata)
+            else:
+                set_to_config(authconfig, 'auth', remote_key(short_uri, user), '')
+        save_config(authconfig, authfile)
+
+    self.add_password(realm, authuri, user, passwd)
+    return (user, passwd)
+
+
