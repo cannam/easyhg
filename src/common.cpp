@@ -302,7 +302,7 @@ QByteArray randomKey()
         return QByteArray();
     }
 
-    if (!CryptGenRandom(provider, len, buffer)) {
+    if (!CryptGenRandom(provider, len, (BYTE *)buffer)) {
         CryptReleaseContext(provider, 0);
         return QByteArray();
     }
