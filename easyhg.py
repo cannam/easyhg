@@ -66,11 +66,11 @@ def encrypt_salted(text, key):
     salt = os.urandom(8)
     text = '%d.%s.%s' % (len(text), base64.b64encode(salt), text)
     text += (16 - len(text) % 16) * ' '
-    cipher = AES.new(key)
+    cipher = AES.new(key, AES.MODE_CBC)
     return base64.b64encode(cipher.encrypt(text))
 
 def decrypt_salted(ctext, key):
-    cipher = AES.new(key)
+    cipher = AES.new(key, AES.MODE_CBC)
     text = cipher.decrypt(base64.b64decode(ctext))
     (tlen, d, text) = text.partition('.')
     (salt, d, text) = text.partition('.')
