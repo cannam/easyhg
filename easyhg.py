@@ -58,6 +58,7 @@ try:
     import ConfigParser # Mercurial version won't write files
     import base64
 except ImportError:
+    print "EasyHg: Failed to import required modules for authfile support"
     easyhg_authfile_imports_ok = False
 
 

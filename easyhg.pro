@@ -4,9 +4,6 @@ CONFIG += release
 TEMPLATE = app
 TARGET = EasyMercurial
 
-QMAKE_CXX = clang++
-QMAKE_LINK = clang++
-
 # We use the 10.4 SDK and Carbon for all 32-bit OS/X,
 # and 10.6 with Cocoa for all 64-bit
 macx-g++40 {
