@@ -173,6 +173,8 @@ def find_user_password(self, realm, authuri):
     layout.addWidget(QtGui.QLabel(_('Password:')), 2, 0)
     layout.addWidget(passfield, 2, 1)
 
+    userfield.connect(userfield, Qt.SIGNAL("textChanged(QString)"), passfield, Qt.SLOT("clear()"))
+
     remember = None
     pcfg = None
 
