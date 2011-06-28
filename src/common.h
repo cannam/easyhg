@@ -22,9 +22,6 @@
 
 extern QString findInPath(QString name, QString installPath, bool executable);
 
-extern QString getSystem();
-extern QString getHgDirName();
-
 extern QString getUserRealName();
 
 extern void loseControllingTerminal();
