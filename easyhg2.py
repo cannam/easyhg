@@ -13,7 +13,7 @@
 #    License, or (at your option) any later version.  See the file
 #    COPYING included with this distribution for more information.
 
-import sys
+import sys, os, stat
 
 import urllib, urllib2, urlparse
 
@@ -53,7 +53,7 @@ except ImportError:
 
 easyhg_qtapp = None
 
-#!!! same as above for this?
+#!!! same as above for this? or just continue without remember feature?
 from Crypto.Cipher import AES
 import base64
 
@@ -118,7 +118,7 @@ def find_user_password(self, realm, authuri):
 
     pkey = ('%s@@%s' % (uri, user)).replace('=', '__')
     pekey = self.ui.config('easyhg', 'authkey')
-    pfile = self.ui.config('easyhg', 'authfile')
+    pfile = os.path.expanduser(self.ui.config('easyhg', 'authfile'))
     pdata = None
 
     self.ui.write("pekey is %s\n" % pekey)
@@ -128,7 +128,7 @@ def find_user_password(self, realm, authuri):
     layout = QtGui.QGridLayout()
     dialog.setLayout(layout)
 
-    layout.addWidget(QtGui.QLabel(_('<h3>Login required</h3><p>Please log in to the repository at<br><code>%s</code>') % uri), 0, 0, 1, 2)
+    layout.addWidget(QtGui.QLabel(_('<h3>Login required</h3><p>Please provide your login details for the repository at<br><code>%s</code>:') % uri), 0, 0, 1, 2)
 
     userfield = QtGui.QLineEdit()
     if user:
@@ -152,12 +152,13 @@ def find_user_password(self, realm, authuri):
             fp = open(pfile)
         except:
             self.ui.write("failed to open authfile %s\n" % pfile)
-        if fp:
+        if fp and not passwd:
             pcfg.read(pfile)
             pdata = pcfg.get('auth', pkey)
-            cachedpwd = decrypt(pdata, pekey)
-            if not passwd:
+            if pdata:
+                cachedpwd = decrypt(pdata, pekey)
                 passfield.setText(cachedpwd)
+        fp.close()
         remember = QtGui.QCheckBox()
         remember.setText(_('Remember this password until EasyMercurial exits'))
         layout.addWidget(remember, 3, 1)
@@ -188,6 +189,30 @@ def find_user_password(self, realm, authuri):
         passwd = passfield.text()
 
         #!!! create pfile if necessary (with proper permissions), append auth data to it
+        if pekey and pfile:
+
+            ofp = None
+
+            try:
+                ofp = open(pfile, 'a')
+            except:
+                self.ui.write("failed to open authfile %s for writing\n" % pfile)
+                raise
+
+            try:
+                os.fchmod(ofp.fileno(), stat.S_IRUSR | stat.S_IWUSR) #!!! Windows equivalent?
+            except:
+                ofp.close()
+                ofp = None
+                self.ui.write("failed to set proper permissions on authfile %s\n" % pfile)
+                raise
+
+            if ofp:
+                pdata = encrypt(passwd, pekey)
+                ofp.write('[auth]\n')
+                ofp.write(pkey + '=' + pdata + '\n')
+                ofp.close()
+                
 
 #        if passwd and keyring_key != '' and not from_keyring:
 #            keyring_key = '%s@@%s' % (uri, user)
