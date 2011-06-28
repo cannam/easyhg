@@ -99,6 +99,33 @@ def canonical_url(authuri):
     return "%s://%s%s" % (parsed_url.scheme, parsed_url.netloc,
                           parsed_url.path)
 
+def load_config(pfile):
+    fp = None
+    try:
+        fp = open(pfile)
+    except:
+        self.ui.write("failed to open authfile %s\n" % pfile)
+    if fp:
+        pcfg.readfp(fp)
+    fp.close()
+
+def save_config(pcfg, pfile):
+    ofp = None
+    try:
+        ofp = open(pfile, 'w')
+    except:
+        self.ui.write("failed to open authfile %s for writing\n" % pfile)
+        raise
+    try:
+        os.fchmod(ofp.fileno(), stat.S_IRUSR | stat.S_IWUSR) #!!! Windows equivalent?
+    except:
+        ofp.close()
+        ofp = None
+        self.ui.write("failed to set proper permissions on authfile %s\n" % pfile)
+        raise
+    pcfg.write(ofp)
+    ofp.close()
+
 @monkeypatch_method(passwordmgr)
 def find_user_password(self, realm, authuri):
 
@@ -120,7 +147,8 @@ def find_user_password(self, realm, authuri):
 
     pkey = base64.b64encode('%s@@%s' % (uri, user)).replace('=', '_')
     pekey = self.ui.config('easyhg', 'authkey')
-    pfile = os.path.expanduser(self.ui.config('easyhg', 'authfile'))
+    pfile = self.ui.config('easyhg', 'authfile')
+    if pfile: pfile = os.path.expanduser(pfile)
     pdata = None
 
     self.ui.write("pekey is %s\n" % pekey)
@@ -151,26 +179,19 @@ def find_user_password(self, realm, authuri):
     if pekey and pfile:
         # load pwd from our cache file, decrypt with given key
         pcfg = ConfigParser.RawConfigParser()
-        fp = None
         remember_default = False
+        load_config(pcfg, pfile)
         try:
-            fp = open(pfile)
+            remember_default = pcfg.getboolean('preferences', 'remember')
         except:
-            self.ui.write("failed to open authfile %s\n" % pfile)
-        if fp and not passwd:
-            pcfg.readfp(fp)
-            try:
-                remember_default = pcfg.getboolean('preferences', 'remember')
-            except:
-                remember_default = False
-            try:
-                pdata = pcfg.get('auth', pkey)
-            except ConfigParser.NoOptionError:
-                pdata = None
-            if pdata:
-                cachedpwd = decrypt(pdata, pekey)
-                passfield.setText(cachedpwd)
-        fp.close()
+            remember_default = False
+        try:
+            pdata = pcfg.get('auth', pkey)
+        except ConfigParser.NoOptionError:
+            pdata = None
+        if pdata:
+            cachedpwd = decrypt(pdata, pekey)
+            passfield.setText(cachedpwd)
         remember = QtGui.QCheckBox()
         remember.setChecked(remember_default)
         remember.setText(_('Remember this password until EasyMercurial exits'))
@@ -203,22 +224,6 @@ def find_user_password(self, realm, authuri):
 
         if pekey and pfile and remember:
 
-            ofp = None
-
-            try:
-                ofp = open(pfile, 'w')
-            except:
-                self.ui.write("failed to open authfile %s for writing\n" % pfile)
-                raise
-
-            try:
-                os.fchmod(ofp.fileno(), stat.S_IRUSR | stat.S_IWUSR) #!!! Windows equivalent?
-            except:
-                ofp.close()
-                ofp = None
-                self.ui.write("failed to set proper permissions on authfile %s\n" % pfile)
-                raise
-
             #!!! add these sections first...
 
             if remember.isChecked():
@@ -228,8 +233,8 @@ def find_user_password(self, realm, authuri):
                 pcfg.set('auth', pkey, '')
 
             pcfg.set('preferences', 'remember', remember.isChecked())
-            pcfg.write(ofp)
-            ofp.close()
+
+            save_config(pcfg, pfile)
 
 #        if passwd and keyring_key != '' and not from_keyring:
 #            keyring_key = '%s@@%s' % (uri, user)
