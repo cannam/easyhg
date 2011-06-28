@@ -2943,22 +2943,24 @@ void MainWindow::createMenus()
 
 void MainWindow::createToolBars()
 {
+    int sz = 32;
+
     m_fileToolBar = addToolBar(tr("File"));
-    m_fileToolBar->setIconSize(QSize(MY_ICON_SIZE, MY_ICON_SIZE));
+    m_fileToolBar->setIconSize(QSize(sz, sz));
     m_fileToolBar->addAction(m_openAct);
     m_fileToolBar->addAction(m_hgRefreshAct);
     m_fileToolBar->setMovable(false);
 
-    m_repoToolBar = addToolBar(tr(REPOMENU_TITLE));
-    m_repoToolBar->setIconSize(QSize(MY_ICON_SIZE, MY_ICON_SIZE));
+    m_repoToolBar = addToolBar(tr("Remote"));
+    m_repoToolBar->setIconSize(QSize(sz, sz));
     m_repoToolBar->addAction(m_hgIncomingAct);
     m_repoToolBar->addAction(m_hgPullAct);
     m_repoToolBar->addAction(m_hgPushAct);
     m_repoToolBar->setMovable(false);
 
-    m_workFolderToolBar = addToolBar(tr(WORKFOLDERMENU_TITLE));
+    m_workFolderToolBar = addToolBar(tr("Work"));
     addToolBar(Qt::LeftToolBarArea, m_workFolderToolBar);
-    m_workFolderToolBar->setIconSize(QSize(MY_ICON_SIZE, MY_ICON_SIZE));
+    m_workFolderToolBar->setIconSize(QSize(sz, sz));
     m_workFolderToolBar->addAction(m_hgFolderDiffAct);
     m_workFolderToolBar->addSeparator();
     m_workFolderToolBar->addAction(m_hgRevertAct);
