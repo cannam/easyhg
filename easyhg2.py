@@ -17,7 +17,7 @@ import sys, os, stat
 
 import urllib, urllib2, urlparse
 
-from mercurial import ui, util, config, error
+from mercurial import ui, util, error
 try:
     from mercurial.url import passwordmgr
 except:
@@ -56,6 +56,8 @@ easyhg_qtapp = None
 #!!! same as above for this? or just continue without remember feature?
 from Crypto.Cipher import AES
 import base64
+
+import ConfigParser # Mercurial version won't write files
 
 #!!! should be in a class here
 
@@ -116,7 +118,7 @@ def find_user_password(self, realm, authuri):
 
     uri = canonical_url(authuri)
 
-    pkey = ('%s@@%s' % (uri, user)).replace('=', '__')
+    pkey = base64.b64encode('%s@@%s' % (uri, user)).replace('=', '_')
     pekey = self.ui.config('easyhg', 'authkey')
     pfile = os.path.expanduser(self.ui.config('easyhg', 'authfile'))
     pdata = None
@@ -144,22 +146,33 @@ def find_user_password(self, realm, authuri):
     layout.addWidget(passfield, 2, 1)
 
     remember = None
+    pcfg = None
+
     if pekey and pfile:
         # load pwd from our cache file, decrypt with given key
-        pcfg = config.config()
+        pcfg = ConfigParser.RawConfigParser()
         fp = None
+        remember_default = False
         try:
             fp = open(pfile)
         except:
             self.ui.write("failed to open authfile %s\n" % pfile)
         if fp and not passwd:
-            pcfg.read(pfile)
-            pdata = pcfg.get('auth', pkey)
+            pcfg.readfp(fp)
+            try:
+                remember_default = pcfg.getboolean('preferences', 'remember')
+            except:
+                remember_default = False
+            try:
+                pdata = pcfg.get('auth', pkey)
+            except ConfigParser.NoOptionError:
+                pdata = None
             if pdata:
                 cachedpwd = decrypt(pdata, pekey)
                 passfield.setText(cachedpwd)
         fp.close()
         remember = QtGui.QCheckBox()
+        remember.setChecked(remember_default)
         remember.setText(_('Remember this password until EasyMercurial exits'))
         layout.addWidget(remember, 3, 1)
 
@@ -188,13 +201,12 @@ def find_user_password(self, realm, authuri):
         user = userfield.text()
         passwd = passfield.text()
 
-        #!!! create pfile if necessary (with proper permissions), append auth data to it
-        if pekey and pfile:
+        if pekey and pfile and remember:
 
             ofp = None
 
             try:
-                ofp = open(pfile, 'a')
+                ofp = open(pfile, 'w')
             except:
                 self.ui.write("failed to open authfile %s for writing\n" % pfile)
                 raise
@@ -207,12 +219,17 @@ def find_user_password(self, realm, authuri):
                 self.ui.write("failed to set proper permissions on authfile %s\n" % pfile)
                 raise
 
-            if ofp:
+            #!!! add these sections first...
+
+            if remember.isChecked():
                 pdata = encrypt(passwd, pekey)
-                ofp.write('[auth]\n')
-                ofp.write(pkey + '=' + pdata + '\n')
-                ofp.close()
-                
+                pcfg.set('auth', pkey, pdata)
+            else:
+                pcfg.set('auth', pkey, '')
+
+            pcfg.set('preferences', 'remember', remember.isChecked())
+            pcfg.write(ofp)
+            ofp.close()
 
 #        if passwd and keyring_key != '' and not from_keyring:
 #            keyring_key = '%s@@%s' % (uri, user)
