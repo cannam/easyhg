@@ -20,11 +20,6 @@
 
 #include <QString>
 
-#define MY_ICON_SIZE                    32
-//!!!:
-#define REPOMENU_TITLE                  "Repository actions"
-#define WORKFOLDERMENU_TITLE            "Workfolder actions"
-
 extern QString findInPath(QString name, QString installPath, bool executable);
 
 extern QString getSystem();
@@ -64,6 +59,11 @@ QString getContainingRepoFolder(QString path);
 QString xmlEncode(QString);
 
 QString uniDecode(QString);
+
+/**
+ * Generate a 16-byte random key using urandom or equivalent
+ */
+QByteArray randomKey();
     
 
 #endif 	//COMMON_H

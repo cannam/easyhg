@@ -40,6 +40,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <stdio.h>
 #endif
 
 QString findInPath(QString name, QString installPath, bool executableRequired)
@@ -283,3 +284,46 @@ QString uniDecode(QString s)
     }
     return d;
 }
+
+QByteArray randomKey()
+{
+    static int len = 16;
+
+    QByteArray ba;
+    ba.resize(len);
+    char *buffer = ba.data();
+
+#ifdef Q_OS_WIN32
+
+    HCRYPTPROV provider = 0;
+    if (!CryptAcquireContextW(&provider, 0, 0,
+                              PROV_RSA_FULL,
+                              CRYPT_VERIFYCONTEXT | CRYPT_SILENT)) {
+        return QByteArray();
+    }
+
+    if (!CryptGenRandom(provider, len, buffer)) {
+        CryptReleaseContext(provider, 0);
+        return QByteArray();
+    }
+
+    CryptReleaseContext(provider, 0);
+
+#else
+    
+    FILE *rf = fopen("/dev/urandom", "r");
+    if (!rf) {
+        return QByteArray();
+    }
+
+    for (int i = 0; i < len; ++i) {
+        buffer[i] = fgetc(rf);
+    }
+
+    fclose(rf);
+
+#endif
+
+    return ba;
+}
+
