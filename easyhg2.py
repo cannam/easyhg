@@ -31,7 +31,7 @@ easyhg_import_path = 'NO_EASYHG_IMPORT_PATH'
 if not easyhg_import_path.startswith('NO_'):
     # We have an installation path: append it twice, once with
     # the Python version suffixed
-    version_suffix = "Py" + str(sys.version_info[0]) + "." + str(sys.version_info[1]);
+    version_suffix = 'Py%d.%d' % (sys.version_info[0], sys.version_info[1])
     sys.path.append(easyhg_import_path + "/" + version_suffix)
     sys.path.append(easyhg_import_path)
 
@@ -49,7 +49,7 @@ except ImportError:
     easyhg_pyqt_ok = False
 easyhg_qtapp = None
 
-# These imports are optional, we just can't use the authfile (=
+# These imports are optional, we just can't use the authfile (i.e.
 # "remember this password") feature without them
 #
 easyhg_authfile_imports_ok = True
@@ -60,7 +60,6 @@ try:
 except ImportError:
     easyhg_authfile_imports_ok = False
 
-#!!! should be in a class here
 
 def encrypt_salted(text, key):
     salt = os.urandom(8)
@@ -76,28 +75,8 @@ def decrypt_salted(ctext, key):
     (salt, d, text) = text.partition('.')
     return text[0:int(tlen)]
 
-def monkeypatch_method(cls):
-    def decorator(func):
-        setattr(cls, func.__name__, func)
-        return func
-    return decorator
-
-def uisetup(ui):
-    if not easyhg_pyqt_ok:
-        raise util.Abort(_('Failed to load PyQt4 module required by easyhg.py'))
-    global easyhg_qtapp
-    easyhg_qtapp = QtGui.QApplication([])
-
-orig_find = passwordmgr.find_user_password
-
 # from mercurial_keyring by Marcin Kasperski
 def canonical_url(authuri):
-    """
-    Strips query params from url. Used to convert urls like
-    https://repo.machine.com/repos/apps/module?pairs=0000000000000000000000000000000000000000-0000000000000000000000000000000000000000&cmd=between
-    to
-    https://repo.machine.com/repos/apps/module
-    """
     parsed_url = urlparse.urlparse(authuri)
     return "%s://%s%s" % (parsed_url.scheme, parsed_url.netloc,
                           parsed_url.path)
@@ -107,10 +86,9 @@ def load_config(pcfg, pfile):
     try:
         fp = open(pfile)
     except:
-        pass
-    if fp:
-        pcfg.readfp(fp)
-        fp.close()
+        return
+    pcfg.readfp(fp)
+    fp.close()
 
 def save_config(pcfg, pfile):
     ofp = None
@@ -124,7 +102,6 @@ def save_config(pcfg, pfile):
         os.fchmod(ofp.fileno(), stat.S_IRUSR | stat.S_IWUSR)
     except:
         ofp.close()
-        ofp = None
         self.ui.write("failed to set permissions on authfile %s\n" % pfile)
         raise
     pcfg.write(ofp)
@@ -152,7 +129,24 @@ def set_to_config(pcfg, sect, key, data):
     pcfg.set(sect, key, data)
 
 def remote_key(uri, user):
+    # generate a "safe-for-config-file" key representing uri+user
+    # tuple (n.b. trailing = on base64 is not safe)
     return base64.b64encode('%s@@%s' % (uri, user)).replace('=', '_')
+
+
+def uisetup(ui):
+    if not easyhg_pyqt_ok:
+        raise util.Abort(_('Failed to load PyQt4 module required by easyhg.py'))
+    global easyhg_qtapp
+    easyhg_qtapp = QtGui.QApplication([])
+
+def monkeypatch_method(cls):
+    def decorator(func):
+        setattr(cls, func.__name__, func)
+        return func
+    return decorator
+
+orig_find = passwordmgr.find_user_password
 
 @monkeypatch_method(passwordmgr)
 def find_user_password(self, realm, authuri):
@@ -169,57 +163,57 @@ def find_user_password(self, realm, authuri):
     if user and passwd:
         return orig_find(self, realm, authuri)
 
-    self.ui.write("want username and/or password for %s\n" % authuri)
+#    self.ui.write("want username and/or password for %s\n" % authuri)
 
-    uri = canonical_url(authuri)
+    short_uri = canonical_url(authuri)
 
-    pekey = self.ui.config('easyhg', 'authkey')
-    pfile = self.ui.config('easyhg', 'authfile')
-    use_authfile = (easyhg_authfile_imports_ok and pekey and pfile)
-    if pfile:
-        pfile = os.path.expanduser(pfile)
-    pdata = None
-
-    self.ui.write("pekey is %s\n" % pekey)
-    self.ui.write("pfile is %s\n" % pfile)
+    authkey = self.ui.config('easyhg', 'authkey')
+    authfile = self.ui.config('easyhg', 'authfile')
+    use_authfile = (easyhg_authfile_imports_ok and authkey and authfile)
+    if authfile:
+        authfile = os.path.expanduser(authfile)
+    authdata = None
 
     dialog = QtGui.QDialog()
     layout = QtGui.QGridLayout()
     dialog.setLayout(layout)
 
-    layout.addWidget(QtGui.QLabel(_('<h3>Login required</h3><p>Please provide your login details for the repository at<br><code>%s</code>:') % uri), 0, 0, 1, 2)
+    layout.addWidget(QtGui.QLabel(_('<h3>Login required</h3><p>Please provide your login details for the repository at<br><code>%s</code>:') % short_uri), 0, 0, 1, 2)
 
-    userfield = QtGui.QLineEdit()
+    user_field = QtGui.QLineEdit()
     if user:
-        userfield.setText(user)
+        user_field.setText(user)
     layout.addWidget(QtGui.QLabel(_('User:')), 1, 0)
-    layout.addWidget(userfield, 1, 1)
+    layout.addWidget(user_field, 1, 1)
 
-    passfield = QtGui.QLineEdit()
-    passfield.setEchoMode(QtGui.QLineEdit.Password)
+    passwd_field = QtGui.QLineEdit()
+    passwd_field.setEchoMode(QtGui.QLineEdit.Password)
     if passwd:
-        passfield.setText(passwd)
+        passwd_field.setText(passwd)
     layout.addWidget(QtGui.QLabel(_('Password:')), 2, 0)
-    layout.addWidget(passfield, 2, 1)
+    layout.addWidget(passwd_field, 2, 1)
 
-    userfield.connect(userfield, Qt.SIGNAL("textChanged(QString)"), passfield, Qt.SLOT("clear()"))
+    user_field.connect(user_field, Qt.SIGNAL("textChanged(QString)"),
+                       passwd_field, Qt.SLOT("clear()"))
 
-    remember = None
-    pcfg = None
+    remember_field = None
+    remember = False
+    authconfig = None
 
     if use_authfile:
-        # load pwd from our cache file, decrypt with given key
-        pcfg = ConfigParser.RawConfigParser()
-        load_config(pcfg, pfile)
-        remember_default = get_boolean_from_config(pcfg, 'preferences', 'remember', False)
-        pdata = get_from_config(pcfg, 'auth', remote_key(uri, user))
-        if pdata:
-            cachedpwd = decrypt_salted(pdata, pekey)
-            passfield.setText(cachedpwd)
-        remember = QtGui.QCheckBox()
-        remember.setChecked(remember_default)
-        remember.setText(_('Remember this password until EasyMercurial exits'))
-        layout.addWidget(remember, 3, 1)
+        authconfig = ConfigParser.RawConfigParser()
+        load_config(authconfig, authfile)
+        remember = get_boolean_from_config(authconfig, 'preferences',
+                                           'remember', False)
+        authdata = get_from_config(authconfig, 'auth',
+                                   remote_key(short_uri, user))
+        if authdata:
+            cachedpwd = decrypt_salted(authdata, authkey)
+            passwd_field.setText(cachedpwd)
+        remember_field = QtGui.QCheckBox()
+        remember_field.setChecked(remember)
+        remember_field.setText(_('Remember this password until EasyMercurial exits'))
+        layout.addWidget(remember_field, 3, 1)
 
     bb = QtGui.QDialogButtonBox()
     ok = bb.addButton(bb.Ok)
@@ -235,28 +229,28 @@ def find_user_password(self, realm, authuri):
     dialog.show()
 
     if not user:
-        userfield.setFocus(True)
+        user_field.setFocus(True)
     elif not passwd:
-        passfield.setFocus(True)
+        passwd_field.setFocus(True)
 
     dialog.raise_()
     ok = dialog.exec_()
     if not ok:
         raise util.Abort(_('password entry cancelled'))
 
-    self.ui.write('Dialog accepted\n')
-    user = userfield.text()
-    passwd = passfield.text()
+    user = user_field.text()
+    passwd = passwd_field.text()
 
     if use_authfile:
-        set_to_config(pcfg, 'preferences', 'remember', remember.isChecked())
+        remember = remember_field.isChecked()
+        set_to_config(authconfig, 'preferences', 'remember', remember)
         if user:
-            if passwd and remember.isChecked():
-                pdata = encrypt_salted(passwd, pekey)
-                set_to_config(pcfg, 'auth', remote_key(uri, user), pdata)
+            if passwd and remember:
+                authdata = encrypt_salted(passwd, authkey)
+                set_to_config(authconfig, 'auth', remote_key(short_uri, user), authdata)
             else:
-                set_to_config(pcfg, 'auth', remote_key(uri, user), '')
-        save_config(pcfg, pfile)
+                set_to_config(authconfig, 'auth', remote_key(short_uri, user), '')
+        save_config(authconfig, authfile)
 
     self.add_password(realm, authuri, user, passwd)
     return (user, passwd)
