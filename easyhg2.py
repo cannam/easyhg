@@ -13,17 +13,14 @@
 #    License, or (at your option) any later version.  See the file
 #    COPYING included with this distribution for more information.
 
-import sys, os, stat
+import sys, os, stat, urllib, urllib2, urlparse
 
-import urllib, urllib2, urlparse
-
+from mercurial.i18n import _
 from mercurial import ui, util, error
 try:
     from mercurial.url import passwordmgr
 except:
     from mercurial.httprepo import passwordmgr
-
-from mercurial.i18n import _
 
 # The value assigned here may be modified during installation, by
 # replacing its default value with another one.  We can't compare
@@ -52,6 +49,9 @@ except ImportError:
     easyhg_pyqt_ok = False
 easyhg_qtapp = None
 
+# These imports are optional, we just can't use the authfile (=
+# "remember this password") feature without them
+#
 easyhg_authfile_imports_ok = True
 try:
     from Crypto.Cipher import AES
@@ -118,11 +118,12 @@ def save_config(pcfg, pfile):
         self.ui.write("failed to open authfile %s for writing\n" % pfile)
         raise
     try:
-        os.fchmod(ofp.fileno(), stat.S_IRUSR | stat.S_IWUSR) #!!! Windows equivalent?
+        #!!! Windows equivalent?
+        os.fchmod(ofp.fileno(), stat.S_IRUSR | stat.S_IWUSR)
     except:
         ofp.close()
         ofp = None
-        self.ui.write("failed to set proper permissions on authfile %s\n" % pfile)
+        self.ui.write("failed to set permissions on authfile %s\n" % pfile)
         raise
     pcfg.write(ofp)
     ofp.close()
@@ -148,6 +149,9 @@ def set_to_config(pcfg, sect, key, data):
         pcfg.add_section(sect)
     pcfg.set(sect, key, data)
 
+def remote_key(uri, user):
+    return base64.b64encode('%s@@%s' % (uri, user)).replace('=', '_')
+
 @monkeypatch_method(passwordmgr)
 def find_user_password(self, realm, authuri):
 
@@ -167,12 +171,9 @@ def find_user_password(self, realm, authuri):
 
     uri = canonical_url(authuri)
 
-    pkey = None
     pekey = self.ui.config('easyhg', 'authkey')
     pfile = self.ui.config('easyhg', 'authfile')
     use_authfile = (easyhg_authfile_imports_ok and pekey and pfile)
-    if use_authfile:
-        pkey = base64.b64encode('%s@@%s' % (uri, user)).replace('=', '_')
     if pfile:
         pfile = os.path.expanduser(pfile)
     pdata = None
@@ -209,7 +210,7 @@ def find_user_password(self, realm, authuri):
         pcfg = ConfigParser.RawConfigParser()
         load_config(pcfg, pfile)
         remember_default = get_boolean_from_config(pcfg, 'preferences', 'remember', False)
-        pdata = get_from_config(pcfg, 'auth', pkey)
+        pdata = get_from_config(pcfg, 'auth', remote_key(uri, user))
         if pdata:
             cachedpwd = decrypt(pdata, pekey)
             passfield.setText(cachedpwd)
@@ -247,11 +248,12 @@ def find_user_password(self, realm, authuri):
 
     if use_authfile:
         set_to_config(pcfg, 'preferences', 'remember', remember.isChecked())
-        if remember.isChecked():
-            pdata = encrypt(passwd, pekey)
-            set_to_config(pcfg, 'auth', pkey, pdata)
-        else:
-            set_to_config(pcfg, 'auth', pkey, '')
+        if user:
+            if passwd and remember.isChecked():
+                pdata = encrypt(passwd, pekey)
+                set_to_config(pcfg, 'auth', remote_key(uri, user), pdata)
+            else:
+                set_to_config(pcfg, 'auth', remote_key(uri, user), '')
         save_config(pcfg, pfile)
 
     self.add_password(realm, authuri, user, passwd)
