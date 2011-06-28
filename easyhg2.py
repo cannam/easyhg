@@ -50,14 +50,15 @@ try:
     from PyQt4 import Qt, QtGui
 except ImportError:
     easyhg_pyqt_ok = False
-
 easyhg_qtapp = None
 
-#!!! same as above for this? or just continue without remember feature?
-from Crypto.Cipher import AES
-import base64
-
-import ConfigParser # Mercurial version won't write files
+easyhg_authfile_imports_ok = True
+try:
+    from Crypto.Cipher import AES
+    import ConfigParser # Mercurial version won't write files
+    import base64
+except ImportError:
+    easyhg_authfile_imports_ok = False
 
 #!!! should be in a class here
 
@@ -166,11 +167,14 @@ def find_user_password(self, realm, authuri):
 
     uri = canonical_url(authuri)
 
-    pkey = base64.b64encode('%s@@%s' % (uri, user)).replace('=', '_')
+    pkey = None
     pekey = self.ui.config('easyhg', 'authkey')
     pfile = self.ui.config('easyhg', 'authfile')
-    use_authfile = (pekey and pfile)
-    if pfile: pfile = os.path.expanduser(pfile)
+    use_authfile = (easyhg_authfile_imports_ok and pekey and pfile)
+    if use_authfile:
+        pkey = base64.b64encode('%s@@%s' % (uri, user)).replace('=', '_')
+    if pfile:
+        pfile = os.path.expanduser(pfile)
     pdata = None
 
     self.ui.write("pekey is %s\n" % pekey)
