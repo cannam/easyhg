@@ -99,15 +99,15 @@ def canonical_url(authuri):
     return "%s://%s%s" % (parsed_url.scheme, parsed_url.netloc,
                           parsed_url.path)
 
-def load_config(pfile):
+def load_config(pcfg, pfile):
     fp = None
     try:
         fp = open(pfile)
     except:
-        self.ui.write("failed to open authfile %s\n" % pfile)
+        pass
     if fp:
         pcfg.readfp(fp)
-    fp.close()
+        fp.close()
 
 def save_config(pcfg, pfile):
     ofp = None
@@ -125,6 +125,27 @@ def save_config(pcfg, pfile):
         raise
     pcfg.write(ofp)
     ofp.close()
+
+def get_from_config(pcfg, sect, key):
+    data = None
+    try:
+        data = pcfg.get(sect, key)
+    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        pass
+    return data
+
+def get_boolean_from_config(pcfg, sect, key, deflt):
+    data = deflt
+    try:
+        data = pcfg.getboolean(sect, key)
+    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        pass
+    return data
+
+def set_to_config(pcfg, sect, key, data):
+    if not pcfg.has_section(sect):
+        pcfg.add_section(sect)
+    pcfg.set(sect, key, data)
 
 @monkeypatch_method(passwordmgr)
 def find_user_password(self, realm, authuri):
@@ -148,6 +169,7 @@ def find_user_password(self, realm, authuri):
     pkey = base64.b64encode('%s@@%s' % (uri, user)).replace('=', '_')
     pekey = self.ui.config('easyhg', 'authkey')
     pfile = self.ui.config('easyhg', 'authfile')
+    use_authfile = (pekey and pfile)
     if pfile: pfile = os.path.expanduser(pfile)
     pdata = None
 
@@ -178,19 +200,12 @@ def find_user_password(self, realm, authuri):
     remember = None
     pcfg = None
 
-    if pekey and pfile:
+    if use_authfile:
         # load pwd from our cache file, decrypt with given key
         pcfg = ConfigParser.RawConfigParser()
-        remember_default = False
         load_config(pcfg, pfile)
-        try:
-            remember_default = pcfg.getboolean('preferences', 'remember')
-        except:
-            remember_default = False
-        try:
-            pdata = pcfg.get('auth', pkey)
-        except ConfigParser.NoOptionError:
-            pdata = None
+        remember_default = get_boolean_from_config(pcfg, 'preferences', 'remember', False)
+        pdata = get_from_config(pcfg, 'auth', pkey)
         if pdata:
             cachedpwd = decrypt(pdata, pekey)
             passfield.setText(cachedpwd)
@@ -219,32 +234,23 @@ def find_user_password(self, realm, authuri):
 
     dialog.raise_()
     ok = dialog.exec_()
-    if ok:
-        self.ui.write('Dialog accepted\n')
-        user = userfield.text()
-        passwd = passfield.text()
-
-        if pekey and pfile and remember:
-
-            #!!! add these sections first...
-
-            if remember.isChecked():
-                pdata = encrypt(passwd, pekey)
-                pcfg.set('auth', pkey, pdata)
-            else:
-                pcfg.set('auth', pkey, '')
-
-            pcfg.set('preferences', 'remember', remember.isChecked())
-
-            save_config(pcfg, pfile)
-
-#        if passwd and keyring_key != '' and not from_keyring:
-#            keyring_key = '%s@@%s' % (uri, user)
-##            keyring.set_password('Mercurial', keyring_key, passwd)
-        self.add_password(realm, authuri, user, passwd)
-    else:
+    if not ok:
         raise util.Abort(_('password entry cancelled'))
+
+    self.ui.write('Dialog accepted\n')
+    user = userfield.text()
+    passwd = passfield.text()
+
+    if use_authfile:
+        set_to_config(pcfg, 'preferences', 'remember', remember.isChecked())
+        if remember.isChecked():
+            pdata = encrypt(passwd, pekey)
+            set_to_config(pcfg, 'auth', pkey, pdata)
+        else:
+            set_to_config(pcfg, 'auth', pkey, '')
+        save_config(pcfg, pfile)
+
+    self.add_password(realm, authuri, user, passwd)
     return (user, passwd)
 
 
- 
