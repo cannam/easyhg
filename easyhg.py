@@ -4,8 +4,8 @@
 #
 #    Based on hgExplorer by Jari Korhonen
 #    Copyright (c) 2010 Jari Korhonen
-#    Copyright (c) 2010 Chris Cannam
-#    Copyright (c) 2010 Queen Mary, University of London
+#    Copyright (c) 2010-2011 Chris Cannam
+#    Copyright (c) 2010-2011 Queen Mary, University of London
 #    
 #    This program is free software; you can redistribute it and/or
 #    modify it under the terms of the GNU General Public License as
@@ -129,7 +129,8 @@ class EasyHgAuthStore(object):
         return "%s://%s" % (parsed.scheme, parsed.netloc)
 
     def load_config(self):
-        self.auth_config = ConfigParser.RawConfigParser()
+        if not self.auth_config:
+            self.auth_config = ConfigParser.RawConfigParser()
         fp = None
         try:
             fp = open(self.auth_file)
@@ -188,7 +189,7 @@ class EasyHgAuthStore(object):
         return hx
     
     def remote_user_key(self):
-        return self.remote_key(self.argless_url(), '')
+        return self.remote_key(self.pathless_url(), '')
     
     def remote_passwd_key(self):
         return self.remote_key(self.pathless_url(), self.user)
@@ -213,8 +214,9 @@ class EasyHgAuthStore(object):
 
     def save_auth_data(self):
 
+        self.load_config()
         if not self.auth_config: return
-
+    
         self.set_to_config('preferences', 'remember', self.remember)
 
         self.ui.write('aiming to store details for user %s\n' % self.user)
