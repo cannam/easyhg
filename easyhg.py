@@ -13,7 +13,7 @@
 #    License, or (at your option) any later version.  See the file
 #    COPYING included with this distribution for more information.
 
-import sys, os, stat, urllib, urllib2, urlparse, platform
+import sys, os, stat, urllib, urllib2, urlparse, platform, hashlib
 
 from mercurial.i18n import _
 from mercurial import ui, util, error
@@ -129,10 +129,13 @@ def set_to_config(pcfg, sect, key, data):
         pcfg.add_section(sect)
     pcfg.set(sect, key, data)
 
-def remote_key(uri, user):
+def remote_key(uri, user, key):
     # generate a "safe-for-config-file" key representing uri+user
-    # tuple (n.b. trailing = on base64 is not safe)
-    return base64.b64encode('%s@@%s' % (uri, user)).replace('=', '_')
+    s = '%s@@%s' % (uri, user)
+    h = hashlib.sha1()
+    h.update(key)
+    h.update(s)
+    return h.hexdigest()
 
 
 def uisetup(ui):
@@ -207,7 +210,7 @@ def find_user_password(self, realm, authuri):
         remember = get_boolean_from_config(authconfig, 'preferences',
                                            'remember', False)
         authdata = get_from_config(authconfig, 'auth',
-                                   remote_key(short_uri, user))
+                                   remote_key(short_uri, user, authkey))
         if authdata:
             cachedpwd = decrypt_salted(authdata, authkey)
             passwd_field.setText(cachedpwd)
@@ -248,9 +251,9 @@ def find_user_password(self, realm, authuri):
         if user:
             if passwd and remember:
                 authdata = encrypt_salted(passwd, authkey)
-                set_to_config(authconfig, 'auth', remote_key(short_uri, user), authdata)
+                set_to_config(authconfig, 'auth', remote_key(short_uri, user, authkey), authdata)
             else:
-                set_to_config(authconfig, 'auth', remote_key(short_uri, user), '')
+                set_to_config(authconfig, 'auth', remote_key(short_uri, user, authkey), '')
         save_config(self.ui, authconfig, authfile)
 
     self.add_password(realm, authuri, user, passwd)
