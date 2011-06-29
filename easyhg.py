@@ -232,7 +232,7 @@ class EasyHgAuthDialog(object):
 
     def ask(self, force_dialog):
 
-        if self.auth_store.user and self.auth_store.passwd:
+        if self.auth_store.user and self.auth_store.passwd and self.auth_store.remember:
             if not force_dialog:
                 return (self.auth_store.user, self.auth_store.passwd)
 
