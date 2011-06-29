@@ -391,6 +391,73 @@ void HgRunner::checkQueue()
     startCommand(toRun);
 }
 
+void HgRunner::pruneOldAuthFiles()
+{
+    QString path = QDesktopServices::storageLocation
+        (QDesktopServices::CacheLocation);
+    QDir d(path);
+    if (!d.exists()) return;
+    QStringList filters;
+    filters << "easyhg.*.dat";
+    QStringList fl = d.entryList(filters);
+    foreach (QString f, fl) {
+        QStringList parts = f.split('.');
+        if (parts.size() > 1) {
+            int pid = parts[1].toInt();
+            DEBUG << "Checking pid " << pid << " for cache file " << f << endl;
+
+            ProcessStatus ps = GetProcessStatus(pid);
+            if (ps == ProcessNotRunning) {
+                DEBUG << "Removing stale cache file " << f << endl;
+                QDir(d).remove(f);
+            }
+        }
+    }
+}
+
+QString HgRunner::getAuthFilePath()
+{
+    if (m_authFilePath == "") {
+
+        pruneOldAuthFiles();
+
+        QByteArray fileExt = randomKey();
+        if (fileExt == QByteArray()) {
+            DEBUG << "HgRunner::addExtensionOptions: Failed to get proper auth file ext" << endl;
+            return "";
+        }
+        QString fileExt16 = QString::fromLocal8Bit(fileExt.toBase64()).left(16)
+            .replace('+', '-').replace('/', '_');
+        QString path = QDesktopServices::storageLocation
+            (QDesktopServices::CacheLocation);
+        QDir().mkpath(path);
+        if (path == "") {
+            DEBUG << "HgRunner::addExtensionOptions: Failed to get cache location" << endl;
+            return "";
+        }
+
+        m_authFilePath = QString("%1/easyhg.%2.%3.dat").arg(path)
+            .arg(getpid()).arg(fileExt16);
+    }
+
+    return m_authFilePath;
+}
+
+QString HgRunner::getAuthKey()
+{
+    if (m_authKey == "") {
+        QByteArray key = randomKey();
+        if (key == QByteArray()) {
+            DEBUG << "HgRunner::addExtensionOptions: Failed to get proper auth key" << endl;
+            return "";
+        }
+        QString key16 = QString::fromLocal8Bit(key.toBase64()).left(16);
+        m_authKey = key16;
+    }
+
+    return m_authKey;
+}
+
 QStringList HgRunner::addExtensionOptions(QStringList params)
 {
     QString extpath = getExtensionLocation();
@@ -398,40 +465,16 @@ QStringList HgRunner::addExtensionOptions(QStringList params)
         DEBUG << "HgRunner::addExtensionOptions: Failed to get extension location" << endl;
         return params;
     }
-    
-    if (m_authFilePath == "") {
 
-        QByteArray key = randomKey();
-        if (key == QByteArray()) {
-            DEBUG << "HgRunner::addExtensionOptions: Failed to get proper auth key" << endl;
-            return params;
-        }
-        QString key16 = QString::fromLocal8Bit(key.toBase64()).left(16);
+    QString afp = getAuthFilePath();
+    QString afk = getAuthKey();
 
-        QByteArray fileExt = randomKey();
-        if (fileExt == QByteArray()) {
-            DEBUG << "HgRunner::addExtensionOptions: Failed to get proper auth file ext" << endl;
-            return params;
-        }
-        QString fileExt16 = QString::fromLocal8Bit(fileExt.toBase64()).left(16)
-            .replace('+', '-').replace('/', '.');
-        QString path = QDesktopServices::storageLocation
-            (QDesktopServices::CacheLocation);
-        QDir().mkpath(path);
-        if (path == "") {
-            DEBUG << "HgRunner::addExtensionOptions: Failed to get cache location" << endl;
-            return params;
-        }
-
-        m_authKey = key16;
-        m_authFilePath = QString("%1/easyhg_%2.dat").arg(path).arg(fileExt16);
+    if (afp != "" && afk != "") {
+        params.push_front(QString("easyhg.authkey=%1").arg(m_authKey));
+        params.push_front("--config");
+        params.push_front(QString("easyhg.authfile=%1").arg(m_authFilePath));
+        params.push_front("--config");
     }
-
-    params.push_front(QString("easyhg.authkey=%1").arg(m_authKey));
-    params.push_front("--config");
-
-    params.push_front(QString("easyhg.authfile=%1").arg(m_authFilePath));
-    params.push_front("--config");
 
     // Looks like this one must be without quotes, even though the SSH
     // one above only works on Windows if it has quotes (at least where
