@@ -13,7 +13,7 @@
 #    License, or (at your option) any later version.  See the file
 #    COPYING included with this distribution for more information.
 
-import sys, os, stat, urllib, urllib2, urlparse
+import sys, os, stat, urllib, urllib2, urlparse, platform
 
 from mercurial.i18n import _
 from mercurial import ui, util, error
@@ -98,13 +98,13 @@ def save_config(ui, pcfg, pfile):
     except:
         ui.write("failed to open authfile %s for writing\n" % pfile)
         raise
-    try:
-        #!!! Windows equivalent?
-        os.fchmod(ofp.fileno(), stat.S_IRUSR | stat.S_IWUSR)
-    except:
-        ofp.close()
-        ui.write("failed to set permissions on authfile %s\n" % pfile)
-        raise
+    if platform.system() != 'Windows':
+        try:
+            os.fchmod(ofp.fileno(), stat.S_IRUSR | stat.S_IWUSR)
+        except:
+            ofp.close()
+            ui.write("failed to set permissions on authfile %s\n" % pfile)
+            raise
     pcfg.write(ofp)
     ofp.close()
 
