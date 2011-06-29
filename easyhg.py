@@ -64,22 +64,6 @@ except ImportError:
 
 class EasyHgAuthStore(object):
 
-    ui = None
-
-    remote_url = ''
-
-    use_auth_file = False
-
-    auth_config = None
-    auth_file = ''
-    auth_key = ''
-    auth_cipher = None
-
-    user = ''
-    passwd = ''
-
-    remember = False
-
     def __init__(self, ui, url, user, passwd):
 
         self.ui = ui
@@ -93,6 +77,10 @@ class EasyHgAuthStore(object):
 
         self.use_auth_file = (easyhg_authfile_imports_ok and
                          self.auth_key and self.auth_file)
+
+        self.auth_config = None
+        self.auth_cipher = None
+        self.remember = False
 
         if self.use_auth_file:
             self.auth_cipher = AES.new(self.auth_key, AES.MODE_CBC)
