@@ -31,6 +31,7 @@
 #define SECURITY_WIN32 
 #include <windows.h>
 #include <security.h>
+#include <process.h>
 #else
 #include <errno.h>
 #include <pwd.h>
@@ -196,6 +197,30 @@ void installSignalHandlers()
     sigaddset(&sgnals, SIGHUP);
     sigaddset(&sgnals, SIGCONT);
     pthread_sigmask(SIG_BLOCK, &sgnals, 0);
+#endif
+}
+
+ProcessStatus
+GetProcessStatus(int pid)
+{
+#ifdef _WIN32
+    HANDLE handle = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid);
+    if (!handle) {
+        return ProcessNotRunning;
+    } else {
+        CloseHandle(handle);
+        return ProcessRunning;
+    }
+#else
+    if (kill(getpid(), 0) == 0) {
+        if (kill(pid, 0) == 0) {
+            return ProcessRunning;
+        } else {
+            return ProcessNotRunning;
+        }
+    } else {
+        return UnknownProcessStatus;
+    }
 #endif
 }
 

@@ -42,6 +42,14 @@ enum FolderStatus {
 
 FolderStatus getFolderStatus(QString path);
 
+enum ProcessStatus {
+    ProcessRunning,
+    ProcessNotRunning,
+    UnknownProcessStatus
+};
+
+ProcessStatus GetProcessStatus(int pid);
+
 /**
  * If the given path is somewhere within an existing repository,
  * return the path of the root directory of the repository (i.e. the

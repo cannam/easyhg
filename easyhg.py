@@ -333,6 +333,7 @@ def find_user_password(self, realm, authuri):
     user, passwd = authinfo
 
     if user and passwd:
+        self.ui.write("note: user and passwd both provided\n")
         return orig_find(self, realm, authuri)
 
     self.ui.write("want username and/or password for %s\n" % authuri)

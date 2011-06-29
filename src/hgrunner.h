@@ -71,6 +71,10 @@ private:
     QString getSshBinaryName();
     QString getExtensionLocation();
 
+    QString getAuthFilePath();
+    QString getAuthKey();
+    void pruneOldAuthFiles();
+
     QString getUnbundledFileName();
     QString unbundleExtension();
 
