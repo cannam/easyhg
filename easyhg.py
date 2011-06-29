@@ -174,9 +174,7 @@ def find_user_password(self, realm, authuri):
     authkey = self.ui.config('easyhg', 'authkey')
     authfile = self.ui.config('easyhg', 'authfile')
     use_authfile = (easyhg_authfile_imports_ok and authkey and authfile)
-    if authfile:
-        authfile = os.path.expanduser(authfile)
-    authdata = None
+    if authfile: authfile = os.path.expanduser(authfile)
 
     dialog = QtGui.QDialog()
     layout = QtGui.QGridLayout()
@@ -202,21 +200,34 @@ def find_user_password(self, realm, authuri):
 
     remember_field = None
     remember = False
+
     authconfig = None
+    authdata = None
 
     if use_authfile:
+
         authconfig = ConfigParser.RawConfigParser()
         load_config(authconfig, authfile)
         remember = get_boolean_from_config(authconfig, 'preferences',
                                            'remember', False)
-        authdata = get_from_config(authconfig, 'auth',
-                                   remote_key(short_uri, user, authkey))
-        if authdata:
-            cachedpwd = decrypt_salted(authdata, authkey)
-            passwd_field.setText(cachedpwd)
+
+        if not user:
+            authdata = get_from_config(authconfig, 'user',
+                                       remote_key(short_uri, '', authkey))
+            if authdata:
+                user = decrypt_salted(authdata, authkey)
+                user_field.setText(user)
+
+        if not passwd:
+            authdata = get_from_config(authconfig, 'auth',
+                                       remote_key(short_uri, user, authkey))
+            if authdata:
+                passwd = decrypt_salted(authdata, authkey)
+                passwd_field.setText(passwd)
+
         remember_field = QtGui.QCheckBox()
         remember_field.setChecked(remember)
-        remember_field.setText(_('Remember passwords while EasyMercurial is running'))
+        remember_field.setText(_('Remember these details while EasyMercurial is running'))
         layout.addWidget(remember_field, 3, 1)
 
     bb = QtGui.QDialogButtonBox()
@@ -236,6 +247,8 @@ def find_user_password(self, realm, authuri):
         user_field.setFocus(True)
     elif not passwd:
         passwd_field.setFocus(True)
+    else:
+        ok.setFocus(True)
 
     dialog.raise_()
     ok = dialog.exec_()
@@ -249,7 +262,13 @@ def find_user_password(self, realm, authuri):
         remember = remember_field.isChecked()
         set_to_config(authconfig, 'preferences', 'remember', remember)
         if user:
-            if passwd and remember:
+            if remember:
+                authdata = encrypt_salted(user, authkey)
+                set_to_config(authconfig, 'user', remote_key(short_uri, '', authkey), authdata)
+            else:
+                set_to_config(authconfig, 'user', remote_key(short_uri, '', authkey), '')
+        if passwd:
+            if remember:
                 authdata = encrypt_salted(passwd, authkey)
                 set_to_config(authconfig, 'auth', remote_key(short_uri, user, authkey), authdata)
             else:
