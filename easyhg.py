@@ -44,7 +44,7 @@ if not easyhg_import_path.startswith('NO_'):
 #
 easyhg_pyqt_ok = True
 try:
-    from PyQt4 import Qt, QtGui
+    from PyQt4 import Qt, QtCore, QtGui
 except ImportError:
     easyhg_pyqt_ok = False
 easyhg_qtapp = None
@@ -269,6 +269,12 @@ class EasyHgAuthDialog(object):
             remember_field.setChecked(self.auth_store.remember)
             remember_field.setText(_('Remember these details while EasyMercurial is running'))
             layout.addWidget(remember_field, 3, 1)
+            warning_field = QtGui.QLabel()
+            warning_field.setText(_('<qt><i><small>Note: Do not select this if anyone else has access to this machine!</small></i><br></qt>'))
+            warning_field.hide()
+            remember_field.connect(remember_field, Qt.SIGNAL("clicked()"),
+                                   warning_field, Qt.SLOT("show()"))
+            layout.addWidget(warning_field, 4, 1, QtCore.Qt.AlignRight)
 
         bb = QtGui.QDialogButtonBox()
         ok = bb.addButton(bb.Ok)
@@ -278,7 +284,7 @@ class EasyHgAuthDialog(object):
         ok.setDefault(True)
         bb.connect(ok, Qt.SIGNAL("clicked()"), dialog, Qt.SLOT("accept()"))
         bb.connect(cancel, Qt.SIGNAL("clicked()"), dialog, Qt.SLOT("reject()"))
-        layout.addWidget(bb, 4, 0, 1, 2)
+        layout.addWidget(bb, 5, 0, 1, 2)
 
         dialog.setWindowTitle(_('EasyMercurial: Login'))
         dialog.show()
