@@ -111,10 +111,10 @@ class EasyHgAuthStore(object):
         return ctext
 
     def decrypt(self, ctext):
-        text = self.auth_cipher.decrypt(base64.b64decode(ctext))
-        (iv, d, text) = text.partition('.')
-        (tlen, d, text) = text.partition('.')
         try:
+            text = self.auth_cipher.decrypt(base64.b64decode(ctext))
+            (iv, d, text) = text.partition('.')
+            (tlen, d, text) = text.partition('.')
             return text[0:int(tlen)]
         except:
             self.ui.write("failed to decrypt/convert cached data!")
