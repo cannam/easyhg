@@ -76,9 +76,13 @@ def decrypt_salted(ctext, key):
     (salt, d, text) = text.partition('.')
     return text[0:int(tlen)]
 
+def pathless_url(url):
+    parsed_url = urlparse.urlparse(url)
+    return "%s://%s" % (parsed_url.scheme, parsed_url.netloc)
+
 # from mercurial_keyring by Marcin Kasperski
-def canonical_url(authuri):
-    parsed_url = urlparse.urlparse(authuri)
+def canonical_url(url):
+    parsed_url = urlparse.urlparse(url)
     return "%s://%s%s" % (parsed_url.scheme, parsed_url.netloc,
                           parsed_url.path)
 
@@ -170,6 +174,7 @@ def find_user_password(self, realm, authuri):
 #    self.ui.write("want username and/or password for %s\n" % authuri)
 
     short_uri = canonical_url(authuri)
+    pathless_uri = pathless_url(authuri)
 
     authkey = self.ui.config('easyhg', 'authkey')
     authfile = self.ui.config('easyhg', 'authfile')
@@ -220,7 +225,7 @@ def find_user_password(self, realm, authuri):
 
         if not passwd:
             authdata = get_from_config(authconfig, 'auth',
-                                       remote_key(short_uri, user, authkey))
+                                       remote_key(pathless_uri, user, authkey))
             if authdata:
                 passwd = decrypt_salted(authdata, authkey)
                 passwd_field.setText(passwd)
@@ -270,9 +275,9 @@ def find_user_password(self, realm, authuri):
         if passwd:
             if remember:
                 authdata = encrypt_salted(passwd, authkey)
-                set_to_config(authconfig, 'auth', remote_key(short_uri, user, authkey), authdata)
+                set_to_config(authconfig, 'auth', remote_key(pathless_uri, user, authkey), authdata)
             else:
-                set_to_config(authconfig, 'auth', remote_key(short_uri, user, authkey), '')
+                set_to_config(authconfig, 'auth', remote_key(pathless_uri, user, authkey), '')
         save_config(self.ui, authconfig, authfile)
 
     self.add_password(realm, authuri, user, passwd)
