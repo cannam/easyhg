@@ -263,7 +263,7 @@ class EasyHgAuthDialog(object):
             remember_field.setText(_('Remember these details while EasyMercurial is running'))
             layout.addWidget(remember_field, 3, 1)
             warning_field = QtGui.QLabel()
-            warning_field.setText(_('<qt><i><small>Note: Do not select this if anyone else has access to this machine!</small></i><br></qt>'))
+            warning_field.setText(_('<qt><i><small>Do not use this option if anyone else has access to your computer!</small></i><br></qt>'))
             warning_field.hide()
             remember_field.connect(remember_field, Qt.SIGNAL("clicked()"),
                                    warning_field, Qt.SLOT("show()"))
