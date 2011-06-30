@@ -31,6 +31,11 @@ int main(int argc, char *argv[])
     QApplication::setOrganizationDomain("easymercurial.org");
     QApplication::setApplicationName(QApplication::tr("EasyMercurial"));
 
+#ifdef Q_OS_MAC
+    // Mac doesn't align menu labels when icons are shown: result is messy
+    app.setAttribute(Qt::AA_DontShowIconsInMenus);
+#endif
+
     // Lose our controlling terminal (so we can provide a new pty to
     // capture password requests)
     loseControllingTerminal();
