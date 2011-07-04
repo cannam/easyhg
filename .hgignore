@@ -24,3 +24,6 @@ Makefile.Release
 re:^EasyMercurial$
 re:^kdiff3$
 re:^_UpgradeReport_Files/
+*.dmg
+*.xcodeproj
+*.bak
