@@ -297,25 +297,26 @@ SettingsDialog::findDiffBinaryName()
     QSettings settings;
     settings.beginGroup("Locations");
     QString diff = settings.value("extdiffbinary", "").toString();
-    if (diff == "") {
-        QStringList bases;
+    if (diff != "" && QFile(diff).exists()) {
+        return;
+    }
+    QStringList bases;
 #ifdef Q_OS_WIN32
-        bases << "easyhg-extdiff.bat";
+    bases << "easyhg-extdiff.bat";
 #else
-        bases << "easyhg-extdiff.sh";
+    bases << "easyhg-extdiff.sh";
 #endif
-        bases << "kompare" << "kdiff3" << "meld";
-        bool found = false;
-        foreach (QString base, bases) {
-            diff = findInPath(base, m_installPath, true);
-            if (diff != "") {
-                found = true;
-                break;
-            }
+    bases << "kompare" << "kdiff3" << "meld";
+    bool found = false;
+    foreach (QString base, bases) {
+        diff = findInPath(base, m_installPath, true);
+        if (diff != "") {
+            found = true;
+            break;
         }
-        if (found) {
-            settings.setValue("extdiffbinary", diff);
-        }
+    }
+    if (found) {
+        settings.setValue("extdiffbinary", diff);
     }
 }
 
@@ -324,10 +325,10 @@ SettingsDialog::findMergeBinaryName()
 {
     QSettings settings;
     settings.beginGroup("Locations");
-    if (settings.contains("mergebinary")) {
+    QString merge = settings.value("mergebinary", "").toString();
+    if (merge != "" && QFile(merge).exists()) {
         return;
     }
-    QString merge;
     QStringList bases;
 #ifdef Q_OS_WIN32
     bases << "easyhg-merge.bat";
@@ -355,10 +356,10 @@ SettingsDialog::findSshBinaryName()
 {
     QSettings settings;
     settings.beginGroup("Locations");
-    if (settings.contains("sshbinary")) {
+    QString ssh = settings.value("sshbinary", "").toString();
+    if (ssh != "" && QFile(ssh).exists()) {
         return;
     }
-    QString ssh;
     QStringList bases;
 #ifdef Q_OS_WIN32
     bases << "TortoisePlink.exe";
@@ -384,30 +385,31 @@ SettingsDialog::findEditorBinaryName()
     QSettings settings;
     settings.beginGroup("Locations");
     QString editor = settings.value("editorbinary", "").toString();
-    if (editor == "") {
-        QStringList bases;
-        bases
+    if (editor != "" && QFile(editor).exists()) {
+        return;
+    }
+    QStringList bases;
+    bases
 #if defined Q_OS_WIN32
-            << "wordpad.exe"
-            << "C:\\Program Files\\Windows NT\\Accessories\\wordpad.exe"
-            << "notepad.exe"
+        << "wordpad.exe"
+        << "C:\\Program Files\\Windows NT\\Accessories\\wordpad.exe"
+        << "notepad.exe"
 #elif defined Q_OS_MAC
-            << "/Applications/TextEdit.app/Contents/MacOS/TextEdit"
+        << "/Applications/TextEdit.app/Contents/MacOS/TextEdit"
 #else
-            << "gedit" << "kate"
+        << "gedit" << "kate"
 #endif
-            ;
-        bool found = false;
-        foreach (QString base, bases) {
-            editor = findInPath(base, m_installPath, true);
-            if (editor != "") {
-                found = true;
-                break;
-            }
+        ;
+    bool found = false;
+    foreach (QString base, bases) {
+        editor = findInPath(base, m_installPath, true);
+        if (editor != "") {
+            found = true;
+            break;
         }
-        if (found) {
-            settings.setValue("editorbinary", editor);
-        }
+    }
+    if (found) {
+        settings.setValue("editorbinary", editor);
     }
 }
 
