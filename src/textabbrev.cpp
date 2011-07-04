@@ -16,6 +16,7 @@
 */
 
 #include "textabbrev.h"
+#include "debug.h"
 
 #include <QFontMetrics>
 #include <QApplication>
@@ -92,30 +93,51 @@ TextAbbrev::abbreviate(QString text,
 {
     if (ellipsis == "") ellipsis = getDefaultEllipsis();
 
+//    std::cerr << "TextAbbrev::abbreviate: text = " << text << std::endl;
+
     int tw = metrics.width(text);
+    int tl = text.length();
+
+//    std::cerr << "\n*** TextAbbrev::abbreviate: tw = " << tw << "\n***\n" << std::endl;
 
     if (tw <= maxWidth) {
         maxWidth = tw;
         return text;
     }
 
-    int truncated = text.length();
     QString original = text;
+
+    int acw = metrics.averageCharWidth();
 
     if (wrapLines < 2) {
 
-        while (tw > maxWidth && truncated > 1) {
+//        std::cerr << "only " << wrapLines << " line(s) remaining, going by character..." << std::endl;
 
-            truncated--;
+        int truncateTo = tl;
+
+        while (tw > maxWidth && truncateTo > 1) {
+
+            if (tw > maxWidth + acw * 10) {
+                float ratio = float(maxWidth) / float(tw);
+                truncateTo = int(truncateTo * ratio * 1.2) + 10;
+                if (truncateTo >= tl) truncateTo = tl - 1;
+            } else {
+                truncateTo--;
+            }
             
-            if (truncated > ellipsis.length()) {
-                text = abbreviateTo(original, truncated, policy, ellipsis);
+//            std::cerr << "truncating from " << tl << " to " << truncateTo << std::endl;
+
+            if (truncateTo > ellipsis.length()) {
+                text = abbreviateTo(original, truncateTo, policy, ellipsis);
             } else {
                 break;
             }
             
             tw = metrics.width(text);
+            tl = text.length() - ellipsis.length();
         }
+
+//        std::cerr << "done, final tw = " << tw << std::endl;
         
         maxWidth = tw;
         return text;
@@ -129,6 +151,9 @@ TextAbbrev::abbreviate(QString text,
         int i = 0;
         QString good = "";
         int lastUsed = 0;
+
+//        std::cerr << "have " << wrapLines << " lines remaining, going by word..." << std::endl;
+
         while (tw < maxWidth && i < words.size()) {
             if (text != "") text += " ";
             text += words[i++];
@@ -138,6 +163,8 @@ TextAbbrev::abbreviate(QString text,
                 lastUsed = i;
             }
         }
+
+//        std::cerr << "done" << std::endl;
             
         if (tw < maxWidth) {
             maxWidth = tw;
