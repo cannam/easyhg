@@ -26,6 +26,7 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QTabWidget>
 
 QString
 SettingsDialog::m_installPath;
@@ -40,10 +41,16 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     QGridLayout *mainLayout = new QGridLayout;
     setLayout(mainLayout);
 
+    QTabWidget *tw = new QTabWidget;
+    mainLayout->addWidget(tw, 0, 0);
 
 
-    QGroupBox *meBox = new QGroupBox(tr("User details"));
-    mainLayout->addWidget(meBox, 0, 0);
+//    QGroupBox *meBox = new QGroupBox(tr("User details"));
+//    mainLayout->addWidget(meBox, 0, 0);
+
+    QWidget *meBox = new QWidget;
+    tw->addTab(meBox, tr("User details"));
+
     QGridLayout *meLayout = new QGridLayout;
     meBox->setLayout(meLayout);
 
@@ -59,10 +66,15 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     m_emailEdit = new QLineEdit();
     meLayout->addWidget(m_emailEdit, row++, 1);
 
+    meLayout->setRowStretch(row, 20);
 
 
-    QGroupBox *lookBox = new QGroupBox(tr("Presentation"));
-    mainLayout->addWidget(lookBox, 1, 0);
+//    QGroupBox *lookBox = new QGroupBox(tr("Presentation"));
+//    mainLayout->addWidget(lookBox, 1, 0);
+    
+    QWidget *lookBox = new QWidget;
+    tw->addTab(lookBox, tr("Presentation"));
+
     QGridLayout *lookLayout = new QGridLayout;
     lookBox->setLayout(lookLayout);
 
@@ -89,10 +101,15 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     m_dateFormat->addItem(tr("Dates, for example \"2010-06-23\""));
     lookLayout->addWidget(m_dateFormat, row++, 1, Qt::AlignLeft);
     lookLayout->setColumnStretch(1, 20);
+
+    lookLayout->setRowStretch(row, 20);
     
 
-    QGroupBox *pathsBox = new QGroupBox(tr("System application locations"));
-    mainLayout->addWidget(pathsBox, 2, 0);
+    QWidget *pathsBox = new QWidget;
+    tw->addTab(pathsBox, tr("System application locations"));
+
+//    QGroupBox *pathsBox = new QGroupBox(tr("System application locations"));
+//    mainLayout->addWidget(pathsBox, 2, 0);
     QGridLayout *pathsLayout = new QGridLayout;
     pathsBox->setLayout(pathsLayout);
 
@@ -155,6 +172,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     //!!! more info plz
     m_useExtension = new QCheckBox(tr("Use EasyHg Mercurial extension"));
     pathsLayout->addWidget(m_useExtension, row++, 2);
+
+    pathsLayout->setRowStretch(row, 20);
 
 
     reset(); // loads current defaults from settings
@@ -422,6 +441,7 @@ SettingsDialog::clear()
     settings.beginGroup("Presentation");
     settings.remove("showiconlabels");
     settings.remove("showhelpfultext");
+    settings.remove("dateformat");
     settings.endGroup();
     settings.beginGroup("Locations");
     settings.remove("hgbinary");
