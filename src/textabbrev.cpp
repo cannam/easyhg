@@ -117,7 +117,7 @@ TextAbbrev::abbreviate(QString text,
 
         while (tw > maxWidth && truncateTo > 1) {
 
-            if (tw > maxWidth + acw * 10) {
+            if (tw > maxWidth + acw * (ellipsis.length() + 5)) {
                 float ratio = float(maxWidth) / float(tw);
                 truncateTo = int(truncateTo * ratio * 1.2) + 10;
                 if (truncateTo >= tl) truncateTo = tl - 1;
@@ -139,7 +139,7 @@ TextAbbrev::abbreviate(QString text,
 
 //        std::cerr << "done, final tw = " << tw << std::endl;
         
-        maxWidth = tw;
+        maxWidth = std::max(maxWidth, tw);
         return text;
 
     } else {
