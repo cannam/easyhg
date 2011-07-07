@@ -12,7 +12,7 @@ out="$1"
 left="$1"
 ancestor="$2"
 right="$3"
-for d in kdiff3 kdiff3.exe; do
+for d in easyhg-kdiff3 easyhg-kdiff3.exe kdiff3 kdiff3.exe; do
     exe="$p/$d"
     if [ ! -x "$exe" ]; then
 	exe="$(type -path $d)"

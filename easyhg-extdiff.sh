@@ -7,7 +7,7 @@ fi
 while [ $# -gt 2 ]; do
     shift
 done
-for d in kdiff3 kdiff3.exe; do
+for d in easyhg-kdiff3 easyhg-kdiff3.exe kdiff3 kdiff3.exe; do
     if [ -x "$p/$d" ]; then
 	exec "$p/$d" "$1" "$2"
     elif [ -x "$(type -path $d)" ]; then
