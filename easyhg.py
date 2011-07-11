@@ -230,17 +230,21 @@ class EasyHgAuthDialog(object):
     def __init__(self, ui, url, user, passwd):
         self.auth_store = EasyHgAuthStore(ui, url, user, passwd)
 
-    def ask(self, force_dialog):
+    def ask(self, repeat):
 
         if self.auth_store.user and self.auth_store.passwd and self.auth_store.remember:
-            if not force_dialog:
+            if not repeat:
                 return (self.auth_store.user, self.auth_store.passwd)
 
         dialog = QtGui.QDialog()
         layout = QtGui.QGridLayout()
         dialog.setLayout(layout)
 
-        layout.addWidget(QtGui.QLabel(_('<h3>Login required</h3><p>Please provide your login details for the repository at<br><code>%s</code>:') % self.auth_store.argless_url()), 0, 0, 1, 2)
+        heading = _('Login required')
+        if repeat:
+            heading = _('Login failed: please try again')
+        label_text = _(('<h3>%s</h3><p>Please provide your login details for the repository at<br><code>%s</code>:') % (heading, self.auth_store.argless_url()))
+        layout.addWidget(QtGui.QLabel(label_text), 0, 0, 1, 2)
 
         user_field = QtGui.QLineEdit()
         if self.auth_store.user: user_field.setText(self.auth_store.user)
@@ -334,17 +338,7 @@ def find_user_password(self, realm, authuri):
         self, realm, authuri)
     user, passwd = authinfo
 
-    if user and passwd:
-#        self.ui.write("note: user and passwd both provided\n")
-        return orig_find(self, realm, authuri)
-
-#    self.ui.write("want username and/or password for %s\n" % authuri)
-
-    force_dialog = False
-
-#    if self.__easyhg_last:
-#        self.ui.write("last = realm '%s' authuri '%s'\n" % self.__easyhg_last)
-#        self.ui.write("me   = realm '%s' authuri '%s'\n" % (realm, authuri))
+    repeat = False
 
     if (realm, authuri) == self.__easyhg_last:
         # If we are called again just after identical previous
@@ -352,16 +346,17 @@ def find_user_password(self, realm, authuri):
         # wrong. So we note this to force password prompt (and avoid
         # reusing bad password indefinitely). Thanks to
         # mercurial_keyring (Marcin Kasperski) for this logic
-#        self.ui.write("same again!\n")
-        force_dialog = True
+        repeat = True
+
+    if user and passwd and not repeat:
+        return orig_find(self, realm, authuri)
 
     dialog = EasyHgAuthDialog(self.ui, authuri, user, passwd)
 
-    (user, passwd) = dialog.ask(force_dialog)
+    (user, passwd) = dialog.ask(repeat)
 
-#    self.add_password(realm, authuri, user, passwd)
+    self.add_password(realm, authuri, user, passwd)
     self.__easyhg_last = (realm, authuri)
-#    self.ui.write("done = realm '%s' authuri '%s'\n" % self.__easyhg_last)
     return (user, passwd)
 
 
