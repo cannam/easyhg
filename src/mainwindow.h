@@ -23,6 +23,7 @@
 #include "common.h"
 #include "changeset.h"
 #include "hgaction.h"
+#include "settingsdialog.h"
 
 #include <QMainWindow>
 #include <QListWidget>
@@ -57,6 +58,7 @@ public slots:
 private slots:
     void about();
     void settings();
+    void settings(SettingsDialog::Tab);
     void open();
     void recentMenuActivated();
     void changeRemoteRepo();

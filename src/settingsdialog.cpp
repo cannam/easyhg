@@ -41,15 +41,15 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     QGridLayout *mainLayout = new QGridLayout;
     setLayout(mainLayout);
 
-    QTabWidget *tw = new QTabWidget;
-    mainLayout->addWidget(tw, 0, 0);
+    m_tabs = new QTabWidget;
+    mainLayout->addWidget(m_tabs, 0, 0);
 
 
 //    QGroupBox *meBox = new QGroupBox(tr("User details"));
 //    mainLayout->addWidget(meBox, 0, 0);
 
     QWidget *meBox = new QWidget;
-    tw->addTab(meBox, tr("User details"));
+    m_tabs->addTab(meBox, tr("User details"));
 
     QGridLayout *meLayout = new QGridLayout;
     meBox->setLayout(meLayout);
@@ -73,7 +73,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 //    mainLayout->addWidget(lookBox, 1, 0);
     
     QWidget *lookBox = new QWidget;
-    tw->addTab(lookBox, tr("Presentation"));
+    m_tabs->addTab(lookBox, tr("Presentation"));
 
     QGridLayout *lookLayout = new QGridLayout;
     lookBox->setLayout(lookLayout);
@@ -106,7 +106,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     
 
     QWidget *pathsBox = new QWidget;
-    tw->addTab(pathsBox, tr("System application locations"));
+    m_tabs->addTab(pathsBox, tr("System application locations"));
 
 //    QGroupBox *pathsBox = new QGroupBox(tr("System application locations"));
 //    mainLayout->addWidget(pathsBox, 2, 0);
@@ -185,6 +185,16 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     connect(bbox, SIGNAL(accepted()), this, SLOT(accept()));
     mainLayout->addWidget(bbox, 3, 0);
     m_ok = bbox->button(QDialogButtonBox::Ok);
+}
+
+void
+SettingsDialog::setCurrentTab(Tab t)
+{
+    switch (t) {
+    case PersonalDetailsTab: m_tabs->setCurrentIndex(0); break;
+    case PresentationTab: m_tabs->setCurrentIndex(1); break;
+    case PathsTab: m_tabs->setCurrentIndex(2); break;
+    }
 }
 
 void
