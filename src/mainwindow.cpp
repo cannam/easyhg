@@ -1718,7 +1718,13 @@ bool MainWindow::openInit(QString local)
 
 void MainWindow::settings()
 {
+    settings(SettingsDialog::PersonalDetailsTab);
+}
+
+void MainWindow::settings(SettingsDialog::Tab tab)
+{
     SettingsDialog *settingsDlg = new SettingsDialog(this);
+    settingsDlg->setCurrentTab(tab);
     settingsDlg->exec();
 
     if (settingsDlg->presentationChanged()) {
@@ -2038,7 +2044,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
              tr("Failed to run Mercurial"),
              tr("The Mercurial program either could not be found or failed to run.<br>Check that the Mercurial program path is correct in %1.").arg(setstr),
              output);
-        settings();
+        settings(SettingsDialog::PathsTab);
         return;
     case ACT_TEST_HG_EXT:
         MoreInformationDialog::warning
@@ -2047,7 +2053,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
              tr("Failed to run Mercurial with extension enabled"),
              tr("The Mercurial program failed to run with the EasyMercurial interaction extension enabled.<br>This may indicate an installation problem.<br><br>You may be able to continue working if you switch off &ldquo;Use EasyHg Mercurial Extension&rdquo; in %1.  Note that remote repositories that require authentication might not work if you do this.").arg(setstr),
              output);
-        settings();
+        settings(SettingsDialog::PathsTab);
         return;
     case ACT_CLONEFROMREMOTE:
         // if clone fails, we have no repo

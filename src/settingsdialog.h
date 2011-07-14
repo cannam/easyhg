@@ -24,13 +24,22 @@
 #include <QPushButton>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QTabWidget>
 
 class SettingsDialog : public QDialog
 {
     Q_OBJECT
 
 public:
+    enum Tab {
+        PersonalDetailsTab,
+        PresentationTab,
+        PathsTab
+    };
+
     SettingsDialog(QWidget *parent = 0);
+
+    void setCurrentTab(Tab tab);
 
     bool presentationChanged() {
         return m_presentationChanged;
@@ -53,6 +62,8 @@ private slots:
     void restoreDefaults();
 
 private:
+    QTabWidget *m_tabs;
+
     QLineEdit *m_nameEdit;
     QLineEdit *m_emailEdit;
     QLineEdit *m_hgPathLabel;
