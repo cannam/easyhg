@@ -456,10 +456,10 @@ void MainWindow::hgCommitFiles(QStringList files)
         (this,
          cf,
          tr("<h3>%1</h3><p>%2%3").arg(cf)
-         .arg(tr("You are about to commit the following files to %1:").arg(branchText))
+         .arg(tr("You are about to commit changes to the following files in %1:").arg(branchText))
          .arg(subsetNote),
          tr("<h3>%1</h3><p>%2%3").arg(cf)
-         .arg(tr("You are about to commit %n file(s) to %1.", "", reportFiles.size()).arg(branchText))
+         .arg(tr("You are about to commit changes to %n file(s) in %1.", "", reportFiles.size()).arg(branchText))
          .arg(subsetNote),
          reportFiles,
          comment,
