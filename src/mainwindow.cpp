@@ -33,6 +33,7 @@
 #include <QRegExp>
 #include <QShortcut>
 #include <QUrl>
+#include <QDialogButtonBox>
 #include <QTimer>
 
 #include "mainwindow.h"
@@ -577,23 +578,50 @@ void MainWindow::hgEditIgnore()
     initHgIgnore();
 
     QString hgIgnorePath = m_workFolderPath + "/.hgignore";
-    QStringList params;
 
-    params << hgIgnorePath;
+    QFile f(hgIgnorePath);
+    if (!f.exists()) return; // shouldn't happen (after initHgIgnore called)
+
+    if (!f.open(QFile::ReadOnly)) return;
+    QTextStream sin(&f);
+    QString all = sin.readAll();
+    f.close();
+
+    QDialog d;
+    QGridLayout layout;
+    d.setLayout(&layout);
+
+    int row = 0;
+    layout.addWidget(new QLabel(tr("<qt><h3>Ignored File Patterns</h3></qt>")), row++, 0);//!!! todo: link to Hg docs?
+
+    QTextEdit ed;
+    ed.setAcceptRichText(false);
+    ed.setLineWrapMode(QTextEdit::NoWrap);
+    layout.setRowStretch(row, 10);
+    layout.addWidget(&ed, row++, 0);
     
-    QString editor = getEditorBinaryName();
+    QDialogButtonBox bb(QDialogButtonBox::Save | QDialogButtonBox::Cancel);
+    connect(bb.button(QDialogButtonBox::Save), SIGNAL(clicked()),
+            &d, SLOT(accept()));
+    connect(bb.button(QDialogButtonBox::Cancel), SIGNAL(clicked()),
+            &d, SLOT(reject()));
+    layout.addWidget(&bb, row++, 0);
 
-    if (editor == "") {
-        QMessageBox::critical
-            (this, tr("Edit .hgignore"),
-             tr("Failed to locate a system text editor program!"));
-        return;
+    ed.document()->setPlainText(all);
+
+    d.resize(QSize(300, 400));
+
+    if (d.exec() == QDialog::Accepted) {
+        if (!f.open(QFile::WriteOnly | QFile::Truncate)) {
+            QMessageBox::critical(this, tr("Write failed"),
+                                  tr("Failed to open file %1 for writing")
+                                  .arg(f.fileName()));
+            return;
+        }
+        QTextStream sout(&f);
+        sout << ed.document()->toPlainText();
+        f.close();
     }
-
-    HgAction action(ACT_HG_IGNORE, m_workFolderPath, params);
-    action.executable = editor;
-
-    m_runner->requestAction(action);
 }
 
 static QString regexEscape(QString filename)
@@ -765,13 +793,6 @@ QString MainWindow::getMergeBinaryName()
     QSettings settings;
     settings.beginGroup("Locations");
     return settings.value("mergebinary", "").toString();
-}
-
-QString MainWindow::getEditorBinaryName()
-{
-    QSettings settings;
-    settings.beginGroup("Locations");
-    return settings.value("editorbinary", "").toString();
 }
 
 void MainWindow::hgShowSummary()
