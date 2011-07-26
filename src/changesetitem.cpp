@@ -101,17 +101,16 @@ ChangesetItem::mousePressEvent(QGraphicsSceneMouseEvent *e)
         } else {
             showDetail();
         }
-    } else if (e->button() == Qt::RightButton) {
-        if (m_detail) {
-            hideDetail();
-        }
-        activateMenu();
     }
 }
 
 void
-ChangesetItem::activateMenu()
+ChangesetItem::contextMenuEvent(QGraphicsSceneContextMenuEvent *)
 {
+    if (m_detail) {
+        hideDetail();
+    }
+
     m_parentDiffActions.clear();
     m_summaryActions.clear();
 
@@ -201,9 +200,9 @@ ChangesetItem::activateMenu()
     QAction *tag = menu->addAction(tr("Add tag..."));
     connect(tag, SIGNAL(triggered()), this, SLOT(tagActivated()));
 
-    menu->exec(QCursor::pos());
-
     ungrabMouse();
+
+    menu->exec(QCursor::pos());
 }
 
 void
