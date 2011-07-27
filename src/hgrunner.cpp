@@ -40,6 +40,8 @@
 #include <unistd.h>
 #include <termios.h>
 #include <fcntl.h>
+#else
+#include <process.h>
 #endif
 
 HgRunner::HgRunner(QString myDirPath, QWidget * parent) :
