@@ -2097,7 +2097,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
         }
         break; // go on to default report
     case ACT_PUSH:
-        if (output.contains("creates new remote heads")) {
+        if (output.contains("creates new remote head")) {
             reportNewRemoteHeads(output);
             return;
         } else if (output.contains("authorization failed")) {
