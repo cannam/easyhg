@@ -2,6 +2,25 @@
 <!DOCTYPE TS>
 <TS version="2.0" language="en_GB">
 <context>
+    <name>AnnotateDialog</name>
+    <message>
+        <source>User</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Revision</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Date</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Content</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ChangesetItem</name>
     <message>
         <source>&lt;qt&gt;&lt;b&gt;&amp;nbsp;Revision: &lt;/b&gt;%1&lt;/qt&gt;</source>
@@ -109,10 +128,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>These files are unresolved following an incomplete merge.&lt;br&gt;Select a file and use Merge to try to resolve the merge again.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Files highlighted &lt;font color=#d40000&gt;in red&lt;/font&gt; have appeared since your most recent commit or update.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -158,6 +173,112 @@
     </message>
     <message>
         <source>&lt;qt&gt;You have no uncommitted changes.&lt;/qt&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show annotated version</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Diff to parent</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Commit...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Revert to last committed state</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rename...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add to version control</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remove from version control</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Redo merge</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mark conflict as resolved</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignore...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit .hgignore File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>These files are unresolved following an incomplete merge.&lt;br&gt;Use Merge to try to resolve the merge again.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>HgIgnoreDialog</name>
+    <message>
+        <source>Ignore files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>You have asked to ignore the following files:&lt;/p&gt;&lt;p&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>You have asked to ignore %n file(s).</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Ignore these files only</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignore files with these names, in any folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignore this file only</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignore files with the same name as this, in any folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignore the whole folder &quot;%1&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignore all files with these extensions:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignore all files with the extension &quot;%1&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;Please choose whether to:&lt;/p&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignore</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -215,7 +336,7 @@
     </message>
     <message numerus="yes">
         <source>There are %n change(s) ready to pull</source>
-        <translation type="unfinished">
+        <translation>
             <numerusform>There is %n change ready to pull</numerusform>
             <numerusform>There are %n changes ready to pull</numerusform>
         </translation>
@@ -253,8 +374,8 @@
     </message>
     <message numerus="yes">
         <source>You are about to &lt;b&gt;revert&lt;/b&gt; %n file(s).&lt;br&gt;&lt;br&gt;This will &lt;b&gt;throw away any changes&lt;/b&gt; that you have made to these files but have not committed.</source>
-        <translation type="unfinished">
-            <numerusform>You are about to &lt;b&gt;revert&lt;/b&gt; %n file.&lt;br&gt;&lt;br&gt;This will &lt;b&gt;throw away any changes&lt;/b&gt; that you have made to these files but have not committed.</numerusform>
+        <translation>
+            <numerusform>You are about to &lt;b&gt;revert&lt;/b&gt; %n file.&lt;br&gt;&lt;br&gt;This will &lt;b&gt;throw away any changes&lt;/b&gt; that you have made to this file but have not committed.</numerusform>
             <numerusform>You are about to &lt;b&gt;revert&lt;/b&gt; %n files.&lt;br&gt;&lt;br&gt;This will &lt;b&gt;throw away any changes&lt;/b&gt; that you have made to these files but have not committed.</numerusform>
         </translation>
     </message>
@@ -363,10 +484,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&lt;qt&gt;&lt;b&gt;Initialise a repository here?&lt;/b&gt;&lt;br&gt;&lt;br&gt;You asked to open &quot;%1&quot;.&lt;br&gt;This folder does not contain a Mercurial repository.&lt;br&gt;&lt;br&gt;Would you like to initialise a repository here?&lt;/qt&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>&lt;qt&gt;&lt;b&gt;Initialise a new repository?&lt;/b&gt;&lt;br&gt;&lt;br&gt;You asked to open &quot;%1&quot;.&lt;br&gt;This folder does not yet exist.&lt;br&gt;&lt;br&gt;Would you like to create the folder and initialise a new empty repository in it?&lt;/qt&gt;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -378,17 +495,9 @@
         <source>&lt;qt&gt;&lt;b&gt;Open existing repository?&lt;/b&gt;&lt;br&gt;&lt;br&gt;You asked to initialise a new repository at &quot;%1&quot;.&lt;br&gt;This folder already contains a repository.  Would you like to open it?&lt;/qt&gt;</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <source>Ok</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Mercurial command did not return any output.</source>
-        <translation type="unfinished"></translation>
-    </message>
     <message numerus="yes">
         <source>Pushed %n changeset(s)</source>
-        <translation type="unfinished">
+        <translation>
             <numerusform>Pushed %n changeset</numerusform>
             <numerusform>Pushed %n changesets</numerusform>
         </translation>
@@ -403,7 +512,7 @@
     </message>
     <message numerus="yes">
         <source>Pulled %n changeset(s)</source>
-        <translation type="unfinished">
+        <translation>
             <numerusform>Pulled %n changeset</numerusform>
             <numerusform>Pulled %n changesets</numerusform>
         </translation>
@@ -454,7 +563,7 @@
     </message>
     <message numerus="yes">
         <source>You are about to commit %n file(s) to %1.</source>
-        <translation type="unfinished">
+        <translation type="obsolete">
             <numerusform>You are about to commit %n file to %1.</numerusform>
             <numerusform>You are about to commit %n files to %1.</numerusform>
         </translation>
@@ -485,7 +594,7 @@
     </message>
     <message numerus="yes">
         <source>At one of %n heads of %1</source>
-        <translation type="unfinished">
+        <translation>
             <numerusform>At one of %n heads of %1</numerusform>
             <numerusform>At one of %n heads of %1</numerusform>
         </translation>
@@ -495,19 +604,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Open...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Settings...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>View and change application settings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Refresh</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -527,10 +624,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Revert</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Add</source>
         <translation type="unfinished"></translation>
     </message>
@@ -539,31 +632,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Commit</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Annotate</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Show line-by-line version information for selected file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Serve local repository via http for workgroup access</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Advanced</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Help</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -579,23 +648,11 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>You are about to commit the following files to %1:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>New Branch</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Enter new branch name:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Start Branch</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Add Tag</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -627,27 +684,11 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&lt;qt&gt;&lt;p&gt;You are about to push your changes to the remote repository at &lt;code&gt;%1&lt;/code&gt;.&lt;/p&gt;&lt;/qt&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Serve</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Failed to identify an active IPv4 address</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>&lt;p&gt;Press Close to stop the server and return.&lt;/p&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Change Remote Location</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>&lt;qt&gt;&lt;big&gt;Change the remote location&lt;/big&gt;&lt;/qt&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -695,10 +736,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>The new changes will be highlighted in the history.&lt;br&gt;Use Update to bring these changes into your working copy.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Your local repository already contains all changes found in the remote repository.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -727,10 +764,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>The Mercurial program either could not be found or failed to run.&lt;br&gt;Check that the Mercurial program path is correct in %1.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Failed to run Mercurial with extension enabled</source>
         <translation type="unfinished"></translation>
     </message>
@@ -744,10 +777,6 @@
     </message>
     <message>
         <source>Clone</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Clone successful</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -799,22 +828,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Change Remote Location...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Change the default remote repository for pull and push actions</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Quit</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Quit EasyMercurial</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Refresh the window to show the current state of the working folder</source>
         <translation type="unfinished"></translation>
     </message>
@@ -839,14 +852,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Mark the selected file(s) to be added on the next commit</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Mark the selected file(s) to be removed from version control on the next commit</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Update the working folder to the head of the current repository branch</source>
         <translation type="unfinished"></translation>
     </message>
@@ -859,26 +864,347 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Edit .hgignore File</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Edit the .hgignore file, containing the names of files that should be ignored by Mercurial</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Serve via HTTP</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <source>&lt;qt&gt;&lt;h2&gt;EasyMercurial v%1&lt;/h2&gt;&lt;font size=-1&gt;&lt;p&gt;EasyMercurial is a simple user interface for the Mercurial&lt;/a&gt; version control system.&lt;/p&gt;&lt;h4&gt;Credits and Copyright&lt;/h4&gt;&lt;p&gt;Development carried out by Chris Cannam for SoundSoftware.ac.uk at the Centre for Digital Music, Queen Mary, University of London.&lt;/p&gt;&lt;p&gt;EasyMercurial is based on HgExplorer by Jari Korhonen, with thanks.&lt;/p&gt;&lt;p style=&quot;margin-left: 2em;&quot;&gt;Copyright &amp;copy; 2011 Queen Mary, University of London.&lt;br&gt;Copyright &amp;copy; 2010 Jari Korhonen.&lt;br&gt;Copyright &amp;copy; 2011 Chris Cannam.&lt;/p&gt;&lt;p style=&quot;margin-left: 2em;&quot;&gt;This program requires Mercurial, by Matt Mackall and others.&lt;br&gt;This program uses Qt by Nokia.&lt;br&gt;This program uses Nuvola icons by David Vignoni.&lt;br&gt;This program may use KDiff3 by Joachim Eibl.&lt;br&gt;This program may use PyQt by River Bank Computing.&lt;br&gt;Packaging for Mercurial and other dependencies on Windows is derived from TortoiseHg by Steve Borho and others.&lt;/p&gt;&lt;h4&gt;License&lt;/h4&gt;&lt;p&gt;This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.  See the file COPYING included with this distribution for more information.&lt;/p&gt;&lt;/font&gt;</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>You are about to commit changes to the following files in %1:</source>
+        <translation type="unfinished"></translation>
+    </message>
     <message numerus="yes">
-        <source>Running temporary server at %n address(es):</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
+        <source>You are about to commit changes to %n file(s) in %1.</source>
+        <translation>
+            <numerusform>You are about to commit changes to %n file in %1.</numerusform>
+            <numerusform>You are about to commit changes to %n files in %1.</numerusform>
         </translation>
+    </message>
+    <message>
+        <source>Co&amp;mmit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Start &amp;Branch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add &amp;Tag</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;qt&gt;&lt;h3&gt;Ignored File Patterns&lt;/h3&gt;&lt;/qt&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Write failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to open file %1 for writing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ignored files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The following lines have been added to the .hgignore file for this working copy:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Re&amp;vert</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rename</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rename &lt;code&gt;%1&lt;/code&gt; to:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Re&amp;name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy &lt;code&gt;%1&lt;/code&gt; to:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Co&amp;py</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Pull</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;&lt;b&gt;Note:&lt;/b&gt; You have uncommitted changes.  If you want to push these changes to the remote repository, you need to commit them first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;qt&gt;&lt;p&gt;You are about to push your commits to the remote repository at &lt;code&gt;%1&lt;/code&gt;.&lt;/p&gt;%2&lt;/qt&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Push</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sharing Repository</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Your local repository is now being made temporarily available via HTTP for workgroup access.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Users who have network access to your computer can now clone your repository, by using one of the following URLs as a remote location:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Users who have network access to your computer can now clone your repository, by using the following URL as a remote location:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;Press Close to terminate this server, end remote access, and return.&lt;/p&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Share Repository</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set Remote Location</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;qt&gt;&lt;big&gt;Set the remote location&lt;/big&gt;&lt;/qt&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Provide a URL to use for push and pull actions from the current local repository.&lt;br&gt;This will be the default for subsequent pushes and pulls.&lt;br&gt;You can change it using &amp;ldquo;Set Remote Location&amp;rdquo; on the File menu.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;qt&gt;&lt;b&gt;Initialise a repository here?&lt;/b&gt;&lt;br&gt;&lt;br&gt;You asked to open &quot;%1&quot;.&lt;br&gt;This folder is not a Mercurial working copy.&lt;br&gt;&lt;br&gt;Would you like to initialise a repository here?&lt;/qt&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New changes will be highlighted in yellow in the history.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Your local repository could not be pushed to the remote repository.&lt;br&gt;&lt;br&gt;You have an uncommitted merge in your local folder.  You probably need to commit it before you push.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Authorization failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>You may have entered an incorrect user name or password, or the remote URL may be wrong.&lt;br&gt;&lt;br&gt;Or you may lack the necessary permissions on the remote repository.&lt;br&gt;&lt;br&gt;Check with the administrator of your remote repository if necessary.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The Mercurial program either could not be found or failed to run.&lt;br&gt;&lt;br&gt;Check that the Mercurial program path is correct in %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Merge failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Some files were not merged successfully.&lt;p&gt;You can Merge again to repeat the interactive merge; use Revert to abandon the merge entirely; or edit the files that are in conflict in an editor and, when you are happy with them, choose Mark Resolved in each file&apos;s right-button menu.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A Mercurial command failed to run correctly.  This may indicate an installation problem or some other problem with EasyMercurial.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Newer Mercurial version required</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>To use EasyMercurial, you should have at least Mercurial v1.7 installed.&lt;br&gt;&lt;br&gt;The version found on this system (v%1.%2) does not support all of the features required by EasyMercurial.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open successful</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No recent local repositories</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Open...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ctrl+O</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set Remote &amp;Location...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set or change the default remote repository for pull and push actions</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Settings...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>E&amp;xit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Quit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Exit EasyMercurial</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Refresh</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ctrl+R</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pre&amp;view Incoming Changes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pu&amp;ll from Remote Repository</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ctrl+L</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Pus&amp;h to Remote Repository</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ctrl+H</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Diff</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ctrl+D</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Add Files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mark the selected files to be added on the next commit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Remove Files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Del</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mark the selected files to be removed from version control on the next commit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Ignore Files...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add the selected filenames to the ignored list, of files that should never be tracked in this repository</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit Ignored List</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Update to Branch Head</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ctrl+U</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Commit...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ctrl+Return</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Merge</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ctrl+M</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Serve local repository temporarily via HTTP for workgroup access</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open Re&amp;cent</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Work</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Remote</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&amp;Help</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Remote</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Work</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -920,6 +1246,18 @@
     </message>
     <message>
         <source>&amp;Folder:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Documents</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>My Documents</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Desktop</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1039,10 +1377,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>External text editor:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>EasyHg Mercurial extension:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1067,10 +1401,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>External text editor</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>EasyHg Mercurial extension</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1080,6 +1410,14 @@
     </message>
     <message>
         <source>&lt;qt&gt;&lt;b&gt;Restore default settings?&lt;/b&gt;&lt;br&gt;&lt;br&gt;Are you sure you want to reset all settings to their default values?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>SSH program (for ssh URLs):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>SSH program</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1146,6 +1484,18 @@
     </message>
     <message>
         <source>Cancel new branch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;qt&gt;&lt;b&gt;&amp;nbsp;Uncommitted merge&lt;/b&gt;&lt;/qt&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Uncommitted merge</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>merge</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
