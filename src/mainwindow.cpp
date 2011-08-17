@@ -111,8 +111,8 @@ MainWindow::MainWindow(QString myDirPath) :
 
     connect(m_hgTabs, SIGNAL(selectionChanged()),
             this, SLOT(enableDisableActions()));
-    connect(m_hgTabs, SIGNAL(showAllChanged(bool)),
-            this, SLOT(showAllChanged(bool)));
+    connect(m_hgTabs, SIGNAL(showAllChanged()),
+            this, SLOT(showAllChanged()));
 
     setUnifiedTitleAndToolBarOnMac(true);
     connectActions();
@@ -206,9 +206,8 @@ void MainWindow::clearSelections()
     m_hgTabs->clearSelections();
 }
 
-void MainWindow::showAllChanged(bool s)
+void MainWindow::showAllChanged()
 {
-    m_showAllFiles = s;
     hgQueryPaths();
 }
 
@@ -257,6 +256,8 @@ void MainWindow::hgStat()
 
 void MainWindow::hgQueryPaths()
 {
+    m_showAllFiles = m_hgTabs->shouldShowAll();
+
     // Quickest is to just read the file
 
     QFileInfo hgrc(m_workFolderPath + "/.hg/hgrc");
@@ -1334,7 +1335,7 @@ void MainWindow::open()
                      MultiChoiceDialog::DirectoryArg);
 
         QSettings settings;
-        settings.beginGroup("General");
+        settings.beginGroup("");
         QString lastChoice = settings.value("lastopentype", "remote").toString();
         if (lastChoice != "local" &&
             lastChoice != "remote" &&
@@ -2445,7 +2446,6 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     case ACT_TEST_HG:
     {
         QSettings settings;
-        settings.beginGroup("General");
         if (settings.value("useextension", true).toBool()) {
             hgTestExtension();
         } else if (m_workFolderPath == "") {
