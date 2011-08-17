@@ -54,9 +54,11 @@ public:
     QStringList getSelectedAddableFiles() const;
     QStringList getSelectedRemovableFiles() const;
 
+    bool shouldShowAll() const;
+
 signals:
     void selectionChanged();
-    void showAllChanged(bool);
+    void showAllChanged();
 
     void annotateFiles(QStringList);
     void diffFiles(QStringList);

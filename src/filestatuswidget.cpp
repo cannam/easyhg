@@ -157,13 +157,25 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_showAllFiles = new QCheckBox(tr("Show all files"), this);
     m_showAllFiles->setEnabled(false);
     layout->addWidget(m_showAllFiles, ++row, 0, Qt::AlignLeft);
+
+    QSettings settings;
+    m_showAllFiles->setChecked(settings.value("showall", false).toBool());
+
     connect(m_showAllFiles, SIGNAL(toggled(bool)),
-            this, SIGNAL(showAllChanged(bool)));
+            this, SIGNAL(showAllChanged()));
 }
 
 FileStatusWidget::~FileStatusWidget()
 {
+    QSettings settings;
+    settings.setValue("showall", m_showAllFiles->isChecked());
+
     delete m_dateReference;
+}
+
+bool FileStatusWidget::shouldShowAll() const
+{
+    return m_showAllFiles->isChecked();
 }
 
 QString FileStatusWidget::labelFor(FileStates::State s, bool addHighlightExplanation)

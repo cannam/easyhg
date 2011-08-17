@@ -410,7 +410,7 @@ SettingsDialog::clear()
     settings.remove("sshbinary");
     settings.remove("extensionpath");
     settings.endGroup();
-    settings.beginGroup("General");
+    settings.beginGroup("");
     settings.remove("useextension");
     settings.endGroup();
 }
@@ -439,7 +439,7 @@ SettingsDialog::reset()
     m_sshPathLabel->setText(settings.value("sshbinary").toString());
     m_extensionPathLabel->setText(settings.value("extensionpath").toString());
     settings.endGroup();
-    settings.beginGroup("General");
+    settings.beginGroup("");
     m_useExtension->setChecked(settings.value("useextension", true).toBool());
     settings.endGroup();
 }
@@ -486,7 +486,7 @@ SettingsDialog::accept()
     settings.setValue("sshbinary", m_sshPathLabel->text());
     settings.setValue("extensionpath", m_extensionPathLabel->text());
     settings.endGroup();
-    settings.beginGroup("General");
+    settings.beginGroup("");
     settings.setValue("useextension", m_useExtension->isChecked());
     settings.endGroup();
     QDialog::accept();

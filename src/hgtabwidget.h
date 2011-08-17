@@ -70,9 +70,11 @@ public:
     QStringList getSelectedAddableFiles() const;
     QStringList getSelectedRemovableFiles() const;
 
+    bool shouldShowAll() const;
+
 signals:
     void selectionChanged();
-    void showAllChanged(bool);
+    void showAllChanged();
 
     void commit();
     void revert();

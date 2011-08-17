@@ -65,7 +65,7 @@ private slots:
     void changeRemoteRepo(bool initial);
     void startupDialog();
     void clearSelections();
-    void showAllChanged(bool);
+    void showAllChanged();
 
     void hgTest();
     void hgTestExtension();
