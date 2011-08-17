@@ -85,6 +85,7 @@ private slots:
 
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *);
+    virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent *);
 
 private:
     void activateMenu();

@@ -37,8 +37,8 @@ HgTabWidget::HgTabWidget(QWidget *parent,
     connect(m_fileStatusWidget, SIGNAL(selectionChanged()),
             this, SIGNAL(selectionChanged()));
 
-    connect(m_fileStatusWidget, SIGNAL(showAllChanged(bool)),
-            this, SIGNAL(showAllChanged(bool)));
+    connect(m_fileStatusWidget, SIGNAL(showAllChanged()),
+            this, SIGNAL(showAllChanged()));
 
     connect(m_fileStatusWidget, SIGNAL(annotateFiles(QStringList)),
             this, SIGNAL(annotateFiles(QStringList)));
@@ -266,5 +266,10 @@ void HgTabWidget::showWorkTab()
 void HgTabWidget::showHistoryTab()
 {
     setCurrentWidget(m_historyWidget);
+}
+
+bool HgTabWidget::shouldShowAll() const
+{
+    return m_fileStatusWidget->shouldShowAll();
 }
 
