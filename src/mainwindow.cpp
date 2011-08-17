@@ -2063,7 +2063,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
             (this,
              tr("Failed to run Mercurial"),
              tr("Failed to run Mercurial"),
-             tr("The Mercurial program either could not be found or failed to run.<br>Check that the Mercurial program path is correct in %1.").arg(setstr),
+             tr("The Mercurial program either could not be found or failed to run.<br><br>Check that the Mercurial program path is correct in %1.").arg(setstr),
              output);
         settings(SettingsDialog::PathsTab);
         return;
@@ -2166,7 +2166,9 @@ void MainWindow::commandFailed(HgAction action, QString output)
         (this,
          tr("Command failed"),
          tr("Command failed"),
-         tr("A Mercurial command failed to run correctly.  This may indicate an installation problem or some other problem with EasyMercurial.<br><br>See &ldquo;More Details&rdquo; for the command output."),
+         (output == "" ?
+          tr("A Mercurial command failed to run correctly.  This may indicate an installation problem or some other problem with EasyMercurial.") :
+          tr("A Mercurial command failed to run correctly.  This may indicate an installation problem or some other problem with EasyMercurial.<br><br>See &ldquo;More Details&rdquo; for the command output.")),
          output);
 }
 

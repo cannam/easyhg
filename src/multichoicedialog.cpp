@@ -171,11 +171,15 @@ MultiChoiceDialog::getDefaultPath() const
     QDir home(QDir::home());
     QDir dflt;
 
+    dflt = QDir(home.filePath(tr("Documents")));
+    DEBUG << "testing " << dflt << endl;
+    if (dflt.exists()) return dflt.canonicalPath();
+
     dflt = QDir(home.filePath(tr("My Documents")));
     DEBUG << "testing " << dflt << endl;
     if (dflt.exists()) return dflt.canonicalPath();
 
-    dflt = QDir(home.filePath(tr("Documents")));
+    dflt = QDir(home.filePath(tr("Desktop")));
     DEBUG << "testing " << dflt << endl;
     if (dflt.exists()) return dflt.canonicalPath();
 
@@ -218,6 +222,7 @@ void
 MultiChoiceDialog::urlChanged(const QString &s)
 {
     updateOkButton();
+    updateFileComboFromURL();
 }
 
 void
@@ -227,15 +232,10 @@ MultiChoiceDialog::fileChanged(const QString &s)
 }
 
 void
-MultiChoiceDialog::updateOkButton()
+MultiChoiceDialog::updateFileComboFromURL()
 {
-/* This doesn't work well
     if (m_argTypes[m_currentChoice] != UrlToDirectoryArg) {
         return;
-    }
-    QDir dirPath(m_fileCombo->currentText());
-    if (!dirPath.exists()) {
-        if (!dirPath.cdUp()) return;
     }
     QString url = m_urlCombo->currentText();
     if (QRegExp("^\\w+://").indexIn(url) < 0) {
@@ -246,8 +246,23 @@ MultiChoiceDialog::updateOkButton()
     if (urlDirName == "" || urlDirName == url) {
         return;
     }
-    m_fileCombo->lineEdit()->setText(dirPath.filePath(urlDirName));
-*/
+    QString dirPath = m_fileCombo->currentText();
+    QString defaultPath = getDefaultPath();
+    if (dirPath == defaultPath) {
+        dirPath += QDir::separator() + urlDirName;
+    } else if (dirPath == defaultPath + QDir::separator()) {
+        dirPath += urlDirName;
+    } else {
+        QDir d(dirPath);
+        d.cdUp();
+        dirPath = d.filePath(urlDirName);
+    }
+    m_fileCombo->lineEdit()->setText(dirPath);
+}
+
+void
+MultiChoiceDialog::updateOkButton()
+{
     if (m_argTypes[m_currentChoice] == UrlToDirectoryArg) {
         m_okButton->setEnabled(getArgument() != "" &&
                                getAdditionalArgument() != "");
@@ -289,15 +304,17 @@ MultiChoiceDialog::choiceChanged()
 
     m_descriptionLabel->setText(m_descriptions[id]);
 
-    m_fileLabel->hide();
-    m_fileCombo->hide();
     m_browseButton->hide();
+
     m_urlLabel->hide();
+    m_urlCombo->clear();
     m_urlCombo->hide();
 
-    QSharedPointer<RecentFiles> rf = m_recentFiles[id];
+    m_fileLabel->hide();
     m_fileCombo->clear();
-    m_urlCombo->clear();
+    m_fileCombo->hide();
+
+    QSharedPointer<RecentFiles> rf = m_recentFiles[id];
 
     switch (m_argTypes[id]) {
         
@@ -334,6 +351,7 @@ MultiChoiceDialog::choiceChanged()
         m_fileLabel->show();
         m_fileCombo->show();
         m_fileCombo->lineEdit()->setText(getDefaultPath());
+        updateFileComboFromURL();
         m_browseButton->show();
         break;
     }
