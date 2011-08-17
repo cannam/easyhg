@@ -65,6 +65,7 @@ private slots:
     void browse();
 
 private:
+    void updateFileComboFromURL();
     void updateOkButton();
     
     QMap<QString, QString> m_texts;

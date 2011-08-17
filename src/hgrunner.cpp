@@ -40,6 +40,8 @@
 #include <unistd.h>
 #include <termios.h>
 #include <fcntl.h>
+#else
+#include <process.h>
 #endif
 
 HgRunner::HgRunner(QString myDirPath, QWidget * parent) :
@@ -497,9 +499,6 @@ void HgRunner::startCommand(HgAction action)
         return;
     }
 
-    QSettings settings;
-    settings.beginGroup("General");
-
     if (executable == "") {
         // This is a Hg command
         executable = getHgBinaryName();
@@ -514,6 +513,7 @@ void HgRunner::startCommand(HgAction action)
         if (action.mayBeInteractive()) {
             params.push_front("ui.interactive=true");
             params.push_front("--config");
+            QSettings settings;
             if (settings.value("useextension", true).toBool()) {
                 params = addExtensionOptions(params);
             }

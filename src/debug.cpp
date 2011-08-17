@@ -25,6 +25,7 @@
 #include <QDir>
 #include <QCoreApplication>
 #include <QDateTime>
+#include <QDesktopServices>
 
 #include <cstdio>
 
@@ -39,7 +40,15 @@ getEasyHgDebug()
     if (!debug) {
         prefix = new char[20];
         sprintf(prefix, "[%lu]", (unsigned long)QCoreApplication::applicationPid());
-        logFile = new QFile(QDir::homePath() + "/.easyhg.log");
+        QString logFileName = QDir::homePath() + "/.easyhg.log"; // the fallback
+        QString logDir = QDesktopServices::storageLocation
+            (QDesktopServices::DataLocation);
+        if (logDir != "" &&
+            (QDir(logDir).exists() ||
+             QDir().mkpath(logDir))) {
+            logFileName = logDir + "/debug.log";
+        }
+        logFile = new QFile(logFileName);
         if (logFile->open(QIODevice::WriteOnly | QIODevice::Truncate)) {
             QDebug(QtDebugMsg) << (const char *)prefix
                                << "Opened debug log file "

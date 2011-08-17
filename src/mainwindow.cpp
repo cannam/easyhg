@@ -33,6 +33,7 @@
 #include <QRegExp>
 #include <QShortcut>
 #include <QUrl>
+#include <QDialogButtonBox>
 #include <QTimer>
 
 #include "mainwindow.h"
@@ -110,8 +111,8 @@ MainWindow::MainWindow(QString myDirPath) :
 
     connect(m_hgTabs, SIGNAL(selectionChanged()),
             this, SLOT(enableDisableActions()));
-    connect(m_hgTabs, SIGNAL(showAllChanged(bool)),
-            this, SLOT(showAllChanged(bool)));
+    connect(m_hgTabs, SIGNAL(showAllChanged()),
+            this, SLOT(showAllChanged()));
 
     setUnifiedTitleAndToolBarOnMac(true);
     connectActions();
@@ -205,9 +206,8 @@ void MainWindow::clearSelections()
     m_hgTabs->clearSelections();
 }
 
-void MainWindow::showAllChanged(bool s)
+void MainWindow::showAllChanged()
 {
-    m_showAllFiles = s;
     hgQueryPaths();
 }
 
@@ -256,6 +256,8 @@ void MainWindow::hgStat()
 
 void MainWindow::hgQueryPaths()
 {
+    m_showAllFiles = m_hgTabs->shouldShowAll();
+
     // Quickest is to just read the file
 
     QFileInfo hgrc(m_workFolderPath + "/.hg/hgrc");
@@ -456,10 +458,10 @@ void MainWindow::hgCommitFiles(QStringList files)
         (this,
          cf,
          tr("<h3>%1</h3><p>%2%3").arg(cf)
-         .arg(tr("You are about to commit the following files to %1:").arg(branchText))
+         .arg(tr("You are about to commit changes to the following files in %1:").arg(branchText))
          .arg(subsetNote),
          tr("<h3>%1</h3><p>%2%3").arg(cf)
-         .arg(tr("You are about to commit %n file(s) to %1.", "", reportFiles.size()).arg(branchText))
+         .arg(tr("You are about to commit changes to %n file(s) in %1.", "", reportFiles.size()).arg(branchText))
          .arg(subsetNote),
          reportFiles,
          comment,
@@ -577,23 +579,50 @@ void MainWindow::hgEditIgnore()
     initHgIgnore();
 
     QString hgIgnorePath = m_workFolderPath + "/.hgignore";
-    QStringList params;
 
-    params << hgIgnorePath;
+    QFile f(hgIgnorePath);
+    if (!f.exists()) return; // shouldn't happen (after initHgIgnore called)
+
+    if (!f.open(QFile::ReadOnly)) return;
+    QTextStream sin(&f);
+    QString all = sin.readAll();
+    f.close();
+
+    QDialog d;
+    QGridLayout layout;
+    d.setLayout(&layout);
+
+    int row = 0;
+    layout.addWidget(new QLabel(tr("<qt><h3>Ignored File Patterns</h3></qt>")), row++, 0);//!!! todo: link to Hg docs?
+
+    QTextEdit ed;
+    ed.setAcceptRichText(false);
+    ed.setLineWrapMode(QTextEdit::NoWrap);
+    layout.setRowStretch(row, 10);
+    layout.addWidget(&ed, row++, 0);
     
-    QString editor = getEditorBinaryName();
+    QDialogButtonBox bb(QDialogButtonBox::Save | QDialogButtonBox::Cancel);
+    connect(bb.button(QDialogButtonBox::Save), SIGNAL(clicked()),
+            &d, SLOT(accept()));
+    connect(bb.button(QDialogButtonBox::Cancel), SIGNAL(clicked()),
+            &d, SLOT(reject()));
+    layout.addWidget(&bb, row++, 0);
 
-    if (editor == "") {
-        QMessageBox::critical
-            (this, tr("Edit .hgignore"),
-             tr("Failed to locate a system text editor program!"));
-        return;
+    ed.document()->setPlainText(all);
+
+    d.resize(QSize(300, 400));
+
+    if (d.exec() == QDialog::Accepted) {
+        if (!f.open(QFile::WriteOnly | QFile::Truncate)) {
+            QMessageBox::critical(this, tr("Write failed"),
+                                  tr("Failed to open file %1 for writing")
+                                  .arg(f.fileName()));
+            return;
+        }
+        QTextStream sout(&f);
+        sout << ed.document()->toPlainText();
+        f.close();
     }
-
-    HgAction action(ACT_HG_IGNORE, m_workFolderPath, params);
-    action.executable = editor;
-
-    m_runner->requestAction(action);
 }
 
 static QString regexEscape(QString filename)
@@ -765,13 +794,6 @@ QString MainWindow::getMergeBinaryName()
     QSettings settings;
     settings.beginGroup("Locations");
     return settings.value("mergebinary", "").toString();
-}
-
-QString MainWindow::getEditorBinaryName()
-{
-    QSettings settings;
-    settings.beginGroup("Locations");
-    return settings.value("editorbinary", "").toString();
 }
 
 void MainWindow::hgShowSummary()
@@ -1313,7 +1335,7 @@ void MainWindow::open()
                      MultiChoiceDialog::DirectoryArg);
 
         QSettings settings;
-        settings.beginGroup("General");
+        settings.beginGroup("");
         QString lastChoice = settings.value("lastopentype", "remote").toString();
         if (lastChoice != "local" &&
             lastChoice != "remote" &&
@@ -2042,7 +2064,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
             (this,
              tr("Failed to run Mercurial"),
              tr("Failed to run Mercurial"),
-             tr("The Mercurial program either could not be found or failed to run.<br>Check that the Mercurial program path is correct in %1.").arg(setstr),
+             tr("The Mercurial program either could not be found or failed to run.<br><br>Check that the Mercurial program path is correct in %1.").arg(setstr),
              output);
         settings(SettingsDialog::PathsTab);
         return;
@@ -2145,7 +2167,9 @@ void MainWindow::commandFailed(HgAction action, QString output)
         (this,
          tr("Command failed"),
          tr("Command failed"),
-         tr("A Mercurial command failed to run correctly.  This may indicate an installation problem or some other problem with EasyMercurial.<br><br>See &ldquo;More Details&rdquo; for the command output."),
+         (output == "" ?
+          tr("A Mercurial command failed to run correctly.  This may indicate an installation problem or some other problem with EasyMercurial.") :
+          tr("A Mercurial command failed to run correctly.  This may indicate an installation problem or some other problem with EasyMercurial.<br><br>See &ldquo;More Details&rdquo; for the command output.")),
          output);
 }
 
@@ -2422,7 +2446,6 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     case ACT_TEST_HG:
     {
         QSettings settings;
-        settings.beginGroup("General");
         if (settings.value("useextension", true).toBool()) {
             hgTestExtension();
         } else if (m_workFolderPath == "") {

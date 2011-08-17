@@ -53,7 +53,6 @@ private slots:
     void diffPathBrowse();
     void mergePathBrowse();
     void sshPathBrowse();
-    void editPathBrowse();
     void extensionPathBrowse();
 
     void accept();
@@ -70,7 +69,6 @@ private:
     QLineEdit *m_diffPathLabel;
     QLineEdit *m_mergePathLabel;
     QLineEdit *m_sshPathLabel;
-    QLineEdit *m_editPathLabel;
 
     QCheckBox *m_useExtension;
     QLineEdit *m_extensionPathLabel;
@@ -93,7 +91,6 @@ private:
     static void findDiffBinaryName();
     static void findMergeBinaryName();
     static void findSshBinaryName();
-    static void findEditorBinaryName();
 
     static QString m_installPath;
 };
