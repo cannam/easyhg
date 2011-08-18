@@ -14,9 +14,9 @@ do this,
 
 *1. Click the Open toolbar button or use File -> Open*
 
-#openremote50.png
+#openremote50
 
-*2. Select "Remote Repository" as the thing you want to open*
+*2. Select "Remote repository" as the thing you want to open*
 
 *3. Enter the repository URL into the URL field*
 
@@ -32,5 +32,6 @@ on.  If the repository is large, you may have to wait a while for all the
 data to be transferred.
 
 Provided the clone has been successful, you should now have a local
-repository to work in.
+repository to start working in.
 
+ * Note: the equivalent Mercurial command for this is *hg clone*
