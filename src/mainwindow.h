@@ -116,6 +116,8 @@ private slots:
     void checkFilesystem();
     void actuallyRestoreFileSystemWatcher();
 
+    void newerVersionAvailable(QString);
+
 private:
     void hgQueryBranch();
     void hgQueryHeads();

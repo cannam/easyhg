@@ -62,7 +62,8 @@ HEADERS = \
     src/workstatuswidget.h \
     src/moreinformationdialog.h \
     src/annotatedialog.h \
-    src/hgignoredialog.h
+    src/hgignoredialog.h \
+    src/versiontester.h
 SOURCES = \
     src/main.cpp \
     src/mainwindow.cpp \
@@ -97,7 +98,8 @@ SOURCES = \
     src/workstatuswidget.cpp \
     src/moreinformationdialog.cpp \
     src/annotatedialog.cpp \
-    src/hgignoredialog.cpp
+    src/hgignoredialog.cpp \
+    src/versiontester.cpp
 
 macx-* {
     SOURCES += src/common_osx.mm
