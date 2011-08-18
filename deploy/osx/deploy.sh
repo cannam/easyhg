@@ -30,7 +30,7 @@ dmg="$dmg"-"$version".dmg
 mkdir "$volume" || exit 1
 
 ln -s /Applications "$volume"/Applications
-cp -rp "$source" "$target"
+cp -RPp "$source" "$target"
 
 echo "Done"
 

@@ -543,7 +543,7 @@ void HgRunner::startCommand(HgAction action)
 #endif
 
 #ifdef Q_OS_MAC
-    if (settings.value("python32", false).toBool()) {
+    if (QSettings().value("python32", false).toBool()) {
         env.insert("VERSIONER_PYTHON_PREFER_32_BIT", "1");
     }
 #endif
