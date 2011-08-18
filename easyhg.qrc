@@ -28,7 +28,9 @@
 	<file>help/help.css</file>
 	<file>help/a-04.html</file>
 	<file>help/a-10.html</file>
+	<file>help/a-11.html</file>
 	<file>help/images/openremote50.png</file>
+	<file>help/images/openfolder50.png</file>
 	<file>easyhg.py</file>
 	<file>easyhg_en.qm</file>
     </qresource>

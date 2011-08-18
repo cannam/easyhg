@@ -23,7 +23,7 @@ s/^(\s*)([A-Za-z][^\n]*)/$1<h2>$2<\/h2>/s;
 s/^\s+\*\s+(.*)$/<ul><li>$1<\/li><\/ul>/gm;
 s/"([\w])/&ldquo;$1/gs;
 s/([\w])"/$1&rdquo;/gs;
-s/^\#([^\s]+)$/<center><img src="images\/$1"><\/center>/gm;
+s/^\#([^\s]+)$/<center><img src="images\/$1.png"><\/center>/gm;
 s/\n-+\n/\n/gs;
 s/\n\n([^\n])/\n\n<p>$1/gs;
 s/^\n*([^<\n])/\n<p>$1/gs;
@@ -48,6 +48,7 @@ print;
 
     if [ "$category" != "$pcat" ]; then
 	echo "<h3>$category</h3>" >> topics.html
+	pcat="$category"
     fi
 
     grep '<h2>' "$out" | sed "s|<h2>|<p><a href=\"$out\">|" | sed 's/<\/h2>/<\/a><\/p>/' >> topics.html
