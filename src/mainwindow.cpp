@@ -50,6 +50,7 @@
 #include "version.h"
 #include "workstatuswidget.h"
 #include "hgignoredialog.h"
+#include "versiontester.h"
 
 
 MainWindow::MainWindow(QString myDirPath) :
@@ -130,6 +131,11 @@ MainWindow::MainWindow(QString myDirPath) :
     cs->addDefaultName("");
     cs->addDefaultName("default");
     cs->addDefaultName(getUserInfo());
+
+    VersionTester *vt = new VersionTester
+        ("easymercurial.org", "/latest-version.txt", EASYHG_VERSION);
+    connect(vt, SIGNAL(newerVersionAvailable(QString)),
+            this, SLOT(newerVersionAvailable(QString)));
 
     hgTest();
     updateRecentMenu();
@@ -3062,6 +3068,17 @@ void MainWindow::writeSettings()
     settings.setValue("firststart", m_firstStart);
 }
 
-
-
+void MainWindow::newerVersionAvailable(QString version)
+{
+    QSettings settings;
+    settings.beginGroup("NewerVersionWarning");
+    QString tag = QString("version-%1-available-show").arg(version);
+    if (settings.value(tag, true).toBool()) {
+        QString title(tr("Newer version available"));
+        QString text(tr("<h3>Newer version available</h3><p>You are using version %1 of EasyMercurial, but version %3 is now available.</p><p>Please see the <a href=\"http://easymercurial.org/\">EasyMercurial website</a> for more information.</p>").arg(EASYHG_VERSION).arg(version));
+        QMessageBox::information(this, title, text);
+        settings.setValue(tag, false);
+    }
+    settings.endGroup();
+}
 
