@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
 
     QTranslator translator;
     QString language = QLocale::system().name();
+    if (language == "C") language = "en";
     QString trname = QString("easyhg_%1").arg(language);
     translator.load(trname, ":");
     app.installTranslator(&translator);
