@@ -24,6 +24,11 @@
         <file>images/fileopen.png</file>
         <file>images/star.png</file>
         <file>images/easyhg-icon.png</file>
+	<file>help/topics.html</file>
+	<file>help/help.css</file>
+	<file>help/a-04.html</file>
+	<file>help/a-10.html</file>
+	<file>help/images/openremote50.png</file>
 	<file>easyhg.py</file>
 	<file>easyhg_en.qm</file>
     </qresource>

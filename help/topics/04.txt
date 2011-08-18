@@ -1,0 +1,39 @@
+{Terminology}
+
+What is a repository?
+
+When you use a version control system to keep track of your changes to
+a set of files, there are two different concepts you're dealing with:
+a _working copy_ and a _repository_.
+
+A _working copy_ is just a folder with your project's files in it.  It
+contains the versions of the files that you are working with now.
+
+ * EasyMercurial's "My Work" tab shows you which files you have been working on in your current working copy.
+
+A _repository_ is a record of the entire history of your project. When
+change something in the working copy, you can then commit it to the
+repository and your change gets added to the history.
+
+ * EasyMercurial's "History" tab shows you the changes that have been committed to your project's history in its repository.
+
+You can also go back and grab an older version from the repository if
+you find you need it.  (If you do this, then the working copy will be
+updated so as to contain that older version rather than the most
+recent one.)
+
+Older centralised version control systems use a separate database for
+the repository.  But with a distributed version control system such as
+Mercurial, the repository -- the entire history of your project files
+-- is stowed into a special folder inside the working copy on your
+hard drive.  Every change you commit gets added to the history in that
+hidden folder. (The history is compressed, so it doesn't take as much
+space as you might imagine.)
+
+The term _remote repository_ simply refers to a repository related to
+your local one, but stored on another computer somewhere else.  Often
+this may be a "master copy" of your project stored on a server
+elsewhere, which you and your collaborators can use to keep up with
+each other's work, or which you can use to make your work public, or
+simply use as a private backup.
+

@@ -57,6 +57,7 @@ public slots:
 
 private slots:
     void about();
+    void help();
     void settings();
     void settings(SettingsDialog::Tab);
     void open();
@@ -234,10 +235,13 @@ private:
 
     // Help menu actions
     QAction *m_aboutAct;
+    QAction *m_helpAct;
 
     QToolBar *m_fileToolBar;
     QToolBar *m_repoToolBar;
     QToolBar *m_workFolderToolBar;
+
+    QDialog *m_helpDialog;
 
     HgRunner *m_runner;
 

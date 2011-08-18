@@ -35,6 +35,7 @@
 #include <QUrl>
 #include <QDialogButtonBox>
 #include <QTimer>
+#include <QTextBrowser>
 
 #include "mainwindow.h"
 #include "multichoicedialog.h"
@@ -57,7 +58,8 @@ MainWindow::MainWindow(QString myDirPath) :
     m_myDirPath(myDirPath),
     m_fsWatcherGeneralTimer(0),
     m_fsWatcherRestoreTimer(0),
-    m_fsWatcherSuspended(false)
+    m_fsWatcherSuspended(false),
+    m_helpDialog(0)
 {
     setWindowIcon(QIcon(":images/easyhg-icon.png"));
 
@@ -2534,6 +2536,7 @@ void MainWindow::connectActions()
 {
     connect(m_exitAct, SIGNAL(triggered()), this, SLOT(close()));
     connect(m_aboutAct, SIGNAL(triggered()), this, SLOT(about()));
+    connect(m_helpAct, SIGNAL(triggered()), this, SLOT(help()));
 
     connect(m_hgRefreshAct, SIGNAL(triggered()), this, SLOT(hgRefresh()));
     connect(m_hgRemoveAct, SIGNAL(triggered()), this, SLOT(hgRemove()));
@@ -2925,6 +2928,12 @@ void MainWindow::createActions()
     m_hgServeAct->setStatusTip(tr("Serve local repository temporarily via HTTP for workgroup access"));
 
     //Help actions
+#ifdef Q_OS_MAC
+    m_helpAct = new QAction(tr("EasyMercurial Help"), this);
+#else
+    m_helpAct = new QAction(tr("Help Topics"), this);
+#endif
+    m_helpAct->setShortcuts(QKeySequence::HelpContents);
     m_aboutAct = new QAction(tr("About EasyMercurial"), this);
 
     // Miscellaneous
@@ -2973,6 +2982,7 @@ void MainWindow::createMenus()
     remoteMenu->addAction(m_hgPushAct);
 
     m_helpMenu = menuBar()->addMenu(tr("&Help"));
+    m_helpMenu->addAction(m_helpAct);
     m_helpMenu->addAction(m_aboutAct);
 }
 
@@ -3080,5 +3090,26 @@ void MainWindow::newerVersionAvailable(QString version)
         settings.setValue(tag, false);
     }
     settings.endGroup();
+}
+
+void MainWindow::help()
+{
+    if (!m_helpDialog) {
+        m_helpDialog = new QDialog;
+        QGridLayout *layout = new QGridLayout;
+        m_helpDialog->setLayout(layout);
+        QTextBrowser *text = new QTextBrowser;
+        text->setOpenExternalLinks(true);
+        layout->addWidget(text, 0, 0);
+        text->setSource(QUrl("qrc:help/topics.html"));
+        QDialogButtonBox *bb = new QDialogButtonBox(QDialogButtonBox::Close);
+        connect(bb, SIGNAL(rejected()), m_helpDialog, SLOT(hide()));
+        layout->addWidget(bb, 1, 0);
+        m_helpDialog->resize(450, 500);
+    }
+    QTextBrowser *tb = m_helpDialog->findChild<QTextBrowser *>();
+    if (tb) tb->home();
+    m_helpDialog->show();
+    m_helpDialog->raise();
 }
 
