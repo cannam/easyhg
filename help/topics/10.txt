@@ -1,0 +1,36 @@
+{Opening and initialising things}
+
+Someone gave me a repository URL and asked me to clone it
+
+A Mercurial repository location is usually described by a URL, like
+that of a website.
+
+For example, the URL for the repository containing the source code for
+EasyMercurial itself is @https://bitbucket.org/cannam/easyhg@.
+
+To get a copy of the files in a repository, you need to _clone_ the
+repository from the remote URL into a folder on your own computer.  To
+do this,
+
+*1. Click the Open toolbar button or use File -> Open*
+
+#openremote50.png
+
+*2. Select "Remote Repository" as the thing you want to open*
+
+*3. Enter the repository URL into the URL field*
+
+*4. Give the name of a folder on your local computer to clone into* --
+ this folder will be created for you, so it shouldn't be one that already
+ exists
+
+*5. Click OK*
+
+If the remote repository has restricted access, you may be asked to
+provide a username and password to log in to the server it is hosted
+on.  If the repository is large, you may have to wait a while for all the
+data to be transferred.
+
+Provided the clone has been successful, you should now have a local
+repository to work in.
+
