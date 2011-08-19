@@ -3,7 +3,8 @@
 I have a folder of source code or documents on my computer and I want to use version control to manage it
 
 To start using version control for a project folder, you need to
-initialise a repository there.  
+initialise a repository there.  EasyMercurial does this for you when
+you open the folder.
 
 *1. Click the Open toolbar button or use File -> Open*
 
