@@ -1,8 +1,34 @@
 {Making changes}
 
-I want to rename or remove a file
+I want to remove, rename, or copy a file
 
+To remove or rename a file, you first need to find it in the list of
+files under "My work".  This area normally shows only those files that
+you have changed since your last commit: if it isn't one of those,
+toggle the "Show all files" option at the bottom of the window.
 
+To *remove* a file from version control so that changes to it are no longer tracked:
+
+*1. Select the file you want to remove in the list of files under "My work".*
+
+*2. Click Remove in the toolbar on the left of the window*
+
+The file will be moved to the *"Removed"* list.  This tells Mercurial
+to stop tracking the file the next time you commit.  The file itself
+is not removed from the disc: you will need to do that using your
+system file manager afterwards.
+
+ * Note: the equivalent Mercurial command for this is *hg remove -Af*
+
+To *rename* or *copy* a file:
+
+*1. Select the file you want to remove in the list of files under "My work".*
+
+*2. Right-click and select "Rename..." or "Copy..." on the context menu*
+
+*3. Enter a new name for the file.*
+
+ * Note: the equivalent Mercurial commands are *hg rename* and *hg copy*
 
 
 

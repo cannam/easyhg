@@ -9,7 +9,7 @@ need to tell Mercurial to _track_ the file by adding it to version
 control.
 
 EasyMercurial shows files that have been created but not added in the
-*"Untracked"* file list under "My Work".  (If your file is not listed
+*"Untracked"* file list under "My work".  (If your file is not listed
 there, try clicking the Refresh button.)
 
 *1. Find the file you want to add in the Untracked list and select it*
