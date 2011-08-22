@@ -1,10 +1,18 @@
 {Making changes}
 
-I just renamed or removed a file using the system file manager -- then I remembered I was supposed to do it using the version control tool -- what now?
+I just deleted a file using the system file manager -- then remembered I hadn't told the version control tool about it -- what now?
 
+Any files that the version control system thinks should be there, but
+that can't be found in your working copy are shown as *"Missing"*
+under "My work".  All you need to do is:
 
+*1. Find your file in the "Missing" list and select it*
 
+*2. Click Remove in the toolbar on the left of the window*
 
+This tells Mercurial that you haven't merely lost the file, but that
+you intended to remove it.  The next time you commit, it will be
+removed from tracking in version control.
 
 
 
