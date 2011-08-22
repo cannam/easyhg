@@ -1,0 +1,20 @@
+{Sharing changes}
+
+I want to let my colleagues pull changes from my local repository
+
+You can do this on a temporary basis using EasyMercurial, for
+occasional ad-hoc transfers:
+
+*1. In EasyMercurial on your computer, go to File -> Share Repository and make a note of the URL shown in the window that is opened*
+
+*2. In EasyMercurial on your colleague's computer, either [[12|open a new empty folder]], or [[13|reopen a repository]] that has been pulled from your repository in the past*
+
+*3. Go to Remote -> Set Remote Location on your colleague's computer and enter the URL you made a note of in the first step*
+
+*4. Click Pull in the main toolbar on your colleague's EasyMercurial program.*
+
+There are various ways to set this relationship on a less temporary
+footing if you have shared access to your local folder, through
+network filesystems or via remote login to the computer you are using.
+Configuring this is outside the scope of this help document.
+

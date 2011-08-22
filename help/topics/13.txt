@@ -1,0 +1,16 @@
+{Opening and initialising things}
+
+I have a Mercurial repository on my local computer already and I want to use it with EasyMercurial
+
+Just open it:
+
+*1. Click the Open toolbar button or use File -> Open*
+
+#openlocal50
+
+*2. Select "Local repository" as the thing you want to open*
+
+*3. Browse to the working folder for your local repository*
+
+*4. Click OK*
+

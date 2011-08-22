@@ -56,10 +56,10 @@
 
 MainWindow::MainWindow(QString myDirPath) :
     m_myDirPath(myDirPath),
+    m_helpDialog(0),
     m_fsWatcherGeneralTimer(0),
     m_fsWatcherRestoreTimer(0),
-    m_fsWatcherSuspended(false),
-    m_helpDialog(0)
+    m_fsWatcherSuspended(false)
 {
     setWindowIcon(QIcon(":images/easyhg-icon.png"));
 
@@ -2658,8 +2658,6 @@ void MainWindow::enableDisableActions()
 
     QDir localRepoDir;
     QDir workFolderDir;
-    bool workFolderExist = true;
-    bool localRepoExist = true;
 
     m_remoteRepoActionsEnabled = true;
     if (m_remoteRepoPath.isEmpty()) {
@@ -2669,19 +2667,14 @@ void MainWindow::enableDisableActions()
     m_localRepoActionsEnabled = true;
     if (m_workFolderPath.isEmpty()) {
         m_localRepoActionsEnabled = false;
-        workFolderExist = false;
     }
 
     if (m_workFolderPath == "" || !workFolderDir.exists(m_workFolderPath)) {
         m_localRepoActionsEnabled = false;
-        workFolderExist = false;
-    } else {
-        workFolderExist = true;
     }
 
     if (!localRepoDir.exists(m_workFolderPath + "/.hg")) {
         m_localRepoActionsEnabled = false;
-        localRepoExist = false;
     }
 
     bool haveDiff = false;
@@ -3098,13 +3091,32 @@ void MainWindow::help()
         m_helpDialog = new QDialog;
         QGridLayout *layout = new QGridLayout;
         m_helpDialog->setLayout(layout);
+        QPushButton *home = new QPushButton;
+        home->setIcon(QIcon(":images/home.png"));
+        layout->addWidget(home, 0, 0);
+        QPushButton *back = new QPushButton;
+        back->setIcon(QIcon(":images/back.png"));
+        layout->addWidget(back, 0, 1);
+        QPushButton *fwd = new QPushButton;
+        fwd->setIcon(QIcon(":images/forward.png"));
+        layout->addWidget(fwd, 0, 2);
         QTextBrowser *text = new QTextBrowser;
         text->setOpenExternalLinks(true);
-        layout->addWidget(text, 0, 0);
+        layout->addWidget(text, 1, 0, 1, 4);
         text->setSource(QUrl("qrc:help/topics.html"));
         QDialogButtonBox *bb = new QDialogButtonBox(QDialogButtonBox::Close);
         connect(bb, SIGNAL(rejected()), m_helpDialog, SLOT(hide()));
-        layout->addWidget(bb, 1, 0);
+        connect(text, SIGNAL(backwardAvailable(bool)),
+                back, SLOT(setEnabled(bool)));
+        connect(text, SIGNAL(forwardAvailable(bool)),
+                fwd, SLOT(setEnabled(bool)));
+        connect(home, SIGNAL(clicked()), text, SLOT(home()));
+        connect(back, SIGNAL(clicked()), text, SLOT(backward()));
+        connect(fwd, SIGNAL(clicked()), text, SLOT(forward()));
+        back->setEnabled(false);
+        fwd->setEnabled(false);
+        layout->addWidget(bb, 2, 0, 1, 4);
+        layout->setColumnStretch(3, 20);
         m_helpDialog->resize(450, 500);
     }
     QTextBrowser *tb = m_helpDialog->findChild<QTextBrowser *>();

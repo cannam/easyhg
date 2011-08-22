@@ -1,7 +1,6 @@
 #!/bin/bash
 
 css='<link rel="stylesheet" type="text/css" href="help.css"/>'
-backlink='<p><a href="topics.html">Back to Topics</a></p>'
 
 echo "$css" > topics.html
 cat intro.html >> topics.html
@@ -14,7 +13,6 @@ for x in topics/*.txt ; do
     out="a-$b.html"
 
     echo "$css" > "$out"
-    echo "$backlink<hr>" >> "$out"
 
     cat "$x" | perl -e '
 $_ = join "", <>;
@@ -41,8 +39,6 @@ s/<p><h2>/<h2>/gs;
 s/<\/h2><\/p>/<\/h2>/gs;
 print;
 ' >> "$out"
-
-    echo "<hr>$backlink" >> "$out"
 
     category=`grep '^{.*}$' "$x" | sed 's/[{}]//g'`
 
