@@ -1,6 +1,6 @@
 {Sharing changes}
 
-I want to let my colleagues pull changes from my local repository
+I want to let my colleagues pull changes directly from my local repository
 
 You can do this on a temporary basis using EasyMercurial, for
 occasional ad-hoc transfers:

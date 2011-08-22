@@ -1,4 +1,37 @@
 {Sharing changes}
 
-I want to push my changes to a master repository shared with my colleagues
+I want to put my changes into a master repository shared with my colleagues
+
+Setting up such a repository with a properly configured remote server
+is out of the scope of this Help, but you generally want one of the
+following:
+
+*A server that everyone on your team has secure ssh access to*, _or_
+
+*An account with a managed online Mercurial hosting service*
+
+With either of the above, you should be able to create a new
+repository on the server and obtain a Mercurial URL for it.  That may
+be a _ssh://host/path_ URL in the former case, or the URL (often an
+_https_ one) provided by the service in the latter case.
+
+In EasyMercurial, you then:
+
+*1. Go to Remote -> Set Remote Location.., enter the URL of the remote repository and click OK.*
+
+ * This tells EasyMercurial to use that URL as the default location for subsequent push and pull operations.
+
+*2. Click Push on the main toolbar at the top of the EasyMercurial window.*
+
+This will push all of the changes that you have made in your local
+repository (since you pushed to the same target, if you ever have).
+You should do this regularly whenever you have a coherent set of
+changes for others to use or test.  Your colleagues can then pull from
+the same remote repository URL to obtain your changes.
+
+For this to work, the target repository must be _related_ to the local
+one.  That means either a repository that has been pulled to, or
+pushed to from, the local repository before; or the repository that
+was initially used to clone the local one from; or else an empty
+repository.
 

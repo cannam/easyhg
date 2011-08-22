@@ -1,9 +1,9 @@
 {Opening and initialising things}
 
-I want to start a completely new project using version control
+I want to start a new project using version control
 
-To start using version control for an initially empty project, just
-initialise a repository in an empty folder:
+You can initialise a repository in an empty folder, in order to start
+using version control for a new project:
 
 *1. Click the Open toolbar button or use File -> Open*
 
@@ -17,6 +17,6 @@ initialise a repository in an empty folder:
 
 A new repository will be created, stowed into the empty working folder
 you selected.  At first, it will have an empty history.  You can then
-start to add and commit changes to your files.
+start to add files and commit changes to your files.
 
  * Note: the equivalent Mercurial command for this is *hg init*
