@@ -13,7 +13,7 @@
 #    License, or (at your option) any later version.  See the file
 #    COPYING included with this distribution for more information.
 
-import sys, os, stat, urllib, urllib2, urlparse, platform, hashlib
+import sys, os, stat, urllib, urllib2, urlparse, hashlib
 
 from mercurial.i18n import _
 from mercurial import ui, util, error
@@ -135,7 +135,7 @@ class EasyHgAuthStore(object):
         except:
             self.ui.write("failed to open authfile %s for writing\n" % self.auth_file)
             raise
-        if platform.system() != 'Windows':
+        if os.name == 'posix':
             try:
                 os.fchmod(ofp.fileno(), stat.S_IRUSR | stat.S_IWUSR)
             except:
