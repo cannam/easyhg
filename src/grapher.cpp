@@ -435,6 +435,35 @@ void Grapher::layout(Changesets csets,
         }
     }
     
+    // Ensure the closed branches are all marked as closed
+
+    foreach (QString closedId, m_closedIds) {
+        
+        if (!m_items.contains(closedId)) continue;
+        
+        Changeset *cs = m_changesets[closedId];
+        ChangesetItem *item = m_items[closedId];
+
+        while (cs && item) {
+
+            if (cs->children().size() > 1) {
+                break;
+            }
+
+            item->setClosed(true);
+
+            int pcount = cs->parents().size();
+            if (pcount >= 1) {
+                QString pid = cs->parents()[0];
+                if (!m_items.contains(pid)) break;
+                cs = m_changesets[pid];
+                item = m_items[pid];
+            } else {
+                item = 0;
+            }
+        }
+    }
+
     // Add uncommitted item and connecting line as necessary
 
     if (!m_uncommittedParents.empty()) {

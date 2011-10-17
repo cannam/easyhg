@@ -43,6 +43,8 @@ public:
 
     UncommittedItem *getUncommittedItem() { return m_uncommitted; }
 
+    void setClosedHeadIds(QSet<QString> closed) { m_closedIds = closed; }
+
     class LayoutException : public std::exception {
     public:
 	LayoutException(QString message) throw() : m_message(message) { }
@@ -79,6 +81,8 @@ private:
 
     typedef QMap<int, QString> RowDateMap;
     RowDateMap m_rowDates;
+
+    QSet<QString> m_closedIds;
 
     bool m_showDates;
 

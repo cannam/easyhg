@@ -55,11 +55,16 @@ ConnectionItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget
 
     paint->save();
 
+    int alpha = 255;
+    if (m_child && m_child->isClosed()) alpha = 90;
+
     ColourSet *colourSet = ColourSet::instance();
     QString branch;
     if (m_child) branch = m_child->getChangeset()->branch();
     else branch = m_uncommitted->branch();
     QColor branchColour = colourSet->getColourFor(branch);
+
+    branchColour.setAlpha(alpha);
 
     Qt::PenStyle ls = Qt::SolidLine;
     if (!m_child) ls = Qt::DashLine;

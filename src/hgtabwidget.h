@@ -48,6 +48,7 @@ public:
     void setLocalPath(QString workFolderPath);
 
     void setCurrent(QStringList ids, QString branch);
+    void setClosedHeadIds(QSet<QString> ids);
 
     void setHaveMerge(bool);
 

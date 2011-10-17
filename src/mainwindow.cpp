@@ -323,6 +323,13 @@ void MainWindow::hgQueryBranch()
 */
 }
 
+void MainWindow::hgQueryHeadsActive()
+{
+    QStringList params;
+    params << "heads" << "--active";
+    m_runner->requestAction(HgAction(ACT_QUERY_HEADS_ACTIVE, m_workFolderPath, params));
+}
+
 void MainWindow::hgQueryHeads()
 {
     QStringList params;
@@ -1251,6 +1258,7 @@ void MainWindow::clearState()
     m_currentParents.clear();
     foreach (Changeset *cs, m_currentHeads) delete cs;
     m_currentHeads.clear();
+    m_closedHeadIds.clear();
     m_currentBranch = "";
     m_lastStatOutput = "";
     m_lastRevertedFiles.clear();
@@ -1979,18 +1987,18 @@ void MainWindow::reportNewRemoteHeads(QString output)
     bool headsAreLocal = false;
 
     if (m_currentParents.size() == 1) {
-        int m_currentBranchHeads = 0;
+        int currentBranchActiveHeads = 0;
         bool parentIsHead = false;
         Changeset *parent = m_currentParents[0];
-        foreach (Changeset *head, m_currentHeads) {
+        foreach (Changeset *head, m_activeHeads) {
             if (head->isOnBranch(m_currentBranch)) {
-                ++m_currentBranchHeads;
+                ++currentBranchActiveHeads;
             }
             if (parent->id() == head->id()) {
                 parentIsHead = true;
             }
         }
-        if (m_currentBranchHeads == 2 && parentIsHead) {
+        if (currentBranchActiveHeads == 2 && parentIsHead) {
             headsAreLocal = true;
         }
     }
@@ -2138,6 +2146,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
             return;
         }
         break; // go on to default report
+    case ACT_QUERY_HEADS_ACTIVE:
     case ACT_QUERY_HEADS:
         // fails if repo is empty; we don't care (if there's a genuine
         // problem, something else will fail too).  Pretend it
@@ -2324,6 +2333,11 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     }
         break;
         
+    case ACT_QUERY_HEADS_ACTIVE:
+        foreach (Changeset *cs, m_activeHeads) delete cs;
+        m_activeHeads = Changeset::parseChangesets(output);
+        break;
+
     case ACT_QUERY_HEADS:
     {
         oldHeadIds = Changeset::getIds(m_currentHeads);
@@ -2336,6 +2350,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
             headsChanged = true;
             foreach (Changeset *cs, m_currentHeads) delete cs;
             m_currentHeads = newHeads;
+            updateClosedHeads();
         }
     }
         break;
@@ -2486,6 +2501,10 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
 
     case ACT_RESOLVE_LIST:
+        hgQueryHeadsActive();
+        break;
+
+    case ACT_QUERY_HEADS_ACTIVE:
         hgQueryHeads();
         break;
 
@@ -2725,24 +2744,32 @@ void MainWindow::enableDisableActions()
     bool emptyRepo = false;
     bool noWorkingCopy = false;
     bool newBranch = false;
-    int m_currentBranchHeads = 0;
+    bool closedBranch = false;
+    int currentBranchActiveHeads = 0;
 
     if (m_currentParents.size() == 1) {
         bool parentIsHead = false;
+        bool parentIsActiveHead = false;
         Changeset *parent = m_currentParents[0];
-        foreach (Changeset *head, m_currentHeads) {
-            DEBUG << "head branch " << head->branch() << ", current branch " << m_currentBranch << endl;
+        foreach (Changeset *head, m_activeHeads) {
             if (head->isOnBranch(m_currentBranch)) {
-                ++m_currentBranchHeads;
+                ++currentBranchActiveHeads;
             }
             if (parent->id() == head->id()) {
-                parentIsHead = true;
+                parentIsActiveHead = parentIsHead = true;
             }
         }
-        if (m_currentBranchHeads == 2 && parentIsHead) {
+        if (!parentIsActiveHead) {
+            foreach (Changeset *head, m_currentHeads) {
+                if (parent->id() == head->id()) {
+                    parentIsHead = true;
+                }
+            }
+        }
+        if (currentBranchActiveHeads == 2 && parentIsActiveHead) {
             canMerge = true;
         }
-        if (m_currentBranchHeads == 0 && parentIsHead) {
+        if (currentBranchActiveHeads == 0 && parentIsActiveHead) {
             // Just created a new branch
             newBranch = true;
         }
@@ -2753,6 +2780,8 @@ void MainWindow::enableDisableActions()
             foreach (Changeset *h, m_currentHeads) {
                 DEBUG << "head id = " << h->id() << endl;
             }
+        } else if (!parentIsActiveHead) {
+            closedBranch = true;
         }
         m_justMerged = false;
     } else if (m_currentParents.size() == 0) {
@@ -2778,9 +2807,9 @@ void MainWindow::enableDisableActions()
     m_hgPushAct->setEnabled(m_localRepoActionsEnabled && !emptyRepo);
 
     m_hgMergeAct->setEnabled(m_localRepoActionsEnabled &&
-                           (canMerge || m_hgTabs->canResolve()));
+                             (canMerge || m_hgTabs->canResolve()));
     m_hgUpdateAct->setEnabled(m_localRepoActionsEnabled &&
-                            (canUpdate && !m_hgTabs->haveChangesToCommit()));
+                              (canUpdate && !m_hgTabs->haveChangesToCommit()));
 
     // Set the state field on the file status widget
 
@@ -2809,6 +2838,12 @@ void MainWindow::enableDisableActions()
         m_workStatus->setState(tr("Have merged but not yet committed on %1").arg(branchText));
     } else if (newBranch) {
         m_workStatus->setState(tr("On %1.  New branch: has not yet been committed").arg(branchText));
+    } else if (closedBranch) {
+        if (canUpdate) {
+            m_workStatus->setState(tr("On a closed branch. Not at the head of the branch"));
+        } else {
+            m_workStatus->setState(tr("At the head of a closed branch"));
+        }
     } else if (canUpdate) {
         if (m_hgTabs->haveChangesToCommit()) {
             // have uncommitted changes
@@ -2817,13 +2852,28 @@ void MainWindow::enableDisableActions()
             // no uncommitted changes
             m_workStatus->setState(tr("On %1. Not at the head of the branch: consider updating").arg(branchText));
         }
-    } else if (m_currentBranchHeads > 1) {
-        m_workStatus->setState(tr("At one of %n heads of %1", "", m_currentBranchHeads).arg(branchText));
+    } else if (currentBranchActiveHeads > 1) {
+        m_workStatus->setState(tr("At one of %n heads of %1", "", currentBranchActiveHeads).arg(branchText));
     } else {
         m_workStatus->setState(tr("At the head of %1").arg(branchText));
     }
 }
 
+
+void MainWindow::updateClosedHeads()
+{
+    m_closedHeadIds.clear();
+    QSet<QString> activeIds;
+    foreach (Changeset *cs, m_activeHeads) {
+        activeIds.insert(cs->id());
+    }
+    foreach (Changeset *cs, m_currentHeads) {
+        if (!activeIds.contains(cs->id())) {
+            m_closedHeadIds.insert(cs->id());
+        }
+    }
+    m_hgTabs->setClosedHeadIds(m_closedHeadIds);
+}
 
 void MainWindow::updateRecentMenu()
 {

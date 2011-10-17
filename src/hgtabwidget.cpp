@@ -136,6 +136,11 @@ void HgTabWidget::setCurrent(QStringList ids, QString branch)
     m_historyWidget->setCurrent(ids, branch, haveChangesToCommit());
 }
 
+void HgTabWidget::setClosedHeadIds(QSet<QString> closed)
+{
+    m_historyWidget->setClosedHeadIds(closed);
+}
+
 void HgTabWidget::updateFileStates()
 {
     m_fileStatusWidget->updateWidgets();
