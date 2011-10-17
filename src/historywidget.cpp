@@ -86,6 +86,11 @@ void HistoryWidget::setCurrent(QStringList ids, QString branch,
 
     m_refreshNeeded = true;
 }
+
+void HistoryWidget::setShowUncommitted(bool showUncommitted)
+{
+    setCurrent(m_currentIds, m_currentBranch, showUncommitted);
+}
     
 void HistoryWidget::parseNewLog(QString log)
 {

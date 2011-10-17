@@ -49,6 +49,8 @@ public:
 
     void setCurrent(QStringList ids, QString branch);
 
+    void setHaveMerge(bool);
+
     void updateFileStates();
     void updateHistory();
 
@@ -113,6 +115,7 @@ private:
     FileStatusWidget *m_fileStatusWidget;
     HistoryWidget *m_historyWidget;
     FileStates m_fileStates;
+    bool m_haveMerge;
 
     Changesets parseChangeSets(QString changeSetsStr);
 };
