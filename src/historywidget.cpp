@@ -87,6 +87,13 @@ void HistoryWidget::setCurrent(QStringList ids, QString branch,
     m_refreshNeeded = true;
 }
 
+void HistoryWidget::setClosedHeadIds(QSet<QString> closed)
+{
+    if (closed == m_closedIds) return;
+    m_closedIds = closed;
+    m_refreshNeeded = true;
+}
+
 void HistoryWidget::setShowUncommitted(bool showUncommitted)
 {
     setCurrent(m_currentIds, m_currentBranch, showUncommitted);
@@ -181,6 +188,7 @@ void HistoryWidget::layoutAll()
 
     if (!m_changesets.empty()) {
 	Grapher g(scene);
+        g.setClosedHeadIds(m_closedIds);
 	try {
 	    g.layout(m_changesets,
                      m_showUncommitted ? m_currentIds : QStringList(),
@@ -251,7 +259,8 @@ void HistoryWidget::updateNewAndCurrentItems()
             DEBUG << "id " << id << " is new" << endl;
         }
 
-        if (csit->isCurrent() != current || csit->isNew() != newid) {
+        if (csit->isCurrent() != current ||
+            csit->isNew() != newid) {
             csit->setCurrent(current);
             csit->setNew(newid);
             csit->update();

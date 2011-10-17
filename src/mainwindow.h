@@ -121,6 +121,7 @@ private slots:
 
 private:
     void hgQueryBranch();
+    void hgQueryHeadsActive();
     void hgQueryHeads();
     void hgQueryParents();
     void hgLog();
@@ -178,6 +179,8 @@ private:
     void suspendFileSystemWatcher();
     void restoreFileSystemWatcher();
 
+    void updateClosedHeads();
+
     void updateWorkFolderAndRepoNames();
 
     WorkStatusWidget *m_workStatus;
@@ -187,6 +190,8 @@ private:
     QString m_workFolderPath;
     QString m_currentBranch;
     Changesets m_currentHeads;
+    Changesets m_activeHeads;
+    QSet<QString> m_closedHeadIds;
     Changesets m_currentParents;
     int m_commitsSincePush;
     bool m_stateUnknown;

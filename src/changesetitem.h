@@ -51,6 +51,9 @@ public:
     bool isCurrent() const { return m_current; }
     void setCurrent(bool c) { m_current = c; }
 
+    bool isClosed() const { return m_closed; }
+    void setClosed(bool c) { m_closed = c; }
+
     bool isNew() const { return m_new; }
     void setNew(bool n) { m_new = n; }
 
@@ -98,6 +101,7 @@ private:
     int m_row;
     bool m_wide;
     bool m_current;
+    bool m_closed;
     bool m_new;
 
     QMap<QAction *, QString> m_parentDiffActions;

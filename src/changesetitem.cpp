@@ -38,7 +38,7 @@ QImage *ChangesetItem::m_star = 0;
 ChangesetItem::ChangesetItem(Changeset *cs) :
     m_changeset(cs), m_detail(0),
     m_showBranch(false), m_column(0), m_row(0), m_wide(false),
-    m_current(false), m_new(false)
+    m_current(false), m_closed(false), m_new(false)
 {
     m_font = QFont();
     m_font.setPixelSize(11);
@@ -262,9 +262,15 @@ ChangesetItem::paintNormal(QPainter *paint)
 {
     paint->save();
     
+    int alpha = 255;
+    if (m_closed) alpha = 90;
+
     ColourSet *colourSet = ColourSet::instance();
     QColor branchColour = colourSet->getColourFor(m_changeset->branch());
     QColor userColour = colourSet->getColourFor(m_changeset->author());
+
+    branchColour.setAlpha(alpha);
+    userColour.setAlpha(alpha);
 
     QFont f(m_font);
 
@@ -363,7 +369,10 @@ ChangesetItem::paintNormal(QPainter *paint)
                                             fm, textwid);
     paint->drawText(x0 + 3, fm.ascent(), person);
 
-    paint->setPen(QPen(Qt::black));
+    QColor textColour = Qt::black;
+    textColour.setAlpha(alpha);
+
+    paint->setPen(QPen(textColour));
 
     QStringList tags = m_changeset->tags();
     if (!tags.empty()) {
@@ -427,10 +436,16 @@ void
 ChangesetItem::paintMerge(QPainter *paint)
 {
     paint->save();
+
+    int alpha = 255;
+    if (m_closed) alpha = 40;
     
     ColourSet *colourSet = ColourSet::instance();
     QColor branchColour = colourSet->getColourFor(m_changeset->branch());
     QColor userColour = colourSet->getColourFor(m_changeset->author());
+
+    branchColour.setAlpha(alpha);
+    userColour.setAlpha(alpha);
 
     QFont f(m_font);
 

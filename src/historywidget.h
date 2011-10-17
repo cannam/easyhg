@@ -39,6 +39,8 @@ public:
     void setCurrent(QStringList ids, QString branch, bool showUncommitted);
     void setShowUncommitted(bool showUncommitted);
 
+    void setClosedHeadIds(QSet<QString> closed);
+
     void parseNewLog(QString log);
     void parseIncrementalLog(QString log);
 
@@ -68,6 +70,7 @@ private:
     QStringList m_currentIds;
     QString m_currentBranch;
     QSet<QString> m_newIds;
+    QSet<QString> m_closedIds;
     bool m_showUncommitted;
     bool m_refreshNeeded;
 
