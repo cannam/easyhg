@@ -37,6 +37,7 @@ public:
     virtual ~HistoryWidget();
 
     void setCurrent(QStringList ids, QString branch, bool showUncommitted);
+    void setShowUncommitted(bool showUncommitted);
 
     void parseNewLog(QString log);
     void parseIncrementalLog(QString log);

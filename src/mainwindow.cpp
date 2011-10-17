@@ -2244,6 +2244,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
 
     case ACT_RESOLVE_LIST:
+        // This happens on every update, after the stat (above)
         if (output != "") {
             // Remove lines beginning with R (they are resolved,
             // and the file stat parser treats R as removed)
@@ -2685,6 +2686,8 @@ void MainWindow::enableDisableActions()
     }
     settings.endGroup();
 
+    m_hgTabs->setHaveMerge(m_currentParents.size() == 2);
+
     m_hgRefreshAct->setEnabled(m_localRepoActionsEnabled);
     m_hgFolderDiffAct->setEnabled(m_localRepoActionsEnabled && haveDiff);
     m_hgRevertAct->setEnabled(m_localRepoActionsEnabled);
@@ -2768,7 +2771,7 @@ void MainWindow::enableDisableActions()
         haveMerge = true;
         m_justMerged = true;
     }
-        
+
     m_hgIncomingAct->setEnabled(m_remoteRepoActionsEnabled);
     m_hgPullAct->setEnabled(m_remoteRepoActionsEnabled);
     // permit push even if no remote yet; we'll ask for one
