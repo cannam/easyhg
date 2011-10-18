@@ -65,6 +65,12 @@ public:
      */
     QStringList children() const { return m_children; }
 
+    /**
+     * The closed property is not obtained from Hg, but set in
+     * Grapher::layout() based on traversing closed branch graphs
+     */
+    bool closed() const { return m_closed; }
+
     int number() const {
         return id().split(':')[0].toInt();
     }
@@ -119,6 +125,7 @@ signals:
     void ageChanged(QString age);
     void parentsChanged(QStringList parents);
     void childrenChanged(QStringList children);
+    void closedChanged(bool closed);
     void commentChanged(QString comment);
 
 public slots:
@@ -133,6 +140,7 @@ public slots:
     void setParents(QStringList parents) { m_parents = parents; emit parentsChanged(parents); }
     void setChildren(QStringList children) { m_children = children; emit childrenChanged(m_children); }
     void addChild(QString child) { m_children.push_back(child); emit childrenChanged(m_children); }
+    void setClosed(bool closed) { m_closed = closed; emit closedChanged(closed); }
     void setComment(QString comment) { m_comment = comment; emit commentChanged(comment); }
 
 private:
@@ -145,6 +153,7 @@ private:
     QString m_age;
     QStringList m_parents;
     QStringList m_children;
+    bool m_closed;
     QString m_comment;
 };
 

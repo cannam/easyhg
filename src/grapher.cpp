@@ -451,7 +451,7 @@ void Grapher::layout(Changesets csets,
                 break;
             }
 
-            item->setClosed(true);
+            cs->setClosed(true);
 
             int pcount = cs->parents().size();
             if (pcount >= 1) {
