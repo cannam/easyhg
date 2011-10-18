@@ -30,6 +30,7 @@ Grapher::Grapher(ChangesetScene *scene) :
     QSettings settings;
     settings.beginGroup("Presentation");
     m_showDates = (settings.value("dateformat", 0) == 1);
+    m_showClosedBranches = (settings.value("showclosedbranches", false).toBool());
 }
 
 int Grapher::findAvailableColumn(int row, int parent, bool preferParentCol)
@@ -69,7 +70,7 @@ void Grapher::layoutRow(QString id)
         throw LayoutException(QString("Changeset %1 not in ID map").arg(id));
     }
     if (!m_items.contains(id)) {
-        throw LayoutException(QString("Changeset %1 not in item map").arg(id));
+        return;
     }
     Changeset *cs = m_changesets[id];
     ChangesetItem *item = m_items[id];
@@ -145,7 +146,7 @@ void Grapher::layoutCol(QString id)
         throw LayoutException(QString("Changeset %1 not in ID map").arg(id));
     }
     if (!m_items.contains(id)) {
-        throw LayoutException(QString("Changeset %1 not in item map").arg(id));
+        return;
     }
 
     Changeset *cs = m_changesets[id];
@@ -175,7 +176,7 @@ void Grapher::layoutCol(QString id)
             !m_changesets[parentId]->isOnBranch(branch)) {
             // new branch
             col = m_branchHomes[branch];
-        } else {
+        } else if (m_items.contains(parentId)) {
             col = m_items[parentId]->column();
         }
 
@@ -191,9 +192,11 @@ void Grapher::layoutCol(QString id)
         foreach (QString parentId, cs->parents()) {
             if (!m_changesets.contains(parentId)) continue;
             if (m_changesets[parentId]->isOnBranch(branch)) {
-                ChangesetItem *parentItem = m_items[parentId];
-                col += parentItem->column();
-                parentsOnSameBranch++;
+                if (m_items.contains(parentId)) {
+                    ChangesetItem *parentItem = m_items[parentId];
+                    col += parentItem->column();
+                    parentsOnSameBranch++;
+                }
             }
         }
 
@@ -244,7 +247,7 @@ void Grapher::layoutCol(QString id)
 
     foreach (QString childId, cs->children()) {
         DEBUG << "reserving connection line space" << endl;
-        if (!m_changesets.contains(childId)) continue;
+        if (!m_items.contains(childId)) continue;
         Changeset *child = m_changesets[childId];
         int childRow = m_items[childId]->row();
         if (child->parents().size() > 1 ||
@@ -261,7 +264,7 @@ void Grapher::layoutCol(QString id)
     if (nchildren > 1) {
         QList<QString> special;
         foreach (QString childId, cs->children()) {
-            if (!m_changesets.contains(childId)) continue;
+            if (!m_items.contains(childId)) continue;
             Changeset *child = m_changesets[childId];
             if (child->isOnBranch(branch) &&
                 child->parents().size() == 1) {
@@ -298,9 +301,10 @@ bool Grapher::rangesConflict(const Range &r1, const Range &r2)
 void Grapher::allocateBranchHomes(Changesets csets)
 {
     foreach (Changeset *cs, csets) {
+        QString id = cs->id();
+        if (!m_items.contains(id)) continue;
+        ChangesetItem *item = m_items[id];
         QString branch = cs->branch();
-        ChangesetItem *item = m_items[cs->id()];
-        if (!item) continue;
         int row = item->row();
         if (!m_branchRanges.contains(branch)) {
             m_branchRanges[branch] = Range(row, row);
@@ -451,6 +455,7 @@ void Grapher::layout(Changesets csets,
     // Create (but don't yet position) the changeset items
 
     foreach (Changeset *cs, csets) {
+        if (cs->closed() && !m_showClosedBranches) continue;
         QString id = cs->id();
         ChangesetItem *item = new ChangesetItem(cs);
         item->setX(0);
@@ -471,10 +476,11 @@ void Grapher::layout(Changesets csets,
 
     foreach (Changeset *cs, csets) {
         QString id = cs->id();
+        if (!m_items.contains(id)) continue;
         ChangesetItem *item = m_items[id];
         bool merge = (cs->parents().size() > 1);
         foreach (QString parentId, cs->parents()) {
-            if (!m_changesets.contains(parentId)) continue;
+            if (!m_items.contains(parentId)) continue;
             ConnectionItem *conn = new ConnectionItem();
             if (merge) conn->setConnectionType(ConnectionItem::Merge);
             conn->setChild(item);
@@ -495,6 +501,7 @@ void Grapher::layout(Changesets csets,
 
         bool haveParentOnBranch = false;
         foreach (QString p, m_uncommittedParents) {
+            if (!m_items.contains(p)) continue;
             ConnectionItem *conn = new ConnectionItem();
             conn->setConnectionType(ConnectionItem::Merge);
             ChangesetItem *pitem = m_items[p];
@@ -522,6 +529,7 @@ void Grapher::layout(Changesets csets,
 
     foreach (Changeset *cs, csets) {
         QString id = cs->id();
+        if (!m_items.contains(id)) continue;
         ChangesetItem *item = m_items[id];
         bool haveChildOnSameBranch = false;
         foreach (QString childId, cs->children()) {
@@ -605,7 +613,9 @@ void Grapher::layout(Changesets csets,
     // made double-width
 
     foreach (Changeset *cs, csets) {
-        ChangesetItem *item = m_items[cs->id()];
+        QString id = cs->id();
+        if (!m_items.contains(id)) continue;
+        ChangesetItem *item = m_items[id];
         if (isAvailable(item->row(), item->column()-1) &&
             isAvailable(item->row(), item->column()+1)) {
             item->setWide(true);

@@ -85,6 +85,7 @@ private:
     QSet<QString> m_closedIds;
 
     bool m_showDates;
+    bool m_showClosedBranches;
 
     QStringList m_uncommittedParents;
     int m_uncommittedParentRow;
