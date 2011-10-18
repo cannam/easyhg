@@ -135,7 +135,7 @@ MainWindow::MainWindow(QString myDirPath) :
     cs->addDefaultName(getUserInfo());
 
     VersionTester *vt = new VersionTester
-        ("easymercurial.org", "/latest-version.txt", EASYHG_VERSION);
+        ("easyhg.org", "/latest-version.txt", EASYHG_VERSION);
     connect(vt, SIGNAL(newerVersionAvailable(QString)),
             this, SLOT(newerVersionAvailable(QString)));
 
