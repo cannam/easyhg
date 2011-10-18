@@ -64,6 +64,7 @@ signals:
     void diffToCurrent(QString id);
     void mergeFrom(QString id);
     void newBranch(QString id);
+    void closeBranch(QString id);
     void tag(QString id);
 
 private slots:

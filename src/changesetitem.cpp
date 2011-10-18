@@ -197,6 +197,10 @@ ChangesetItem::contextMenuEvent(QGraphicsSceneContextMenuEvent *)
     branch->setEnabled(m_current);
     connect(branch, SIGNAL(triggered()), this, SLOT(newBranchActivated()));
 
+    QAction *closebranch = menu->addAction(tr("Close branch..."));
+    closebranch->setEnabled(m_current);
+    connect(closebranch, SIGNAL(triggered()), this, SLOT(closeBranchActivated()));
+
     QAction *tag = menu->addAction(tr("Add tag..."));
     connect(tag, SIGNAL(triggered()), this, SLOT(tagActivated()));
 
@@ -240,6 +244,7 @@ void ChangesetItem::diffToCurrentActivated() { emit diffToCurrent(getId()); }
 void ChangesetItem::mergeActivated() { emit mergeFrom(getId()); }
 void ChangesetItem::tagActivated() { emit tag(getId()); }
 void ChangesetItem::newBranchActivated() { emit newBranch(getId()); }
+void ChangesetItem::closeBranchActivated() { emit closeBranch(getId()); }
 
 void
 ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget *)

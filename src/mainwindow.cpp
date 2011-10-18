@@ -326,7 +326,7 @@ void MainWindow::hgQueryBranch()
 void MainWindow::hgQueryHeadsActive()
 {
     QStringList params;
-    params << "heads" << "--active";
+    params << "heads";
     m_runner->requestAction(HgAction(ACT_QUERY_HEADS_ACTIVE, m_workFolderPath, params));
 }
 
@@ -541,6 +541,41 @@ void MainWindow::hgNoBranch()
     QStringList params;
     params << "branch" << parentBranch;
     m_runner->requestAction(HgAction(ACT_NEW_BRANCH, m_workFolderPath, params));
+}
+
+void MainWindow::hgCloseBranch()
+{
+    QStringList params;
+
+    //!!! how to ensure this doesn't happen when uncommitted changes present?
+
+    QString cf(tr("Close branch"));
+    QString comment;
+
+    QString defaultWarning;
+
+    QString branchText;
+    if (m_currentBranch == "" || m_currentBranch == "default") {
+        branchText = tr("the default branch");
+        defaultWarning = tr("<p><b>Warning:</b> you are asking to close the default branch. This is not usually a good idea!</p>");
+    } else {
+        branchText = tr("branch \"%1\"").arg(m_currentBranch);
+    }
+
+    if (ConfirmCommentDialog::confirmAndGetLongComment
+        (this,
+         cf,
+         tr("<h3>%1</h3><p>%2%3").arg(cf)
+         .arg(tr("You are about to close %1.<p>This branch will be marked as closed, will be hidden from the history view, and will no longer accept commits.<p>Please enter your comment for the commit log:").arg(branchText))
+         .arg(defaultWarning),
+         comment,
+         tr("C&lose branch"))) {
+
+        params << "commit" << "--message" << comment
+               << "--user" << getUserInfo() << "--close-branch";
+        
+        m_runner->requestAction(HgAction(ACT_CLOSE_BRANCH, m_workFolderPath, params));
+    }
 }
 
 void MainWindow::hgTag(QString id)
@@ -2365,6 +2400,12 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         m_shouldHgStat = true;
         break;
 
+    case ACT_CLOSE_BRANCH:
+        m_hgTabs->clearSelections();
+        m_justMerged = false;
+        m_shouldHgStat = true;
+        break;
+
     case ACT_REVERT:
         hgMarkFilesResolved(m_lastRevertedFiles);
         m_justMerged = false;
@@ -2620,6 +2661,9 @@ void MainWindow::connectTabsSignals()
 
     connect(m_hgTabs, SIGNAL(newBranch(QString)),
             this, SLOT(hgNewBranch()));
+
+    connect(m_hgTabs, SIGNAL(closeBranch(QString)),
+            this, SLOT(hgCloseBranch()));
 
     connect(m_hgTabs, SIGNAL(tag(QString)),
             this, SLOT(hgTag(QString)));
