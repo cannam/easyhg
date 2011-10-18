@@ -52,8 +52,7 @@ public:
     void setCurrent(bool c) { m_current = c; }
 
     // Closed is true if this changeset is on a closed branch
-    bool isClosed() const { return m_closed; }
-    void setClosed(bool c) { m_closed = c; }
+    bool isClosed() const;
 
     // Closing is true if this changeset is the commit that closed its
     // branch (i.e. is at the end of a closed branch)
@@ -107,7 +106,6 @@ private:
     int m_row;
     bool m_wide;
     bool m_current;
-    bool m_closed;
     bool m_closing;
     bool m_new;
 

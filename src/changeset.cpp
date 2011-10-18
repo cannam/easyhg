@@ -21,7 +21,8 @@
 
 #include <QVariant>
 
-Changeset::Changeset(const LogEntry &e)
+Changeset::Changeset(const LogEntry &e) :
+    m_closed(false)
 {
     foreach (QString key, e.keys()) {
         if (key == "parents") {
