@@ -95,6 +95,7 @@ private slots:
     void hgTag(QString);
     void hgNewBranch();
     void hgNoBranch();
+    void hgCloseBranch();
     void hgServe();
     void hgIgnore();
     void hgEditIgnore();

@@ -122,6 +122,9 @@ HgTabWidget::HgTabWidget(QWidget *parent,
     connect(m_historyWidget, SIGNAL(newBranch(QString)),
             this, SIGNAL(newBranch(QString)));
 
+    connect(m_historyWidget, SIGNAL(closeBranch(QString)),
+            this, SIGNAL(closeBranch(QString)));
+
     connect(m_historyWidget, SIGNAL(tag(QString)),
             this, SIGNAL(tag(QString)));
 }

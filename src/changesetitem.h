@@ -75,6 +75,7 @@ signals:
     void showSummary(Changeset *);
     void mergeFrom(QString);
     void newBranch(QString);
+    void closeBranch(QString);
     void tag(QString);
 
 public slots:
@@ -90,6 +91,7 @@ private slots:
     void mergeActivated();
     void tagActivated();
     void newBranchActivated();
+    void closeBranchActivated();
 
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *);
