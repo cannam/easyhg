@@ -22,6 +22,7 @@
 
 #include <QWidget>
 #include <QSet>
+#include <QCheckBox>
 
 class Panned;
 class Panner;
@@ -64,6 +65,9 @@ signals:
     void mergeFrom(QString id);
     void newBranch(QString id);
     void tag(QString id);
+
+private slots:
+    void showClosedChanged(bool);
     
 private:
     Changesets m_changesets;
@@ -76,6 +80,7 @@ private:
 
     Panned *m_panned;
     Panner *m_panner;
+    QCheckBox *m_showClosedBranches;
 
     QGraphicsScene *scene();
     void clearChangesets();

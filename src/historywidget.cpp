@@ -27,6 +27,7 @@
 #include <iostream>
 
 #include <QGridLayout>
+#include <QSettings>
 
 HistoryWidget::HistoryWidget() :
     m_showUncommitted(false),
@@ -39,11 +40,27 @@ HistoryWidget::HistoryWidget() :
     m_panned->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
     m_panned->setCacheMode(QGraphicsView::CacheNone);
 
+    int row = 0;
+
     QGridLayout *layout = new QGridLayout;
-    layout->addWidget(m_panned, 0, 0);
-    layout->addWidget(m_panner, 0, 1);
+    layout->setMargin(10);
+    layout->addWidget(m_panned, row, 0);
+    layout->addWidget(m_panner, row, 1);
     m_panner->setMaximumWidth(80);
     m_panner->connectToPanned(m_panned);
+
+    layout->setRowStretch(row, 20);
+
+    QSettings settings;
+    settings.beginGroup("Presentation");
+    bool showClosed = (settings.value("showclosedbranches", false).toBool());
+
+    m_showClosedBranches = new QCheckBox(tr("Show closed branches"), this);
+    m_showClosedBranches->setChecked(showClosed);
+    connect(m_showClosedBranches, SIGNAL(toggled(bool)), 
+            this, SLOT(showClosedChanged(bool)));
+    layout->addWidget(m_showClosedBranches, ++row, 0, Qt::AlignLeft);
+    m_showClosedBranches->hide();
 
     setLayout(layout);
 }
@@ -91,12 +108,21 @@ void HistoryWidget::setClosedHeadIds(QSet<QString> closed)
 {
     if (closed == m_closedIds) return;
     m_closedIds = closed;
+    m_showClosedBranches->setVisible(!closed.empty());
     m_refreshNeeded = true;
 }
 
 void HistoryWidget::setShowUncommitted(bool showUncommitted)
 {
     setCurrent(m_currentIds, m_currentBranch, showUncommitted);
+}
+
+void HistoryWidget::showClosedChanged(bool show)
+{
+    QSettings settings;
+    settings.beginGroup("Presentation");
+    settings.setValue("showclosedbranches", show);
+    layoutAll();
 }
     
 void HistoryWidget::parseNewLog(QString log)
