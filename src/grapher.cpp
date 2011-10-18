@@ -391,7 +391,7 @@ void Grapher::layout(Changesets csets,
 
     if (csets.empty()) return;
 
-    // Create (but don't yet position) the changeset items
+    // Initialise changesets hash
 
     foreach (Changeset *cs, csets) {
 
@@ -407,32 +407,29 @@ void Grapher::layout(Changesets csets,
         }
 
         m_changesets[id] = cs;
+    }
+    
+    // Set the children for each changeset
 
+    foreach (Changeset *cs, csets) {
+        QString id = cs->id();
+        foreach (QString parentId, cs->parents()) {
+            if (!m_changesets.contains(parentId)) continue;
+            Changeset *parent = m_changesets[parentId];
+            parent->addChild(id);
+        }
+    }
+
+    // Create (but don't yet position) the changeset items
+
+    foreach (Changeset *cs, csets) {
+        QString id = cs->id();
         ChangesetItem *item = new ChangesetItem(cs);
         item->setX(0);
         item->setY(0);
         item->setZValue(0);
         m_items[id] = item;
         m_scene->addChangesetItem(item);
-    }
-
-    // Add the connecting lines
-
-    foreach (Changeset *cs, csets) {
-        QString id = cs->id();
-        ChangesetItem *item = m_items[id];
-        bool merge = (cs->parents().size() > 1);
-        foreach (QString parentId, cs->parents()) {
-            if (!m_changesets.contains(parentId)) continue;
-            Changeset *parent = m_changesets[parentId];
-            parent->addChild(id);
-            ConnectionItem *conn = new ConnectionItem();
-            if (merge) conn->setConnectionType(ConnectionItem::Merge);
-            conn->setChild(item);
-            conn->setParent(m_items[parentId]);
-            conn->setZValue(-1);
-            m_scene->addItem(conn);
-        }
     }
     
     // Ensure the closed branches are all marked as closed
@@ -444,11 +441,13 @@ void Grapher::layout(Changesets csets,
         Changeset *cs = m_changesets[closedId];
         ChangesetItem *item = m_items[closedId];
 
+        QString branch = cs->branch();
+
         item->setClosingCommit(true);
 
         while (cs && item) {
 
-            if (cs->children().size() > 1) {
+            if (cs->children().size() > 1 || !cs->isOnBranch(branch)) {
                 break;
             }
 
@@ -463,6 +462,23 @@ void Grapher::layout(Changesets csets,
             } else {
                 item = 0;
             }
+        }
+    }
+
+    // Add the connecting lines
+
+    foreach (Changeset *cs, csets) {
+        QString id = cs->id();
+        ChangesetItem *item = m_items[id];
+        bool merge = (cs->parents().size() > 1);
+        foreach (QString parentId, cs->parents()) {
+            if (!m_changesets.contains(parentId)) continue;
+            ConnectionItem *conn = new ConnectionItem();
+            if (merge) conn->setConnectionType(ConnectionItem::Merge);
+            conn->setChild(item);
+            conn->setParent(m_items[parentId]);
+            conn->setZValue(-1);
+            m_scene->addItem(conn);
         }
     }
 
