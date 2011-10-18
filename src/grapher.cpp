@@ -444,6 +444,8 @@ void Grapher::layout(Changesets csets,
         Changeset *cs = m_changesets[closedId];
         ChangesetItem *item = m_items[closedId];
 
+        item->setClosingCommit(true);
+
         while (cs && item) {
 
             if (cs->children().size() > 1) {

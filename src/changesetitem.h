@@ -51,8 +51,14 @@ public:
     bool isCurrent() const { return m_current; }
     void setCurrent(bool c) { m_current = c; }
 
+    // Closed is true if this changeset is on a closed branch
     bool isClosed() const { return m_closed; }
     void setClosed(bool c) { m_closed = c; }
+
+    // Closing is true if this changeset is the commit that closed its
+    // branch (i.e. is at the end of a closed branch)
+    bool isClosingCommit() const { return m_closing; }
+    void setClosingCommit(bool c) { m_closing = c; }
 
     bool isNew() const { return m_new; }
     void setNew(bool n) { m_new = n; }
@@ -102,6 +108,7 @@ private:
     bool m_wide;
     bool m_current;
     bool m_closed;
+    bool m_closing;
     bool m_new;
 
     QMap<QAction *, QString> m_parentDiffActions;
@@ -111,7 +118,7 @@ private:
 
     bool isMerge() const;
     void paintNormal(QPainter *);
-    void paintMerge(QPainter *);
+    void paintSimple(QPainter *);
 };
 
 #endif // CHANGESETITEM_H

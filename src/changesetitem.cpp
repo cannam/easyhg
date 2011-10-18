@@ -38,7 +38,7 @@ QImage *ChangesetItem::m_star = 0;
 ChangesetItem::ChangesetItem(Changeset *cs) :
     m_changeset(cs), m_detail(0),
     m_showBranch(false), m_column(0), m_row(0), m_wide(false),
-    m_current(false), m_closed(false), m_new(false)
+    m_current(false), m_closed(false), m_closing(false), m_new(false)
 {
     m_font = QFont();
     m_font.setPixelSize(11);
@@ -72,7 +72,7 @@ ChangesetItem::showDetail()
     scene()->addItem(m_detail);
     int w = 100;
     if (m_wide) w = 180;
-    if (isMerge()) w = 60;
+    if (isMerge() || isClosingCommit()) w = 60;
     int h = 80;
 //    m_detail->moveBy(x() - (m_detail->boundingRect().width() - 50) / 2,
 //                     y() + 60);
@@ -244,8 +244,8 @@ void ChangesetItem::newBranchActivated() { emit newBranch(getId()); }
 void
 ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget *)
 {
-    if (isMerge()) {
-        paintMerge(paint);
+    if (isClosingCommit() || isMerge()) {
+        paintSimple(paint);
     } else {
         paintNormal(paint);
     }
@@ -433,12 +433,12 @@ ChangesetItem::paintNormal(QPainter *paint)
 }
 
 void
-ChangesetItem::paintMerge(QPainter *paint)
+ChangesetItem::paintSimple(QPainter *paint)
 {
     paint->save();
 
     int alpha = 255;
-    if (m_closed) alpha = 40;
+    if (m_closed) alpha = 90;
     
     ColourSet *colourSet = ColourSet::instance();
     QColor branchColour = colourSet->getColourFor(m_changeset->branch());
@@ -481,19 +481,31 @@ ChangesetItem::paintMerge(QPainter *paint)
     if (showProperLines) {
 
         if (m_current) {
-            paint->drawEllipse(QRectF(x0 - 4, fh - 4, size + 8, size + 8));
-
+            if (isClosingCommit()) {
+                paint->drawRect(QRectF(x0 - 4, fh - 4, size + 8, size + 8));
+            } else {
+                paint->drawEllipse(QRectF(x0 - 4, fh - 4, size + 8, size + 8));
+            }
+            
             if (m_new) {
                 paint->save();
                 paint->setPen(Qt::yellow);
                 paint->setBrush(Qt::NoBrush);
-                paint->drawEllipse(QRectF(x0 - 2, fh - 2, size + 4, size + 4));
+                if (isClosingCommit()) {
+                    paint->drawRect(QRectF(x0 - 2, fh - 2, size + 4, size + 4));
+                } else {
+                    paint->drawEllipse(QRectF(x0 - 2, fh - 2, size + 4, size + 4));
+                }
                 paint->restore();
             }
         }
     }
 
-    paint->drawEllipse(QRectF(x0, fh, size, size));
+    if (isClosingCommit()) {
+        paint->drawRect(QRectF(x0, fh, size, size));
+    } else {
+        paint->drawEllipse(QRectF(x0, fh, size, size));
+    }
 
     if (m_showBranch) {
 	// write branch name
