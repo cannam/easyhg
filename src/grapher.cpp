@@ -419,6 +419,34 @@ void Grapher::layout(Changesets csets,
             parent->addChild(id);
         }
     }
+    
+    // Ensure the closed branches are all marked as closed
+
+    foreach (QString closedId, m_closedIds) {
+        
+        if (!m_changesets.contains(closedId)) continue;
+        
+        Changeset *cs = m_changesets[closedId];
+        QString branch = cs->branch();
+
+        while (cs) {
+
+            if (cs->children().size() > 1 || !cs->isOnBranch(branch)) {
+                break;
+            }
+
+            cs->setClosed(true);
+
+            if (cs->parents().size() >= 1) {
+                //!!! this is wrong, not adequate for merges in-branch
+                QString pid = cs->parents()[0];
+                if (!m_changesets.contains(pid)) break;
+                cs = m_changesets[pid];
+            } else {
+                cs = 0;
+            }
+        }
+    }
 
     // Create (but don't yet position) the changeset items
 
@@ -432,37 +460,11 @@ void Grapher::layout(Changesets csets,
         m_scene->addChangesetItem(item);
     }
     
-    // Ensure the closed branches are all marked as closed
+    // Ensure the closing changeset items are appropriately marked
 
     foreach (QString closedId, m_closedIds) {
-        
         if (!m_items.contains(closedId)) continue;
-        
-        Changeset *cs = m_changesets[closedId];
-        ChangesetItem *item = m_items[closedId];
-
-        QString branch = cs->branch();
-
-        item->setClosingCommit(true);
-
-        while (cs && item) {
-
-            if (cs->children().size() > 1 || !cs->isOnBranch(branch)) {
-                break;
-            }
-
-            cs->setClosed(true);
-
-            int pcount = cs->parents().size();
-            if (pcount >= 1) {
-                QString pid = cs->parents()[0];
-                if (!m_items.contains(pid)) break;
-                cs = m_changesets[pid];
-                item = m_items[pid];
-            } else {
-                item = 0;
-            }
-        }
+        m_items[closedId]->setClosingCommit(true);
     }
 
     // Add the connecting lines
