@@ -566,7 +566,7 @@ void MainWindow::hgCloseBranch()
         (this,
          cf,
          tr("<h3>%1</h3><p>%2%3").arg(cf)
-         .arg(tr("You are about to close %1.<p>This branch will be marked as closed, will be hidden from the history view, and will no longer accept commits.<p>Please enter your comment for the commit log:").arg(branchText))
+         .arg(tr("You are about to close %1.<p>This branch will be marked as closed and hidden from the history view.<p>You will still be able to see if it you select \"Show closed branches\" in the history view, and it will be reopened if you commit to it.<p>Please enter your comment for the commit log:").arg(branchText))
          .arg(defaultWarning),
          comment,
          tr("C&lose branch"))) {
