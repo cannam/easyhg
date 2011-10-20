@@ -98,6 +98,8 @@ private:
     bool rangesConflict(const Range &r1, const Range &r2);
     int findAvailableColumn(int row, int parent, bool preferParentCol);
     bool isAvailable(int row, int col);
+    void markClosedChangesets();
+    void markClosedChangesetsFrom(QString id, QSet<QString> &deferred);
 };
 
 #endif 
