@@ -377,6 +377,105 @@ Grapher::getItemFor(QString id)
     return m_items[id];
 }
 
+void
+Grapher::markClosedChangesets()
+{
+    // Ensure the closed branch changesets are all marked as closed.
+
+    QSet<QString> deferred;
+
+    foreach (QString id, m_closedIds) {
+        markClosedChangesetsFrom(id, deferred);
+//        std::cerr << "after closed id " << id << ": candidates now contains " << deferred.size() << " element(s)" << std::endl;
+    }
+
+    while (!deferred.empty()) {
+        foreach (QString id, deferred) {
+            markClosedChangesetsFrom(id, deferred);
+            deferred.remove(id);
+//        std::cerr << "after id " << id << ": deferred now contains " << deferred.size() << " element(s)" << std::endl;
+        }
+    }
+}
+
+void
+Grapher::markClosedChangesetsFrom(QString id, QSet<QString> &deferred)
+{
+    // A changeset should be marked as closed (i) if it is in the list
+    // of closed heads [and has no children]; or (ii) all of its
+    // children that have the same branch name as it are marked as
+    // closed [and there is at least one of those]
+
+    if (!m_changesets.contains(id)) {
+//        std::cerr << "no good" << std::endl;
+        return;
+    }
+
+//    std::cerr << "looking at id " << id << std::endl;
+            
+    Changeset *cs = m_changesets[id];
+    QString branch = cs->branch();
+            
+    bool closed = false;
+
+    if (m_closedIds.contains(id)) {
+
+        closed = true;
+
+    } else {
+
+        closed = false;
+        foreach (QString childId, cs->children()) {
+            if (!m_changesets.contains(childId)) {
+                continue;
+            }
+            Changeset *ccs = m_changesets[childId];
+            if (ccs->isOnBranch(branch)) {
+                if (ccs->closed()) {
+                    // closed becomes true only when we see a closed
+                    // child on the same branch
+                    closed = true;
+                } else {
+                    // and it becomes false as soon as we see any
+                    // un-closed child on the same branch
+                    closed = false;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (closed) {
+        // set closed on this cset and its direct simple parents
+        QString csid = id;
+        while (cs) {
+            cs->setClosed(true);
+            if (cs->parents().size() == 1) {
+                QString pid = cs->parents()[0];
+                if (!m_changesets.contains(pid)) break;
+                cs = m_changesets[pid];
+                if (cs->children().size() > 1) {
+//                    std::cerr << "adding pid " << pid << " (it has more than one child)" << std::endl;
+                    deferred.insert(pid); // examine later
+                    cs = 0;
+                }
+            } else if (cs->parents().size() > 1) {
+                foreach (QString pid, cs->parents()) {
+//                    std::cerr << "recursing to pid " << pid << " (it is one of multiple parents)" << std::endl;
+                    markClosedChangesetsFrom(pid, deferred);
+                }
+                cs = 0;
+            } else {
+                cs = 0;
+            }
+        }
+    } else {
+        cs->setClosed(false);
+    }
+    
+//    std::cerr << "finished with id " << id << std::endl;
+}
+
 void Grapher::layout(Changesets csets,
                      QStringList uncommittedParents,
                      QString uncommittedBranch)
@@ -425,67 +524,8 @@ void Grapher::layout(Changesets csets,
     }
     
     // Ensure the closed branch changesets are all marked as closed.
-    // A changeset should be marked as closed (i) if it is in the list
-    // of closed heads [and has no children]; or (ii) all of its
-    // children that have the same branch name as it are marked as
-    // closed [and there is at least one of those]
 
-    QStringList potentiallyClosed;
-    potentiallyClosed = QStringList::fromSet(m_closedIds);
-
-    while (!potentiallyClosed.empty()) {
-        
-        QString id = *potentiallyClosed.begin();
-
-        if (m_changesets.contains(id)) {
-            
-            Changeset *cs = m_changesets[id];
-            QString branch = cs->branch();
-            
-            bool closed = false;
-
-            if (m_closedIds.contains(id)) {
-                closed = true;
-            } else {
-                closed = true;
-                foreach (QString childId, cs->children()) {
-                    if (!m_changesets.contains(childId)) continue;
-                    Changeset *ccs = m_changesets[childId];
-                    if (ccs->isOnBranch(branch)) {
-                        if (!ccs->closed()) {
-                            closed = false;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (closed) {
-                // set closed on this cset and its direct simple parents
-                while (cs) {
-                    cs->setClosed(true);
-                    if (cs->parents().size() == 1) {
-                        QString pid = cs->parents()[0];
-                        if (!m_changesets.contains(pid)) break;
-                        cs = m_changesets[pid];
-                        if (cs->children().size() > 1) {
-                            potentiallyClosed.push_back(pid); // examine later
-                            cs = 0;
-                        }
-                    } else if (cs->parents().size() > 1) {
-                        foreach (QString pid, cs->parents()) {
-                            potentiallyClosed.push_back(pid); // examine later
-                        }
-                        cs = 0;
-                    } else {
-                        cs = 0;
-                    }
-                }
-            }
-        }
-
-        potentiallyClosed.erase(potentiallyClosed.begin());
-    }
+    markClosedChangesets();
 
     // Create (but don't yet position) the changeset items
 
