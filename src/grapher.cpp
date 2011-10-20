@@ -424,32 +424,67 @@ void Grapher::layout(Changesets csets,
         }
     }
     
-    // Ensure the closed branches are all marked as closed
+    // Ensure the closed branch changesets are all marked as closed.
+    // A changeset should be marked as closed (i) if it is in the list
+    // of closed heads [and has no children]; or (ii) all of its
+    // children that have the same branch name as it are marked as
+    // closed [and there is at least one of those]
 
-    foreach (QString closedId, m_closedIds) {
+    QStringList potentiallyClosed;
+    potentiallyClosed = QStringList::fromSet(m_closedIds);
+
+    while (!potentiallyClosed.empty()) {
         
-        if (!m_changesets.contains(closedId)) continue;
-        
-        Changeset *cs = m_changesets[closedId];
-        QString branch = cs->branch();
+        QString id = *potentiallyClosed.begin();
 
-        while (cs) {
+        if (m_changesets.contains(id)) {
+            
+            Changeset *cs = m_changesets[id];
+            QString branch = cs->branch();
+            
+            bool closed = false;
 
-            if (cs->children().size() > 1 || !cs->isOnBranch(branch)) {
-                break;
+            if (m_closedIds.contains(id)) {
+                closed = true;
+            } else {
+                closed = true;
+                foreach (QString childId, cs->children()) {
+                    if (!m_changesets.contains(childId)) continue;
+                    Changeset *ccs = m_changesets[childId];
+                    if (ccs->isOnBranch(branch)) {
+                        if (!ccs->closed()) {
+                            closed = false;
+                            break;
+                        }
+                    }
+                }
             }
 
-            cs->setClosed(true);
-
-            if (cs->parents().size() >= 1) {
-                //!!! this is wrong, not adequate for merges in-branch
-                QString pid = cs->parents()[0];
-                if (!m_changesets.contains(pid)) break;
-                cs = m_changesets[pid];
-            } else {
-                cs = 0;
+            if (closed) {
+                // set closed on this cset and its direct simple parents
+                while (cs) {
+                    cs->setClosed(true);
+                    if (cs->parents().size() == 1) {
+                        QString pid = cs->parents()[0];
+                        if (!m_changesets.contains(pid)) break;
+                        cs = m_changesets[pid];
+                        if (cs->children().size() > 1) {
+                            potentiallyClosed.push_back(pid); // examine later
+                            cs = 0;
+                        }
+                    } else if (cs->parents().size() > 1) {
+                        foreach (QString pid, cs->parents()) {
+                            potentiallyClosed.push_back(pid); // examine later
+                        }
+                        cs = 0;
+                    } else {
+                        cs = 0;
+                    }
+                }
             }
         }
+
+        potentiallyClosed.erase(potentiallyClosed.begin());
     }
 
     // Create (but don't yet position) the changeset items
