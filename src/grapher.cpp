@@ -515,12 +515,16 @@ void Grapher::layout(Changesets csets,
         ChangesetItem *item = m_items[id];
         bool merge = (cs->parents().size() > 1);
         foreach (QString parentId, cs->parents()) {
-            if (!m_items.contains(parentId)) continue;
+            if (!m_changesets.contains(parentId)) continue;
             ConnectionItem *conn = new ConnectionItem();
             if (merge) conn->setConnectionType(ConnectionItem::Merge);
             conn->setChild(item);
-            conn->setParent(m_items[parentId]);
             conn->setZValue(-1);
+            if (m_items.contains(parentId)) {
+                conn->setParent(m_items[parentId]);
+            } else {
+                conn->setMergedBranch(m_changesets[parentId]->branch());
+            }
             m_scene->addItem(conn);
         }
     }
