@@ -407,6 +407,13 @@ ChangesetItem::paintNormal(QPainter *paint)
         }
     }
 
+    if (!m_bookmarks.empty()) {
+        QString bmText = m_bookmarks.join(" ").trimmed();
+        int bw = fm.width(bmText);
+        paint->fillRect(QRectF(x0 + width - 8 - bw, 1, bw + 4, fh - 1),
+                        QBrush(Qt::yellow)); paint->drawText(x0 + width - 6 - bw, fm.ascent(), bmText);
+    }
+
     paint->setPen(QPen(branchColour, 2));
     paint->setBrush(Qt::NoBrush);
     paint->drawRoundedRect(r, 7, 7);
