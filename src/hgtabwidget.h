@@ -50,6 +50,8 @@ public:
     void setCurrent(QStringList ids, QString branch);
     void setClosedHeadIds(QSet<QString> ids);
 
+    void setBookmarks(QHash<QString, QStringList> bmarks);
+
     void setHaveMerge(bool);
 
     void updateFileStates();

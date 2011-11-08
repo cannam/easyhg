@@ -323,6 +323,13 @@ void MainWindow::hgQueryBranch()
 */
 }
 
+void MainWindow::hgQueryBookmarks()
+{
+    QStringList params;
+    params << "bookmarks";
+    m_runner->requestAction(HgAction(ACT_QUERY_BOOKMARKS, m_workFolderPath, params));
+}
+
 void MainWindow::hgQueryHeadsActive()
 {
     QStringList params;
@@ -2195,6 +2202,10 @@ void MainWindow::commandFailed(HgAction action, QString output)
         // and some return with failure codes when something as basic
         // as the user closing the window via the wm happens
         return;
+    case ACT_QUERY_BOOKMARKS:
+        // probably just means we have an old Hg version: simply don't
+        // display bookmarks
+        return;
     case ACT_MERGE:
     case ACT_RETRY_MERGE:
         MoreInformationDialog::information
@@ -2227,10 +2238,14 @@ void MainWindow::commandFailed(HgAction action, QString output)
 
 void MainWindow::commandCompleted(HgAction completedAction, QString output)
 {
+    std::cerr << "commandCompleted: " << completedAction.action << std::endl;
+
     restoreFileSystemWatcher();
     HGACTIONS action = completedAction.action;
 
     if (action == ACT_NONE) return;
+
+    output.replace("\r\n", "\n");
 
     bool headsChanged = false;
     QStringList oldHeadIds;
@@ -2281,6 +2296,26 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     case ACT_QUERY_BRANCH:
         m_currentBranch = output.trimmed();
         break;
+
+    case ACT_QUERY_BOOKMARKS:
+    {
+        m_bookmarks.clear();
+        QStringList outList = output.split('\n', QString::SkipEmptyParts);
+        foreach (QString line, outList) {
+            QStringList items = line.split(' ', QString::SkipEmptyParts);
+            if (items[0] == "*") {
+                if (items.size() == 3) {
+                    m_bookmarks[items[2]].push_back(items[1]);
+                }
+            } else {
+                if (items.size() == 2) {
+                    m_bookmarks[items[1]].push_back(items[0]);
+                }
+            }
+        }
+        m_hgTabs->setBookmarks(m_bookmarks);
+        break;
+    }
 
     case ACT_STAT:
         m_lastStatOutput = output;
@@ -2436,7 +2471,6 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     case ACT_DIFF_SUMMARY:
     {
         // Output has log info first, diff following after a blank line
-        output.replace("\r\n", "\n");
         QStringList olist = output.split("\n\n", QString::SkipEmptyParts);
         if (olist.size() > 1) output = olist[1];
 
@@ -2495,11 +2529,12 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     }
 
     // Sequence when no full log required:
-    //   paths -> branch -> stat -> resolve-list -> heads ->
+    //   paths -> branch -> stat -> bookmarks -> resolve-list -> heads ->
     //     incremental-log (only if heads changed) -> parents
     // 
     // Sequence when full log required:
-    //   paths -> branch -> stat -> resolve-list -> heads -> parents -> log
+    //   paths -> branch -> stat -> bookmarks -> resolve-list -> heads ->
+    //     parents -> log
     //
     // Note we want to call enableDisableActions only once, at the end
     // of whichever sequence is in use.
@@ -2530,17 +2565,23 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
         
     case ACT_QUERY_PATHS:
+        // NB this call is duplicated in hgQueryPaths
         hgQueryBranch();
         break;
 
     case ACT_QUERY_BRANCH:
+        // NB this call is duplicated in hgQueryBranch
         hgStat();
         break;
         
     case ACT_STAT:
-        hgResolveList();
+        hgQueryBookmarks();
         break;
 
+    case ACT_QUERY_BOOKMARKS:
+        hgResolveList();
+        break;
+        
     case ACT_RESOLVE_LIST:
         hgQueryHeadsActive();
         break;

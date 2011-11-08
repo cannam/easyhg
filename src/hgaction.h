@@ -59,7 +59,8 @@ enum HGACTIONS
     ACT_NEW_BRANCH,
     ACT_HG_IGNORE,
     ACT_COPY_FILE,
-    ACT_RENAME_FILE
+    ACT_RENAME_FILE,
+    ACT_QUERY_BOOKMARKS
 };
 
 struct HgAction
@@ -97,6 +98,7 @@ struct HgAction
         case ACT_QUERY_HEADS_ACTIVE:
         case ACT_QUERY_PARENTS:
         case ACT_LOG_INCREMENTAL:
+        case ACT_QUERY_BOOKMARKS:
             return true;
         default:
             return false;

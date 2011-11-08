@@ -144,6 +144,11 @@ void HgTabWidget::setClosedHeadIds(QSet<QString> closed)
     m_historyWidget->setClosedHeadIds(closed);
 }
 
+void HgTabWidget::setBookmarks(QHash<QString, QStringList> bmarks)
+{
+    m_historyWidget->setBookmarks(bmarks);
+}
+
 void HgTabWidget::updateFileStates()
 {
     m_fileStatusWidget->updateWidgets();
