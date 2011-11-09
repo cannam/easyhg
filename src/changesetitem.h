@@ -65,8 +65,6 @@ public:
     bool showBranch() const { return m_showBranch; }
     void setShowBranch(bool s) { m_showBranch = s; }
 
-    void setBookmarks(QStringList b) { m_bookmarks = b; }
-
 signals:
     void detailShown();
     void detailHidden();
@@ -112,7 +110,6 @@ private:
     bool m_current;
     bool m_closing;
     bool m_new;
-    QStringList m_bookmarks;
 
     QMap<QAction *, QString> m_parentDiffActions;
     QMap<QAction *, QString> m_summaryActions;

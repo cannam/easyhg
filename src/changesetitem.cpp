@@ -407,17 +407,6 @@ ChangesetItem::paintNormal(QPainter *paint)
         }
     }
 
-    if (!m_bookmarks.empty()) {
-        QString bmText = m_bookmarks.join(" ").trimmed();
-        int bw = fm.width(bmText);
-        paint->fillRect(QRectF(x0 + width - 8 - bw, 1, bw + 4, fh - 1),
-                        QBrush(Qt::yellow)); paint->drawText(x0 + width - 6 - bw, fm.ascent(), bmText);
-    }
-
-    paint->setPen(QPen(branchColour, 2));
-    paint->setBrush(Qt::NoBrush);
-    paint->drawRoundedRect(r, 7, 7);
-
     if (m_showBranch) {
 	// write branch name
         paint->save();
@@ -432,6 +421,21 @@ ChangesetItem::paintNormal(QPainter *paint)
 	f.setBold(false);
         paint->restore();
     }
+
+    QStringList bookmarks = m_changeset->bookmarks();
+    if (!bookmarks.empty()) {
+        QString bmText = bookmarks.join(" ").trimmed();
+        int bw = fm.width(bmText);
+        paint->fillRect(QRectF(x0 + width - fh*2 - bw, -fh - 4,
+                               bw + 4, fh - 1),
+                        QBrush(Qt::yellow));
+        paint->drawText(x0 + width - fh*2 - bw + 2,
+                        -fh + fm.ascent() - 4, bmText);
+    }
+
+    paint->setPen(QPen(branchColour, 2));
+    paint->setBrush(Qt::NoBrush);
+    paint->drawRoundedRect(r, 7, 7);
 
     if (m_current && showProperLines) {
         paint->setRenderHint(QPainter::SmoothPixmapTransform, true);

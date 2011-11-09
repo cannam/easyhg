@@ -104,11 +104,6 @@ void HistoryWidget::setCurrent(QStringList ids, QString branch,
     m_refreshNeeded = true;
 }
 
-void HistoryWidget::setBookmarks(QHash<QString, QStringList> bookmarks)
-{
-    m_bookmarks = bookmarks;
-}
-
 void HistoryWidget::setClosedHeadIds(QSet<QString> closed)
 {
     if (closed == m_closedIds) return;
@@ -288,12 +283,6 @@ void HistoryWidget::updateNewAndCurrentItems()
         bool newid = m_newIds.contains(id);
         if (newid) {
             DEBUG << "id " << id << " is new" << endl;
-        }
-
-        if (m_bookmarks.contains(id)) {
-            csit->setBookmarks(m_bookmarks[id]);
-        } else {
-            csit->setBookmarks(QStringList());
         }
 
         if (csit->isCurrent() != current ||
