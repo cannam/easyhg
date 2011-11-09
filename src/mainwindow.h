@@ -122,7 +122,6 @@ private slots:
 
 private:
     void hgQueryBranch();
-    void hgQueryBookmarks();
     void hgQueryHeadsActive();
     void hgQueryHeads();
     void hgQueryParents();
@@ -193,7 +192,6 @@ private:
     QString m_currentBranch;
     Changesets m_currentHeads;
     Changesets m_activeHeads;
-    QHash<QString, QStringList> m_bookmarks; // changeset id -> names, not vice versa
     QSet<QString> m_closedHeadIds;
     Changesets m_currentParents;
     int m_commitsSincePush;

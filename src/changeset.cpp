@@ -33,6 +33,10 @@ Changeset::Changeset(const LogEntry &e) :
             QStringList tags = e.value(key).split
                 (" ", QString::SkipEmptyParts);
             setTags(tags);
+        } else if (key == "bookmarks") {
+            QStringList bmarks = e.value(key).split
+                (" ", QString::SkipEmptyParts);
+            setBookmarks(bmarks);
         } else if (key == "timestamp") {
             setTimestamp(e.value(key).split(" ")[0].toULongLong());
         } else if (key == "changeset") {
@@ -45,7 +49,7 @@ Changeset::Changeset(const LogEntry &e) :
 
 QString Changeset::getLogTemplate()
 {
-    return "id: {rev}:{node|short}\\nauthor: {author}\\nbranch: {branches}\\ntag: {tags}\\ndatetime: {date|isodate}\\ntimestamp: {date|hgdate}\\nage: {date|age}\\nparents: {parents}\\ncomment: {desc|json}\\n\\n";
+    return "id: {rev}:{node|short}\\nauthor: {author}\\nbranch: {branches}\\ntag: {tags}\\nbookmarks: {bookmarks}\\ndatetime: {date|isodate}\\ntimestamp: {date|hgdate}\\nage: {date|age}\\nparents: {parents}\\ncomment: {desc|json}\\n\\n";
 }
 
 QString Changeset::formatHtml()
@@ -71,6 +75,7 @@ QString Changeset::formatHtml()
 	      << "datetime"
 	      << "branch"
 	      << "tags"
+	      << "bookmarks"
 	      << "comment";
 
     propTexts << QObject::tr("Identifier:")
@@ -89,6 +94,8 @@ QString Changeset::formatHtml()
             value = c;
         } else if (prop == "tags") {
             value = tags().join(" ");
+        } else if (prop == "bookmarks") {
+            value = bookmarks().join(" ");
         } else {
 	    value = xmlEncode(property(prop.toLocal8Bit().data()).toString());
 	}
