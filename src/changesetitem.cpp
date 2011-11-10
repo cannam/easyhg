@@ -338,6 +338,40 @@ ChangesetItem::paintNormal(QPainter *paint)
     int height = (lineCount + 1) * fh + 2;
     QRectF r(x0, 0, width - 3, height);
 
+    QColor textColour = Qt::black;
+    textColour.setAlpha(alpha);
+
+    if (m_showBranch && showText) {
+	// write branch name
+        paint->save();
+	f.setBold(true);
+	paint->setFont(f);
+	paint->setPen(QPen(branchColour));
+	QString branch = m_changeset->branch();
+        if (branch == "") branch = "default";
+	int wid = width - 3;
+	branch = TextAbbrev::abbreviate(branch, QFontMetrics(f), wid);
+	paint->drawText(x0, -fh + fm.ascent() - 4, branch);
+	f.setBold(false);
+        paint->restore();
+    }
+
+    QStringList bookmarks = m_changeset->bookmarks();
+    if (!bookmarks.empty() && showText) {
+        QString bmText = bookmarks.join(" ").trimmed();
+        int bw = fm.width(bmText);
+        int bx = x0 + width - bw - 14;
+        if (m_current) bx = bx - fh*1.5 + 3;
+        paint->save();
+        paint->setPen(QPen(branchColour, 2));
+//        paint->setBrush(QBrush(Qt::white));
+        paint->setBrush(QBrush(branchColour));
+        paint->drawRoundedRect(QRectF(bx, -fh - 4, bw + 4, fh * 2), 5, 5);
+        paint->setPen(QPen(Qt::white));
+        paint->drawText(bx + 2, -fh + fm.ascent() - 4, bmText);
+        paint->restore();
+    }
+
     if (showProperLines) {
 
         if (m_new) {
@@ -380,9 +414,6 @@ ChangesetItem::paintNormal(QPainter *paint)
                                             fm, textwid);
     paint->drawText(x0 + 3, fm.ascent(), person);
 
-    QColor textColour = Qt::black;
-    textColour.setAlpha(alpha);
-
     paint->setPen(QPen(textColour));
 
     QStringList tags = m_changeset->tags();
@@ -405,32 +436,6 @@ ChangesetItem::paintNormal(QPainter *paint)
                             QBrush(Qt::yellow));
             paint->drawText(x0 + width - 6 - tw, fm.ascent(), tagText);
         }
-    }
-
-    if (m_showBranch) {
-	// write branch name
-        paint->save();
-	f.setBold(true);
-	paint->setFont(f);
-	paint->setPen(QPen(branchColour));
-	QString branch = m_changeset->branch();
-        if (branch == "") branch = "default";
-	int wid = width - 3;
-	branch = TextAbbrev::abbreviate(branch, QFontMetrics(f), wid);
-	paint->drawText(x0, -fh + fm.ascent() - 4, branch);
-	f.setBold(false);
-        paint->restore();
-    }
-
-    QStringList bookmarks = m_changeset->bookmarks();
-    if (!bookmarks.empty()) {
-        QString bmText = bookmarks.join(" ").trimmed();
-        int bw = fm.width(bmText);
-        paint->fillRect(QRectF(x0 + width - fh*2 - bw, -fh - 4,
-                               bw + 4, fh - 1),
-                        QBrush(Qt::yellow));
-        paint->drawText(x0 + width - fh*2 - bw + 2,
-                        -fh + fm.ascent() - 4, bmText);
     }
 
     paint->setPen(QPen(branchColour, 2));
