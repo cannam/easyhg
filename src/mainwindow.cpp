@@ -2227,7 +2227,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
 
 void MainWindow::commandCompleted(HgAction completedAction, QString output)
 {
-    std::cerr << "commandCompleted: " << completedAction.action << std::endl;
+//    std::cerr << "commandCompleted: " << completedAction.action << std::endl;
 
     restoreFileSystemWatcher();
     HGACTIONS action = completedAction.action;

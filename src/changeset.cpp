@@ -82,7 +82,8 @@ QString Changeset::formatHtml()
 	      << QObject::tr("Author:")
 	      << QObject::tr("Date:")
 	      << QObject::tr("Branch:")
-	      << QObject::tr("Tag:")
+	      << QObject::tr("Tags:")
+	      << QObject::tr("Bookmarks:")
 	      << QObject::tr("Comment:");
 
     for (int i = 0; i < propNames.size(); ++i) {
