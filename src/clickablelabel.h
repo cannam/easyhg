@@ -18,9 +18,11 @@
 #ifndef _CLICKABLE_LABEL_H_
 #define _CLICKABLE_LABEL_H_
 
-#include <QLabel>
+#include "squeezedlabel.h"
 
-class ClickableLabel : public QLabel
+#include <QMouseEvent>
+
+class ClickableLabel : public SqueezedLabel
 {
     Q_OBJECT
 
@@ -28,12 +30,12 @@ class ClickableLabel : public QLabel
 
 public:
     ClickableLabel(const QString &text, QWidget *parent = 0) :
-        QLabel(text, parent),
+        SqueezedLabel(text, parent),
 	m_naturalText(text)
     { }
 
     ClickableLabel(QWidget *parent = 0) :
-	QLabel(parent)
+	SqueezedLabel(parent)
     { }
 
     ~ClickableLabel()
@@ -41,7 +43,7 @@ public:
 
     void setText(const QString &t) {
 	m_naturalText = t;
-	QLabel::setText(t);
+	SqueezedLabel::setText(t);
     }
 
     bool mouseUnderline() const {
@@ -62,18 +64,22 @@ signals:
 protected:
     virtual void enterEvent(QEvent *) {
 	if (m_mouseUnderline) {
-	    QLabel::setText(tr("<u>%1</u>").arg(m_naturalText));
+	    SqueezedLabel::setText(tr("<u>%1</u>").arg(m_naturalText));
 	}
     }
 
     virtual void leaveEvent(QEvent *) {
 	if (m_mouseUnderline) {
-	    QLabel::setText(m_naturalText);
+	    SqueezedLabel::setText(m_naturalText);
 	}
     }
 
-    virtual void mousePressEvent(QMouseEvent *) {
-        emit clicked();
+    virtual void mousePressEvent(QMouseEvent *ev) {
+        if (ev->button() == Qt::LeftButton) {
+            emit clicked();
+        } else {
+            SqueezedLabel::mousePressEvent(ev);
+        }
     }
 
 private:
