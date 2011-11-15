@@ -47,6 +47,7 @@ WorkStatusWidget::WorkStatusWidget(QWidget *parent) :
     f.setBold(true);
     m_openButton->setFont(f);
     m_openButton->setMouseUnderline(true);
+    m_openButton->setWordWrap(true);
     connect(m_openButton, SIGNAL(clicked()), this, SLOT(openButtonClicked()));
     layout->addWidget(m_openButton, row, 2, 1, 2, Qt::AlignLeft);
 
@@ -54,6 +55,7 @@ WorkStatusWidget::WorkStatusWidget(QWidget *parent) :
     layout->addWidget(new QLabel(tr("Remote:")), row, 1);
     m_remoteURLLabel = new QLabel;
     m_remoteURLLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    m_remoteURLLabel->setWordWrap(true);
     layout->addWidget(m_remoteURLLabel, row, 2, 1, 2);
 
     ++row;
