@@ -1336,9 +1336,8 @@ void MainWindow::hgServe()
     if (hgrc.exists()) {
         QSettings s(hgrc.canonicalFilePath(), QSettings::IniFormat);
         s.beginGroup("web");
-        if (s.contains("port")) {
-            port = s.value("port").toInt();
-        }
+        int p = s.value("port").toInt();
+        if (p) port = p;
     }
 
     QTextStream ts(&msg);
