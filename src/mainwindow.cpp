@@ -1324,7 +1324,22 @@ void MainWindow::hgServe()
         return;
     }
 
-    //!!! should find available port as well
+    // See #202. We really want to display the port that the server
+    // ends up using -- but we don't get that information until after
+    // it has exited!  However, we can improve the likelihood of
+    // showing the right port by at least checking whether a port is
+    // defined in the hgrc file.
+
+    QFileInfo hgrc(QDir::homePath() + "/.hgrc");
+    QString path;
+    int port = 8000; // the default
+    if (hgrc.exists()) {
+        QSettings s(hgrc.canonicalFilePath(), QSettings::IniFormat);
+        s.beginGroup("web");
+        if (s.contains("port")) {
+            port = s.value("port").toInt();
+        }
+    }
 
     QTextStream ts(&msg);
     ts << QString("<qt><h3>%1</h3><p>%2</p>")
@@ -1338,7 +1353,7 @@ void MainWindow::hgServe()
             .arg(tr("Users who have network access to your computer can now clone your repository, by using the following URL as a remote location:"));
     }
     foreach (QString addr, addrs) {
-        ts << QString("<pre>&nbsp;&nbsp;http://%1:8000</pre>").arg(xmlEncode(addr));
+        ts << QString("<pre>&nbsp;&nbsp;http://%1:%2</pre>").arg(xmlEncode(addr)).arg(port);
     }
     ts << tr("<p>Press Close to terminate this server, end remote access, and return.</p>");
     ts.flush();
