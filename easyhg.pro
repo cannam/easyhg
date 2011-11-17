@@ -106,7 +106,7 @@ SOURCES = \
 macx-* {
     SOURCES += src/common_osx.mm
     LIBS += -framework Foundation
-    ICON = easyhg.icns
+    ICON = easyhg-icon.icns
 }
 
 linux* {
