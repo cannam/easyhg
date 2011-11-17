@@ -1,0 +1,10 @@
+{Sharing changes}
+
+I have committed some changes -- how do I share them with my colleagues?
+
+There are two common general approaches:
+
+[[31|Permit your colleagues to "pull" your changes]] directly from the local repository in your working folder, _or_
+
+[[32|"Push" your changes to a shared remote repository]] which you can all use as a master copy.
+

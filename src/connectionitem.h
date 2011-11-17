@@ -50,12 +50,14 @@ public:
     void setParent(ChangesetItem *p) { m_parent = p; }
     void setChild(ChangesetItem *c) { m_child = c; }
     void setChild(UncommittedItem *u) { m_uncommitted = u; }
+    void setMergedBranch(QString mb) { m_mergedBranch = mb; }
 
 private:
     Type m_type;
     ChangesetItem *m_parent;
     ChangesetItem *m_child;
     UncommittedItem *m_uncommitted;
+    QString m_mergedBranch;
 };
 
 #endif // CONNECTIONITEM_H

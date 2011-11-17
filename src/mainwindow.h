@@ -57,6 +57,7 @@ public slots:
 
 private slots:
     void about();
+    void help();
     void settings();
     void settings(SettingsDialog::Tab);
     void open();
@@ -94,6 +95,7 @@ private slots:
     void hgTag(QString);
     void hgNewBranch();
     void hgNoBranch();
+    void hgCloseBranch();
     void hgServe();
     void hgIgnore();
     void hgEditIgnore();
@@ -120,6 +122,7 @@ private slots:
 
 private:
     void hgQueryBranch();
+    void hgQueryHeadsActive();
     void hgQueryHeads();
     void hgQueryParents();
     void hgLog();
@@ -177,6 +180,8 @@ private:
     void suspendFileSystemWatcher();
     void restoreFileSystemWatcher();
 
+    void updateClosedHeads();
+
     void updateWorkFolderAndRepoNames();
 
     WorkStatusWidget *m_workStatus;
@@ -186,6 +191,8 @@ private:
     QString m_workFolderPath;
     QString m_currentBranch;
     Changesets m_currentHeads;
+    Changesets m_activeHeads;
+    QSet<QString> m_closedHeadIds;
     Changesets m_currentParents;
     int m_commitsSincePush;
     bool m_stateUnknown;
@@ -234,10 +241,13 @@ private:
 
     // Help menu actions
     QAction *m_aboutAct;
+    QAction *m_helpAct;
 
     QToolBar *m_fileToolBar;
     QToolBar *m_repoToolBar;
     QToolBar *m_workFolderToolBar;
+
+    QDialog *m_helpDialog;
 
     HgRunner *m_runner;
 

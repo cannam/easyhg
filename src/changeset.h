@@ -38,6 +38,7 @@ class Changeset : public QObject
     Q_PROPERTY(QString author READ author WRITE setAuthor NOTIFY authorChanged STORED true);
     Q_PROPERTY(QString branch READ branch WRITE setBranch NOTIFY branchChanged STORED true);
     Q_PROPERTY(QStringList tags READ tags WRITE setTags NOTIFY tagsChanged STORED true);
+    Q_PROPERTY(QStringList bookmarks READ bookmarks WRITE setBookmarks NOTIFY bookmarksChanged STORED true);
     Q_PROPERTY(QString datetime READ datetime WRITE setDatetime NOTIFY datetimeChanged STORED true);
     Q_PROPERTY(qulonglong timestamp READ timestamp WRITE setTimestamp NOTIFY timestampChanged STORED true);
     Q_PROPERTY(QString age READ age WRITE setAge NOTIFY ageChanged STORED true);
@@ -53,6 +54,7 @@ public:
     QString author() const { return m_author; }
     QString branch() const { return m_branch; }
     QStringList tags() const { return m_tags; }
+    QStringList bookmarks() const { return m_bookmarks; }
     QString datetime() const { return m_datetime; }
     qulonglong timestamp() const { return m_timestamp; }
     QString age() const { return m_age; }
@@ -64,6 +66,12 @@ public:
      * Grapher::layout() based on reported parents
      */
     QStringList children() const { return m_children; }
+
+    /**
+     * The closed property is not obtained from Hg, but set in
+     * Grapher::layout() based on traversing closed branch graphs
+     */
+    bool closed() const { return m_closed; }
 
     int number() const {
         return id().split(':')[0].toInt();
@@ -114,11 +122,13 @@ signals:
     void authorChanged(QString author);
     void branchChanged(QString branch);
     void tagsChanged(QStringList tags);
+    void bookmarksChanged(QStringList bookmarks);
     void datetimeChanged(QString datetime);
     void timestampChanged(qulonglong timestamp);
     void ageChanged(QString age);
     void parentsChanged(QStringList parents);
     void childrenChanged(QStringList children);
+    void closedChanged(bool closed);
     void commentChanged(QString comment);
 
 public slots:
@@ -127,12 +137,15 @@ public slots:
     void setBranch(QString branch) { m_branch = branch; emit branchChanged(branch); }
     void setTags(QStringList tags) { m_tags = tags; emit tagsChanged(tags); }
     void addTag(QString tag) { m_tags.push_back(tag); emit tagsChanged(m_tags); }
+    void setBookmarks(QStringList bmarks) { m_bookmarks = bmarks; emit bookmarksChanged(bmarks); }
+    void addBookmark(QString b) { m_bookmarks.push_back(b); emit bookmarksChanged(m_bookmarks); }
     void setDatetime(QString datetime) { m_datetime = datetime; emit datetimeChanged(datetime); }
     void setTimestamp(qulonglong timestamp) { m_timestamp = timestamp; emit timestampChanged(timestamp); }
     void setAge(QString age) { m_age = age; emit ageChanged(age); }
     void setParents(QStringList parents) { m_parents = parents; emit parentsChanged(parents); }
     void setChildren(QStringList children) { m_children = children; emit childrenChanged(m_children); }
     void addChild(QString child) { m_children.push_back(child); emit childrenChanged(m_children); }
+    void setClosed(bool closed) { m_closed = closed; emit closedChanged(closed); }
     void setComment(QString comment) { m_comment = comment; emit commentChanged(comment); }
 
 private:
@@ -140,11 +153,13 @@ private:
     QString m_author;
     QString m_branch;
     QStringList m_tags;
+    QStringList m_bookmarks;
     QString m_datetime;
     qulonglong m_timestamp;
     QString m_age;
     QStringList m_parents;
     QStringList m_children;
+    bool m_closed;
     QString m_comment;
 };
 

@@ -51,6 +51,14 @@ public:
     bool isCurrent() const { return m_current; }
     void setCurrent(bool c) { m_current = c; }
 
+    // Closed is true if this changeset is on a closed branch
+    bool isClosed() const;
+
+    // Closing is true if this changeset is the commit that closed its
+    // branch (i.e. is at the end of a closed branch)
+    bool isClosingCommit() const { return m_closing; }
+    void setClosingCommit(bool c) { m_closing = c; }
+
     bool isNew() const { return m_new; }
     void setNew(bool n) { m_new = n; }
 
@@ -67,6 +75,7 @@ signals:
     void showSummary(Changeset *);
     void mergeFrom(QString);
     void newBranch(QString);
+    void closeBranch(QString);
     void tag(QString);
 
 public slots:
@@ -82,6 +91,7 @@ private slots:
     void mergeActivated();
     void tagActivated();
     void newBranchActivated();
+    void closeBranchActivated();
 
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *);
@@ -98,6 +108,7 @@ private:
     int m_row;
     bool m_wide;
     bool m_current;
+    bool m_closing;
     bool m_new;
 
     QMap<QAction *, QString> m_parentDiffActions;
@@ -107,7 +118,7 @@ private:
 
     bool isMerge() const;
     void paintNormal(QPainter *);
-    void paintMerge(QPainter *);
+    void paintSimple(QPainter *);
 };
 
 #endif // CHANGESETITEM_H

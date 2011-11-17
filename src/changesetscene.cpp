@@ -60,6 +60,9 @@ ChangesetScene::addChangesetItem(ChangesetItem *item)
     connect(item, SIGNAL(newBranch(QString)),
             this, SIGNAL(newBranch(QString)));
 
+    connect(item, SIGNAL(closeBranch(QString)),
+            this, SIGNAL(closeBranch(QString)));
+
     connect(item, SIGNAL(tag(QString)),
             this, SIGNAL(tag(QString)));
 }

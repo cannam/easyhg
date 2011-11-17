@@ -28,7 +28,8 @@
 
 HgTabWidget::HgTabWidget(QWidget *parent,
                          QString workFolderPath) :
-    QTabWidget(parent)
+    QTabWidget(parent),
+    m_haveMerge(false)
 {
     // Work tab
     m_fileStatusWidget = new FileStatusWidget;
@@ -121,6 +122,9 @@ HgTabWidget::HgTabWidget(QWidget *parent,
     connect(m_historyWidget, SIGNAL(newBranch(QString)),
             this, SIGNAL(newBranch(QString)));
 
+    connect(m_historyWidget, SIGNAL(closeBranch(QString)),
+            this, SIGNAL(closeBranch(QString)));
+
     connect(m_historyWidget, SIGNAL(tag(QString)),
             this, SIGNAL(tag(QString)));
 }
@@ -132,8 +136,12 @@ void HgTabWidget::clearSelections()
 
 void HgTabWidget::setCurrent(QStringList ids, QString branch)
 {
-    bool showUncommitted = haveChangesToCommit();
-    m_historyWidget->setCurrent(ids, branch, showUncommitted);
+    m_historyWidget->setCurrent(ids, branch, haveChangesToCommit());
+}
+
+void HgTabWidget::setClosedHeadIds(QSet<QString> closed)
+{
+    m_historyWidget->setClosedHeadIds(closed);
 }
 
 void HgTabWidget::updateFileStates()
@@ -153,8 +161,8 @@ bool HgTabWidget::canDiff() const
 
 bool HgTabWidget::canCommit() const
 {
-    if (!m_fileStatusWidget->haveChangesToCommit()) return false;
-    if (!m_fileStatusWidget->getAllUnresolvedFiles().empty()) return false;
+    if (!haveChangesToCommit()) return false;
+    if (!getAllUnresolvedFiles().empty()) return false;
     return true;
 }
 
@@ -162,8 +170,8 @@ bool HgTabWidget::canRevert() const
 {
     // Not the same as canCommit() -- we can revert (and diff)
     // unresolved files, but we can't commit them
-    if (!m_fileStatusWidget->haveChangesToCommit() &&
-        m_fileStatusWidget->getAllUnresolvedFiles().empty()) return false;
+    if (!haveChangesToCommit() &&
+        getAllUnresolvedFiles().empty()) return false;
     return true;
 }
 
@@ -172,10 +180,10 @@ bool HgTabWidget::canAdd() const
     // Permit this only when work tab is visible
     if (currentIndex() != 0) return false;
 
-    QStringList addable = m_fileStatusWidget->getSelectedAddableFiles();
+    QStringList addable = getSelectedAddableFiles();
     if (addable.empty()) return false;
 
-    QStringList removable = m_fileStatusWidget->getSelectedRemovableFiles();
+    QStringList removable = getSelectedRemovableFiles();
     if (!removable.empty()) return false;
 
     return true;
@@ -186,14 +194,14 @@ bool HgTabWidget::canRemove() const
     // Permit this only when work tab is visible
     if (currentIndex() != 0) return false;
 
-    if (m_fileStatusWidget->getSelectedRemovableFiles().empty()) return false;
-    if (!m_fileStatusWidget->getSelectedAddableFiles().empty()) return false;
+    if (getSelectedRemovableFiles().empty()) return false;
+    if (!getSelectedAddableFiles().empty()) return false;
     return true;
 }
 
 bool HgTabWidget::canResolve() const
 {
-    return !m_fileStatusWidget->getAllUnresolvedFiles().empty();
+    return !getAllUnresolvedFiles().empty();
 }
 
 bool HgTabWidget::canIgnore() const
@@ -203,7 +211,7 @@ bool HgTabWidget::canIgnore() const
 
 bool HgTabWidget::haveChangesToCommit() const
 {
-    return m_fileStatusWidget->haveChangesToCommit();
+    return m_haveMerge || m_fileStatusWidget->haveChangesToCommit();
 }
 
 QStringList HgTabWidget::getAllCommittableFiles() const
@@ -235,6 +243,15 @@ void HgTabWidget::updateWorkFolderFileList(QString fileList)
 {
     m_fileStates.parseStates(fileList);
     m_fileStatusWidget->setFileStates(m_fileStates);
+}
+
+void HgTabWidget::setHaveMerge(bool haveMerge)
+{
+    if (m_haveMerge != haveMerge) {
+        m_haveMerge = haveMerge;
+        m_historyWidget->setShowUncommitted(haveChangesToCommit());
+        updateHistory();
+    }
 }
 
 void HgTabWidget::setNewLog(QString hgLogList)

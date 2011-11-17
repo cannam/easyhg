@@ -31,6 +31,7 @@ enum HGACTIONS
     ACT_STAT,
     ACT_RESOLVE_LIST,
     ACT_QUERY_HEADS,
+    ACT_QUERY_HEADS_ACTIVE,
     ACT_QUERY_PARENTS,
     ACT_LOG,
     ACT_LOG_INCREMENTAL,
@@ -42,6 +43,7 @@ enum HGACTIONS
     ACT_CLONEFROMREMOTE,
     ACT_INIT,
     ACT_COMMIT,
+    ACT_CLOSE_BRANCH,
     ACT_ANNOTATE,
     ACT_UNCOMMITTED_SUMMARY,
     ACT_DIFF_SUMMARY,
@@ -92,6 +94,7 @@ struct HgAction
         case ACT_STAT:
         case ACT_RESOLVE_LIST:
         case ACT_QUERY_HEADS:
+        case ACT_QUERY_HEADS_ACTIVE:
         case ACT_QUERY_PARENTS:
         case ACT_LOG_INCREMENTAL:
             return true;

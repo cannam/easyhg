@@ -22,6 +22,7 @@
 
 #include <QWidget>
 #include <QSet>
+#include <QCheckBox>
 
 class Panned;
 class Panner;
@@ -37,6 +38,8 @@ public:
     virtual ~HistoryWidget();
 
     void setCurrent(QStringList ids, QString branch, bool showUncommitted);
+    void setShowUncommitted(bool showUncommitted);
+    void setClosedHeadIds(QSet<QString> closed);
 
     void parseNewLog(QString log);
     void parseIncrementalLog(QString log);
@@ -60,18 +63,24 @@ signals:
     void diffToCurrent(QString id);
     void mergeFrom(QString id);
     void newBranch(QString id);
+    void closeBranch(QString id);
     void tag(QString id);
+
+private slots:
+    void showClosedChanged(bool);
     
 private:
     Changesets m_changesets;
     QStringList m_currentIds;
     QString m_currentBranch;
     QSet<QString> m_newIds;
+    QSet<QString> m_closedIds;
     bool m_showUncommitted;
     bool m_refreshNeeded;
 
     Panned *m_panned;
     Panner *m_panner;
+    QCheckBox *m_showClosedBranches;
 
     QGraphicsScene *scene();
     void clearChangesets();
