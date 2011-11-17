@@ -38,7 +38,7 @@ QImage *ChangesetItem::m_star = 0;
 ChangesetItem::ChangesetItem(Changeset *cs) :
     m_changeset(cs), m_detail(0),
     m_showBranch(false), m_column(0), m_row(0), m_wide(false),
-    m_current(false), m_new(false)
+    m_current(false), m_closing(false), m_new(false)
 {
     m_font = QFont();
     m_font.setPixelSize(11);
@@ -72,7 +72,7 @@ ChangesetItem::showDetail()
     scene()->addItem(m_detail);
     int w = 100;
     if (m_wide) w = 180;
-    if (isMerge()) w = 60;
+    if (isMerge() || isClosingCommit()) w = 60;
     int h = 80;
 //    m_detail->moveBy(x() - (m_detail->boundingRect().width() - 50) / 2,
 //                     y() + 60);
@@ -197,6 +197,10 @@ ChangesetItem::contextMenuEvent(QGraphicsSceneContextMenuEvent *)
     branch->setEnabled(m_current);
     connect(branch, SIGNAL(triggered()), this, SLOT(newBranchActivated()));
 
+    QAction *closebranch = menu->addAction(tr("Close branch..."));
+    closebranch->setEnabled(m_current);
+    connect(closebranch, SIGNAL(triggered()), this, SLOT(closeBranchActivated()));
+
     QAction *tag = menu->addAction(tr("Add tag..."));
     connect(tag, SIGNAL(triggered()), this, SLOT(tagActivated()));
 
@@ -240,12 +244,13 @@ void ChangesetItem::diffToCurrentActivated() { emit diffToCurrent(getId()); }
 void ChangesetItem::mergeActivated() { emit mergeFrom(getId()); }
 void ChangesetItem::tagActivated() { emit tag(getId()); }
 void ChangesetItem::newBranchActivated() { emit newBranch(getId()); }
+void ChangesetItem::closeBranchActivated() { emit closeBranch(getId()); }
 
 void
 ChangesetItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget *)
 {
-    if (isMerge()) {
-        paintMerge(paint);
+    if (isClosingCommit() || isMerge()) {
+        paintSimple(paint);
     } else {
         paintNormal(paint);
     }
@@ -257,14 +262,26 @@ ChangesetItem::isMerge() const
     return (m_changeset && m_changeset->parents().size() > 1);
 }
 
+bool
+ChangesetItem::isClosed() const
+{
+    return (m_changeset && m_changeset->closed());
+}
+
 void
 ChangesetItem::paintNormal(QPainter *paint)
 {
     paint->save();
     
+    int alpha = 255;
+    if (isClosed()) alpha = 90;
+
     ColourSet *colourSet = ColourSet::instance();
     QColor branchColour = colourSet->getColourFor(m_changeset->branch());
     QColor userColour = colourSet->getColourFor(m_changeset->author());
+
+    branchColour.setAlpha(alpha);
+    userColour.setAlpha(alpha);
 
     QFont f(m_font);
 
@@ -321,6 +338,40 @@ ChangesetItem::paintNormal(QPainter *paint)
     int height = (lineCount + 1) * fh + 2;
     QRectF r(x0, 0, width - 3, height);
 
+    QColor textColour = Qt::black;
+    textColour.setAlpha(alpha);
+
+    if (m_showBranch && showText) {
+	// write branch name
+        paint->save();
+	f.setBold(true);
+	paint->setFont(f);
+	paint->setPen(QPen(branchColour));
+	QString branch = m_changeset->branch();
+        if (branch == "") branch = "default";
+	int wid = width - 3;
+	branch = TextAbbrev::abbreviate(branch, QFontMetrics(f), wid);
+	paint->drawText(x0, -fh + fm.ascent() - 4, branch);
+	f.setBold(false);
+        paint->restore();
+    }
+
+    QStringList bookmarks = m_changeset->bookmarks();
+    if (!bookmarks.empty() && showText) {
+        QString bmText = bookmarks.join(" ").trimmed();
+        int bw = fm.width(bmText);
+        int bx = x0 + width - bw - 14;
+        if (m_current) bx = bx - fh*1.5 + 3;
+        paint->save();
+        paint->setPen(QPen(branchColour, 2));
+//        paint->setBrush(QBrush(Qt::white));
+        paint->setBrush(QBrush(branchColour));
+        paint->drawRoundedRect(QRectF(bx, -fh - 4, bw + 4, fh * 2), 5, 5);
+        paint->setPen(QPen(Qt::white));
+        paint->drawText(bx + 2, -fh + fm.ascent() - 4, bmText);
+        paint->restore();
+    }
+
     if (showProperLines) {
 
         if (m_new) {
@@ -363,7 +414,7 @@ ChangesetItem::paintNormal(QPainter *paint)
                                             fm, textwid);
     paint->drawText(x0 + 3, fm.ascent(), person);
 
-    paint->setPen(QPen(Qt::black));
+    paint->setPen(QPen(textColour));
 
     QStringList tags = m_changeset->tags();
     if (!tags.empty()) {
@@ -391,21 +442,6 @@ ChangesetItem::paintNormal(QPainter *paint)
     paint->setBrush(Qt::NoBrush);
     paint->drawRoundedRect(r, 7, 7);
 
-    if (m_showBranch) {
-	// write branch name
-        paint->save();
-	f.setBold(true);
-	paint->setFont(f);
-	paint->setPen(QPen(branchColour));
-	QString branch = m_changeset->branch();
-        if (branch == "") branch = "default";
-	int wid = width - 3;
-	branch = TextAbbrev::abbreviate(branch, QFontMetrics(f), wid);
-	paint->drawText(x0, -fh + fm.ascent() - 4, branch);
-	f.setBold(false);
-        paint->restore();
-    }
-
     if (m_current && showProperLines) {
         paint->setRenderHint(QPainter::SmoothPixmapTransform, true);
         int starSize = fh * 1.5;
@@ -424,13 +460,19 @@ ChangesetItem::paintNormal(QPainter *paint)
 }
 
 void
-ChangesetItem::paintMerge(QPainter *paint)
+ChangesetItem::paintSimple(QPainter *paint)
 {
     paint->save();
+
+    int alpha = 255;
+    if (isClosed()) alpha = 90;
     
     ColourSet *colourSet = ColourSet::instance();
     QColor branchColour = colourSet->getColourFor(m_changeset->branch());
     QColor userColour = colourSet->getColourFor(m_changeset->author());
+
+    branchColour.setAlpha(alpha);
+    userColour.setAlpha(alpha);
 
     QFont f(m_font);
 
@@ -466,19 +508,31 @@ ChangesetItem::paintMerge(QPainter *paint)
     if (showProperLines) {
 
         if (m_current) {
-            paint->drawEllipse(QRectF(x0 - 4, fh - 4, size + 8, size + 8));
-
+            if (isClosingCommit()) {
+                paint->drawRect(QRectF(x0 - 4, fh - 4, size + 8, size + 8));
+            } else {
+                paint->drawEllipse(QRectF(x0 - 4, fh - 4, size + 8, size + 8));
+            }
+            
             if (m_new) {
                 paint->save();
                 paint->setPen(Qt::yellow);
                 paint->setBrush(Qt::NoBrush);
-                paint->drawEllipse(QRectF(x0 - 2, fh - 2, size + 4, size + 4));
+                if (isClosingCommit()) {
+                    paint->drawRect(QRectF(x0 - 2, fh - 2, size + 4, size + 4));
+                } else {
+                    paint->drawEllipse(QRectF(x0 - 2, fh - 2, size + 4, size + 4));
+                }
                 paint->restore();
             }
         }
     }
 
-    paint->drawEllipse(QRectF(x0, fh, size, size));
+    if (isClosingCommit()) {
+        paint->drawRect(QRectF(x0, fh, size, size));
+    } else {
+        paint->drawEllipse(QRectF(x0, fh, size, size));
+    }
 
     if (m_showBranch) {
 	// write branch name

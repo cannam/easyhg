@@ -1,0 +1,27 @@
+{Opening and initialising things}
+
+I have a folder of source code or documents on my computer and I want to use version control to manage them
+
+To start using version control for a project folder, you need to
+initialise a repository there.  EasyMercurial does this for you when
+you open the folder.
+
+*1. Click the Open toolbar button or use File -> Open*
+
+#openfolder50
+
+*2. Select "File folder" as the thing you want to open*
+
+*3. Browse to your folder*
+
+*4. Click OK*
+
+A new repository will be created, stowed into the working folder you
+selected.  At first, it will have an empty history.  You can then
+start to add and commit changes to your files.
+
+(You will need to "add" files before you can start to track changes to
+them.  The default is for all files in the folder to be treated as
+"untracked", i.e. not included in the history.)
+
+ * Note: the equivalent Mercurial command for this is *hg init*

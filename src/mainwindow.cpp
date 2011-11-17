@@ -35,6 +35,7 @@
 #include <QUrl>
 #include <QDialogButtonBox>
 #include <QTimer>
+#include <QTextBrowser>
 
 #include "mainwindow.h"
 #include "multichoicedialog.h"
@@ -55,6 +56,7 @@
 
 MainWindow::MainWindow(QString myDirPath) :
     m_myDirPath(myDirPath),
+    m_helpDialog(0),
     m_fsWatcherGeneralTimer(0),
     m_fsWatcherRestoreTimer(0),
     m_fsWatcherSuspended(false)
@@ -133,7 +135,7 @@ MainWindow::MainWindow(QString myDirPath) :
     cs->addDefaultName(getUserInfo());
 
     VersionTester *vt = new VersionTester
-        ("easymercurial.org", "/latest-version.txt", EASYHG_VERSION);
+        ("easyhg.org", "/latest-version.txt", EASYHG_VERSION);
     connect(vt, SIGNAL(newerVersionAvailable(QString)),
             this, SLOT(newerVersionAvailable(QString)));
 
@@ -319,6 +321,13 @@ void MainWindow::hgQueryBranch()
     params << "branch";
     m_runner->requestAction(HgAction(ACT_QUERY_BRANCH, m_workFolderPath, params));
 */
+}
+
+void MainWindow::hgQueryHeadsActive()
+{
+    QStringList params;
+    params << "heads";
+    m_runner->requestAction(HgAction(ACT_QUERY_HEADS_ACTIVE, m_workFolderPath, params));
 }
 
 void MainWindow::hgQueryHeads()
@@ -532,6 +541,41 @@ void MainWindow::hgNoBranch()
     QStringList params;
     params << "branch" << parentBranch;
     m_runner->requestAction(HgAction(ACT_NEW_BRANCH, m_workFolderPath, params));
+}
+
+void MainWindow::hgCloseBranch()
+{
+    QStringList params;
+
+    //!!! how to ensure this doesn't happen when uncommitted changes present?
+
+    QString cf(tr("Close branch"));
+    QString comment;
+
+    QString defaultWarning;
+
+    QString branchText;
+    if (m_currentBranch == "" || m_currentBranch == "default") {
+        branchText = tr("the default branch");
+        defaultWarning = tr("<p><b>Warning:</b> you are asking to close the default branch. This is not usually a good idea!</p>");
+    } else {
+        branchText = tr("branch \"%1\"").arg(m_currentBranch);
+    }
+
+    if (ConfirmCommentDialog::confirmAndGetLongComment
+        (this,
+         cf,
+         tr("<h3>%1</h3><p>%2%3").arg(cf)
+         .arg(tr("You are about to close %1.<p>This branch will be marked as closed and hidden from the history view.<p>You will still be able to see if it you select \"Show closed branches\" in the history view, and it will be reopened if you commit to it.<p>Please enter your comment for the commit log:").arg(branchText))
+         .arg(defaultWarning),
+         comment,
+         tr("C&lose branch"))) {
+
+        params << "commit" << "--message" << comment
+               << "--user" << getUserInfo() << "--close-branch";
+        
+        m_runner->requestAction(HgAction(ACT_CLOSE_BRANCH, m_workFolderPath, params));
+    }
 }
 
 void MainWindow::hgTag(QString id)
@@ -1249,6 +1293,7 @@ void MainWindow::clearState()
     m_currentParents.clear();
     foreach (Changeset *cs, m_currentHeads) delete cs;
     m_currentHeads.clear();
+    m_closedHeadIds.clear();
     m_currentBranch = "";
     m_lastStatOutput = "";
     m_lastRevertedFiles.clear();
@@ -1977,18 +2022,18 @@ void MainWindow::reportNewRemoteHeads(QString output)
     bool headsAreLocal = false;
 
     if (m_currentParents.size() == 1) {
-        int m_currentBranchHeads = 0;
+        int currentBranchActiveHeads = 0;
         bool parentIsHead = false;
         Changeset *parent = m_currentParents[0];
-        foreach (Changeset *head, m_currentHeads) {
+        foreach (Changeset *head, m_activeHeads) {
             if (head->isOnBranch(m_currentBranch)) {
-                ++m_currentBranchHeads;
+                ++currentBranchActiveHeads;
             }
             if (parent->id() == head->id()) {
                 parentIsHead = true;
             }
         }
-        if (m_currentBranchHeads == 2 && parentIsHead) {
+        if (currentBranchActiveHeads == 2 && parentIsHead) {
             headsAreLocal = true;
         }
     }
@@ -2136,6 +2181,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
             return;
         }
         break; // go on to default report
+    case ACT_QUERY_HEADS_ACTIVE:
     case ACT_QUERY_HEADS:
         // fails if repo is empty; we don't care (if there's a genuine
         // problem, something else will fail too).  Pretend it
@@ -2181,10 +2227,14 @@ void MainWindow::commandFailed(HgAction action, QString output)
 
 void MainWindow::commandCompleted(HgAction completedAction, QString output)
 {
+//    std::cerr << "commandCompleted: " << completedAction.action << std::endl;
+
     restoreFileSystemWatcher();
     HGACTIONS action = completedAction.action;
 
     if (action == ACT_NONE) return;
+
+    output.replace("\r\n", "\n");
 
     bool headsChanged = false;
     QStringList oldHeadIds;
@@ -2242,6 +2292,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
 
     case ACT_RESOLVE_LIST:
+        // This happens on every update, after the stat (above)
         if (output != "") {
             // Remove lines beginning with R (they are resolved,
             // and the file stat parser treats R as removed)
@@ -2321,6 +2372,11 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     }
         break;
         
+    case ACT_QUERY_HEADS_ACTIVE:
+        foreach (Changeset *cs, m_activeHeads) delete cs;
+        m_activeHeads = Changeset::parseChangesets(output);
+        break;
+
     case ACT_QUERY_HEADS:
     {
         oldHeadIds = Changeset::getIds(m_currentHeads);
@@ -2333,6 +2389,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
             headsChanged = true;
             foreach (Changeset *cs, m_currentHeads) delete cs;
             m_currentHeads = newHeads;
+            updateClosedHeads();
         }
     }
         break;
@@ -2342,6 +2399,12 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
             // first commit to empty repo
             m_needNewLog = true;
         }
+        m_hgTabs->clearSelections();
+        m_justMerged = false;
+        m_shouldHgStat = true;
+        break;
+
+    case ACT_CLOSE_BRANCH:
         m_hgTabs->clearSelections();
         m_justMerged = false;
         m_shouldHgStat = true;
@@ -2377,7 +2440,6 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     case ACT_DIFF_SUMMARY:
     {
         // Output has log info first, diff following after a blank line
-        output.replace("\r\n", "\n");
         QStringList olist = output.split("\n\n", QString::SkipEmptyParts);
         if (olist.size() > 1) output = olist[1];
 
@@ -2440,7 +2502,8 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     //     incremental-log (only if heads changed) -> parents
     // 
     // Sequence when full log required:
-    //   paths -> branch -> stat -> resolve-list -> heads -> parents -> log
+    //   paths -> branch -> stat -> resolve-list -> heads ->
+    //     parents -> log
     //
     // Note we want to call enableDisableActions only once, at the end
     // of whichever sequence is in use.
@@ -2471,18 +2534,24 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         break;
         
     case ACT_QUERY_PATHS:
+        // NB this call is duplicated in hgQueryPaths
         hgQueryBranch();
         break;
 
     case ACT_QUERY_BRANCH:
+        // NB this call is duplicated in hgQueryBranch
         hgStat();
         break;
         
     case ACT_STAT:
         hgResolveList();
         break;
-
+        
     case ACT_RESOLVE_LIST:
+        hgQueryHeadsActive();
+        break;
+
+    case ACT_QUERY_HEADS_ACTIVE:
         hgQueryHeads();
         break;
 
@@ -2534,6 +2603,7 @@ void MainWindow::connectActions()
 {
     connect(m_exitAct, SIGNAL(triggered()), this, SLOT(close()));
     connect(m_aboutAct, SIGNAL(triggered()), this, SLOT(about()));
+    connect(m_helpAct, SIGNAL(triggered()), this, SLOT(help()));
 
     connect(m_hgRefreshAct, SIGNAL(triggered()), this, SLOT(hgRefresh()));
     connect(m_hgRemoveAct, SIGNAL(triggered()), this, SLOT(hgRemove()));
@@ -2598,6 +2668,9 @@ void MainWindow::connectTabsSignals()
     connect(m_hgTabs, SIGNAL(newBranch(QString)),
             this, SLOT(hgNewBranch()));
 
+    connect(m_hgTabs, SIGNAL(closeBranch(QString)),
+            this, SLOT(hgCloseBranch()));
+
     connect(m_hgTabs, SIGNAL(tag(QString)),
             this, SLOT(hgTag(QString)));
 
@@ -2655,8 +2728,6 @@ void MainWindow::enableDisableActions()
 
     QDir localRepoDir;
     QDir workFolderDir;
-    bool workFolderExist = true;
-    bool localRepoExist = true;
 
     m_remoteRepoActionsEnabled = true;
     if (m_remoteRepoPath.isEmpty()) {
@@ -2666,19 +2737,14 @@ void MainWindow::enableDisableActions()
     m_localRepoActionsEnabled = true;
     if (m_workFolderPath.isEmpty()) {
         m_localRepoActionsEnabled = false;
-        workFolderExist = false;
     }
 
     if (m_workFolderPath == "" || !workFolderDir.exists(m_workFolderPath)) {
         m_localRepoActionsEnabled = false;
-        workFolderExist = false;
-    } else {
-        workFolderExist = true;
     }
 
     if (!localRepoDir.exists(m_workFolderPath + "/.hg")) {
         m_localRepoActionsEnabled = false;
-        localRepoExist = false;
     }
 
     bool haveDiff = false;
@@ -2688,6 +2754,8 @@ void MainWindow::enableDisableActions()
         haveDiff = true;
     }
     settings.endGroup();
+
+    m_hgTabs->setHaveMerge(m_currentParents.size() == 2);
 
     m_hgRefreshAct->setEnabled(m_localRepoActionsEnabled);
     m_hgFolderDiffAct->setEnabled(m_localRepoActionsEnabled && haveDiff);
@@ -2726,24 +2794,32 @@ void MainWindow::enableDisableActions()
     bool emptyRepo = false;
     bool noWorkingCopy = false;
     bool newBranch = false;
-    int m_currentBranchHeads = 0;
+    bool closedBranch = false;
+    int currentBranchActiveHeads = 0;
 
     if (m_currentParents.size() == 1) {
         bool parentIsHead = false;
+        bool parentIsActiveHead = false;
         Changeset *parent = m_currentParents[0];
-        foreach (Changeset *head, m_currentHeads) {
-            DEBUG << "head branch " << head->branch() << ", current branch " << m_currentBranch << endl;
+        foreach (Changeset *head, m_activeHeads) {
             if (head->isOnBranch(m_currentBranch)) {
-                ++m_currentBranchHeads;
+                ++currentBranchActiveHeads;
             }
             if (parent->id() == head->id()) {
-                parentIsHead = true;
+                parentIsActiveHead = parentIsHead = true;
             }
         }
-        if (m_currentBranchHeads == 2 && parentIsHead) {
+        if (!parentIsActiveHead) {
+            foreach (Changeset *head, m_currentHeads) {
+                if (parent->id() == head->id()) {
+                    parentIsHead = true;
+                }
+            }
+        }
+        if (currentBranchActiveHeads == 2 && parentIsActiveHead) {
             canMerge = true;
         }
-        if (m_currentBranchHeads == 0 && parentIsHead) {
+        if (currentBranchActiveHeads == 0 && parentIsActiveHead) {
             // Just created a new branch
             newBranch = true;
         }
@@ -2754,6 +2830,8 @@ void MainWindow::enableDisableActions()
             foreach (Changeset *h, m_currentHeads) {
                 DEBUG << "head id = " << h->id() << endl;
             }
+        } else if (!parentIsActiveHead) {
+            closedBranch = true;
         }
         m_justMerged = false;
     } else if (m_currentParents.size() == 0) {
@@ -2772,16 +2850,16 @@ void MainWindow::enableDisableActions()
         haveMerge = true;
         m_justMerged = true;
     }
-        
+
     m_hgIncomingAct->setEnabled(m_remoteRepoActionsEnabled);
     m_hgPullAct->setEnabled(m_remoteRepoActionsEnabled);
     // permit push even if no remote yet; we'll ask for one
     m_hgPushAct->setEnabled(m_localRepoActionsEnabled && !emptyRepo);
 
     m_hgMergeAct->setEnabled(m_localRepoActionsEnabled &&
-                           (canMerge || m_hgTabs->canResolve()));
+                             (canMerge || m_hgTabs->canResolve()));
     m_hgUpdateAct->setEnabled(m_localRepoActionsEnabled &&
-                            (canUpdate && !m_hgTabs->haveChangesToCommit()));
+                              (canUpdate && !m_hgTabs->haveChangesToCommit()));
 
     // Set the state field on the file status widget
 
@@ -2810,6 +2888,12 @@ void MainWindow::enableDisableActions()
         m_workStatus->setState(tr("Have merged but not yet committed on %1").arg(branchText));
     } else if (newBranch) {
         m_workStatus->setState(tr("On %1.  New branch: has not yet been committed").arg(branchText));
+    } else if (closedBranch) {
+        if (canUpdate) {
+            m_workStatus->setState(tr("On a closed branch. Not at the head of the branch"));
+        } else {
+            m_workStatus->setState(tr("At the head of a closed branch"));
+        }
     } else if (canUpdate) {
         if (m_hgTabs->haveChangesToCommit()) {
             // have uncommitted changes
@@ -2818,13 +2902,28 @@ void MainWindow::enableDisableActions()
             // no uncommitted changes
             m_workStatus->setState(tr("On %1. Not at the head of the branch: consider updating").arg(branchText));
         }
-    } else if (m_currentBranchHeads > 1) {
-        m_workStatus->setState(tr("At one of %n heads of %1", "", m_currentBranchHeads).arg(branchText));
+    } else if (currentBranchActiveHeads > 1) {
+        m_workStatus->setState(tr("At one of %n heads of %1", "", currentBranchActiveHeads).arg(branchText));
     } else {
         m_workStatus->setState(tr("At the head of %1").arg(branchText));
     }
 }
 
+
+void MainWindow::updateClosedHeads()
+{
+    m_closedHeadIds.clear();
+    QSet<QString> activeIds;
+    foreach (Changeset *cs, m_activeHeads) {
+        activeIds.insert(cs->id());
+    }
+    foreach (Changeset *cs, m_currentHeads) {
+        if (!activeIds.contains(cs->id())) {
+            m_closedHeadIds.insert(cs->id());
+        }
+    }
+    m_hgTabs->setClosedHeadIds(m_closedHeadIds);
+}
 
 void MainWindow::updateRecentMenu()
 {
@@ -2925,6 +3024,12 @@ void MainWindow::createActions()
     m_hgServeAct->setStatusTip(tr("Serve local repository temporarily via HTTP for workgroup access"));
 
     //Help actions
+#ifdef Q_OS_MAC
+    m_helpAct = new QAction(tr("EasyMercurial Help"), this);
+#else
+    m_helpAct = new QAction(tr("Help Topics"), this);
+#endif
+    m_helpAct->setShortcuts(QKeySequence::HelpContents);
     m_aboutAct = new QAction(tr("About EasyMercurial"), this);
 
     // Miscellaneous
@@ -2973,6 +3078,7 @@ void MainWindow::createMenus()
     remoteMenu->addAction(m_hgPushAct);
 
     m_helpMenu = menuBar()->addMenu(tr("&Help"));
+    m_helpMenu->addAction(m_helpAct);
     m_helpMenu->addAction(m_aboutAct);
 }
 
@@ -3080,5 +3186,45 @@ void MainWindow::newerVersionAvailable(QString version)
         settings.setValue(tag, false);
     }
     settings.endGroup();
+}
+
+void MainWindow::help()
+{
+    if (!m_helpDialog) {
+        m_helpDialog = new QDialog;
+        QGridLayout *layout = new QGridLayout;
+        m_helpDialog->setLayout(layout);
+        QPushButton *home = new QPushButton;
+        home->setIcon(QIcon(":images/home.png"));
+        layout->addWidget(home, 0, 0);
+        QPushButton *back = new QPushButton;
+        back->setIcon(QIcon(":images/back.png"));
+        layout->addWidget(back, 0, 1);
+        QPushButton *fwd = new QPushButton;
+        fwd->setIcon(QIcon(":images/forward.png"));
+        layout->addWidget(fwd, 0, 2);
+        QTextBrowser *text = new QTextBrowser;
+        text->setOpenExternalLinks(true);
+        layout->addWidget(text, 1, 0, 1, 4);
+        text->setSource(QUrl("qrc:help/topics.html"));
+        QDialogButtonBox *bb = new QDialogButtonBox(QDialogButtonBox::Close);
+        connect(bb, SIGNAL(rejected()), m_helpDialog, SLOT(hide()));
+        connect(text, SIGNAL(backwardAvailable(bool)),
+                back, SLOT(setEnabled(bool)));
+        connect(text, SIGNAL(forwardAvailable(bool)),
+                fwd, SLOT(setEnabled(bool)));
+        connect(home, SIGNAL(clicked()), text, SLOT(home()));
+        connect(back, SIGNAL(clicked()), text, SLOT(backward()));
+        connect(fwd, SIGNAL(clicked()), text, SLOT(forward()));
+        back->setEnabled(false);
+        fwd->setEnabled(false);
+        layout->addWidget(bb, 2, 0, 1, 4);
+        layout->setColumnStretch(3, 20);
+        m_helpDialog->resize(450, 500);
+    }
+    QTextBrowser *tb = m_helpDialog->findChild<QTextBrowser *>();
+    if (tb) tb->home();
+    m_helpDialog->show();
+    m_helpDialog->raise();
 }
 

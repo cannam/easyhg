@@ -43,6 +43,8 @@ public:
 
     UncommittedItem *getUncommittedItem() { return m_uncommitted; }
 
+    void setClosedHeadIds(QSet<QString> closed) { m_closedIds = closed; }
+
     class LayoutException : public std::exception {
     public:
 	LayoutException(QString message) throw() : m_message(message) { }
@@ -80,7 +82,10 @@ private:
     typedef QMap<int, QString> RowDateMap;
     RowDateMap m_rowDates;
 
+    QSet<QString> m_closedIds;
+
     bool m_showDates;
+    bool m_showClosedBranches;
 
     QStringList m_uncommittedParents;
     int m_uncommittedParentRow;
@@ -93,6 +98,8 @@ private:
     bool rangesConflict(const Range &r1, const Range &r2);
     int findAvailableColumn(int row, int parent, bool preferParentCol);
     bool isAvailable(int row, int col);
+    void markClosedChangesets();
+    void markClosedChangesetsFrom(QString id, QSet<QString> &deferred);
 };
 
 #endif 

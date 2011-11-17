@@ -48,6 +48,9 @@ public:
     void setLocalPath(QString workFolderPath);
 
     void setCurrent(QStringList ids, QString branch);
+    void setClosedHeadIds(QSet<QString> ids);
+
+    void setHaveMerge(bool);
 
     void updateFileStates();
     void updateHistory();
@@ -89,6 +92,7 @@ signals:
     void diffToCurrent(QString id);
     void mergeFrom(QString id);
     void newBranch(QString id);
+    void closeBranch(QString id);
     void tag(QString id);
 
     void annotateFiles(QStringList);
@@ -113,6 +117,7 @@ private:
     FileStatusWidget *m_fileStatusWidget;
     HistoryWidget *m_historyWidget;
     FileStates m_fileStates;
+    bool m_haveMerge;
 
     Changesets parseChangeSets(QString changeSetsStr);
 };

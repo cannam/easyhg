@@ -20,6 +20,8 @@
 
 #include <QWidget>
 
+class SqueezedLabel;
+
 class QLabel;
 class QPushButton;
 class QFileInfo;
@@ -51,7 +53,7 @@ private:
     ClickableLabel *m_openButton;
 
     QString m_remoteURL;
-    QLabel *m_remoteURLLabel;
+    SqueezedLabel *m_remoteURLLabel;
 
     QString m_state;
     QLabel *m_stateLabel;

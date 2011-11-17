@@ -24,6 +24,27 @@
         <file>images/fileopen.png</file>
         <file>images/star.png</file>
         <file>images/easyhg-icon.png</file>
+        <file>images/home.png</file>
+        <file>images/back.png</file>
+        <file>images/forward.png</file>
+	<file>help/topics.html</file>
+	<file>help/help.css</file>
+	<file>help/a-04.html</file>
+	<file>help/a-10.html</file>
+	<file>help/a-11.html</file>
+	<file>help/a-12.html</file>
+	<file>help/a-13.html</file>
+	<file>help/a-20.html</file>
+	<file>help/a-21.html</file>
+	<file>help/a-22.html</file>
+	<file>help/a-23.html</file>
+	<file>help/a-30.html</file>
+	<file>help/a-31.html</file>
+	<file>help/a-32.html</file>
+	<file>help/a-33.html</file>
+	<file>help/images/openremote50.png</file>
+	<file>help/images/openfolder50.png</file>
+	<file>help/images/openlocal50.png</file>
 	<file>easyhg.py</file>
 	<file>easyhg_en.qm</file>
     </qresource>

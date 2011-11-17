@@ -91,10 +91,15 @@ QString ConfirmCommentDialog::buildFilesText(QString intro, QStringList files)
     else text = "<qt>" + intro + "<p>";
 
     text += "<code>";
-    foreach (QString file, files) {
-        text += "&nbsp;&nbsp;&nbsp;" + xmlEncode(file) + "<br>";
+    if (files.empty()) {
+        text += "&nbsp;&nbsp;&nbsp;</code>";
+        text += tr("(no files: metadata only)");
+    } else {
+        foreach (QString file, files) {
+            text += "&nbsp;&nbsp;&nbsp;" + xmlEncode(file) + "<br>";
+        }
+        text += "</code></qt>";
     }
-    text += "</code></qt>";
 
     return text;
 }

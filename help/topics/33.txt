@@ -1,0 +1,41 @@
+{Sharing changes}
+
+I tried to push my changes, but it told me "the remote repository may have been changed by someone else" and refused
+
+This indicates that the remote repository has some changes in it that
+you do not have in your local repository (and that are in branches
+that you have also changed).
+
+Perhaps someone else made these changes and pushed them, or they may
+have been pushed by you from a different computer.
+
+*Why should that prevent me from pushing my changes?*
+
+A good principle is that you should review and test your changes
+before you push them to another repository.  It may be OK to commit
+changes locally that don't really work or that aren't complete enough
+to test, but it's a bad idea to push anything that would cause the
+remote repository to have an untested set of changes in it.
+
+For this reason, if you change some files, someone else changes some
+others, and you both try to push them without knowing about the other
+one, Mercurial must refuse the second push -- it can't simply merge
+the changes because the result might not make any sense.
+
+Instead you must pull the other person's changes and merge them
+locally before you push.  Fortunately, this is easy to do:
+
+*1. Click Pull on the main toolbar at the top of the EasyMercurial window.*
+
+ * You should see that some changes are pulled and added to your local repository.  This will usually lead to a forked graph in the History pane, as your changes and the other user's were both started from the same parent at the same time.
+
+*2. Click Merge in the toolbar on the left.*
+
+ * Any changes that affect different files, or that affect different parts of the same file, will be merged automatically.  For changes that affect the same parts of the same file, you will be asked to choose which change to include in the merged copy.
+
+*3. Review or test the resulting merged version in your local working folder.*
+
+*4. Commit the merged version.*
+
+*5. Push again to the remote repository.*
+

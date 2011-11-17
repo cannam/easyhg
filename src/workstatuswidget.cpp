@@ -18,6 +18,7 @@
 #include "workstatuswidget.h"
 #include "debug.h"
 #include "clickablelabel.h"
+#include "squeezedlabel.h"
 
 #include <QGridLayout>
 #include <QSpacerItem>
@@ -48,11 +49,11 @@ WorkStatusWidget::WorkStatusWidget(QWidget *parent) :
     m_openButton->setFont(f);
     m_openButton->setMouseUnderline(true);
     connect(m_openButton, SIGNAL(clicked()), this, SLOT(openButtonClicked()));
-    layout->addWidget(m_openButton, row, 2, 1, 2, Qt::AlignLeft);
+    layout->addWidget(m_openButton, row, 2, 1, 2);
 
     ++row;
     layout->addWidget(new QLabel(tr("Remote:")), row, 1);
-    m_remoteURLLabel = new QLabel;
+    m_remoteURLLabel = new SqueezedLabel;
     m_remoteURLLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
     layout->addWidget(m_remoteURLLabel, row, 2, 1, 2);
 

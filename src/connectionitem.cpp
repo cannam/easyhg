@@ -21,23 +21,31 @@
 #include "changesetitem.h"
 #include "changeset.h"
 #include "colourset.h"
+#include "textabbrev.h"
 
 #include <QPainter>
+#include <QFont>
 
 QRectF
 ConnectionItem::boundingRect() const
 {
-    if (!m_parent || !(m_child || m_uncommitted)) return QRectF();
+    if (!(m_child || m_uncommitted)) return QRectF();
     float xscale = 100;
     float yscale = 90;
     float size = 50;
 
-    int p_col = m_parent->column(), p_row = m_parent->row();
     int c_col, c_row;
     if (m_child) {
         c_col = m_child->column(); c_row = m_child->row();
     } else {
         c_col = m_uncommitted->column(); c_row = m_uncommitted->row();
+    }
+
+    int p_col, p_row;
+    if (m_parent) {
+        p_col = m_parent->column(); p_row = m_parent->row();
+    } else {
+        p_col = c_col - 1; p_row = c_row + 1;
     }
 
     return QRectF(xscale * c_col + size/2 - 2,
@@ -50,16 +58,21 @@ ConnectionItem::boundingRect() const
 void
 ConnectionItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget *)
 {
-    if (!m_parent || !(m_child || m_uncommitted)) return;
+    if (!(m_child || m_uncommitted)) return;
     QPainterPath p;
 
     paint->save();
+
+    int alpha = 255;
+    if (m_child && m_child->isClosed()) alpha = 90;
 
     ColourSet *colourSet = ColourSet::instance();
     QString branch;
     if (m_child) branch = m_child->getChangeset()->branch();
     else branch = m_uncommitted->branch();
     QColor branchColour = colourSet->getColourFor(branch);
+
+    branchColour.setAlpha(alpha);
 
     Qt::PenStyle ls = Qt::SolidLine;
     if (!m_child) ls = Qt::DashLine;
@@ -78,12 +91,18 @@ ConnectionItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget
     float size = 50;
     float ygap = yscale - size - 2;
 
-    int p_col = m_parent->column(), p_row = m_parent->row();
     int c_col, c_row;
     if (m_child) {
         c_col = m_child->column(); c_row = m_child->row();
     } else {
         c_col = m_uncommitted->column(); c_row = m_uncommitted->row();
+    }
+
+    int p_col, p_row;
+    if (m_parent) {
+        p_col = m_parent->column(); p_row = m_parent->row();
+    } else {
+        p_col = c_col - 1; p_row = c_row + 1;
     }
 
     float c_x = xscale * c_col + size/2;
@@ -125,11 +144,42 @@ ConnectionItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget
 	}
     }
 
-    // ensure line reaches the node -- again doesn't matter if we
-    // overshoot
-    p.lineTo(p_x, yscale * p_row + 20);
+    if (m_parent) {
 
+        // ensure line reaches the node -- again doesn't matter if we
+        // overshoot
+        p.lineTo(p_x, yscale * p_row + 20);
+
+    } else {
+
+        // no parent: merge from closed branch: draw only half the line
+        paint->setClipRect(QRectF((c_x + p_x)/2, yscale * c_row + size - 22,
+                                  xscale, yscale));
+    }
+    
     paint->drawPath(p);
+
+    if (!m_parent) {
+
+        // merge from closed branch: draw branch name
+
+        paint->setClipping(false);
+
+        QFont f;
+        f.setPixelSize(11);
+        f.setBold(true);
+        f.setItalic(false);
+	paint->setFont(f);
+
+	QString branch = m_mergedBranch;
+        if (branch == "") branch = "default";
+	int wid = xscale;
+	branch = TextAbbrev::abbreviate(branch, QFontMetrics(f), wid);
+	paint->drawText((c_x + p_x)/2 - wid - 2,
+                        yscale * c_row + size + ygap/2 + 2,
+                        branch);
+    }
+    
     paint->restore();
 }
 

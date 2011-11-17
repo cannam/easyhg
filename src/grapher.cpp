@@ -30,6 +30,7 @@ Grapher::Grapher(ChangesetScene *scene) :
     QSettings settings;
     settings.beginGroup("Presentation");
     m_showDates = (settings.value("dateformat", 0) == 1);
+    m_showClosedBranches = (settings.value("showclosedbranches", false).toBool());
 }
 
 int Grapher::findAvailableColumn(int row, int parent, bool preferParentCol)
@@ -69,7 +70,7 @@ void Grapher::layoutRow(QString id)
         throw LayoutException(QString("Changeset %1 not in ID map").arg(id));
     }
     if (!m_items.contains(id)) {
-        throw LayoutException(QString("Changeset %1 not in item map").arg(id));
+        return;
     }
     Changeset *cs = m_changesets[id];
     ChangesetItem *item = m_items[id];
@@ -145,7 +146,7 @@ void Grapher::layoutCol(QString id)
         throw LayoutException(QString("Changeset %1 not in ID map").arg(id));
     }
     if (!m_items.contains(id)) {
-        throw LayoutException(QString("Changeset %1 not in item map").arg(id));
+        return;
     }
 
     Changeset *cs = m_changesets[id];
@@ -175,7 +176,7 @@ void Grapher::layoutCol(QString id)
             !m_changesets[parentId]->isOnBranch(branch)) {
             // new branch
             col = m_branchHomes[branch];
-        } else {
+        } else if (m_items.contains(parentId)) {
             col = m_items[parentId]->column();
         }
 
@@ -191,9 +192,11 @@ void Grapher::layoutCol(QString id)
         foreach (QString parentId, cs->parents()) {
             if (!m_changesets.contains(parentId)) continue;
             if (m_changesets[parentId]->isOnBranch(branch)) {
-                ChangesetItem *parentItem = m_items[parentId];
-                col += parentItem->column();
-                parentsOnSameBranch++;
+                if (m_items.contains(parentId)) {
+                    ChangesetItem *parentItem = m_items[parentId];
+                    col += parentItem->column();
+                    parentsOnSameBranch++;
+                }
             }
         }
 
@@ -244,7 +247,7 @@ void Grapher::layoutCol(QString id)
 
     foreach (QString childId, cs->children()) {
         DEBUG << "reserving connection line space" << endl;
-        if (!m_changesets.contains(childId)) continue;
+        if (!m_items.contains(childId)) continue;
         Changeset *child = m_changesets[childId];
         int childRow = m_items[childId]->row();
         if (child->parents().size() > 1 ||
@@ -261,7 +264,7 @@ void Grapher::layoutCol(QString id)
     if (nchildren > 1) {
         QList<QString> special;
         foreach (QString childId, cs->children()) {
-            if (!m_changesets.contains(childId)) continue;
+            if (!m_items.contains(childId)) continue;
             Changeset *child = m_changesets[childId];
             if (child->isOnBranch(branch) &&
                 child->parents().size() == 1) {
@@ -298,9 +301,10 @@ bool Grapher::rangesConflict(const Range &r1, const Range &r2)
 void Grapher::allocateBranchHomes(Changesets csets)
 {
     foreach (Changeset *cs, csets) {
+        QString id = cs->id();
+        if (!m_items.contains(id)) continue;
+        ChangesetItem *item = m_items[id];
         QString branch = cs->branch();
-        ChangesetItem *item = m_items[cs->id()];
-        if (!item) continue;
         int row = item->row();
         if (!m_branchRanges.contains(branch)) {
             m_branchRanges[branch] = Range(row, row);
@@ -373,6 +377,105 @@ Grapher::getItemFor(QString id)
     return m_items[id];
 }
 
+void
+Grapher::markClosedChangesets()
+{
+    // Ensure the closed branch changesets are all marked as closed.
+
+    QSet<QString> deferred;
+
+    foreach (QString id, m_closedIds) {
+        markClosedChangesetsFrom(id, deferred);
+//        std::cerr << "after closed id " << id << ": candidates now contains " << deferred.size() << " element(s)" << std::endl;
+    }
+
+    while (!deferred.empty()) {
+        foreach (QString id, deferred) {
+            markClosedChangesetsFrom(id, deferred);
+            deferred.remove(id);
+//        std::cerr << "after id " << id << ": deferred now contains " << deferred.size() << " element(s)" << std::endl;
+        }
+    }
+}
+
+void
+Grapher::markClosedChangesetsFrom(QString id, QSet<QString> &deferred)
+{
+    // A changeset should be marked as closed (i) if it is in the list
+    // of closed heads [and has no children]; or (ii) all of its
+    // children that have the same branch name as it are marked as
+    // closed [and there is at least one of those]
+
+    if (!m_changesets.contains(id)) {
+//        std::cerr << "no good" << std::endl;
+        return;
+    }
+
+//    std::cerr << "looking at id " << id << std::endl;
+            
+    Changeset *cs = m_changesets[id];
+    QString branch = cs->branch();
+            
+    bool closed = false;
+
+    if (m_closedIds.contains(id)) {
+
+        closed = true;
+
+    } else {
+
+        closed = false;
+        foreach (QString childId, cs->children()) {
+            if (!m_changesets.contains(childId)) {
+                continue;
+            }
+            Changeset *ccs = m_changesets[childId];
+            if (ccs->isOnBranch(branch)) {
+                if (ccs->closed()) {
+                    // closed becomes true only when we see a closed
+                    // child on the same branch
+                    closed = true;
+                } else {
+                    // and it becomes false as soon as we see any
+                    // un-closed child on the same branch
+                    closed = false;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (closed) {
+        // set closed on this cset and its direct simple parents
+        QString csid = id;
+        while (cs) {
+            cs->setClosed(true);
+            if (cs->parents().size() == 1) {
+                QString pid = cs->parents()[0];
+                if (!m_changesets.contains(pid)) break;
+                cs = m_changesets[pid];
+                if (cs->children().size() > 1) {
+//                    std::cerr << "adding pid " << pid << " (it has more than one child)" << std::endl;
+                    deferred.insert(pid); // examine later
+                    cs = 0;
+                }
+            } else if (cs->parents().size() > 1) {
+                foreach (QString pid, cs->parents()) {
+//                    std::cerr << "recursing to pid " << pid << " (it is one of multiple parents)" << std::endl;
+                    markClosedChangesetsFrom(pid, deferred);
+                }
+                cs = 0;
+            } else {
+                cs = 0;
+            }
+        }
+    } else {
+        cs->setClosed(false);
+    }
+    
+//    std::cerr << "finished with id " << id << std::endl;
+}
+
 void Grapher::layout(Changesets csets,
                      QStringList uncommittedParents,
                      QString uncommittedBranch)
@@ -391,7 +494,7 @@ void Grapher::layout(Changesets csets,
 
     if (csets.empty()) return;
 
-    // Create (but don't yet position) the changeset items
+    // Initialise changesets hash
 
     foreach (Changeset *cs, csets) {
 
@@ -407,7 +510,28 @@ void Grapher::layout(Changesets csets,
         }
 
         m_changesets[id] = cs;
+    }
+    
+    // Set the children for each changeset
 
+    foreach (Changeset *cs, csets) {
+        QString id = cs->id();
+        foreach (QString parentId, cs->parents()) {
+            if (!m_changesets.contains(parentId)) continue;
+            Changeset *parent = m_changesets[parentId];
+            parent->addChild(id);
+        }
+    }
+    
+    // Ensure the closed branch changesets are all marked as closed.
+
+    markClosedChangesets();
+
+    // Create (but don't yet position) the changeset items
+
+    foreach (Changeset *cs, csets) {
+        if (cs->closed() && !m_showClosedBranches) continue;
+        QString id = cs->id();
         ChangesetItem *item = new ChangesetItem(cs);
         item->setX(0);
         item->setY(0);
@@ -415,26 +539,36 @@ void Grapher::layout(Changesets csets,
         m_items[id] = item;
         m_scene->addChangesetItem(item);
     }
+    
+    // Ensure the closing changeset items are appropriately marked
+
+    foreach (QString closedId, m_closedIds) {
+        if (!m_items.contains(closedId)) continue;
+        m_items[closedId]->setClosingCommit(true);
+    }
 
     // Add the connecting lines
 
     foreach (Changeset *cs, csets) {
         QString id = cs->id();
+        if (!m_items.contains(id)) continue;
         ChangesetItem *item = m_items[id];
         bool merge = (cs->parents().size() > 1);
         foreach (QString parentId, cs->parents()) {
             if (!m_changesets.contains(parentId)) continue;
-            Changeset *parent = m_changesets[parentId];
-            parent->addChild(id);
             ConnectionItem *conn = new ConnectionItem();
             if (merge) conn->setConnectionType(ConnectionItem::Merge);
             conn->setChild(item);
-            conn->setParent(m_items[parentId]);
             conn->setZValue(-1);
+            if (m_items.contains(parentId)) {
+                conn->setParent(m_items[parentId]);
+            } else {
+                conn->setMergedBranch(m_changesets[parentId]->branch());
+            }
             m_scene->addItem(conn);
         }
     }
-    
+
     // Add uncommitted item and connecting line as necessary
 
     if (!m_uncommittedParents.empty()) {
@@ -446,6 +580,7 @@ void Grapher::layout(Changesets csets,
 
         bool haveParentOnBranch = false;
         foreach (QString p, m_uncommittedParents) {
+            if (!m_items.contains(p)) continue;
             ConnectionItem *conn = new ConnectionItem();
             conn->setConnectionType(ConnectionItem::Merge);
             ChangesetItem *pitem = m_items[p];
@@ -473,6 +608,7 @@ void Grapher::layout(Changesets csets,
 
     foreach (Changeset *cs, csets) {
         QString id = cs->id();
+        if (!m_items.contains(id)) continue;
         ChangesetItem *item = m_items[id];
         bool haveChildOnSameBranch = false;
         foreach (QString childId, cs->children()) {
@@ -556,7 +692,9 @@ void Grapher::layout(Changesets csets,
     // made double-width
 
     foreach (Changeset *cs, csets) {
-        ChangesetItem *item = m_items[cs->id()];
+        QString id = cs->id();
+        if (!m_items.contains(id)) continue;
+        ChangesetItem *item = m_items[id];
         if (isAvailable(item->row(), item->column()-1) &&
             isAvailable(item->row(), item->column()+1)) {
             item->setWide(true);

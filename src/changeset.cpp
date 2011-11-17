@@ -21,7 +21,8 @@
 
 #include <QVariant>
 
-Changeset::Changeset(const LogEntry &e)
+Changeset::Changeset(const LogEntry &e) :
+    m_closed(false)
 {
     foreach (QString key, e.keys()) {
         if (key == "parents") {
@@ -32,6 +33,10 @@ Changeset::Changeset(const LogEntry &e)
             QStringList tags = e.value(key).split
                 (" ", QString::SkipEmptyParts);
             setTags(tags);
+        } else if (key == "bookmarks") {
+            QStringList bmarks = e.value(key).split
+                (" ", QString::SkipEmptyParts);
+            setBookmarks(bmarks);
         } else if (key == "timestamp") {
             setTimestamp(e.value(key).split(" ")[0].toULongLong());
         } else if (key == "changeset") {
@@ -44,7 +49,7 @@ Changeset::Changeset(const LogEntry &e)
 
 QString Changeset::getLogTemplate()
 {
-    return "id: {rev}:{node|short}\\nauthor: {author}\\nbranch: {branches}\\ntag: {tags}\\ndatetime: {date|isodate}\\ntimestamp: {date|hgdate}\\nage: {date|age}\\nparents: {parents}\\ncomment: {desc|json}\\n\\n";
+    return "id: {rev}:{node|short}\\nauthor: {author}\\nbranch: {branches}\\ntag: {tags}\\nbookmarks: {bookmarks}\\ndatetime: {date|isodate}\\ntimestamp: {date|hgdate}\\nage: {date|age}\\nparents: {parents}\\ncomment: {desc|json}\\n\\n";
 }
 
 QString Changeset::formatHtml()
@@ -70,13 +75,15 @@ QString Changeset::formatHtml()
 	      << "datetime"
 	      << "branch"
 	      << "tags"
+	      << "bookmarks"
 	      << "comment";
 
     propTexts << QObject::tr("Identifier:")
 	      << QObject::tr("Author:")
 	      << QObject::tr("Date:")
 	      << QObject::tr("Branch:")
-	      << QObject::tr("Tag:")
+	      << QObject::tr("Tags:")
+	      << QObject::tr("Bookmarks:")
 	      << QObject::tr("Comment:");
 
     for (int i = 0; i < propNames.size(); ++i) {
@@ -88,6 +95,8 @@ QString Changeset::formatHtml()
             value = c;
         } else if (prop == "tags") {
             value = tags().join(" ");
+        } else if (prop == "bookmarks") {
+            value = bookmarks().join(" ");
         } else {
 	    value = xmlEncode(property(prop.toLocal8Bit().data()).toString());
 	}
