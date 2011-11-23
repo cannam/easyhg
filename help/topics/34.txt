@@ -1,0 +1,20 @@
+{Sharing changes}
+
+How do I use the Merge window?
+
+If you are working with other people on a project, it is likely that
+at some point you'll find that more than one of you have edited the
+same lines in the same file, in different ways.
+
+When that happens and you try to merge the two versions, EasyMercurial
+will pop up a merge window that looks a bit like this.
+
+#merge50
+
+(This is actually a separate program, a merge tool called kdiff3.)
+
+This looks a bit complicated, but it is there to help you pick which
+of the changes from each of the two "rival" versions of the file you
+want to use in your merged version.
+
+
