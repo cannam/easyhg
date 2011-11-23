@@ -31,7 +31,7 @@ locally before you push.  Fortunately, this is easy to do:
 
 *2. Click Merge in the toolbar on the left.*
 
- * Any changes that affect different files, or that affect different parts of the same file, will be merged automatically.  For changes that affect the same parts of the same file, you will be asked to choose which change to include in the merged copy.
+ * Any changes that affect different files, or that affect different parts of the same file, will be merged automatically.  For changes that affect the same parts of the same file, you will be asked to choose which change to include in the merged copy.  See [[34|How do I merge my changes...]] for more about this.
 
 *3. Review or test the resulting merged version in your local working folder.*
 
