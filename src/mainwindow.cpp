@@ -2210,6 +2210,16 @@ void MainWindow::commandFailed(HgAction action, QString output)
         // as the user closing the window via the wm happens
         return;
     case ACT_MERGE:
+        if (output.contains("working directory ancestor")) {
+            // arguably we should prevent this upfront, but that's
+            // trickier!
+            MoreInformationDialog::information
+                (this, tr("Merge"), tr("Merge has no effect"),
+                 tr("You asked to merge a revision with one of its ancestors.<p>This has no effect, because the ancestor's changes already exist in both revisions."),
+                 output);
+            return;
+        }
+        // else fall through
     case ACT_RETRY_MERGE:
         MoreInformationDialog::information
             (this, tr("Merge"), tr("Merge failed"),
