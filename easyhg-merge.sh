@@ -21,7 +21,7 @@ for d in easyhg-kdiff3 easyhg-kdiff3.exe kdiff3 kdiff3.exe; do
 	fi
     fi
     if [ -n "$exe" ]; then
-	exec "$exe" "$ancestor" "$left" "$right" --output "$out" --auto -L1 "`basename $left` (Common ancestor)" -L2 "$left (Your current version)" -L3 "`basename $left` (Version being merged)"
+	exec "$exe" --auto "$ancestor" "$left" "$right" --output "$out" --auto -L1 "`basename $left` (Common ancestor)" -L2 "$left (Your current version)" -L3 "`basename $left` (Version being merged)"
     fi
 done
 fm=/Developer/Applications/Utilities/FileMerge.app/Contents/MacOS/FileMerge

@@ -1,0 +1,11 @@
+Changes in v1.1 since v1.0.1:
+
+ * Closed branches are now supported: you can close a branch in EasyMercurial
+   and closed branches are truncated by default
+ * Bookmarks are now displayed, though you still cannot create them
+ * Fix excessive window size when very long URL or filename used
+ * Fix inconsistent state following a merge that results in no changes
+ * Improve server port detection when sharing repository
+ * Add help topic for merge
+ * Update program icon!
+
