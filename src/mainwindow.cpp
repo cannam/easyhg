@@ -81,8 +81,8 @@ MainWindow::MainWindow(QString myDirPath) :
             this, SLOT(commandStarting(HgAction)));
     connect(m_runner, SIGNAL(commandCompleted(HgAction, QString)),
             this, SLOT(commandCompleted(HgAction, QString)));
-    connect(m_runner, SIGNAL(commandFailed(HgAction, QString)),
-            this, SLOT(commandFailed(HgAction, QString)));
+    connect(m_runner, SIGNAL(commandFailed(HgAction, QString, QString)),
+            this, SLOT(commandFailed(HgAction, QString, QString)));
     statusBar()->addPermanentWidget(m_runner);
 
     setWindowTitle(tr("EasyMercurial"));
@@ -2099,7 +2099,7 @@ void MainWindow::commandStarting(HgAction action)
     }
 }
 
-void MainWindow::commandFailed(HgAction action, QString output)
+void MainWindow::commandFailed(HgAction action, QString stderr, QString stdout)
 {
     DEBUG << "MainWindow::commandFailed" << endl;
     restoreFileSystemWatcher();
@@ -2130,7 +2130,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
              tr("Failed to run Mercurial"),
              tr("Failed to run Mercurial"),
              tr("The Mercurial program either could not be found or failed to run.<br><br>Check that the Mercurial program path is correct in %1.").arg(setstr),
-             output);
+             stderr);
         settings(SettingsDialog::PathsTab);
         return;
     case ACT_TEST_HG_EXT:
@@ -2139,7 +2139,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
              tr("Failed to run Mercurial"),
              tr("Failed to run Mercurial with extension enabled"),
              tr("The Mercurial program failed to run with the EasyMercurial interaction extension enabled.<br>This may indicate an installation problem.<br><br>You may be able to continue working if you switch off &ldquo;Use EasyHg Mercurial Extension&rdquo; in %1.  Note that remote repositories that require authentication might not work if you do this.").arg(setstr),
-             output);
+             stderr);
         settings(SettingsDialog::PathsTab);
         return;
     case ACT_CLONEFROMREMOTE:
@@ -2148,20 +2148,20 @@ void MainWindow::commandFailed(HgAction action, QString output)
         enableDisableActions();
         break; // go on to default report
     case ACT_INCOMING:
-        if (output.contains("authorization failed")) {
-            reportAuthFailed(output);
+        if (stderr.contains("authorization failed")) {
+            reportAuthFailed(stderr);
             return;
-        } else if (output.contains("entry cancelled")) {
+        } else if (stderr.contains("entry cancelled")) {
             // ignore this, user cancelled username or password dialog
             return;
         } else {
-            // Incoming returns non-zero code and no output if the
+            // Incoming returns non-zero code and no stderr if the
             // check was successful but there are no changes
             // pending. This is the only case where we need to remove
             // warning messages, because it's the only case where a
             // non-zero code can be returned even though the command
             // has for our purposes succeeded
-            QString replaced = output;
+            QString replaced = stderr;
             while (1) {
                 QString r1 = replaced;
                 r1.replace(QRegExp("warning: [^\\n]*"), "");
@@ -2175,23 +2175,31 @@ void MainWindow::commandFailed(HgAction action, QString output)
         }
         break; // go on to default report
     case ACT_PULL:
-        if (output.contains("authorization failed")) {
-            reportAuthFailed(output);
+        if (stderr.contains("authorization failed")) {
+            reportAuthFailed(stderr);
             return;
-        } else if (output.contains("entry cancelled")) {
+        } else if (stderr.contains("entry cancelled")) {
             // ignore this, user cancelled username or password dialog
+            return;
+        } else if (stderr.contains("no changes found") || stdout.contains("no changes found")) {
+            // success: hg 2.1 starts returning failure code for empty pull/push
+            commandCompleted(action, stdout);
             return;
         }
         break; // go on to default report
     case ACT_PUSH:
-        if (output.contains("creates new remote head")) {
-            reportNewRemoteHeads(output);
+        if (stderr.contains("creates new remote head")) {
+            reportNewRemoteHeads(stderr);
             return;
-        } else if (output.contains("authorization failed")) {
-            reportAuthFailed(output);
+        } else if (stderr.contains("authorization failed")) {
+            reportAuthFailed(stderr);
             return;
-        } else if (output.contains("entry cancelled")) {
+        } else if (stderr.contains("entry cancelled")) {
             // ignore this, user cancelled username or password dialog
+            return;
+        } else if (stderr.contains("no changes found") || stdout.contains("no changes found")) {
+            // success: hg 2.1 starts returning failure code for empty pull/push
+            commandCompleted(action, stdout);
             return;
         }
         break; // go on to default report
@@ -2210,13 +2218,13 @@ void MainWindow::commandFailed(HgAction action, QString output)
         // as the user closing the window via the wm happens
         return;
     case ACT_MERGE:
-        if (output.contains("working directory ancestor")) {
+        if (stderr.contains("working directory ancestor")) {
             // arguably we should prevent this upfront, but that's
             // trickier!
             MoreInformationDialog::information
                 (this, tr("Merge"), tr("Merge has no effect"),
                  tr("You asked to merge a revision with one of its ancestors.<p>This has no effect, because the ancestor's changes already exist in both revisions."),
-                 output);
+                 stderr);
             return;
         }
         // else fall through
@@ -2224,7 +2232,7 @@ void MainWindow::commandFailed(HgAction action, QString output)
         MoreInformationDialog::information
             (this, tr("Merge"), tr("Merge failed"),
              tr("Some files were not merged successfully.<p>You can Merge again to repeat the interactive merge; use Revert to abandon the merge entirely; or edit the files that are in conflict in an editor and, when you are happy with them, choose Mark Resolved in each file's right-button menu."),
-             output);
+             stderr);
         m_mergeCommitComment = "";
         return;
     case ACT_STAT:
@@ -2243,10 +2251,10 @@ void MainWindow::commandFailed(HgAction action, QString output)
         (this,
          tr("Command failed"),
          tr("Command failed"),
-         (output == "" ?
+         (stderr == "" ?
           tr("A Mercurial command failed to run correctly.  This may indicate an installation problem or some other problem with EasyMercurial.") :
           tr("A Mercurial command failed to run correctly.  This may indicate an installation problem or some other problem with EasyMercurial.<br><br>See &ldquo;More Details&rdquo; for the command output.")),
-         output);
+         stderr);
 }
 
 void MainWindow::commandCompleted(HgAction completedAction, QString output)
