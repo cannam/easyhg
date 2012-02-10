@@ -357,7 +357,7 @@ void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
                   << procExitCode << ", exit status " << procExitStatus
                   << ", stderr follows" << endl;
             DEBUG << m_stderr << endl;
-            emit commandFailed(completedAction, m_stderr);
+            emit commandFailed(completedAction, m_stderr, m_stdout);
         }
     }
 
@@ -495,7 +495,7 @@ void HgRunner::startCommand(HgAction action)
 
     if (action.workingDir.isEmpty()) {
         // We require a working directory, never just operate in pwd
-        emit commandFailed(action, "EasyMercurial: No working directory supplied, will not run Mercurial command without one");
+        emit commandFailed(action, "EasyMercurial: No working directory supplied, will not run Mercurial command without one", "");
         return;
     }
 

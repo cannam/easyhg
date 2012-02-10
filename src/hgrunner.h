@@ -42,7 +42,7 @@ public:
 signals:
     void commandStarting(HgAction action);
     void commandCompleted(HgAction action, QString stdOut);
-    void commandFailed(HgAction action, QString stdErr);
+    void commandFailed(HgAction action, QString stdErr, QString stdOut);
 
 private slots:
     void started();
