@@ -36,10 +36,22 @@ public:
     virtual ~FsWatcher();
 
     /**
-     * Set the root path of the work directory to be monitored.
+     * Set the root path of the work directory to be monitored. This
+     * directory and all its subdirectories (recursively) will be
+     * monitored for changes.
+     *
+     * Calling this also clears the tracked file path set. Call
+     * setTrackedFilePaths afterwards to ensure non-directory files
+     * are monitored.
      */
     void setWorkDirPath(QString path);
 
+    /**
+     * Provide a set of paths for files which should be tracked. These
+     * will be the only non-directory files monitored for changes.
+     */
+    void setTrackedFilePaths(QStringList paths);
+    
     /**
      * Provide a set of prefixes to ignore. Files whose names start
      * with a prefix in this set will be ignored when they change.
