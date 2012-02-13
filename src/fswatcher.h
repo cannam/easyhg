@@ -96,6 +96,12 @@ private:
     // call with lock already held
     bool shouldIgnore(QString path);
 
+    // call with lock already held. Returns set of non-ignored files in dir
+    QSet<QString> scanDirectory(QString path);
+
+    // call with lock already held
+    void debugPrint();
+
 private:
     /**
      * A change associates a filename with a counter (the
@@ -115,6 +121,15 @@ private:
      * m_changes whose counters are larger must have been modified.
      */
     QMap<int, size_t> m_tokenMap;
+
+    /**
+     * Associates a directory path with a list of all the files in it
+     * that do not match our ignore patterns. When a directory is
+     * signalled as having changed, then we need to rescan it and
+     * compare against this list before we can determine whether to
+     * notify about the change or not.
+     */
+    QHash<QString, QSet<QString> > m_dirContents;
 
     QStringList m_ignoredPrefixes;
     QStringList m_ignoredSuffixes;
