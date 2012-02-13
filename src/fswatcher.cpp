@@ -16,11 +16,14 @@
 */
 
 #include "fswatcher.h"
+#include "debug.h"
 
 #include <QMutexLocker>
 #include <QDir>
 
 #include <deque>
+
+#define DEBUG_FSWATCHER 1
 
 /*
  * Watching the filesystem is trickier than it seems at first glance.
@@ -36,9 +39,12 @@
  * to test properties of the filesystem. So we need to know to ignore
  * those files; unfortunately, when watching a directory (which is how
  * we find out about the creation of new files) we are notified only
- * that the directory has changed -- we aren't told what changed. So
- * we need to rescan the directory merely to find out whether to
- * ignore the change or not.
+ * that the directory has changed -- we aren't told what changed.
+ *
+ * This means that, when a directory changes, we need to rescan the
+ * directory to learn whether the set of files in it _excluding_ files
+ * matching our ignore patterns differs from the previous scan, and
+ * ignore the change if it doesn't.
  */
 
 FsWatcher::FsWatcher() :
@@ -63,6 +69,7 @@ FsWatcher::setWorkDirPath(QString path)
     m_watcher.removePaths(m_watcher.files());
     m_workDirPath = path;
     addWorkDirectory(path);
+    debugPrint();
 }
 
 void
@@ -73,6 +80,7 @@ FsWatcher::setTrackedFilePaths(QStringList paths)
     foreach (QString path, paths) {
 	m_watcher.addPath(path);
     }
+    debugPrint();
 }
 
 void
@@ -94,6 +102,7 @@ FsWatcher::addWorkDirectory(QString path)
         pending.pop_front();
         if (!alreadyWatched.contains(path)) {
             m_watcher.addPath(path);
+            m_dirContents[path] = scanDirectory(path);
         }
 
         QDir d(path);
@@ -153,22 +162,80 @@ FsWatcher::fsDirectoryChanged(QString path)
 {
     {
 	QMutexLocker locker(&m_mutex);
+
 	if (shouldIgnore(path)) return;
-	size_t counter = ++m_lastCounter;
-	m_changes[path] = counter;
+
+        QSet<QString> files = scanDirectory(path);
+        if (files == m_dirContents[path]) {
+#ifdef DEBUG_FSWATCHER
+            std::cerr << "FsWatcher: Directory " << path << " has changed, but not in a way that we are monitoring" << std::endl;
+#endif
+            return;
+        }
+        else m_dirContents[path] = files;
+
+        size_t counter = ++m_lastCounter;
+        m_changes[path] = counter;
     }
+
     emit changed();
 }
 
 void
 FsWatcher::fsFileChanged(QString path)
 {
-    QMutexLocker locker(&m_mutex);
+    {
+        QMutexLocker locker(&m_mutex);
+
+        // We don't check whether the file matches an ignore pattern,
+        // because we are only notified for file changes if we are
+        // watching the file explicitly, i.e. the file is in the
+        // tracked file paths list. So we never want to ignore them
+
+        size_t counter = ++m_lastCounter;
+        m_changes[path] = counter;
+    }
+
+    emit changed();
 }
 
 bool
 FsWatcher::shouldIgnore(QString path)
 {
-    
+    QFileInfo fi(path);
+    QString fn(fi.fileName());
+    foreach (QString pfx, m_ignoredPrefixes) {
+        if (fn.startsWith(pfx)) return true;
+    }
+    foreach (QString sfx, m_ignoredSuffixes) {
+        if (fn.endsWith(sfx)) return true;
+    }
+    return false;
 }
 
+QSet<QString>
+FsWatcher::scanDirectory(QString path)
+{
+    QSet<QString> files;
+    QDir d(path);
+    if (d.exists()) {
+        d.setFilter(QDir::Files | QDir::NoDotAndDotDot |
+                    QDir::Readable | QDir::NoSymLinks);
+        foreach (QString entry, d.entryList()) {
+            if (entry.startsWith('.')) continue;
+            if (shouldIgnore(entry)) continue;
+            files.insert(entry);
+        }
+    }
+    return files;
+}
+
+void
+FsWatcher::debugPrint()
+{
+#ifdef DEBUG_FSWATCHER
+    std::cerr << "FsWatcher: Now watching " << m_watcher.directories().size()
+              << " directories and " << m_watcher.files().size()
+              << " files" << std::endl;
+#endif
+}
