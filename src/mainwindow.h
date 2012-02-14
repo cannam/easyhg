@@ -27,7 +27,6 @@
 
 #include <QMainWindow>
 #include <QListWidget>
-#include <QFileSystemWatcher>
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -36,6 +35,7 @@ class QTimer;
 QT_END_NAMESPACE
 
 class WorkStatusWidget;
+class FsWatcher;
 
 class MainWindow : public QMainWindow
 {
@@ -113,10 +113,8 @@ private slots:
     void hgIgnoreFiles(QStringList);
     void hgUnIgnoreFiles(QStringList);
 
-    void fsDirectoryChanged(QString);
-    void fsFileChanged(QString);
+    void updateFsWatcher();
     void checkFilesystem();
-    void actuallyRestoreFileSystemWatcher();
 
     void newerVersionAvailable(QString);
 
@@ -175,10 +173,6 @@ private:
     QString format3(QString, QString, QString);
 
     void clearState();
-
-    void updateFileSystemWatcher();
-    void suspendFileSystemWatcher();
-    void restoreFileSystemWatcher();
 
     void updateClosedHeads();
 
@@ -243,7 +237,6 @@ private:
     QAction *m_aboutAct;
     QAction *m_helpAct;
 
-    QToolBar *m_fileToolBar;
     QToolBar *m_repoToolBar;
     QToolBar *m_workFolderToolBar;
 
@@ -257,10 +250,9 @@ private:
     QString getMergeBinaryName();
     QString getEditorBinaryName();
 
-    QFileSystemWatcher *m_fsWatcher;
-    QTimer *m_fsWatcherGeneralTimer;
-    QTimer *m_fsWatcherRestoreTimer;
-    bool m_fsWatcherSuspended;
+    FsWatcher *m_fsWatcher;
+    int m_fsWatcherToken;
+    bool m_commandSequenceInProgress;
 
     QString m_lastStatOutput;
     QStringList m_lastRevertedFiles;

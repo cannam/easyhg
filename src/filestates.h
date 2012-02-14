@@ -52,6 +52,8 @@ public:
     State stateOf(QString file) const;
     bool isKnown(QString file) const;
 
+    QStringList trackedFiles() const;
+
     enum Activity {
 
         // These are in the order in which they want to be listed in

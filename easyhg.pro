@@ -1,5 +1,5 @@
 
-CONFIG += debug
+CONFIG += release
 
 TEMPLATE = app
 TARGET = EasyMercurial
@@ -64,7 +64,8 @@ HEADERS = \
     src/annotatedialog.h \
     src/hgignoredialog.h \
     src/versiontester.h \
-    src/squeezedlabel.h
+    src/squeezedlabel.h \
+    src/fswatcher.h
 SOURCES = \
     src/main.cpp \
     src/mainwindow.cpp \
@@ -101,7 +102,8 @@ SOURCES = \
     src/annotatedialog.cpp \
     src/hgignoredialog.cpp \
     src/versiontester.cpp \
-    src/squeezedlabel.cpp
+    src/squeezedlabel.cpp \
+    src/fswatcher.cpp
 
 macx-* {
     SOURCES += src/common_osx.mm
