@@ -65,6 +65,7 @@ void
 FsWatcher::setWorkDirPath(QString path)
 {
     QMutexLocker locker(&m_mutex);
+    if (m_workDirPath == path) return;
     m_watcher.removePaths(m_watcher.directories());
     m_watcher.removePaths(m_watcher.files());
     m_workDirPath = path;
@@ -76,10 +77,24 @@ void
 FsWatcher::setTrackedFilePaths(QStringList paths)
 {
     QMutexLocker locker(&m_mutex);
-    m_watcher.removePaths(m_watcher.files());
+
+    QSet<QString> alreadyWatched = 
+	QSet<QString>::fromList(m_watcher.files());
+
     foreach (QString path, paths) {
-	m_watcher.addPath(path);
+        if (!alreadyWatched.contains(path)) {
+            m_watcher.addPath(path);
+        } else {
+            alreadyWatched.remove(path);
+        }
     }
+
+    // Remove the remaining paths, those that were being watched
+    // before but that are not in the list we were given
+    foreach (QString path, alreadyWatched) {
+        m_watcher.removePath(path);
+    }
+
     debugPrint();
 }
 
@@ -171,8 +186,12 @@ FsWatcher::fsDirectoryChanged(QString path)
             std::cerr << "FsWatcher: Directory " << path << " has changed, but not in a way that we are monitoring" << std::endl;
 #endif
             return;
+        } else {
+#ifdef DEBUG_FSWATCHER
+            std::cerr << "FsWatcher: Directory " << path << " has changed" << std::endl;
+#endif
+            m_dirContents[path] = files;
         }
-        else m_dirContents[path] = files;
 
         size_t counter = ++m_lastCounter;
         m_changes[path] = counter;
@@ -192,6 +211,8 @@ FsWatcher::fsFileChanged(QString path)
         // watching the file explicitly, i.e. the file is in the
         // tracked file paths list. So we never want to ignore them
 
+        std::cerr << "FsWatcher: Tracked file " << path << " has changed" << std::endl;
+
         size_t counter = ++m_lastCounter;
         m_changes[path] = counter;
     }
@@ -205,10 +226,16 @@ FsWatcher::shouldIgnore(QString path)
     QFileInfo fi(path);
     QString fn(fi.fileName());
     foreach (QString pfx, m_ignoredPrefixes) {
-        if (fn.startsWith(pfx)) return true;
+        if (fn.startsWith(pfx)) {
+            std::cerr << "(ignoring: " << path << ")" << std::endl;
+            return true;
+        }
     }
     foreach (QString sfx, m_ignoredSuffixes) {
-        if (fn.endsWith(sfx)) return true;
+        if (fn.endsWith(sfx)) {
+            std::cerr << "(ignoring: " << path << ")" << std::endl;
+            return true;
+        }
     }
     return false;
 }
@@ -227,6 +254,8 @@ FsWatcher::scanDirectory(QString path)
             files.insert(entry);
         }
     }
+//    std::cerr << "scanDirectory:" << std::endl;
+//    foreach (QString f, files) std::cerr << f << std::endl;
     return files;
 }
 

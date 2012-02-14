@@ -40,7 +40,8 @@ public:
      * directory and all its subdirectories (recursively) will be
      * monitored for changes.
      *
-     * Calling this also clears the tracked file path set. Call
+     * If this path differs from the currently set work dir path, then
+     * the tracked file paths will also be cleared. Call
      * setTrackedFilePaths afterwards to ensure non-directory files
      * are monitored.
      */
