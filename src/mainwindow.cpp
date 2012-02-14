@@ -3006,22 +3006,19 @@ void MainWindow::createToolBars()
 {
     int sz = 32;
 
-    m_fileToolBar = addToolBar(tr("File"));
-    m_fileToolBar->setIconSize(QSize(sz, sz));
-    m_fileToolBar->addAction(m_openAct);
-    m_fileToolBar->addAction(m_hgRefreshAct);
-    m_fileToolBar->setMovable(false);
-
-    m_repoToolBar = addToolBar(tr("Remote"));
-    m_repoToolBar->setIconSize(QSize(sz, sz));
-    m_repoToolBar->addAction(m_hgIncomingAct);
-    m_repoToolBar->addAction(m_hgPullAct);
-    m_repoToolBar->addAction(m_hgPushAct);
-    m_repoToolBar->setMovable(false);
+    bool spacingReqd = false;
+#ifndef Q_OS_MAC
+    spacingReqd = true;
+#endif
 
     m_workFolderToolBar = addToolBar(tr("Work"));
     addToolBar(Qt::LeftToolBarArea, m_workFolderToolBar);
     m_workFolderToolBar->setIconSize(QSize(sz, sz));
+    if (spacingReqd) {
+        QWidget *w = new QWidget;
+        w->setFixedHeight(6);
+        m_workFolderToolBar->addWidget(w);
+    }
     m_workFolderToolBar->addAction(m_hgFolderDiffAct);
     m_workFolderToolBar->addSeparator();
     m_workFolderToolBar->addAction(m_hgRevertAct);
@@ -3032,6 +3029,17 @@ void MainWindow::createToolBars()
     m_workFolderToolBar->addAction(m_hgAddAct);
     m_workFolderToolBar->addAction(m_hgRemoveAct);
     m_workFolderToolBar->setMovable(false);
+
+    m_repoToolBar = addToolBar(tr("Remote"));
+    m_repoToolBar->setIconSize(QSize(sz, sz));
+    if (spacingReqd) m_repoToolBar->addWidget(new QLabel(" "));
+    m_repoToolBar->addAction(m_openAct);
+    if (spacingReqd) m_repoToolBar->addWidget(new QLabel(" "));
+    m_repoToolBar->addSeparator();
+    m_repoToolBar->addAction(m_hgIncomingAct);
+    m_repoToolBar->addAction(m_hgPullAct);
+    m_repoToolBar->addAction(m_hgPushAct);
+    m_repoToolBar->setMovable(false);
 
     updateToolBarStyle();
 }
