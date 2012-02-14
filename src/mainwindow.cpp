@@ -52,14 +52,12 @@
 #include "workstatuswidget.h"
 #include "hgignoredialog.h"
 #include "versiontester.h"
+#include "fswatcher.h"
 
 
 MainWindow::MainWindow(QString myDirPath) :
     m_myDirPath(myDirPath),
-    m_helpDialog(0),
-    m_fsWatcherGeneralTimer(0),
-    m_fsWatcherRestoreTimer(0),
-    m_fsWatcherSuspended(false)
+    m_helpDialog(0)
 {
     setWindowIcon(QIcon(":images/easyhg-icon.png"));
 
@@ -67,7 +65,11 @@ MainWindow::MainWindow(QString myDirPath) :
 
     m_showAllFiles = false;
 
-    m_fsWatcher = 0;
+    m_fsWatcher = new FsWatcher();
+    m_fsWatcherToken = m_fsWatcher->getNewToken();
+    m_commandSequenceInProgress = false;
+    connect(m_fsWatcher, SIGNAL(changed()), this, SLOT(checkFilesystem()));
+
     m_commitsSincePush = 0;
     m_shouldHgStat = true;
 
@@ -251,13 +253,15 @@ void MainWindow::hgStat()
 {
     QStringList params;
 
-    if (m_showAllFiles) {
-        params << "stat" << "-A";
-    } else {
-        params << "stat" << "-ardum";
-    }
+    // We always stat all files, regardless of whether we're showing
+    // them all, because we need them for the filesystem monitor
+    params << "stat" << "-A";
 
     m_lastStatOutput = "";
+
+    // We're about to do a stat, so we can silently bring ourselves
+    // up-to-date on any file changes to this point
+    (void)m_fsWatcher->getChangedPaths(m_fsWatcherToken);
 
     m_runner->requestAction(HgAction(ACT_STAT, m_workFolderPath, params));
 }
@@ -1301,14 +1305,6 @@ void MainWindow::clearState()
     m_mergeCommitComment = "";
     m_stateUnknown = true;
     m_needNewLog = true;
-    if (m_fsWatcher) {
-        delete m_fsWatcherGeneralTimer;
-        m_fsWatcherGeneralTimer = 0;
-        delete m_fsWatcherRestoreTimer;
-        m_fsWatcherRestoreTimer = 0;
-        delete m_fsWatcher;
-        m_fsWatcher = 0;
-    }
 }
 
 void MainWindow::hgServe()
@@ -1821,126 +1817,22 @@ void MainWindow::settings(SettingsDialog::Tab tab)
     }
 }
 
-void MainWindow::updateFileSystemWatcher()
+void MainWindow::updateFsWatcher()
 {
-    bool justCreated = false;
-    if (!m_fsWatcher) {
-        m_fsWatcher = new QFileSystemWatcher();
-        justCreated = true;
-    }
-
-    // QFileSystemWatcher will refuse to add a file or directory to
-    // its watch list that it is already watching -- fine, that's what
-    // we want -- but it prints a warning when this happens, which is
-    // annoying because it would be the normal case for us.  So we'll
-    // check for duplicates ourselves.
-    QSet<QString> alreadyWatched;
-    QStringList dl(m_fsWatcher->directories());
-    foreach (QString d, dl) alreadyWatched.insert(d);
-    
-    std::deque<QString> pending;
-    pending.push_back(m_workFolderPath);
-
-    while (!pending.empty()) {
-
-        QString path = pending.front();
-        pending.pop_front();
-        if (!alreadyWatched.contains(path)) {
-            m_fsWatcher->addPath(path);
-            DEBUG << "Added to file system watcher: " << path << endl;
-        }
-
-        QDir d(path);
-        if (d.exists()) {
-            d.setFilter(QDir::Dirs | QDir::NoDotAndDotDot |
-                        QDir::Readable | QDir::NoSymLinks);
-            foreach (QString entry, d.entryList()) {
-                if (entry.startsWith('.')) continue;
-                QString entryPath = d.absoluteFilePath(entry);
-                pending.push_back(entryPath);
-            }
-        }
-    }
-
-    // The general timer isn't really related to the fs watcher
-    // object, it just does something similar -- every now and then we
-    // do a refresh just to update the history dates etc
-
-    m_fsWatcherGeneralTimer = new QTimer(this);
-    connect(m_fsWatcherGeneralTimer, SIGNAL(timeout()),
-            this, SLOT(checkFilesystem()));
-    m_fsWatcherGeneralTimer->setInterval(30 * 60 * 1000); // half an hour
-    m_fsWatcherGeneralTimer->start();
-
-    if (justCreated) {
-        connect(m_fsWatcher, SIGNAL(directoryChanged(QString)),
-                this, SLOT(fsDirectoryChanged(QString)));
-        connect(m_fsWatcher, SIGNAL(fileChanged(QString)),
-                this, SLOT(fsFileChanged(QString)));
-    }
-}
-
-void MainWindow::suspendFileSystemWatcher()
-{
-    DEBUG << "MainWindow::suspendFileSystemWatcher" << endl;
-    if (m_fsWatcher) {
-        m_fsWatcherSuspended = true;
-        if (m_fsWatcherRestoreTimer) {
-            delete m_fsWatcherRestoreTimer;
-            m_fsWatcherRestoreTimer = 0;
-        }
-        m_fsWatcherGeneralTimer->stop();
-    }
-}
-
-void MainWindow::restoreFileSystemWatcher()
-{
-    DEBUG << "MainWindow::restoreFileSystemWatcher" << endl;
-    if (m_fsWatcherRestoreTimer) delete m_fsWatcherRestoreTimer;
-        
-    // The restore timer is used to leave a polite interval between
-    // being asked to restore the watcher and actually doing so.  It's
-    // a single shot timer each time it's used, but we don't use
-    // QTimer::singleShot because we want to stop the previous one if
-    // it's running (via deleting it)
-
-    m_fsWatcherRestoreTimer = new QTimer(this);
-    connect(m_fsWatcherRestoreTimer, SIGNAL(timeout()),
-            this, SLOT(actuallyRestoreFileSystemWatcher()));
-    m_fsWatcherRestoreTimer->setInterval(1000);
-    m_fsWatcherRestoreTimer->setSingleShot(true);
-    m_fsWatcherRestoreTimer->start();
-}
-
-void MainWindow::actuallyRestoreFileSystemWatcher()
-{
-    DEBUG << "MainWindow::actuallyRestoreFileSystemWatcher" << endl;
-    if (m_fsWatcher) {
-        m_fsWatcherSuspended = false;
-        m_fsWatcherGeneralTimer->start();
-    }
+    m_fsWatcher->setWorkDirPath(m_workFolderPath);
+    m_fsWatcher->setTrackedFilePaths(m_hgTabs->getFileStates().trackedFiles());
 }
 
 void MainWindow::checkFilesystem()
 {
     DEBUG << "MainWindow::checkFilesystem" << endl;
-    hgRefresh();
-}
-
-void MainWindow::fsDirectoryChanged(QString d)
-{
-    DEBUG << "MainWindow::fsDirectoryChanged " << d << endl;
-    if (!m_fsWatcherSuspended) {
-        hgStat();
+    if (!m_commandSequenceInProgress) {
+        if (!m_fsWatcher->getChangedPaths(m_fsWatcherToken).empty()) {
+            hgRefresh();
+            return;
+        }
     }
-}
-
-void MainWindow::fsFileChanged(QString f)
-{
-    DEBUG << "MainWindow::fsFileChanged " << f << endl;
-    if (!m_fsWatcherSuspended) {
-        hgStat();
-    }
+    updateFsWatcher();
 }
 
 QString MainWindow::format1(QString head)
@@ -2088,21 +1980,14 @@ void MainWindow::reportAuthFailed(QString output)
 
 void MainWindow::commandStarting(HgAction action)
 {
-    // Annoyingly, hg stat actually modifies the working directory --
-    // it creates files called hg-checklink and hg-checkexec to test
-    // properties of the filesystem.  For safety's sake, suspend the
-    // fs watcher while running commands, and restore it shortly after
-    // a command has finished.
-
-    if (action.action == ACT_STAT) {
-        suspendFileSystemWatcher();
-    }
+    m_commandSequenceInProgress = true;
 }
 
-void MainWindow::commandFailed(HgAction action, QString stderr, QString stdout)
+void MainWindow::commandFailed(HgAction action, QString stdErr, QString stdOut)
 {
     DEBUG << "MainWindow::commandFailed" << endl;
-    restoreFileSystemWatcher();
+
+    m_commandSequenceInProgress = false;
 
     QString setstr;
 #ifdef Q_OS_MAC
@@ -2130,7 +2015,7 @@ void MainWindow::commandFailed(HgAction action, QString stderr, QString stdout)
              tr("Failed to run Mercurial"),
              tr("Failed to run Mercurial"),
              tr("The Mercurial program either could not be found or failed to run.<br><br>Check that the Mercurial program path is correct in %1.").arg(setstr),
-             stderr);
+             stdErr);
         settings(SettingsDialog::PathsTab);
         return;
     case ACT_TEST_HG_EXT:
@@ -2139,7 +2024,7 @@ void MainWindow::commandFailed(HgAction action, QString stderr, QString stdout)
              tr("Failed to run Mercurial"),
              tr("Failed to run Mercurial with extension enabled"),
              tr("The Mercurial program failed to run with the EasyMercurial interaction extension enabled.<br>This may indicate an installation problem.<br><br>You may be able to continue working if you switch off &ldquo;Use EasyHg Mercurial Extension&rdquo; in %1.  Note that remote repositories that require authentication might not work if you do this.").arg(setstr),
-             stderr);
+             stdErr);
         settings(SettingsDialog::PathsTab);
         return;
     case ACT_CLONEFROMREMOTE:
@@ -2148,20 +2033,20 @@ void MainWindow::commandFailed(HgAction action, QString stderr, QString stdout)
         enableDisableActions();
         break; // go on to default report
     case ACT_INCOMING:
-        if (stderr.contains("authorization failed")) {
-            reportAuthFailed(stderr);
+        if (stdErr.contains("authorization failed")) {
+            reportAuthFailed(stdErr);
             return;
-        } else if (stderr.contains("entry cancelled")) {
+        } else if (stdErr.contains("entry cancelled")) {
             // ignore this, user cancelled username or password dialog
             return;
         } else {
-            // Incoming returns non-zero code and no stderr if the
+            // Incoming returns non-zero code and no stdErr if the
             // check was successful but there are no changes
             // pending. This is the only case where we need to remove
             // warning messages, because it's the only case where a
             // non-zero code can be returned even though the command
             // has for our purposes succeeded
-            QString replaced = stderr;
+            QString replaced = stdErr;
             while (1) {
                 QString r1 = replaced;
                 r1.replace(QRegExp("warning: [^\\n]*"), "");
@@ -2175,31 +2060,33 @@ void MainWindow::commandFailed(HgAction action, QString stderr, QString stdout)
         }
         break; // go on to default report
     case ACT_PULL:
-        if (stderr.contains("authorization failed")) {
-            reportAuthFailed(stderr);
+        if (stdErr.contains("authorization failed")) {
+            reportAuthFailed(stdErr);
             return;
-        } else if (stderr.contains("entry cancelled")) {
+        } else if (stdErr.contains("entry cancelled")) {
             // ignore this, user cancelled username or password dialog
             return;
-        } else if (stderr.contains("no changes found") || stdout.contains("no changes found")) {
+        } else if (stdErr.contains("no changes found") || stdOut.contains("no changes found")) {
             // success: hg 2.1 starts returning failure code for empty pull/push
-            commandCompleted(action, stdout);
+            m_commandSequenceInProgress = true; // there may be further commands
+            commandCompleted(action, stdOut);
             return;
         }
         break; // go on to default report
     case ACT_PUSH:
-        if (stderr.contains("creates new remote head")) {
-            reportNewRemoteHeads(stderr);
+        if (stdErr.contains("creates new remote head")) {
+            reportNewRemoteHeads(stdErr);
             return;
-        } else if (stderr.contains("authorization failed")) {
-            reportAuthFailed(stderr);
+        } else if (stdErr.contains("authorization failed")) {
+            reportAuthFailed(stdErr);
             return;
-        } else if (stderr.contains("entry cancelled")) {
+        } else if (stdErr.contains("entry cancelled")) {
             // ignore this, user cancelled username or password dialog
             return;
-        } else if (stderr.contains("no changes found") || stdout.contains("no changes found")) {
+        } else if (stdErr.contains("no changes found") || stdOut.contains("no changes found")) {
             // success: hg 2.1 starts returning failure code for empty pull/push
-            commandCompleted(action, stdout);
+            m_commandSequenceInProgress = true; // there may be further commands
+            commandCompleted(action, stdOut);
             return;
         }
         break; // go on to default report
@@ -2209,22 +2096,23 @@ void MainWindow::commandFailed(HgAction action, QString stderr, QString stdout)
         // problem, something else will fail too).  Pretend it
         // succeeded, so that any further actions that are contingent
         // on the success of the heads query get carried out properly.
+        m_commandSequenceInProgress = true; // there may be further commands
         commandCompleted(action, "");
         return;
     case ACT_FOLDERDIFF:
     case ACT_CHGSETDIFF:
-        // external program, unlikely to be anything useful in stderr
+        // external program, unlikely to be anything useful in stdErr
         // and some return with failure codes when something as basic
         // as the user closing the window via the wm happens
         return;
     case ACT_MERGE:
-        if (stderr.contains("working directory ancestor")) {
+        if (stdErr.contains("working directory ancestor")) {
             // arguably we should prevent this upfront, but that's
             // trickier!
             MoreInformationDialog::information
                 (this, tr("Merge"), tr("Merge has no effect"),
                  tr("You asked to merge a revision with one of its ancestors.<p>This has no effect, because the ancestor's changes already exist in both revisions."),
-                 stderr);
+                 stdErr);
             return;
         }
         // else fall through
@@ -2232,7 +2120,7 @@ void MainWindow::commandFailed(HgAction action, QString stderr, QString stdout)
         MoreInformationDialog::information
             (this, tr("Merge"), tr("Merge failed"),
              tr("Some files were not merged successfully.<p>You can Merge again to repeat the interactive merge; use Revert to abandon the merge entirely; or edit the files that are in conflict in an editor and, when you are happy with them, choose Mark Resolved in each file's right-button menu."),
-             stderr);
+             stdErr);
         m_mergeCommitComment = "";
         return;
     case ACT_STAT:
@@ -2251,17 +2139,16 @@ void MainWindow::commandFailed(HgAction action, QString stderr, QString stdout)
         (this,
          tr("Command failed"),
          tr("Command failed"),
-         (stderr == "" ?
+         (stdErr == "" ?
           tr("A Mercurial command failed to run correctly.  This may indicate an installation problem or some other problem with EasyMercurial.") :
           tr("A Mercurial command failed to run correctly.  This may indicate an installation problem or some other problem with EasyMercurial.<br><br>See &ldquo;More Details&rdquo; for the command output.")),
-         stderr);
+         stdErr);
 }
 
 void MainWindow::commandCompleted(HgAction completedAction, QString output)
 {
 //    std::cerr << "commandCompleted: " << completedAction.action << std::endl;
 
-    restoreFileSystemWatcher();
     HGACTIONS action = completedAction.action;
 
     if (action == ACT_NONE) return;
@@ -2320,7 +2207,6 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
 
     case ACT_STAT:
         m_lastStatOutput = output;
-        updateFileSystemWatcher();
         break;
 
     case ACT_RESOLVE_LIST:
@@ -2624,10 +2510,12 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     }
 
     if (noMore) {
+        m_commandSequenceInProgress = false;
         m_stateUnknown = false;
         enableDisableActions();
         m_hgTabs->updateHistory();
         updateRecentMenu();
+        checkFilesystem();
     }
 }
 
@@ -2996,7 +2884,7 @@ void MainWindow::createActions()
     m_exitAct->setStatusTip(tr("Exit EasyMercurial"));
 
     //Repository actions
-    m_hgRefreshAct = new QAction(QIcon(":/images/status.png"), tr("&Refresh"), this);
+    m_hgRefreshAct = new QAction(QIcon(":/images/status.png"), tr("&Re-Read Working Folder"), this);
     m_hgRefreshAct->setShortcut(tr("Ctrl+R"));
     m_hgRefreshAct->setStatusTip(tr("Refresh the window to show the current state of the working folder"));
 
@@ -3118,22 +3006,19 @@ void MainWindow::createToolBars()
 {
     int sz = 32;
 
-    m_fileToolBar = addToolBar(tr("File"));
-    m_fileToolBar->setIconSize(QSize(sz, sz));
-    m_fileToolBar->addAction(m_openAct);
-    m_fileToolBar->addAction(m_hgRefreshAct);
-    m_fileToolBar->setMovable(false);
-
-    m_repoToolBar = addToolBar(tr("Remote"));
-    m_repoToolBar->setIconSize(QSize(sz, sz));
-    m_repoToolBar->addAction(m_hgIncomingAct);
-    m_repoToolBar->addAction(m_hgPullAct);
-    m_repoToolBar->addAction(m_hgPushAct);
-    m_repoToolBar->setMovable(false);
+    bool spacingReqd = false;
+#ifndef Q_OS_MAC
+    spacingReqd = true;
+#endif
 
     m_workFolderToolBar = addToolBar(tr("Work"));
     addToolBar(Qt::LeftToolBarArea, m_workFolderToolBar);
     m_workFolderToolBar->setIconSize(QSize(sz, sz));
+    if (spacingReqd) {
+        QWidget *w = new QWidget;
+        w->setFixedHeight(6);
+        m_workFolderToolBar->addWidget(w);
+    }
     m_workFolderToolBar->addAction(m_hgFolderDiffAct);
     m_workFolderToolBar->addSeparator();
     m_workFolderToolBar->addAction(m_hgRevertAct);
@@ -3144,6 +3029,17 @@ void MainWindow::createToolBars()
     m_workFolderToolBar->addAction(m_hgAddAct);
     m_workFolderToolBar->addAction(m_hgRemoveAct);
     m_workFolderToolBar->setMovable(false);
+
+    m_repoToolBar = addToolBar(tr("Remote"));
+    m_repoToolBar->setIconSize(QSize(sz, sz));
+    if (spacingReqd) m_repoToolBar->addWidget(new QLabel(" "));
+    m_repoToolBar->addAction(m_openAct);
+    if (spacingReqd) m_repoToolBar->addWidget(new QLabel(" "));
+    m_repoToolBar->addSeparator();
+    m_repoToolBar->addAction(m_hgIncomingAct);
+    m_repoToolBar->addAction(m_hgPullAct);
+    m_repoToolBar->addAction(m_hgPushAct);
+    m_repoToolBar->setMovable(false);
 
     updateToolBarStyle();
 }
