@@ -2884,7 +2884,7 @@ void MainWindow::createActions()
     m_exitAct->setStatusTip(tr("Exit EasyMercurial"));
 
     //Repository actions
-    m_hgRefreshAct = new QAction(QIcon(":/images/status.png"), tr("&Refresh"), this);
+    m_hgRefreshAct = new QAction(QIcon(":/images/status.png"), tr("&Re-Read Working Folder"), this);
     m_hgRefreshAct->setShortcut(tr("Ctrl+R"));
     m_hgRefreshAct->setStatusTip(tr("Refresh the window to show the current state of the working folder"));
 
