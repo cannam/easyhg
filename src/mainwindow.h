@@ -113,7 +113,7 @@ private slots:
     void hgIgnoreFiles(QStringList);
     void hgUnIgnoreFiles(QStringList);
 
-    void fsWatcherChanged();
+    void updateFsWatcher();
     void checkFilesystem();
 
     void newerVersionAvailable(QString);

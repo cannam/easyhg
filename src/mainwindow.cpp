@@ -68,7 +68,7 @@ MainWindow::MainWindow(QString myDirPath) :
     m_fsWatcher = new FsWatcher();
     m_fsWatcherToken = m_fsWatcher->getNewToken();
     m_commandSequenceInProgress = false;
-    connect(m_fsWatcher, SIGNAL(changed()), this, SLOT(fsWatcherChanged()));
+    connect(m_fsWatcher, SIGNAL(changed()), this, SLOT(checkFilesystem()));
 
     m_commitsSincePush = 0;
     m_shouldHgStat = true;
@@ -122,6 +122,7 @@ MainWindow::MainWindow(QString myDirPath) :
     setUnifiedTitleAndToolBarOnMac(true);
     connectActions();
     clearState();
+    updateFsWatcher();
     enableDisableActions();
 
     if (m_firstStart) {
@@ -260,6 +261,10 @@ void MainWindow::hgStat()
     }
 
     m_lastStatOutput = "";
+
+    // We're about to do a stat, so we can silently bring ourselves
+    // up-to-date on any file changes to this point
+    (void)m_fsWatcher->getChangedPaths(m_fsWatcherToken);
 
     m_runner->requestAction(HgAction(ACT_STAT, m_workFolderPath, params));
 }
@@ -1424,6 +1429,7 @@ void MainWindow::open()
             if (result) {
                 enableDisableActions();
                 clearState();
+                updateFsWatcher();
                 hgQueryPaths();
                 done = true;
             }
@@ -1509,6 +1515,7 @@ void MainWindow::open(QString local)
     if (openLocal(local)) {
         enableDisableActions();
         clearState();
+        updateFsWatcher();
         hgQueryPaths();
     }
 }
@@ -1815,16 +1822,22 @@ void MainWindow::settings(SettingsDialog::Tab tab)
     }
 }
 
+void MainWindow::updateFsWatcher()
+{
+    m_fsWatcher->setWorkDirPath(m_workFolderPath);
+    m_fsWatcher->setTrackedFilePaths(m_hgTabs->getFileStates().trackedFiles());
+}
+
 void MainWindow::checkFilesystem()
 {
     DEBUG << "MainWindow::checkFilesystem" << endl;
-    hgRefresh();
-}
-
-void MainWindow::fsWatcherChanged()
-{
-    DEBUG << "MainWindow::fsWatcherChanged" << endl;
-
+    if (!m_commandSequenceInProgress) {
+        if (!m_fsWatcher->getChangedPaths(m_fsWatcherToken).empty()) {
+            hgRefresh();
+            return;
+        }
+    }
+    updateFsWatcher();
 }
 
 QString MainWindow::format1(QString head)
@@ -2507,6 +2520,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         enableDisableActions();
         m_hgTabs->updateHistory();
         updateRecentMenu();
+        checkFilesystem();
     }
 }
 

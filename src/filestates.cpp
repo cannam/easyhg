@@ -142,6 +142,18 @@ bool FileStates::isKnown(QString file) const
     return (m_stateMap.contains(file));
 }
 
+QStringList FileStates::trackedFiles() const
+{
+    QStringList all;
+    all << filesInState(Modified);
+    all << filesInState(Added);
+    all << filesInState(Removed);
+    all << filesInState(InConflict);
+    all << filesInState(Missing);
+    all << filesInState(Clean);
+    return all;
+}
+
 FileStates::Activities FileStates::activitiesSupportedBy(State s)
 {
     Activities a;
