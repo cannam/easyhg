@@ -237,7 +237,6 @@ private:
     QAction *m_aboutAct;
     QAction *m_helpAct;
 
-    QToolBar *m_fileToolBar;
     QToolBar *m_repoToolBar;
     QToolBar *m_workFolderToolBar;
 
