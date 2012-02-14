@@ -178,6 +178,13 @@ bool FileStatusWidget::shouldShowAll() const
     return m_showAllFiles->isChecked();
 }
 
+bool FileStatusWidget::shouldShow(FileStates::State s) const
+{
+    if (shouldShowAll()) return true;
+    else return (s != FileStates::Clean &&
+                 s != FileStates::Ignored);
+}
+
 QString FileStatusWidget::labelFor(FileStates::State s, bool addHighlightExplanation)
 {
     QSettings settings;
@@ -193,11 +200,9 @@ QString FileStatusWidget::labelFor(FileStates::State s, bool addHighlightExplana
                 .arg(m_simpleLabels[s])
                 .arg(m_descriptions[s]);
         }
-    } else {
-        return QString("<qt><b>%1</b></qt>")
-            .arg(m_simpleLabels[s]);
     }
-    settings.endGroup();
+    return QString("<qt><b>%1</b></qt>")
+        .arg(m_simpleLabels[s]);
 }
 
 void FileStatusWidget::setNoModificationsLabelText()
@@ -425,6 +430,12 @@ FileStatusWidget::updateWidgets()
 
         QListWidget *w = m_stateListMap[s];
         w->clear();
+
+        if (!shouldShow(s)) {
+            w->parentWidget()->hide();
+            continue;
+        }
+
         QStringList files = m_fileStates.filesInState(s);
 
         QStringList highPriority, lowPriority;

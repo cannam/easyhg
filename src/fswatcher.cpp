@@ -82,6 +82,7 @@ FsWatcher::setTrackedFilePaths(QStringList paths)
 	QSet<QString>::fromList(m_watcher.files());
 
     foreach (QString path, paths) {
+        path = m_workDirPath + QDir::separator() + path;
         if (!alreadyWatched.contains(path)) {
             m_watcher.addPath(path);
         } else {
