@@ -1983,7 +1983,7 @@ void MainWindow::commandStarting(HgAction action)
     m_commandSequenceInProgress = true;
 }
 
-void MainWindow::commandFailed(HgAction action, QString stdErr, QString stdout)
+void MainWindow::commandFailed(HgAction action, QString stdErr, QString stdOut)
 {
     DEBUG << "MainWindow::commandFailed" << endl;
 
@@ -2066,10 +2066,10 @@ void MainWindow::commandFailed(HgAction action, QString stdErr, QString stdout)
         } else if (stdErr.contains("entry cancelled")) {
             // ignore this, user cancelled username or password dialog
             return;
-        } else if (stdErr.contains("no changes found") || stdout.contains("no changes found")) {
+        } else if (stdErr.contains("no changes found") || stdOut.contains("no changes found")) {
             // success: hg 2.1 starts returning failure code for empty pull/push
             m_commandSequenceInProgress = true; // there may be further commands
-            commandCompleted(action, stdout);
+            commandCompleted(action, stdOut);
             return;
         }
         break; // go on to default report
@@ -2083,10 +2083,10 @@ void MainWindow::commandFailed(HgAction action, QString stdErr, QString stdout)
         } else if (stdErr.contains("entry cancelled")) {
             // ignore this, user cancelled username or password dialog
             return;
-        } else if (stdErr.contains("no changes found") || stdout.contains("no changes found")) {
+        } else if (stdErr.contains("no changes found") || stdOut.contains("no changes found")) {
             // success: hg 2.1 starts returning failure code for empty pull/push
             m_commandSequenceInProgress = true; // there may be further commands
-            commandCompleted(action, stdout);
+            commandCompleted(action, stdOut);
             return;
         }
         break; // go on to default report
