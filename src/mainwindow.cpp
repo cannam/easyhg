@@ -122,7 +122,6 @@ MainWindow::MainWindow(QString myDirPath) :
     setUnifiedTitleAndToolBarOnMac(true);
     connectActions();
     clearState();
-    updateFsWatcher();
     enableDisableActions();
 
     if (m_firstStart) {
@@ -254,11 +253,9 @@ void MainWindow::hgStat()
 {
     QStringList params;
 
-    if (m_showAllFiles) {
-        params << "stat" << "-A";
-    } else {
-        params << "stat" << "-ardum";
-    }
+    // We always stat all files, regardless of whether we're showing
+    // them all, because we need them for the filesystem monitor
+    params << "stat" << "-A";
 
     m_lastStatOutput = "";
 
@@ -1429,7 +1426,6 @@ void MainWindow::open()
             if (result) {
                 enableDisableActions();
                 clearState();
-                updateFsWatcher();
                 hgQueryPaths();
                 done = true;
             }
@@ -1515,7 +1511,6 @@ void MainWindow::open(QString local)
     if (openLocal(local)) {
         enableDisableActions();
         clearState();
-        updateFsWatcher();
         hgQueryPaths();
     }
 }

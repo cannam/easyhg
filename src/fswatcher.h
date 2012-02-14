@@ -49,7 +49,8 @@ public:
 
     /**
      * Provide a set of paths for files which should be tracked. These
-     * will be the only non-directory files monitored for changes.
+     * will be the only non-directory files monitored for changes. The
+     * paths should be relative to the work directory.
      */
     void setTrackedFilePaths(QStringList paths);
     

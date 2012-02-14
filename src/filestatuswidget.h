@@ -55,6 +55,7 @@ public:
     QStringList getSelectedRemovableFiles() const;
 
     bool shouldShowAll() const;
+    bool shouldShow(FileStates::State) const;
 
 signals:
     void selectionChanged();
