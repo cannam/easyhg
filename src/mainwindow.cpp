@@ -1831,8 +1831,8 @@ void MainWindow::checkFilesystem()
             hgRefresh();
             return;
         }
+        updateFsWatcher();
     }
-    updateFsWatcher();
 }
 
 QString MainWindow::format1(QString head)
