@@ -3007,8 +3007,13 @@ void MainWindow::createToolBars()
     int sz = 32;
 
     bool spacingReqd = false;
+    QString spacer = "";
 #ifndef Q_OS_MAC
     spacingReqd = true;
+    spacer = " ";
+#ifdef Q_OS_WIN32
+    spacer = "  ";
+#endif
 #endif
 
     m_workFolderToolBar = addToolBar(tr("Work"));
@@ -3032,9 +3037,9 @@ void MainWindow::createToolBars()
 
     m_repoToolBar = addToolBar(tr("Remote"));
     m_repoToolBar->setIconSize(QSize(sz, sz));
-    if (spacingReqd) m_repoToolBar->addWidget(new QLabel(" "));
+    m_repoToolBar->addWidget(new QLabel(spacer));
     m_repoToolBar->addAction(m_openAct);
-    if (spacingReqd) m_repoToolBar->addWidget(new QLabel(" "));
+    m_repoToolBar->addWidget(new QLabel(spacer));
     m_repoToolBar->addSeparator();
     m_repoToolBar->addAction(m_hgIncomingAct);
     m_repoToolBar->addAction(m_hgPullAct);
