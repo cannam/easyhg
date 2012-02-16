@@ -1779,6 +1779,7 @@ bool MainWindow::openInit(QString local)
 
     if (status == FolderHasRepo) {
         if (!askToOpenInsteadOfInit(local)) return false;
+        return openLocal(local);
     }
 
     if (containing != "") {
