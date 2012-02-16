@@ -1,0 +1,106 @@
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+  <Product
+      Name="EasyMercurial" 
+      Id="CDD72D35-518B-49E2-A389-B3F7C1AE289D" 
+      Language="1033"
+      Codepage="1252" 
+      Version="1.2.0" 
+      UpgradeCode="B82DFDA9-B9DE-49BC-93E5-0B96F9DEB04B"
+      Manufacturer="Queen Mary, University of London">
+
+    <Package
+        Id="*"
+        Keywords="Installer"
+        Description="EasyMercurial Installer" 
+        Comments="Copyright (c) 2011 Queen Mary, University of London and others." 
+        Manufacturer="Queen Mary, University of London" 
+        InstallerVersion="100" 
+        Languages="1033" 
+        Compressed="yes" 
+        SummaryCodepage="1252"/>
+
+    <Media Id="1" Cabinet="easyhg.cab" EmbedCab="yes" DiskPrompt="CD-ROM #1"/>
+    <Property Id="DiskPrompt" Value="EasyMercurial Installation [1]"/>
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder" Name="PFiles">
+        <Directory Id="EasyHg" Name="EasyMercurial">
+          <Directory Id="INSTALLDIR" Name="EasyMercurial 1.2.0">
+            
+            <Component
+                Id="MainExecutable"
+                Guid="DC128BA9-25A8-431E-8A88-7E0445E850B9">
+
+              <File
+                  Id="EasyHg"
+                  Name="EasyMercurial.exe"
+                  DiskId="1"
+                  Source="release\EasyMercurial.exe"
+                  KeyPath="yes">
+
+                <Shortcut
+                    Id="EasyHgStartEntry"
+                    Directory="ProgramMenuDir"
+                    Name="EasyMercurial"
+                    WorkingDirectory="INSTALLDIR"
+                    Icon="easyhg-icon.ico"
+                    IconIndex="0"
+                    Advertise="yes"/>
+
+                <Shortcut
+                    Id="EasyHgDesktop"
+                    Directory="DesktopFolder"
+                    Name="EasyMercurial"
+                    WorkingDirectory="INSTALLDIR"
+                    Icon="easyhg-icon.ico"
+                    IconIndex="0"
+                    Advertise="yes"/>
+              </File>
+            </Component>
+
+            <Component
+                Id="VCLIBS"
+                Guid="2566C8F0-A2AD-40E9-A356-94E887CC1222">
+              <File
+                  Id="MSVCP100"
+                  Name="MSVCP100.dll"
+                  DiskId="1"
+                  Source="c:\windows\system32\MSVCP100.DLL"
+                  KeyPath="yes"/>
+              <File
+                  Id="MSVCR100"
+                  Name="MSVCR100.dll"
+                  DiskId="1"
+                  Source="c:\windows\system32\MSVCR100.DLL"/>
+            </Component>
+
+          </Directory>
+        </Directory>
+      </Directory>
+
+      <Directory Id="ProgramMenuFolder" Name="Programs">
+        <Directory Id="ProgramMenuDir" Name="EasyMercurial">
+          <Component Id="ProgramMenuDir" Guid="2E8BDEA0-A6E4-4607-854D-E317A23A535B">
+            <RemoveFolder Id="ProgramMenuDir" On="uninstall"/>
+            <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Type="string" Value="" KeyPath="yes"/>
+          </Component>
+        </Directory>
+      </Directory>
+
+      <Directory Id="DesktopFolder" Name="Desktop"/>
+
+    </Directory>
+
+    <Feature Id="Complete" Level="1">
+      <ComponentRef Id="MainExecutable"/>
+      <ComponentRef Id="VCLIBS"/>
+      <ComponentRef Id="ProgramMenuDir"/>
+    </Feature>
+
+    <Icon
+        Id="easyhg-icon.ico"
+        SourceFile="easyhg-icon.ico"/>
+
+  </Product>
+</Wix>
