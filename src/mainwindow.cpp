@@ -282,6 +282,8 @@ void MainWindow::hgQueryPaths()
         path = s.value("default").toString();
     }
 
+    std::cerr << "hgQueryPaths: setting m_remoteRepoPath to " << m_remoteRepoPath << " from file " << hgrc.absoluteFilePath() << std::endl;
+    
     m_remoteRepoPath = path;
 
     // We have to do this here, because commandCompleted won't be called
@@ -1484,7 +1486,8 @@ void MainWindow::changeRemoteRepo(bool initial)
     d->addChoice("remote",
                  tr("<qt><center><img src=\":images/browser-64.png\"><br>Remote repository</center></qt>"),
                  explanation,
-                 MultiChoiceDialog::UrlArg);
+                 MultiChoiceDialog::UrlArg,
+                 true); // default empty
 
     if (d->exec() == QDialog::Accepted) {
 
@@ -3083,10 +3086,8 @@ void MainWindow::readSettings()
 
     QSettings settings;
 
-    m_remoteRepoPath = settings.value("remoterepopath", "").toString();
     m_workFolderPath = settings.value("workfolderpath", "").toString();
-    if (!workFolder.exists(m_workFolderPath))
-    {
+    if (!workFolder.exists(m_workFolderPath)) {
         m_workFolderPath = "";
     }
 

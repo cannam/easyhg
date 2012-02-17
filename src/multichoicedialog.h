@@ -48,7 +48,8 @@ public:
     };
 
     void addChoice(QString identifier, QString text,
-                   QString description, ArgType arg);
+                   QString description, ArgType arg,
+                   bool defaultEmpty = false);
 
     void setCurrentChoice(QString);
     QString getCurrentChoice();
@@ -71,6 +72,7 @@ private:
     QMap<QString, QString> m_texts;
     QMap<QString, QString> m_descriptions;
     QMap<QString, ArgType> m_argTypes;
+    QMap<QString, bool> m_defaultEmpty;
     QMap<QString, QSharedPointer<RecentFiles> > m_recentFiles;
 
     QString m_currentChoice;
