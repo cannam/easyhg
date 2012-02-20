@@ -53,6 +53,7 @@
 #include "hgignoredialog.h"
 #include "versiontester.h"
 #include "fswatcher.h"
+#include "findwidget.h"
 
 
 MainWindow::MainWindow(QString myDirPath) :
@@ -107,12 +108,15 @@ MainWindow::MainWindow(QString myDirPath) :
 #endif
 
     m_workStatus = new WorkStatusWidget(this);
-    cl->addWidget(m_workStatus, row++, 0);
+    cl->addWidget(m_workStatus, row, 0);
+
+    m_findWidget = new FindWidget(this);
+    cl->addWidget(m_findWidget, row++, 1, Qt::AlignRight | Qt::AlignTop);
 
     m_hgTabs = new HgTabWidget(central, m_workFolderPath);
     connectTabsSignals();
 
-    cl->addWidget(m_hgTabs, row++, 0);
+    cl->addWidget(m_hgTabs, row++, 0, 1, 2);
 
     connect(m_hgTabs, SIGNAL(selectionChanged()),
             this, SLOT(enableDisableActions()));
@@ -150,6 +154,11 @@ void MainWindow::closeEvent(QCloseEvent *)
 {
     writeSettings();
     delete m_fsWatcher;
+}
+
+
+void MainWindow::resizeEvent(QResizeEvent *)
+{
 }
 
 
