@@ -36,6 +36,7 @@ QT_END_NAMESPACE
 
 class WorkStatusWidget;
 class FsWatcher;
+class FindWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -46,6 +47,7 @@ public:
 
 protected:
     void closeEvent(QCloseEvent *event);
+    void resizeEvent(QResizeEvent *event);
 
 public slots:
     void open(QString local);
@@ -180,6 +182,7 @@ private:
 
     WorkStatusWidget *m_workStatus;
     HgTabWidget *m_hgTabs;
+    FindWidget *m_findWidget;
 
     QString m_remoteRepoPath;
     QString m_workFolderPath;
