@@ -78,6 +78,8 @@ public slots:
     void clearSelections();
     void updateWidgets();
 
+    void setSearchText(QString text);
+
 private slots:
     void menuActionActivated();
     void itemSelectionChanged();
@@ -103,6 +105,8 @@ private:
     int m_lastGridlyCount;
     QList<QWidget *> m_boxes;
     QWidget *m_boxesParent;
+
+    QString m_searchText;
 
     void layoutBoxesGridly(int count);
     void layoutBoxesLinearly();

@@ -241,6 +241,7 @@ void HistoryWidget::layoutAll()
         toFocus->ensureVisible();
     }
 
+    updateSearchStatus();
     connectSceneSignals();
 }
 
@@ -291,6 +292,38 @@ void HistoryWidget::updateNewAndCurrentItems()
             csit->setNew(newid);
             csit->update();
         }
+    }
+}
+
+void HistoryWidget::setSearchText(QString text)
+{
+    if (m_searchText == text) return;
+    m_searchText = text;
+    updateSearchStatus();
+}
+
+void HistoryWidget::updateSearchStatus()
+{
+    QGraphicsScene *scene = m_panned->scene();
+    if (!scene) return;
+
+    ChangesetItem *toFocus = 0;
+
+    QList<QGraphicsItem *> items = scene->items();
+    foreach (QGraphicsItem *it, items) {
+
+        ChangesetItem *csit = dynamic_cast<ChangesetItem *>(it);
+        if (!csit) continue;
+        
+        bool matched = csit->setSearchText(m_searchText);
+        if (matched && (!toFocus || csit->row() < toFocus->row())) {
+            toFocus = csit;
+        }
+        csit->update();
+    }
+
+    if (toFocus) {
+        toFocus->ensureVisible();
     }
 }
 

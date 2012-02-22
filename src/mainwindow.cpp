@@ -112,6 +112,8 @@ MainWindow::MainWindow(QString myDirPath) :
 
     m_findWidget = new FindWidget(this);
     cl->addWidget(m_findWidget, row++, 1, Qt::AlignRight | Qt::AlignTop);
+    connect(m_findWidget, SIGNAL(findTextChanged(QString)),
+            this, SLOT(findTextChanged(QString)));
 
     m_hgTabs = new HgTabWidget(central, m_workFolderPath);
     connectTabsSignals();
@@ -228,6 +230,12 @@ void MainWindow::clearSelections()
 void MainWindow::showAllChanged()
 {
     hgQueryPaths();
+}
+
+void MainWindow::findTextChanged(QString text)
+{
+    std::cerr << "find: " << text << std::endl;
+    m_hgTabs->setSearchText(text);
 }
 
 void MainWindow::hgRefresh()

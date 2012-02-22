@@ -154,6 +154,12 @@ void HgTabWidget::updateHistory()
     m_historyWidget->update();
 }
 
+void HgTabWidget::setSearchText(QString text)
+{
+    m_fileStatusWidget->setSearchText(text);
+    m_historyWidget->setSearchText(text);
+}
+
 bool HgTabWidget::canDiff() const
 {
     return canRevert();

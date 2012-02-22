@@ -113,6 +113,8 @@ public slots:
     void showWorkTab();
     void showHistoryTab();
 
+    void setSearchText(QString text);
+
 private:
     FileStatusWidget *m_fileStatusWidget;
     HistoryWidget *m_historyWidget;
