@@ -413,6 +413,14 @@ FileStatusWidget::setFileStates(FileStates p)
 }
 
 void
+FileStatusWidget::setSearchText(QString text)
+{
+    if (m_searchText == text) return;
+    m_searchText = text;
+    updateWidgets();
+}
+
+void
 FileStatusWidget::updateWidgets()
 {
     QDateTime lastInteractionTime;
@@ -425,6 +433,7 @@ FileStatusWidget::updateWidgets()
     foreach (QString f, m_selectedFiles) selectedFiles.insert(f);
 
     int visibleCount = 0;
+    bool finding = (m_searchText != "");
 
     foreach (FileStates::State s, m_stateListMap.keys()) {
 
@@ -441,6 +450,13 @@ FileStatusWidget::updateWidgets()
         QStringList highPriority, lowPriority;
 
         foreach (QString file, files) {
+
+            if (finding) {
+                if (file.contains(m_searchText, Qt::CaseInsensitive)) {
+                    highPriority.push_back(file);
+                }
+                continue;
+            }
 
             bool highlighted = false;
 
@@ -467,7 +483,11 @@ FileStatusWidget::updateWidgets()
         foreach (QString file, highPriority) {
             QListWidgetItem *item = new QListWidgetItem(file);
             w->addItem(item);
-            item->setForeground(QColor("#d40000"));
+            if (finding) {
+                item->setForeground(QColor("#008400"));
+            } else {
+                item->setForeground(QColor("#d40000"));
+            }                
             item->setSelected(selectedFiles.contains(file));
         }
 

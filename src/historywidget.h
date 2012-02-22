@@ -68,6 +68,9 @@ signals:
 
 private slots:
     void showClosedChanged(bool);
+
+public slots:
+    void setSearchText(QString);
     
 private:
     Changesets m_changesets;
@@ -82,6 +85,8 @@ private:
     Panner *m_panner;
     QCheckBox *m_showClosedBranches;
 
+    QString m_searchText;
+
     QGraphicsScene *scene();
     void clearChangesets();
     void replaceChangesets(Changesets);
@@ -90,6 +95,7 @@ private:
     void setChangesetParents();
     void updateNewAndCurrentItems();
     void connectSceneSignals();
+    void updateSearchStatus();
 };
 
 #endif

@@ -69,6 +69,7 @@ private slots:
     void startupDialog();
     void clearSelections();
     void showAllChanged();
+    void findTextChanged(QString);
 
     void hgTest();
     void hgTestExtension();

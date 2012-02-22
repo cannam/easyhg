@@ -65,6 +65,8 @@ public:
     bool showBranch() const { return m_showBranch; }
     void setShowBranch(bool s) { m_showBranch = s; }
 
+    bool setSearchText(QString text); // return true if it matches
+
 signals:
     void detailShown();
     void detailHidden();
@@ -110,6 +112,8 @@ private:
     bool m_current;
     bool m_closing;
     bool m_new;
+    QString m_searchText;
+    bool m_searchMatches;
 
     QMap<QAction *, QString> m_parentDiffActions;
     QMap<QAction *, QString> m_summaryActions;
