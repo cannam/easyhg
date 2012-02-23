@@ -446,6 +446,7 @@ FileStatusWidget::updateWidgets()
         }
 
         QStringList files = m_fileStates.filesInState(s);
+        bool foundSomething = false;
 
         QStringList highPriority, lowPriority;
 
@@ -454,8 +455,11 @@ FileStatusWidget::updateWidgets()
             if (finding) {
                 if (file.contains(m_searchText, Qt::CaseInsensitive)) {
                     highPriority.push_back(file);
+                    foundSomething = true;
                 }
                 continue;
+            } else {
+                foundSomething = true;
             }
 
             bool highlighted = false;
@@ -499,7 +503,7 @@ FileStatusWidget::updateWidgets()
 
         setLabelFor(w, s, !highPriority.empty());
 
-        if (files.empty()) {
+        if (!foundSomething) {
             w->parentWidget()->hide();
         } else {
             w->parentWidget()->show();
