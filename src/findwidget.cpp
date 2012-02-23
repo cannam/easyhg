@@ -61,9 +61,15 @@ FindWidget::buttonPressed()
     if (m_lineEdit->isVisible()) {
 	m_lineEdit->hide();
 	button->setText(tr("Find..."));
+        if (m_lineEdit->text() != "") {
+            emit findTextChanged("");
+        }
     } else {
 	m_lineEdit->show();
 	button->setText(tr("Find:"));
+        if (m_lineEdit->text() != "") {
+            emit findTextChanged(m_lineEdit->text());
+        }
     }
 }
 	
