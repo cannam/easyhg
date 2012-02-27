@@ -112,7 +112,7 @@ MainWindow::MainWindow(QString myDirPath) :
     m_hgTabs = new HgTabWidget(central, m_workFolderPath);
     connectTabsSignals();
 
-    cl->addWidget(m_hgTabs, row++, 0);
+    cl->addWidget(m_hgTabs, row++, 0, 1, 2);
 
     connect(m_hgTabs, SIGNAL(selectionChanged()),
             this, SLOT(enableDisableActions()));
@@ -150,6 +150,11 @@ void MainWindow::closeEvent(QCloseEvent *)
 {
     writeSettings();
     delete m_fsWatcher;
+}
+
+
+void MainWindow::resizeEvent(QResizeEvent *)
+{
 }
 
 
