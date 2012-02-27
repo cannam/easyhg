@@ -28,6 +28,7 @@ class Panned;
 class Panner;
 class UncommittedItem;
 class QGraphicsScene;
+class FindWidget;
 
 class HistoryWidget : public QWidget
 {
@@ -81,6 +82,7 @@ private:
     bool m_showUncommitted;
     bool m_refreshNeeded;
 
+    FindWidget *m_findWidget;
     Panned *m_panned;
     Panner *m_panner;
     QCheckBox *m_showClosedBranches;

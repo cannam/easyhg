@@ -53,7 +53,6 @@
 #include "hgignoredialog.h"
 #include "versiontester.h"
 #include "fswatcher.h"
-#include "findwidget.h"
 
 
 MainWindow::MainWindow(QString myDirPath) :
@@ -108,12 +107,7 @@ MainWindow::MainWindow(QString myDirPath) :
 #endif
 
     m_workStatus = new WorkStatusWidget(this);
-    cl->addWidget(m_workStatus, row, 0);
-
-    m_findWidget = new FindWidget(this);
-    cl->addWidget(m_findWidget, row++, 1, Qt::AlignRight | Qt::AlignTop);
-    connect(m_findWidget, SIGNAL(findTextChanged(QString)),
-            this, SLOT(findTextChanged(QString)));
+    cl->addWidget(m_workStatus, row++, 0);
 
     m_hgTabs = new HgTabWidget(central, m_workFolderPath);
     connectTabsSignals();
@@ -230,12 +224,6 @@ void MainWindow::clearSelections()
 void MainWindow::showAllChanged()
 {
     hgQueryPaths();
-}
-
-void MainWindow::findTextChanged(QString text)
-{
-    std::cerr << "find: " << text << std::endl;
-    m_hgTabs->setSearchText(text);
 }
 
 void MainWindow::hgRefresh()

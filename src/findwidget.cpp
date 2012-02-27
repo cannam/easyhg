@@ -26,24 +26,25 @@ FindWidget::FindWidget(QWidget *parent) :
     QWidget(parent)
 {
     QGridLayout *layout = new QGridLayout;
+    layout->setMargin(0);
     setLayout(layout);
 
     QToolButton *button = new QToolButton();
     layout->addWidget(button, 0, 0);
     button->setText(tr("Find..."));
     button->setToolButtonStyle(Qt::ToolButtonTextOnly);
-    button->setAutoRaise(true);
+//    button->setAutoRaise(true);
     connect(button, SIGNAL(clicked()), this, SLOT(buttonPressed()));
 
-/*
-    QLabel *label = new QLabel(tr("Find:"));
-    layout->addWidget(label, 0, 0);
-*/
     m_lineEdit = new QLineEdit();
     layout->addWidget(m_lineEdit, 0, 1);
 
     m_lineEdit->setFixedWidth(100);
     m_lineEdit->hide();
+
+    int h = m_lineEdit->sizeHint().height();
+    int h0 = button->sizeHint().height();
+    if (h > h0) button->setFixedHeight(h);
 
     connect(m_lineEdit, SIGNAL(textChanged(const QString &)),
 	    this, SIGNAL(findTextChanged(QString)));
@@ -66,6 +67,7 @@ FindWidget::buttonPressed()
         }
     } else {
 	m_lineEdit->show();
+        m_lineEdit->setFocus(Qt::OtherFocusReason);
 	button->setText(tr("Find:"));
         if (m_lineEdit->text() != "") {
             emit findTextChanged(m_lineEdit->text());
