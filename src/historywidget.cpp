@@ -23,6 +23,7 @@
 #include "grapher.h"
 #include "debug.h"
 #include "uncommitteditem.h"
+#include "findwidget.h"
 
 #include <iostream>
 
@@ -55,11 +56,21 @@ HistoryWidget::HistoryWidget() :
     settings.beginGroup("Presentation");
     bool showClosed = (settings.value("showclosedbranches", false).toBool());
 
+    QWidget *opts = new QWidget;
+    QGridLayout *optLayout = new QGridLayout(opts);
+    optLayout->setMargin(0);
+    layout->addWidget(opts, ++row, 0, 1, 2);
+
+    m_findWidget = new FindWidget(this);
+    optLayout->addWidget(m_findWidget, 0, 0, Qt::AlignLeft);
+    connect(m_findWidget, SIGNAL(findTextChanged(QString)),
+            this, SLOT(setSearchText(QString)));
+
     m_showClosedBranches = new QCheckBox(tr("Show closed branches"), this);
     m_showClosedBranches->setChecked(showClosed);
     connect(m_showClosedBranches, SIGNAL(toggled(bool)), 
             this, SLOT(showClosedChanged(bool)));
-    layout->addWidget(m_showClosedBranches, ++row, 0, Qt::AlignLeft);
+    optLayout->addWidget(m_showClosedBranches, 0, 1, Qt::AlignRight);
     m_showClosedBranches->hide();
 
     setLayout(layout);

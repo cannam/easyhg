@@ -18,6 +18,7 @@
 #include "filestatuswidget.h"
 #include "debug.h"
 #include "multichoicedialog.h"
+#include "findwidget.h"
 
 #include <QLabel>
 #include <QListWidget>
@@ -154,9 +155,19 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
 
     layout->addItem(new QSpacerItem(8, 8), ++row, 0);
 
-    m_showAllFiles = new QCheckBox(tr("Show all files"), this);
+    QWidget *opts = new QWidget;
+    QGridLayout *optLayout = new QGridLayout(opts);
+    optLayout->setMargin(0);
+    layout->addWidget(opts, ++row, 0);
+
+    m_findWidget = new FindWidget(this);
+    optLayout->addWidget(m_findWidget, 0, 0, Qt::AlignLeft);
+    connect(m_findWidget, SIGNAL(findTextChanged(QString)),
+            this, SLOT(setSearchText(QString)));
+
+    m_showAllFiles = new QCheckBox(tr("Show all file states"), this);
     m_showAllFiles->setEnabled(false);
-    layout->addWidget(m_showAllFiles, ++row, 0, Qt::AlignLeft);
+    optLayout->addWidget(m_showAllFiles, 0, 1, Qt::AlignRight);
 
     QSettings settings;
     m_showAllFiles->setChecked(settings.value("showall", false).toBool());
@@ -209,7 +220,16 @@ void FileStatusWidget::setNoModificationsLabelText()
 {
     QSettings settings;
     settings.beginGroup("Presentation");
-    if (settings.value("showhelpfultext", true).toBool()) {
+
+    if (m_searchText != "") {
+        if (!m_showAllFiles->isChecked()) {
+            m_noModificationsLabel->setText
+                (tr("<qt><b>Nothing found</b><br>None of the modified files have matching filenames.<br>Select <b>Show all file states</b> to find matches among unmodified and untracked files as well.</qt>"));
+        } else {
+            m_noModificationsLabel->setText
+                (tr("<qt><b>Nothing found</b><br>No files have matching filenames.</qt>"));
+        }
+    } else if (settings.value("showhelpfultext", true).toBool()) {
         m_noModificationsLabel->setText
             (tr("<qt>This area will list files in your working folder that you have changed.<br><br>At the moment you have no uncommitted changes.<br><br>To see changes previously made to the repository,<br>switch to the History tab.<br><br>%1</qt>")
 #if defined Q_OS_MAC

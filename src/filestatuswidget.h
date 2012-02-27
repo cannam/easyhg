@@ -29,6 +29,7 @@ class QListWidgetItem;
 class QPushButton;
 class QFileInfo;
 class QCheckBox;
+class FindWidget;
 
 class FileStatusWidget : public QWidget
 {
@@ -89,6 +90,7 @@ private:
     QString m_localPath;
     QLabel *m_noModificationsLabel;
 
+    FindWidget *m_findWidget;
     QCheckBox *m_showAllFiles;
     
     FileStates m_fileStates;

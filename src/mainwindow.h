@@ -36,7 +36,6 @@ QT_END_NAMESPACE
 
 class WorkStatusWidget;
 class FsWatcher;
-class FindWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -69,7 +68,6 @@ private slots:
     void startupDialog();
     void clearSelections();
     void showAllChanged();
-    void findTextChanged(QString);
 
     void hgTest();
     void hgTestExtension();
@@ -183,7 +181,6 @@ private:
 
     WorkStatusWidget *m_workStatus;
     HgTabWidget *m_hgTabs;
-    FindWidget *m_findWidget;
 
     QString m_remoteRepoPath;
     QString m_workFolderPath;
