@@ -29,6 +29,7 @@ class QListWidgetItem;
 class QPushButton;
 class QFileInfo;
 class QCheckBox;
+class FindWidget;
 
 class FileStatusWidget : public QWidget
 {
@@ -78,6 +79,8 @@ public slots:
     void clearSelections();
     void updateWidgets();
 
+    void setSearchText(QString text);
+
 private slots:
     void menuActionActivated();
     void itemSelectionChanged();
@@ -87,6 +90,7 @@ private:
     QString m_localPath;
     QLabel *m_noModificationsLabel;
 
+    FindWidget *m_findWidget;
     QCheckBox *m_showAllFiles;
     
     FileStates m_fileStates;
@@ -103,6 +107,8 @@ private:
     int m_lastGridlyCount;
     QList<QWidget *> m_boxes;
     QWidget *m_boxesParent;
+
+    QString m_searchText;
 
     void layoutBoxesGridly(int count);
     void layoutBoxesLinearly();
