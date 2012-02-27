@@ -20,22 +20,24 @@
 
 #include "hgaction.h"
 
-#include <QProgressBar>
+#include <QWidget>
 #include <QProcess>
-#include <QByteArray>
-#include <QRect>
-#include <QFile>
+
+class QProgressBar;
+class QToolButton;
+class QFile;
 
 #include <deque>
 
-class HgRunner : public QProgressBar
+class HgRunner : public QWidget
 {
     Q_OBJECT
 
 public:
-    HgRunner(QString myDirPath, QWidget * parent = 0);
+    HgRunner(QString myDirPath, QWidget *parent = 0);
     ~HgRunner();
 
+public slots:
     void requestAction(HgAction action);
     void killCurrentActions(); // kill anything running; clear the queue
 
@@ -77,6 +79,9 @@ private:
 
     QString getUnbundledFileName();
     QString unbundleExtension();
+
+    QProgressBar *m_progress;
+    QToolButton *m_cancel;
 
     QStringList addExtensionOptions(QStringList);
 
