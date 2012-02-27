@@ -33,7 +33,6 @@ FindWidget::FindWidget(QWidget *parent) :
     layout->addWidget(button, 0, 0);
     button->setText(tr("Find..."));
     button->setToolButtonStyle(Qt::ToolButtonTextOnly);
-//    button->setAutoRaise(true);
     connect(button, SIGNAL(clicked()), this, SLOT(buttonPressed()));
 
     m_lineEdit = new QLineEdit();

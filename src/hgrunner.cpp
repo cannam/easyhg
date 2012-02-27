@@ -20,16 +20,14 @@
 #include "debug.h"
 #include "settingsdialog.h"
 
-#include <QPushButton>
-#include <QListWidget>
-#include <QDialog>
-#include <QLabel>
-#include <QVBoxLayout>
 #include <QSettings>
 #include <QInputDialog>
 #include <QDesktopServices>
 #include <QTemporaryFile>
 #include <QDir>
+#include <QProgressBar>
+#include <QToolButton>
+#include <QGridLayout>
 
 #include <iostream>
 #include <errno.h>
@@ -44,10 +42,23 @@
 #include <process.h>
 #endif
 
-HgRunner::HgRunner(QString myDirPath, QWidget * parent) :
-    QProgressBar(parent),
+HgRunner::HgRunner(QString myDirPath, QWidget *parent) :
+    QWidget(parent),
     m_myDirPath(myDirPath)
 {
+    QGridLayout *layout = new QGridLayout(this);
+    layout->setMargin(0);
+
+    m_progress = new QProgressBar;
+    layout->addWidget(m_progress, 0, 0);
+
+    m_cancel = new QToolButton;
+    m_cancel->setIcon(QIcon(":images/cancel-small.png"));
+    m_cancel->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    m_cancel->setAutoRaise(true);
+    connect(m_cancel, SIGNAL(clicked()), this, SLOT(killCurrentActions()));
+    layout->addWidget(m_cancel, 0, 1);
+
     m_proc = 0;
 
     // Always unbundle the extension: even if it already exists (in
@@ -59,8 +70,8 @@ HgRunner::HgRunner(QString myDirPath, QWidget * parent) :
     // unbundling failed
     unbundleExtension();
 
-    setTextVisible(false);
-    setVisible(false);
+    m_progress->setTextVisible(false);
+    hide();
     m_isRunning = false;
 }
 
@@ -524,7 +535,7 @@ void HgRunner::startCommand(HgAction action)
     }
 
     m_isRunning = true;
-    setRange(0, 0);
+    m_progress->setRange(0, 0);
     if (!action.shouldBeFast()) show();
     m_stdout.clear();
     m_stderr.clear();
