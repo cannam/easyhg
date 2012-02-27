@@ -5,8 +5,8 @@
 
     Based on HgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
-    Copyright (c) 2011 Chris Cannam
-    Copyright (c) 2011 Queen Mary, University of London
+    Copyright (c) 2012 Chris Cannam
+    Copyright (c) 2012 Queen Mary, University of London
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -17,7 +17,7 @@
 
 /*
     This file adapted from Rosegarden, a sequencer and musical
-    notation editor.  Copyright 2000-2011 the Rosegarden development
+    notation editor.  Copyright 2000-2012 the Rosegarden development
     team.
 
     Adapted from KDE 4.2.0, this code originally Copyright (c) 2000

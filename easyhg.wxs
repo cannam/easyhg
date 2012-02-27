@@ -13,7 +13,7 @@
         Id="*"
         Keywords="Installer"
         Description="EasyMercurial Installer" 
-        Comments="Copyright (c) 2011 Queen Mary, University of London and others." 
+        Comments="Copyright (c) 2012 Queen Mary, University of London and others." 
         Manufacturer="Queen Mary, University of London" 
         InstallerVersion="100" 
         Languages="1033" 

@@ -44,8 +44,8 @@ Finally, an external diff/merge utility is required, typically kdiff3.
 
 EasyMercurial is
 Copyright 2010 Jari Korhonen
-Copyright 2010-2011 Chris Cannam
-Copyright 2010-2011 Queen Mary, University of London
+Copyright 2010-2012 Chris Cannam
+Copyright 2010-2012 Queen Mary, University of London
 
 
 
