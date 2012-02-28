@@ -217,7 +217,9 @@ FsWatcher::fsFileChanged(QString path)
         // watching the file explicitly, i.e. the file is in the
         // tracked file paths list. So we never want to ignore them
 
+#ifdef DEBUG_FSWATCHER
         std::cerr << "FsWatcher: Tracked file " << path << " has changed" << std::endl;
+#endif
 
         size_t counter = ++m_lastCounter;
         m_changes[path] = counter;
@@ -233,13 +235,17 @@ FsWatcher::shouldIgnore(QString path)
     QString fn(fi.fileName());
     foreach (QString pfx, m_ignoredPrefixes) {
         if (fn.startsWith(pfx)) {
+#ifdef DEBUG_FSWATCHER
             std::cerr << "(ignoring: " << path << ")" << std::endl;
+#endif
             return true;
         }
     }
     foreach (QString sfx, m_ignoredSuffixes) {
         if (fn.endsWith(sfx)) {
+#ifdef DEBUG_FSWATCHER
             std::cerr << "(ignoring: " << path << ")" << std::endl;
+#endif
             return true;
         }
     }
