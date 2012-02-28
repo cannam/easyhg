@@ -46,6 +46,13 @@ signals:
     void commandCompleted(HgAction action, QString stdOut);
     void commandFailed(HgAction action, QString stdErr, QString stdOut);
 
+    /**
+     * Emitted when the currently executing command is cancelled. Note
+     * that this clears the queue completely, so all subsequent
+     * commands are also discarded.
+     */
+    void commandCancelled(HgAction action);
+
 private slots:
     void started();
     void error(QProcess::ProcessError);

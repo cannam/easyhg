@@ -339,9 +339,9 @@ void HgRunner::error(QProcess::ProcessError)
 
 void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
 {
-	if (!m_proc) return;
+    if (!m_proc) return;
 
-	// Save the current action and reset m_currentAction before we
+    // Save the current action and reset m_currentAction before we
     // emit a signal to mark the completion; otherwise we may be
     // resetting the action after a slot has already tried to set it
     // to something else to start a new action
@@ -377,8 +377,10 @@ void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
 
 void HgRunner::killCurrentActions()
 {
+    HgAction current = m_currentAction;
     m_queue.clear();
     killCurrentCommand();
+    emit commandCancelled(current);
 }
 
 void HgRunner::killCurrentCommand()

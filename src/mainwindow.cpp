@@ -85,6 +85,8 @@ MainWindow::MainWindow(QString myDirPath) :
             this, SLOT(commandCompleted(HgAction, QString)));
     connect(m_runner, SIGNAL(commandFailed(HgAction, QString, QString)),
             this, SLOT(commandFailed(HgAction, QString, QString)));
+    connect(m_runner, SIGNAL(commandCancelled(HgAction)),
+            this, SLOT(commandCancelled(HgAction)));
     statusBar()->addPermanentWidget(m_runner);
 
     setWindowTitle(tr("EasyMercurial"));
@@ -2526,6 +2528,19 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
         updateRecentMenu();
         checkFilesystem();
     }
+}
+
+void MainWindow::commandCancelled(HgAction cancelledAction)
+{
+    // Originally I had this checking whether the cancelled action was
+    // a network one and, if so, calling hgQueryPaths to update the
+    // local view in case it had changed anything. But that doesn't
+    // work properly -- because at this point, although the command
+    // has been cancelled and a kill signal sent, it hasn't actually
+    // exited yet. If we request another command now, it will go on
+    // the stack and be associated with the failed exit forthcoming
+    // from the cancelled command -- giving the user a disturbing
+    // command-failed dialog
 }
 
 void MainWindow::connectActions()
