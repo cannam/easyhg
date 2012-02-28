@@ -23,7 +23,7 @@
 
 #include <deque>
 
-#define DEBUG_FSWATCHER 1
+//#define DEBUG_FSWATCHER 1
 
 /*
  * Watching the filesystem is trickier than it seems at first glance.
@@ -66,8 +66,13 @@ FsWatcher::setWorkDirPath(QString path)
 {
     QMutexLocker locker(&m_mutex);
     if (m_workDirPath == path) return;
-    m_watcher.removePaths(m_watcher.directories());
-    m_watcher.removePaths(m_watcher.files());
+    // annoyingly, removePaths prints a warning if given an empty list
+    if (!m_watcher.directories().empty()) {
+        m_watcher.removePaths(m_watcher.directories());
+    }
+    if (!m_watcher.files().empty()) {
+        m_watcher.removePaths(m_watcher.files());
+    }
     m_workDirPath = path;
     addWorkDirectory(path);
     debugPrint();
