@@ -100,7 +100,8 @@
                   Id="QtCore"
                   Name="QtCore4.dll"
                   DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\QtCore4.dll"/>
+                  Source="d:\easyhg-bundle-dependencies\QtCore4.dll"
+		  KeyPath="yes"/>
               <File
                   Id="QtGui"
                   Name="QtGui4.dll"
@@ -214,6 +215,12 @@
     <Feature Id="Complete" Level="1">
       <ComponentRef Id="MainExecutable"/>
       <ComponentRef Id="VCLIBS"/>
+      <ComponentRef Id="HelperScripts"/>
+      <ComponentRef Id="Qt4"/>
+      <ComponentRef Id="hg"/>
+      <ComponentRef Id="sip"/>
+      <ComponentRef Id="kdiff3"/>
+      <ComponentRef Id="PyQt4"/>
       <ComponentRef Id="ProgramMenuDir"/>
     </Feature>
 
