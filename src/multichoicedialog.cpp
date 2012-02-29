@@ -265,7 +265,9 @@ MultiChoiceDialog::updateFileComboFromURL()
 void
 MultiChoiceDialog::updateOkButton()
 {
-    if (m_argTypes[m_currentChoice] == UrlToDirectoryArg) {
+    if (m_defaultEmpty[m_currentChoice]) {
+        m_okButton->setEnabled(true);
+    } else if (m_argTypes[m_currentChoice] == UrlToDirectoryArg) {
         m_okButton->setEnabled(getArgument() != "" &&
                                getAdditionalArgument() != "");
     } else {

@@ -289,7 +289,7 @@ void MainWindow::hgQueryPaths()
         path = s.value("default").toString();
     }
 
-    std::cerr << "hgQueryPaths: setting m_remoteRepoPath to " << m_remoteRepoPath << " from file " << hgrc.absoluteFilePath() << std::endl;
+//    std::cerr << "hgQueryPaths: setting m_remoteRepoPath to " << m_remoteRepoPath << " from file " << hgrc.absoluteFilePath() << std::endl;
     
     m_remoteRepoPath = path;
 
