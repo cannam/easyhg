@@ -57,7 +57,25 @@
                     IconIndex="0"
                     Advertise="yes"/>
               </File>
+
+              <File
+                  Id="COPYING"
+                  Name="COPYING"
+                  DiskId="1"
+                  Source="COPYING"/>
             </Component>
+
+            <Component
+                Id="HelperScripts"
+                Guid="971EA788-347E-4CDE-9899-69EEBE117BDD">
+
+              <File
+                  Id="mergebat"
+                  Name="easyhg-merge.bat"
+                  DiskId="1"
+                  Source="easyhg-merge.bat"
+                  KeyPath="yes"/>
+            </Component>		  
 
             <Component
                 Id="VCLIBS"
@@ -74,6 +92,107 @@
                   DiskId="1"
                   Source="c:\windows\system32\MSVCR100.DLL"/>
             </Component>
+
+            <Component
+                Id="Qt4"
+                Guid="04F730AC-B361-45A2-B1CC-9CEB55256117">
+              <File
+                  Id="QtCore"
+                  Name="QtCore4.dll"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\QtCore4.dll"/>
+              <File
+                  Id="QtGui"
+                  Name="QtGui4.dll"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\QtGui4.dll"/>
+              <File
+                  Id="QtNetwork"
+                  Name="QtNetwork4.dll"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\QtNetwork4.dll"/>
+            </Component>
+
+            <Component
+                Id="hg"
+                Guid="5BBC4080-2EDF-4616-A8CB-F96B9C942C1A">
+
+              <File
+                  Id="hg"
+                  Name="hg.exe"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\hg.exe"
+                  KeyPath="yes"/>
+              <File
+                  Id="pydll"
+                  Name="python26.dll"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\python26.dll"/>
+              <File
+                  Id="hglib"
+                  Name="library.zip"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\library.zip"/>
+              <File
+                  Id="plink"
+                  Name="TortoisePlink.exe"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\TortoisePlink.exe"/>
+            </Component>		  
+
+            <Component
+                Id="sip"
+                Guid="DCCE0979-A0A6-475D-B6CD-3173740593F9">
+              <File
+                  Id="sip"
+                  Name="sip.pyd"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\sip.pyd" />
+            </Component>
+
+            <Component
+                Id="kdiff3"
+                Guid="6BA0CB20-F426-42AB-A95A-615A4FF87752">
+              <File
+                  Id="kdiff3"
+                  Name="kdiff3.exe"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\kdiff3.exe"
+                  KeyPath="yes"/>
+            </Component>		  
+
+            <Directory Id="PyQt4" Name="PyQt4">
+              <Component
+                  Id="PyQt4"
+                  Guid="5EE2BE01-3D91-44C5-869A-5E8167079AA0">
+                <File
+                    Id="init"
+                    Name="__init__.py"
+                    DiskId="1"
+                    Source="d:\easyhg-bundle-dependencies\PyQt4\__init__.py"
+                    KeyPath="yes"/>
+                <File
+                    Id="inito"
+                    Name="__init__.pyo"
+                    DiskId="1"
+                    Source="d:\easyhg-bundle-dependencies\PyQt4\__init__.pyo" />
+                <File
+                    Id="Qtpy"
+                    Name="Qt.pyd"
+                    DiskId="1"
+                    Source="d:\easyhg-bundle-dependencies\PyQt4\Qt.pyd" />
+                <File
+                    Id="QtCorepy"
+                    Name="QtCore.pyd"
+                    DiskId="1"
+                    Source="d:\easyhg-bundle-dependencies\PyQt4\QtCore.pyd" />
+                <File
+                    Id="QtGuipy"
+                    Name="QtGui.pyd"
+                    DiskId="1"
+                    Source="d:\easyhg-bundle-dependencies\PyQt4\QtGui.pyd" />
+              </Component>
+            </Directory>
 
           </Directory>
         </Directory>
