@@ -92,11 +92,18 @@ ChangesetItem::hideDetail()
 }    
 
 bool
-ChangesetItem::setSearchText(QString text)
+ChangesetItem::matchSearchText(QString text)
 {
     m_searchText = text;
-    m_searchMatches = (m_changeset->comment().contains
-                       (text, Qt::CaseInsensitive));
+    m_searchMatches = false;
+    if (m_showBranch) {
+        m_searchMatches = (m_changeset->branch().contains
+                           (text, Qt::CaseInsensitive));
+    }
+    if (!m_searchMatches) {
+        m_searchMatches = (m_changeset->comment().contains
+                           (text, Qt::CaseInsensitive));
+    }
     return m_searchMatches;
 }
 

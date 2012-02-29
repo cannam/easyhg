@@ -65,7 +65,7 @@ public:
     bool showBranch() const { return m_showBranch; }
     void setShowBranch(bool s) { m_showBranch = s; }
 
-    bool setSearchText(QString text); // return true if it matches
+    bool matchSearchText(QString text); // return true and records the match if it matches
 
 signals:
     void detailShown();

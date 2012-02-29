@@ -326,7 +326,7 @@ void HistoryWidget::updateSearchStatus()
         ChangesetItem *csit = dynamic_cast<ChangesetItem *>(it);
         if (!csit) continue;
         
-        bool matched = csit->setSearchText(m_searchText);
+        bool matched = csit->matchSearchText(m_searchText);
         if (matched && (!toFocus || csit->row() < toFocus->row())) {
             toFocus = csit;
         }
