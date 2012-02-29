@@ -44,7 +44,7 @@
                     Directory="ProgramMenuDir"
                     Name="EasyMercurial"
                     WorkingDirectory="INSTALLDIR"
-                    Icon="easyhg-icon.ico"
+                    Icon="easyhg.ico"
                     IconIndex="0"
                     Advertise="yes"/>
 
@@ -53,7 +53,7 @@
                     Directory="DesktopFolder"
                     Name="EasyMercurial"
                     WorkingDirectory="INSTALLDIR"
-                    Icon="easyhg-icon.ico"
+                    Icon="easyhg.ico"
                     IconIndex="0"
                     Advertise="yes"/>
               </File>
@@ -99,8 +99,8 @@
     </Feature>
 
     <Icon
-        Id="easyhg-icon.ico"
-        SourceFile="easyhg-icon.ico"/>
+        Id="easyhg.ico"
+        SourceFile="easyhg.ico"/>
 
   </Product>
 </Wix>
