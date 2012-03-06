@@ -118,6 +118,20 @@ struct HgAction
 	    return false;
 	}
     }
+
+    bool makesSenseToCancel() const {
+        switch (action) {
+        case ACT_INCOMING:
+        case ACT_PUSH:
+        case ACT_PULL:
+        case ACT_CLONEFROMREMOTE:
+        case ACT_FOLDERDIFF:
+        case ACT_CHGSETDIFF:
+            return true;
+        default:
+            return false;
+        }
+    }
 };
 
 #endif

@@ -24,7 +24,7 @@
 #include <QProcess>
 
 class QProgressBar;
-class QToolButton;
+class QPushButton;
 class QFile;
 
 #include <deque>
@@ -88,7 +88,7 @@ private:
     QString unbundleExtension();
 
     QProgressBar *m_progress;
-    QToolButton *m_cancel;
+    QPushButton *m_cancel;
 
     QStringList addExtensionOptions(QStringList);
 

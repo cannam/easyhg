@@ -26,7 +26,7 @@
 #include <QTemporaryFile>
 #include <QDir>
 #include <QProgressBar>
-#include <QToolButton>
+#include <QPushButton>
 #include <QGridLayout>
 
 #include <iostream>
@@ -52,10 +52,11 @@ HgRunner::HgRunner(QString myDirPath, QWidget *parent) :
     m_progress = new QProgressBar;
     layout->addWidget(m_progress, 0, 0);
 
-    m_cancel = new QToolButton;
+    m_cancel = new QPushButton;
     m_cancel->setIcon(QIcon(":images/cancel-small.png"));
-    m_cancel->setToolButtonStyle(Qt::ToolButtonIconOnly);
-    m_cancel->setAutoRaise(true);
+    m_cancel->setFlat(true);
+    m_cancel->setFixedHeight(m_progress->sizeHint().height());
+    m_cancel->setFixedWidth(m_progress->sizeHint().height());
     connect(m_cancel, SIGNAL(clicked()), this, SLOT(killCurrentActions()));
     layout->addWidget(m_cancel, 0, 1);
 
@@ -538,7 +539,10 @@ void HgRunner::startCommand(HgAction action)
 
     m_isRunning = true;
     m_progress->setRange(0, 0);
-    if (!action.shouldBeFast()) show();
+    if (!action.shouldBeFast()) {
+        show();
+        m_cancel->setVisible(action.makesSenseToCancel());
+    }
     m_stdout.clear();
     m_stderr.clear();
     m_realm = "";
