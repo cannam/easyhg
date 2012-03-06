@@ -3061,9 +3061,13 @@ void MainWindow::createToolBars()
 
     m_repoToolBar = addToolBar(tr("Remote"));
     m_repoToolBar->setIconSize(QSize(sz, sz));
-    m_repoToolBar->addWidget(new QLabel(spacer));
+    if (spacingReqd) {
+        m_repoToolBar->addWidget(new QLabel(spacer));
+    }
     m_repoToolBar->addAction(m_openAct);
-    m_repoToolBar->addWidget(new QLabel(spacer));
+    if (spacingReqd) {
+        m_repoToolBar->addWidget(new QLabel(spacer));
+    }
     m_repoToolBar->addSeparator();
     m_repoToolBar->addAction(m_hgIncomingAct);
     m_repoToolBar->addAction(m_hgPullAct);

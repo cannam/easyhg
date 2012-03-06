@@ -252,7 +252,9 @@ void HistoryWidget::layoutAll()
         toFocus->ensureVisible();
     }
 
-    updateSearchStatus();
+    if (m_searchText != "") {
+        updateSearchStatus();
+    }
     connectSceneSignals();
 }
 
