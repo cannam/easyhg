@@ -1,3 +1,20 @@
+Changes in v1.2 since v1.1:
+
+ * Add a Find function to both My Work and History tabs
+ * Add a Cancel button to the progress bar in the status line when
+   carrying out network operations
+ * Remove Refresh button from the toolbar. This button was found to be
+   causing significant confusion, as some users interpreted it as
+   meaning resynchronise with the server, while in fact all it did was
+   re-read the local working copy. The function is still present, but
+   has been relegated to File -> Re-Read Working Folder
+ * Rework the filesystem watcher code, making it generally more
+   reliable (a requirement for removing the Refresh button)
+ * Fix problem with return codes in Mercurial 2.1 causing push and
+   pull to be reported as failing
+ * Make it possible to clear the remote repository URL
+ * Switch the Windows installer from InstallJammer to WiX
+
 Changes in v1.1 since v1.0.1:
 
  * Closed branches are now supported: you can close a branch in EasyMercurial
