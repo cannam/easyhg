@@ -1,1 +1,1 @@
-#define EASYHG_VERSION "1.1"
+#define EASYHG_VERSION "1.2"
