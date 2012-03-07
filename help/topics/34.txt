@@ -1,0 +1,28 @@
+{Sharing changes}
+
+Every time I push some changes, I have to type my password again
+
+When you push to a remote repository with an "https:" prefix on its
+URL, EasyMercurial's password dialog should ask whether you want to
+remember your login details.
+
+If you say yes, the details will be stored until EasyMercurial
+exits---so you won't have to enter them if you push or pull again
+while the present EasyMercurial session is running. Your password will
+be stored, encrypted with a session key, in a file which is deleted
+when EasyMercurial exits.
+
+*If this option does not appear*
+
+... and if you're using OS/X, then you need to install the PyCrypto
+library before EasyMercurial will be able to store encrypted passwords
+for you.
+
+Try running @sudo easy_install pycrypto@ in a terminal window.
+
+*Not using an https repository?*
+
+If your remote repository uses ssh or some other protocol, then
+EasyMercurial won't be able to help. You might consider using ssh
+public key authentication and an ssh agent---talk to the admin of your
+remote repository for more details.
