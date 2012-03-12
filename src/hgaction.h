@@ -5,8 +5,8 @@
 
     Based on HgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
-    Copyright (c) 2011 Chris Cannam
-    Copyright (c) 2011 Queen Mary, University of London
+    Copyright (c) 2012 Chris Cannam
+    Copyright (c) 2012 Queen Mary, University of London
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -117,6 +117,20 @@ struct HgAction
 	default:
 	    return false;
 	}
+    }
+
+    bool makesSenseToCancel() const {
+        switch (action) {
+        case ACT_INCOMING:
+        case ACT_PUSH:
+        case ACT_PULL:
+        case ACT_CLONEFROMREMOTE:
+        case ACT_FOLDERDIFF:
+        case ACT_CHGSETDIFF:
+            return true;
+        default:
+            return false;
+        }
     }
 };
 

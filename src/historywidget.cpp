@@ -5,8 +5,8 @@
 
     Based on HgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
-    Copyright (c) 2011 Chris Cannam
-    Copyright (c) 2011 Queen Mary, University of London
+    Copyright (c) 2012 Chris Cannam
+    Copyright (c) 2012 Queen Mary, University of London
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -23,6 +23,7 @@
 #include "grapher.h"
 #include "debug.h"
 #include "uncommitteditem.h"
+#include "findwidget.h"
 
 #include <iostream>
 
@@ -55,11 +56,21 @@ HistoryWidget::HistoryWidget() :
     settings.beginGroup("Presentation");
     bool showClosed = (settings.value("showclosedbranches", false).toBool());
 
+    QWidget *opts = new QWidget;
+    QGridLayout *optLayout = new QGridLayout(opts);
+    optLayout->setMargin(0);
+    layout->addWidget(opts, ++row, 0, 1, 2);
+
+    m_findWidget = new FindWidget(this);
+    optLayout->addWidget(m_findWidget, 0, 0, Qt::AlignLeft);
+    connect(m_findWidget, SIGNAL(findTextChanged(QString)),
+            this, SLOT(setSearchText(QString)));
+
     m_showClosedBranches = new QCheckBox(tr("Show closed branches"), this);
     m_showClosedBranches->setChecked(showClosed);
     connect(m_showClosedBranches, SIGNAL(toggled(bool)), 
             this, SLOT(showClosedChanged(bool)));
-    layout->addWidget(m_showClosedBranches, ++row, 0, Qt::AlignLeft);
+    optLayout->addWidget(m_showClosedBranches, 0, 1, Qt::AlignRight);
     m_showClosedBranches->hide();
 
     setLayout(layout);
@@ -241,6 +252,9 @@ void HistoryWidget::layoutAll()
         toFocus->ensureVisible();
     }
 
+    if (m_searchText != "") {
+        updateSearchStatus();
+    }
     connectSceneSignals();
 }
 
@@ -291,6 +305,38 @@ void HistoryWidget::updateNewAndCurrentItems()
             csit->setNew(newid);
             csit->update();
         }
+    }
+}
+
+void HistoryWidget::setSearchText(QString text)
+{
+    if (m_searchText == text) return;
+    m_searchText = text;
+    updateSearchStatus();
+}
+
+void HistoryWidget::updateSearchStatus()
+{
+    QGraphicsScene *scene = m_panned->scene();
+    if (!scene) return;
+
+    ChangesetItem *toFocus = 0;
+
+    QList<QGraphicsItem *> items = scene->items();
+    foreach (QGraphicsItem *it, items) {
+
+        ChangesetItem *csit = dynamic_cast<ChangesetItem *>(it);
+        if (!csit) continue;
+        
+        bool matched = csit->matchSearchText(m_searchText);
+        if (matched && (!toFocus || csit->row() < toFocus->row())) {
+            toFocus = csit;
+        }
+        csit->update();
+    }
+
+    if (toFocus) {
+        toFocus->ensureVisible();
     }
 }
 

@@ -1,0 +1,8 @@
+{See also}
+
+Video tutorials
+
+There are some very simple video tutorials available on the EasyMercurial website.
+
+Please see [[http://easyhg.org/videos.html]].
+

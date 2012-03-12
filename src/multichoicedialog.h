@@ -5,8 +5,8 @@
 
     Based on HgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
-    Copyright (c) 2011 Chris Cannam
-    Copyright (c) 2011 Queen Mary, University of London
+    Copyright (c) 2012 Chris Cannam
+    Copyright (c) 2012 Queen Mary, University of London
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -48,7 +48,8 @@ public:
     };
 
     void addChoice(QString identifier, QString text,
-                   QString description, ArgType arg);
+                   QString description, ArgType arg,
+                   bool defaultEmpty = false);
 
     void setCurrentChoice(QString);
     QString getCurrentChoice();
@@ -71,6 +72,7 @@ private:
     QMap<QString, QString> m_texts;
     QMap<QString, QString> m_descriptions;
     QMap<QString, ArgType> m_argTypes;
+    QMap<QString, bool> m_defaultEmpty;
     QMap<QString, QSharedPointer<RecentFiles> > m_recentFiles;
 
     QString m_currentChoice;

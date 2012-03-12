@@ -5,8 +5,8 @@
 
     Based on HgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
-    Copyright (c) 2011 Chris Cannam
-    Copyright (c) 2011 Queen Mary, University of London
+    Copyright (c) 2012 Chris Cannam
+    Copyright (c) 2012 Queen Mary, University of London
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -28,6 +28,7 @@ class Panned;
 class Panner;
 class UncommittedItem;
 class QGraphicsScene;
+class FindWidget;
 
 class HistoryWidget : public QWidget
 {
@@ -68,6 +69,9 @@ signals:
 
 private slots:
     void showClosedChanged(bool);
+
+public slots:
+    void setSearchText(QString);
     
 private:
     Changesets m_changesets;
@@ -78,9 +82,12 @@ private:
     bool m_showUncommitted;
     bool m_refreshNeeded;
 
+    FindWidget *m_findWidget;
     Panned *m_panned;
     Panner *m_panner;
     QCheckBox *m_showClosedBranches;
+
+    QString m_searchText;
 
     QGraphicsScene *scene();
     void clearChangesets();
@@ -90,6 +97,7 @@ private:
     void setChangesetParents();
     void updateNewAndCurrentItems();
     void connectSceneSignals();
+    void updateSearchStatus();
 };
 
 #endif

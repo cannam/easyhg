@@ -5,8 +5,8 @@
 
     Based on HgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
-    Copyright (c) 2011 Chris Cannam
-    Copyright (c) 2011 Queen Mary, University of London
+    Copyright (c) 2012 Chris Cannam
+    Copyright (c) 2012 Queen Mary, University of London
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -20,16 +20,14 @@
 #include "debug.h"
 #include "settingsdialog.h"
 
-#include <QPushButton>
-#include <QListWidget>
-#include <QDialog>
-#include <QLabel>
-#include <QVBoxLayout>
 #include <QSettings>
 #include <QInputDialog>
 #include <QDesktopServices>
 #include <QTemporaryFile>
 #include <QDir>
+#include <QProgressBar>
+#include <QPushButton>
+#include <QGridLayout>
 
 #include <iostream>
 #include <errno.h>
@@ -44,10 +42,24 @@
 #include <process.h>
 #endif
 
-HgRunner::HgRunner(QString myDirPath, QWidget * parent) :
-    QProgressBar(parent),
+HgRunner::HgRunner(QString myDirPath, QWidget *parent) :
+    QWidget(parent),
     m_myDirPath(myDirPath)
 {
+    QGridLayout *layout = new QGridLayout(this);
+    layout->setMargin(0);
+
+    m_progress = new QProgressBar;
+    layout->addWidget(m_progress, 0, 0);
+
+    m_cancel = new QPushButton;
+    m_cancel->setIcon(QIcon(":images/cancel-small.png"));
+    m_cancel->setFlat(true);
+    m_cancel->setFixedHeight(m_progress->sizeHint().height());
+    m_cancel->setFixedWidth(m_progress->sizeHint().height());
+    connect(m_cancel, SIGNAL(clicked()), this, SLOT(killCurrentActions()));
+    layout->addWidget(m_cancel, 0, 1);
+
     m_proc = 0;
 
     // Always unbundle the extension: even if it already exists (in
@@ -59,8 +71,8 @@ HgRunner::HgRunner(QString myDirPath, QWidget * parent) :
     // unbundling failed
     unbundleExtension();
 
-    setTextVisible(false);
-    setVisible(false);
+    m_progress->setTextVisible(false);
+    hide();
     m_isRunning = false;
 }
 
@@ -328,9 +340,9 @@ void HgRunner::error(QProcess::ProcessError)
 
 void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
 {
-	if (!m_proc) return;
+    if (!m_proc) return;
 
-	// Save the current action and reset m_currentAction before we
+    // Save the current action and reset m_currentAction before we
     // emit a signal to mark the completion; otherwise we may be
     // resetting the action after a slot has already tried to set it
     // to something else to start a new action
@@ -366,8 +378,10 @@ void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
 
 void HgRunner::killCurrentActions()
 {
+    HgAction current = m_currentAction;
     m_queue.clear();
     killCurrentCommand();
+    emit commandCancelled(current);
 }
 
 void HgRunner::killCurrentCommand()
@@ -524,8 +538,11 @@ void HgRunner::startCommand(HgAction action)
     }
 
     m_isRunning = true;
-    setRange(0, 0);
-    if (!action.shouldBeFast()) show();
+    m_progress->setRange(0, 0);
+    if (!action.shouldBeFast()) {
+        show();
+        m_cancel->setVisible(action.makesSenseToCancel());
+    }
     m_stdout.clear();
     m_stderr.clear();
     m_realm = "";

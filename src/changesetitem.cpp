@@ -5,8 +5,8 @@
 
     Based on HgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
-    Copyright (c) 2011 Chris Cannam
-    Copyright (c) 2011 Queen Mary, University of London
+    Copyright (c) 2012 Chris Cannam
+    Copyright (c) 2012 Queen Mary, University of London
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -38,7 +38,7 @@ QImage *ChangesetItem::m_star = 0;
 ChangesetItem::ChangesetItem(Changeset *cs) :
     m_changeset(cs), m_detail(0),
     m_showBranch(false), m_column(0), m_row(0), m_wide(false),
-    m_current(false), m_closing(false), m_new(false)
+    m_current(false), m_closing(false), m_new(false), m_searchMatches(false)
 {
     m_font = QFont();
     m_font.setPixelSize(11);
@@ -90,6 +90,22 @@ ChangesetItem::hideDetail()
     m_detail = 0;
     emit detailHidden();
 }    
+
+bool
+ChangesetItem::matchSearchText(QString text)
+{
+    m_searchText = text;
+    m_searchMatches = false;
+    if (m_showBranch) {
+        m_searchMatches = (m_changeset->branch().contains
+                           (text, Qt::CaseInsensitive));
+    }
+    if (!m_searchMatches) {
+        m_searchMatches = (m_changeset->comment().contains
+                           (text, Qt::CaseInsensitive));
+    }
+    return m_searchMatches;
+}
 
 void
 ChangesetItem::mousePressEvent(QGraphicsSceneMouseEvent *e)
@@ -296,6 +312,17 @@ ChangesetItem::paintNormal(QPainter *paint)
     bool showText = (scale >= 0.2);
     bool showProperLines = (scale >= 0.1);
 
+    if (m_searchText != "") {
+        if (m_searchMatches) {
+            userColour = QColor("#008400");
+            showProperLines = true;
+            showText = true;
+        } else {
+            branchColour = Qt::gray;
+            userColour = Qt::gray;
+        }
+    }
+
     if (!showProperLines) {
 	paint->setPen(QPen(branchColour, 0));
     } else {
@@ -451,6 +478,8 @@ ChangesetItem::paintNormal(QPainter *paint)
     }
 
     paint->setFont(f);
+
+    if (m_searchMatches) paint->setPen(userColour);
 
     for (int i = 0; i < lines.size(); ++i) {
 	paint->drawText(x0 + 3, i * fh + fh + fm.ascent(), lines[i].trimmed());

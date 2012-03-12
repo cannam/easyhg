@@ -65,7 +65,8 @@ HEADERS = \
     src/hgignoredialog.h \
     src/versiontester.h \
     src/squeezedlabel.h \
-    src/fswatcher.h
+    src/fswatcher.h \
+    src/findwidget.h
 SOURCES = \
     src/main.cpp \
     src/mainwindow.cpp \
@@ -103,7 +104,8 @@ SOURCES = \
     src/hgignoredialog.cpp \
     src/versiontester.cpp \
     src/squeezedlabel.cpp \
-    src/fswatcher.cpp
+    src/fswatcher.cpp \
+    src/findwidget.cpp
 
 macx-* {
     SOURCES += src/common_osx.mm

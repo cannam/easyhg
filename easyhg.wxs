@@ -1,0 +1,232 @@
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+  <Product
+      Name="EasyMercurial" 
+      Id="CDD72D35-518B-49E2-A389-B3F7C1AE289D" 
+      Language="1033"
+      Codepage="1252" 
+      Version="1.2.0" 
+      UpgradeCode="B82DFDA9-B9DE-49BC-93E5-0B96F9DEB04B"
+      Manufacturer="Queen Mary, University of London">
+
+    <Package
+        Id="*"
+        Keywords="Installer"
+        Description="EasyMercurial Installer" 
+        Comments="Copyright (c) 2012 Queen Mary, University of London and others." 
+        Manufacturer="Queen Mary, University of London" 
+        InstallerVersion="100" 
+        Languages="1033" 
+        Compressed="yes" 
+        SummaryCodepage="1252"/>
+
+    <Media Id="1" Cabinet="easyhg.cab" EmbedCab="yes" DiskPrompt="CD-ROM #1"/>
+    <Property Id="DiskPrompt" Value="EasyMercurial Installation [1]"/>
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder" Name="PFiles">
+        <Directory Id="EasyHg" Name="EasyMercurial">
+          <Directory Id="INSTALLDIR" Name="EasyMercurial 1.2.0">
+            
+            <Component
+                Id="MainExecutable"
+                Guid="DC128BA9-25A8-431E-8A88-7E0445E850B9">
+
+              <File
+                  Id="EasyHg"
+                  Name="EasyMercurial.exe"
+                  DiskId="1"
+                  Source="release\EasyMercurial.exe"
+                  KeyPath="yes">
+
+                <Shortcut
+                    Id="EasyHgStartEntry"
+                    Directory="ProgramMenuDir"
+                    Name="EasyMercurial"
+                    WorkingDirectory="INSTALLDIR"
+                    Icon="easyhg.ico"
+                    IconIndex="0"
+                    Advertise="yes"/>
+
+                <Shortcut
+                    Id="EasyHgDesktop"
+                    Directory="DesktopFolder"
+                    Name="EasyMercurial"
+                    WorkingDirectory="INSTALLDIR"
+                    Icon="easyhg.ico"
+                    IconIndex="0"
+                    Advertise="yes"/>
+              </File>
+
+              <File
+                  Id="COPYING"
+                  Name="COPYING"
+                  DiskId="1"
+                  Source="COPYING"/>
+            </Component>
+
+            <Component
+                Id="HelperScripts"
+                Guid="971EA788-347E-4CDE-9899-69EEBE117BDD">
+
+              <File
+                  Id="mergebat"
+                  Name="easyhg-merge.bat"
+                  DiskId="1"
+                  Source="easyhg-merge.bat"
+                  KeyPath="yes"/>
+            </Component>		  
+
+            <Component
+                Id="VCLIBS"
+                Guid="2566C8F0-A2AD-40E9-A356-94E887CC1222">
+              <File
+                  Id="MSVCP100"
+                  Name="MSVCP100.dll"
+                  DiskId="1"
+                  Source="c:\windows\system32\MSVCP100.DLL"
+                  KeyPath="yes"/>
+              <File
+                  Id="MSVCR100"
+                  Name="MSVCR100.dll"
+                  DiskId="1"
+                  Source="c:\windows\system32\MSVCR100.DLL"/>
+            </Component>
+
+            <Component
+                Id="Qt4"
+                Guid="04F730AC-B361-45A2-B1CC-9CEB55256117">
+              <File
+                  Id="QtCore"
+                  Name="QtCore4.dll"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\QtCore4.dll"
+		  KeyPath="yes"/>
+              <File
+                  Id="QtGui"
+                  Name="QtGui4.dll"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\QtGui4.dll"/>
+              <File
+                  Id="QtNetwork"
+                  Name="QtNetwork4.dll"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\QtNetwork4.dll"/>
+            </Component>
+
+            <Component
+                Id="hg"
+                Guid="5BBC4080-2EDF-4616-A8CB-F96B9C942C1A">
+
+              <File
+                  Id="hg"
+                  Name="hg.exe"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\hg.exe"
+                  KeyPath="yes"/>
+              <File
+                  Id="pydll"
+                  Name="python26.dll"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\python26.dll"/>
+              <File
+                  Id="hglib"
+                  Name="library.zip"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\library.zip"/>
+              <File
+                  Id="plink"
+                  Name="TortoisePlink.exe"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\TortoisePlink.exe"/>
+            </Component>		  
+
+            <Component
+                Id="sip"
+                Guid="DCCE0979-A0A6-475D-B6CD-3173740593F9">
+              <File
+                  Id="sip"
+                  Name="sip.pyd"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\sip.pyd" />
+            </Component>
+
+            <Component
+                Id="kdiff3"
+                Guid="6BA0CB20-F426-42AB-A95A-615A4FF87752">
+              <File
+                  Id="kdiff3"
+                  Name="kdiff3.exe"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\kdiff3.exe"
+                  KeyPath="yes"/>
+            </Component>		  
+
+            <Directory Id="PyQt4" Name="PyQt4">
+              <Component
+                  Id="PyQt4"
+                  Guid="5EE2BE01-3D91-44C5-869A-5E8167079AA0">
+                <File
+                    Id="init"
+                    Name="__init__.py"
+                    DiskId="1"
+                    Source="d:\easyhg-bundle-dependencies\PyQt4\__init__.py"
+                    KeyPath="yes"/>
+                <File
+                    Id="inito"
+                    Name="__init__.pyo"
+                    DiskId="1"
+                    Source="d:\easyhg-bundle-dependencies\PyQt4\__init__.pyo" />
+                <File
+                    Id="Qtpy"
+                    Name="Qt.pyd"
+                    DiskId="1"
+                    Source="d:\easyhg-bundle-dependencies\PyQt4\Qt.pyd" />
+                <File
+                    Id="QtCorepy"
+                    Name="QtCore.pyd"
+                    DiskId="1"
+                    Source="d:\easyhg-bundle-dependencies\PyQt4\QtCore.pyd" />
+                <File
+                    Id="QtGuipy"
+                    Name="QtGui.pyd"
+                    DiskId="1"
+                    Source="d:\easyhg-bundle-dependencies\PyQt4\QtGui.pyd" />
+              </Component>
+            </Directory>
+
+          </Directory>
+        </Directory>
+      </Directory>
+
+      <Directory Id="ProgramMenuFolder" Name="Programs">
+        <Directory Id="ProgramMenuDir" Name="EasyMercurial">
+          <Component Id="ProgramMenuDir" Guid="2E8BDEA0-A6E4-4607-854D-E317A23A535B">
+            <RemoveFolder Id="ProgramMenuDir" On="uninstall"/>
+            <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Type="string" Value="" KeyPath="yes"/>
+          </Component>
+        </Directory>
+      </Directory>
+
+      <Directory Id="DesktopFolder" Name="Desktop"/>
+
+    </Directory>
+
+    <Feature Id="Complete" Level="1">
+      <ComponentRef Id="MainExecutable"/>
+      <ComponentRef Id="VCLIBS"/>
+      <ComponentRef Id="HelperScripts"/>
+      <ComponentRef Id="Qt4"/>
+      <ComponentRef Id="hg"/>
+      <ComponentRef Id="sip"/>
+      <ComponentRef Id="kdiff3"/>
+      <ComponentRef Id="PyQt4"/>
+      <ComponentRef Id="ProgramMenuDir"/>
+    </Feature>
+
+    <Icon
+        Id="easyhg.ico"
+        SourceFile="easyhg.ico"/>
+
+  </Product>
+</Wix>

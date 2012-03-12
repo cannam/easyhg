@@ -5,8 +5,8 @@
 
     Based on HgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
-    Copyright (c) 2011 Chris Cannam
-    Copyright (c) 2011 Queen Mary, University of London
+    Copyright (c) 2012 Chris Cannam
+    Copyright (c) 2012 Queen Mary, University of London
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -136,13 +136,15 @@ MultiChoiceDialog::addRecentArgument(QString id, QString arg,
 
 void
 MultiChoiceDialog::addChoice(QString id, QString text,
-                             QString description, ArgType arg)
+                             QString description, ArgType arg,
+                             bool defaultEmpty)
 {
     bool first = (m_texts.empty());
 
     m_texts[id] = text;
     m_descriptions[id] = description;
     m_argTypes[id] = arg;
+    m_defaultEmpty[id] = defaultEmpty;
     
     if (arg != NoArg) {
         m_recentFiles[id] = QSharedPointer<RecentFiles>
@@ -263,7 +265,9 @@ MultiChoiceDialog::updateFileComboFromURL()
 void
 MultiChoiceDialog::updateOkButton()
 {
-    if (m_argTypes[m_currentChoice] == UrlToDirectoryArg) {
+    if (m_defaultEmpty[m_currentChoice]) {
+        m_okButton->setEnabled(true);
+    } else if (m_argTypes[m_currentChoice] == UrlToDirectoryArg) {
         m_okButton->setEnabled(getArgument() != "" &&
                                getAdditionalArgument() != "");
     } else {
@@ -326,6 +330,7 @@ MultiChoiceDialog::choiceChanged()
         m_fileLabel->show();
         m_fileCombo->show();
         m_fileCombo->addItems(rf->getRecent());
+        if (m_defaultEmpty[id]) m_fileCombo->lineEdit()->setText("");
         m_browseButton->show();
         break;
 
@@ -334,6 +339,7 @@ MultiChoiceDialog::choiceChanged()
         m_fileLabel->show();
         m_fileCombo->show();
         m_fileCombo->addItems(rf->getRecent());
+        if (m_defaultEmpty[id]) m_fileCombo->lineEdit()->setText("");
         m_browseButton->show();
         break;
 
@@ -341,12 +347,14 @@ MultiChoiceDialog::choiceChanged()
         m_urlLabel->show();
         m_urlCombo->show();
         m_urlCombo->addItems(rf->getRecent());
+        if (m_defaultEmpty[id]) m_urlCombo->lineEdit()->setText("");
         break;
 
     case UrlToDirectoryArg:
         m_urlLabel->show();
         m_urlCombo->show();
         m_urlCombo->addItems(rf->getRecent());
+        if (m_defaultEmpty[id]) m_urlCombo->lineEdit()->setText("");
         m_fileLabel->setText(tr("&Folder:"));
         m_fileLabel->show();
         m_fileCombo->show();

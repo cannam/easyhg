@@ -5,8 +5,8 @@
 
     Based on HgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
-    Copyright (c) 2011 Chris Cannam
-    Copyright (c) 2011 Queen Mary, University of London
+    Copyright (c) 2012 Chris Cannam
+    Copyright (c) 2012 Queen Mary, University of London
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -20,22 +20,24 @@
 
 #include "hgaction.h"
 
-#include <QProgressBar>
+#include <QWidget>
 #include <QProcess>
-#include <QByteArray>
-#include <QRect>
-#include <QFile>
+
+class QProgressBar;
+class QPushButton;
+class QFile;
 
 #include <deque>
 
-class HgRunner : public QProgressBar
+class HgRunner : public QWidget
 {
     Q_OBJECT
 
 public:
-    HgRunner(QString myDirPath, QWidget * parent = 0);
+    HgRunner(QString myDirPath, QWidget *parent = 0);
     ~HgRunner();
 
+public slots:
     void requestAction(HgAction action);
     void killCurrentActions(); // kill anything running; clear the queue
 
@@ -43,6 +45,13 @@ signals:
     void commandStarting(HgAction action);
     void commandCompleted(HgAction action, QString stdOut);
     void commandFailed(HgAction action, QString stdErr, QString stdOut);
+
+    /**
+     * Emitted when the currently executing command is cancelled. Note
+     * that this clears the queue completely, so all subsequent
+     * commands are also discarded.
+     */
+    void commandCancelled(HgAction action);
 
 private slots:
     void started();
@@ -77,6 +86,9 @@ private:
 
     QString getUnbundledFileName();
     QString unbundleExtension();
+
+    QProgressBar *m_progress;
+    QPushButton *m_cancel;
 
     QStringList addExtensionOptions(QStringList);
 
