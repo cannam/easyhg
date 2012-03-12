@@ -5,8 +5,8 @@
 
     Based on hgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
-    Copyright (c) 2011 Chris Cannam
-    Copyright (c) 2011 Queen Mary, University of London
+    Copyright (c) 2012 Chris Cannam
+    Copyright (c) 2012 Queen Mary, University of London
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -85,6 +85,8 @@ MainWindow::MainWindow(QString myDirPath) :
             this, SLOT(commandCompleted(HgAction, QString)));
     connect(m_runner, SIGNAL(commandFailed(HgAction, QString, QString)),
             this, SLOT(commandFailed(HgAction, QString, QString)));
+    connect(m_runner, SIGNAL(commandCancelled(HgAction)),
+            this, SLOT(commandCancelled(HgAction)));
     statusBar()->addPermanentWidget(m_runner);
 
     setWindowTitle(tr("EasyMercurial"));
@@ -112,7 +114,7 @@ MainWindow::MainWindow(QString myDirPath) :
     m_hgTabs = new HgTabWidget(central, m_workFolderPath);
     connectTabsSignals();
 
-    cl->addWidget(m_hgTabs, row++, 0);
+    cl->addWidget(m_hgTabs, row++, 0, 1, 2);
 
     connect(m_hgTabs, SIGNAL(selectionChanged()),
             this, SLOT(enableDisableActions()));
@@ -153,6 +155,11 @@ void MainWindow::closeEvent(QCloseEvent *)
 }
 
 
+void MainWindow::resizeEvent(QResizeEvent *)
+{
+}
+
+
 QString MainWindow::getUserInfo() const
 {
     QSettings settings;
@@ -187,9 +194,9 @@ void MainWindow::about()
                          "<p>EasyMercurial is based on HgExplorer by "
                          "Jari Korhonen, with thanks.</p>"
                          "<p style=\"margin-left: 2em;\">"
-                         "Copyright &copy; 2011 Queen Mary, University of London.<br>"
+                         "Copyright &copy; 2012 Queen Mary, University of London.<br>"
                          "Copyright &copy; 2010 Jari Korhonen.<br>"
-                         "Copyright &copy; 2011 Chris Cannam."
+                         "Copyright &copy; 2012 Chris Cannam."
                          "</p>"
                          "<p style=\"margin-left: 2em;\">"
                          "This program requires Mercurial, by Matt Mackall and others.<br>"
@@ -282,6 +289,8 @@ void MainWindow::hgQueryPaths()
         path = s.value("default").toString();
     }
 
+//    std::cerr << "hgQueryPaths: setting m_remoteRepoPath to " << m_remoteRepoPath << " from file " << hgrc.absoluteFilePath() << std::endl;
+    
     m_remoteRepoPath = path;
 
     // We have to do this here, because commandCompleted won't be called
@@ -1484,7 +1493,8 @@ void MainWindow::changeRemoteRepo(bool initial)
     d->addChoice("remote",
                  tr("<qt><center><img src=\":images/browser-64.png\"><br>Remote repository</center></qt>"),
                  explanation,
-                 MultiChoiceDialog::UrlArg);
+                 MultiChoiceDialog::UrlArg,
+                 true); // default empty
 
     if (d->exec() == QDialog::Accepted) {
 
@@ -1779,6 +1789,7 @@ bool MainWindow::openInit(QString local)
 
     if (status == FolderHasRepo) {
         if (!askToOpenInsteadOfInit(local)) return false;
+        return openLocal(local);
     }
 
     if (containing != "") {
@@ -1831,8 +1842,8 @@ void MainWindow::checkFilesystem()
             hgRefresh();
             return;
         }
+        updateFsWatcher();
     }
-    updateFsWatcher();
 }
 
 QString MainWindow::format1(QString head)
@@ -2519,6 +2530,19 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     }
 }
 
+void MainWindow::commandCancelled(HgAction cancelledAction)
+{
+    // Originally I had this checking whether the cancelled action was
+    // a network one and, if so, calling hgQueryPaths to update the
+    // local view in case it had changed anything. But that doesn't
+    // work properly -- because at this point, although the command
+    // has been cancelled and a kill signal sent, it hasn't actually
+    // exited yet. If we request another command now, it will go on
+    // the stack and be associated with the failed exit forthcoming
+    // from the cancelled command -- giving the user a disturbing
+    // command-failed dialog
+}
+
 void MainWindow::connectActions()
 {
     connect(m_exitAct, SIGNAL(triggered()), this, SLOT(close()));
@@ -3007,8 +3031,13 @@ void MainWindow::createToolBars()
     int sz = 32;
 
     bool spacingReqd = false;
+    QString spacer = "";
 #ifndef Q_OS_MAC
     spacingReqd = true;
+    spacer = " ";
+#ifdef Q_OS_WIN32
+    spacer = "  ";
+#endif
 #endif
 
     m_workFolderToolBar = addToolBar(tr("Work"));
@@ -3032,9 +3061,13 @@ void MainWindow::createToolBars()
 
     m_repoToolBar = addToolBar(tr("Remote"));
     m_repoToolBar->setIconSize(QSize(sz, sz));
-    if (spacingReqd) m_repoToolBar->addWidget(new QLabel(" "));
+    if (spacingReqd) {
+        m_repoToolBar->addWidget(new QLabel(spacer));
+    }
     m_repoToolBar->addAction(m_openAct);
-    if (spacingReqd) m_repoToolBar->addWidget(new QLabel(" "));
+    if (spacingReqd) {
+        m_repoToolBar->addWidget(new QLabel(spacer));
+    }
     m_repoToolBar->addSeparator();
     m_repoToolBar->addAction(m_hgIncomingAct);
     m_repoToolBar->addAction(m_hgPullAct);
@@ -3077,10 +3110,8 @@ void MainWindow::readSettings()
 
     QSettings settings;
 
-    m_remoteRepoPath = settings.value("remoterepopath", "").toString();
     m_workFolderPath = settings.value("workfolderpath", "").toString();
-    if (!workFolder.exists(m_workFolderPath))
-    {
+    if (!workFolder.exists(m_workFolderPath)) {
         m_workFolderPath = "";
     }
 

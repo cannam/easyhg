@@ -5,8 +5,8 @@
 
     Based on HgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
-    Copyright (c) 2011 Chris Cannam
-    Copyright (c) 2011 Queen Mary, University of London
+    Copyright (c) 2012 Chris Cannam
+    Copyright (c) 2012 Queen Mary, University of London
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -65,6 +65,8 @@ public:
     bool showBranch() const { return m_showBranch; }
     void setShowBranch(bool s) { m_showBranch = s; }
 
+    bool matchSearchText(QString text); // return true and records the match if it matches
+
 signals:
     void detailShown();
     void detailHidden();
@@ -110,6 +112,8 @@ private:
     bool m_current;
     bool m_closing;
     bool m_new;
+    QString m_searchText;
+    bool m_searchMatches;
 
     QMap<QAction *, QString> m_parentDiffActions;
     QMap<QAction *, QString> m_summaryActions;

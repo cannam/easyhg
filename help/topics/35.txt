@@ -1,0 +1,56 @@
+{Sharing changes}
+
+How do I use the Merge window?
+
+If you are working with other people on a project, it is likely that
+at some point you'll find that more than one of you have edited the
+same lines in the same file, in different ways.
+
+When that happens and you try to merge the two versions, EasyMercurial
+will pop up a merge window that looks a bit like this.
+
+#merge50
+
+(This is actually a separate program, not part of EasyMercurial: it's
+a merge tool called kdiff3.)
+
+This looks a bit complicated, but it is there to help you pick which
+of the changes from each of the two "rival" versions of the file you
+want to use in your merged version.
+
+ *The top middle one is _your current version_.* That's
+  the one you had before you decided to merge the other version into
+  it.
+
+ *At top right is _the version you're merging_.* That's the other
+  rival version -- the one that the other person can see in their copy
+  of the repository.
+
+ *At top left is _the common ancestor_.* That's the version that both
+  of you had, before you started editing it in different ways.
+
+ *At the bottom is the output.*
+
+Each _conflict_ (a line which you have both changed in different ways)
+is shown with *Merge Conflict* in the output at the bottom.  To sort
+out the conflicts and get the right output, you need to go through
+them one by one, for each one pressing the A, B, or C button to say
+whether for this line you want the top-left, top-middle, or top-right
+version to "win".  (You can choose more than one, if you want both
+versions of a line to appear.)
+
+Then having resolved a conflict, press the three-arrows-down toolbar
+button to go to the next one -- and when you've done them all, save
+and exit.
+
+The most important thing to remember is that _whatever appears in the
+bottom pane is what you'll get as a result_.
+
+No matter how confusing the process, just remember that if it looks
+correct in the bottom pane, it will be correct when you save and
+exit. You can even edit the file directly in the bottom pane if you
+aren't happy with the way the merge is going.
+
+
+
+

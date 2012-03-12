@@ -5,8 +5,8 @@
 
     Based on hgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
-    Copyright (c) 2011 Chris Cannam
-    Copyright (c) 2011 Queen Mary, University of London
+    Copyright (c) 2012 Chris Cannam
+    Copyright (c) 2012 Queen Mary, University of London
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -23,7 +23,7 @@
 
 #include <deque>
 
-#define DEBUG_FSWATCHER 1
+//#define DEBUG_FSWATCHER 1
 
 /*
  * Watching the filesystem is trickier than it seems at first glance.
@@ -66,8 +66,13 @@ FsWatcher::setWorkDirPath(QString path)
 {
     QMutexLocker locker(&m_mutex);
     if (m_workDirPath == path) return;
-    m_watcher.removePaths(m_watcher.directories());
-    m_watcher.removePaths(m_watcher.files());
+    // annoyingly, removePaths prints a warning if given an empty list
+    if (!m_watcher.directories().empty()) {
+        m_watcher.removePaths(m_watcher.directories());
+    }
+    if (!m_watcher.files().empty()) {
+        m_watcher.removePaths(m_watcher.files());
+    }
     m_workDirPath = path;
     addWorkDirectory(path);
     debugPrint();
@@ -212,7 +217,9 @@ FsWatcher::fsFileChanged(QString path)
         // watching the file explicitly, i.e. the file is in the
         // tracked file paths list. So we never want to ignore them
 
+#ifdef DEBUG_FSWATCHER
         std::cerr << "FsWatcher: Tracked file " << path << " has changed" << std::endl;
+#endif
 
         size_t counter = ++m_lastCounter;
         m_changes[path] = counter;
@@ -228,13 +235,17 @@ FsWatcher::shouldIgnore(QString path)
     QString fn(fi.fileName());
     foreach (QString pfx, m_ignoredPrefixes) {
         if (fn.startsWith(pfx)) {
+#ifdef DEBUG_FSWATCHER
             std::cerr << "(ignoring: " << path << ")" << std::endl;
+#endif
             return true;
         }
     }
     foreach (QString sfx, m_ignoredSuffixes) {
         if (fn.endsWith(sfx)) {
+#ifdef DEBUG_FSWATCHER
             std::cerr << "(ignoring: " << path << ")" << std::endl;
+#endif
             return true;
         }
     }

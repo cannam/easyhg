@@ -30,6 +30,7 @@ dmg="$dmg"-"$version".dmg
 mkdir "$volume" || exit 1
 
 ln -s /Applications "$volume"/Applications
+cp COPYING "$volume/COPYING.txt"
 cp -RPp "$source" "$target"
 
 echo "Done"
