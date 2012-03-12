@@ -25,7 +25,12 @@
 #include <QHash>
 #include <QMap>
 #include <QStringList>
+
+#ifndef Q_OS_MAC
+// We don't use QFileSystemWatcher on OS/X.
+// See comments at top of fswatcher.cpp for an explanation.
 #include <QFileSystemWatcher>
+#endif
 
 class FsWatcher : public QObject
 {
@@ -93,6 +98,9 @@ private slots:
 
 private:
     // call with lock already held
+    void clearWatchedPaths();
+
+    // call with lock already held
     void addWorkDirectory(QString path);
 
     // call with lock already held
@@ -142,7 +150,12 @@ private:
     QString m_workDirPath;
     int m_lastToken;
     size_t m_lastCounter;
+
+#ifdef Q_OS_MAC
+    void *m_stream;
+#else
     QFileSystemWatcher m_watcher;
+#endif
 };
 
 #endif

@@ -15,11 +15,16 @@
     COPYING included with this distribution for more information.
 */
 
-#include "fswatcher.h"
-#include "debug.h"
-
 #include <QMutexLocker>
 #include <QDir>
+
+#ifdef Q_OS_MAC
+// Must include this before debug.h
+#include <CoreServices/CoreServices.h>
+#endif
+
+#include "fswatcher.h"
+#include "debug.h"
 
 #include <deque>
 
@@ -45,16 +50,57 @@
  * directory to learn whether the set of files in it _excluding_ files
  * matching our ignore patterns differs from the previous scan, and
  * ignore the change if it doesn't.
+ *
+ */
+
+/*
+ * 20120312 -- Another complication. The documentation for
+ * QFileSystemWatcher says:
+ *
+ *     On Mac OS X 10.4 [...] an open file descriptor is required for
+ *     each monitored file. [...] This means that addPath() and
+ *     addPaths() will fail if your process tries to add more than 256
+ *     files or directories to the file system monitor [...] Mac OS X
+ *     10.5 and up use a different backend and do not suffer from this
+ *     issue.
+ * 
+ * Unfortunately, the last sentence above is not true:
+ * http://qt.gitorious.org/qt/qt/commit/6d1baf9979346d6f15da81a535becb4046278962
+ * ("Removing the usage of FSEvents-based backend for now as it has a
+ * few bugs...").  It can't be restored without hacking the Qt source,
+ * which we don't want to do in this context. The commit log doesn't
+ * make clear how serious the bugs were -- an example is given but it
+ * doesn't indicate whether it's an edge case or a common case and
+ * whether the result was a crash or failure to notify.
+ *
+ * This means the Qt class uses kqueue instead on OS/X, but that
+ * doesn't really work for us -- it can only monitor 256 files (or
+ * whatever the fd ulimit is set to, but that's the default) and it
+ * doesn't notify if a file within a directory is modified unless the
+ * metadata changes. The main limitation of FSEvents is that it only
+ * notifies with directory granularity, but that's OK for us so long
+ * as notifications are actually provoked by file changes as well.
+ *
+ * One other problem with FSEvents is that the API only exists on OS/X
+ * 10.5 or newer -- on older versions we would have no option but to
+ * use kqueue via QFileSystemWatcher. But we can't ship a binary
+ * linked with the FSEvents API to run on 10.4 without some fiddling,
+ * and I'm not really keen to do that either.  That may be our cue to
+ * drop 10.4 support for EasyMercurial.
  */
 
 FsWatcher::FsWatcher() :
     m_lastToken(0),
     m_lastCounter(0)
 {
+#ifdef Q_OS_MAC
+    m_stream = 0; // create when we have a path
+#else
     connect(&m_watcher, SIGNAL(directoryChanged(QString)),
 	    this, SLOT(fsDirectoryChanged(QString)));
     connect(&m_watcher, SIGNAL(fileChanged(QString)),
 	    this, SLOT(fsFileChanged(QString)));
+#endif
 }
 
 FsWatcher::~FsWatcher()
@@ -66,6 +112,24 @@ FsWatcher::setWorkDirPath(QString path)
 {
     QMutexLocker locker(&m_mutex);
     if (m_workDirPath == path) return;
+    clearWatchedPaths();
+    m_workDirPath = path;
+    addWorkDirectory(path);
+    debugPrint();
+}
+
+void
+FsWatcher::clearWatchedPaths()
+{
+#ifdef Q_OS_MAC
+    FSEventStreamRef stream = (FSEventStreamRef)m_stream;
+    if (stream) {
+        FSEventStreamStop(stream);
+        FSEventStreamInvalidate(stream);
+        FSEventStreamRelease(stream);
+    }
+    m_stream = 0;
+#else
     // annoyingly, removePaths prints a warning if given an empty list
     if (!m_watcher.directories().empty()) {
         m_watcher.removePaths(m_watcher.directories());
@@ -73,40 +137,44 @@ FsWatcher::setWorkDirPath(QString path)
     if (!m_watcher.files().empty()) {
         m_watcher.removePaths(m_watcher.files());
     }
-    m_workDirPath = path;
-    addWorkDirectory(path);
-    debugPrint();
+#endif
 }
 
-void
-FsWatcher::setTrackedFilePaths(QStringList paths)
+#ifdef Q_OS_MAC
+static void
+fsEventsCallback(FSEventStreamRef streamRef,
+                 void *clientCallBackInfo,
+                 int numEvents,
+                 const char *const eventPaths[],
+                 const FSEventStreamEventFlags *eventFlags,
+                 const uint64_t *eventIDs)
 {
-    QMutexLocker locker(&m_mutex);
-
-    QSet<QString> alreadyWatched = 
-	QSet<QString>::fromList(m_watcher.files());
-
-    foreach (QString path, paths) {
-        path = m_workDirPath + QDir::separator() + path;
-        if (!alreadyWatched.contains(path)) {
-            m_watcher.addPath(path);
-        } else {
-            alreadyWatched.remove(path);
-        }
-    }
-
-    // Remove the remaining paths, those that were being watched
-    // before but that are not in the list we were given
-    foreach (QString path, alreadyWatched) {
-        m_watcher.removePath(path);
-    }
-
-    debugPrint();
 }
+#endif
 
 void
 FsWatcher::addWorkDirectory(QString path)
 {
+#ifdef Q_OS_MAC
+    FSEventStreamRef stream =
+        FSEventStreamCreate(kCFAllocatorDefault,
+                            (FSEventStreamCallback)&fsEventsCallback,
+                            this,
+                            cfPaths,
+                            kFSEventStreamEventIdSinceNow,
+                            1.0, // latency, seconds
+                            kFSEventStreamCreateFlagNone);
+
+    m_stream = stream;
+    
+    FSEventStreamScheduleWithRunLoop(stream,
+                                     CFRunLoopGetCurrent(),
+                                     kCFRunLoopDefaultMode);
+
+    if (!FSEventStreamStart(stream)) {
+        std::cerr << "ERROR: FsWatcher::addWorkDirectory: Failed to start FSEvent stream" << std::endl;
+    }
+#else
     // QFileSystemWatcher will refuse to add a file or directory to
     // its watch list that it is already watching -- fine -- but it
     // prints a warning when this happens, which we wouldn't want.  So
@@ -137,6 +205,40 @@ FsWatcher::addWorkDirectory(QString path)
             }
         }
     }
+#endif
+}
+
+void
+FsWatcher::setTrackedFilePaths(QStringList paths)
+{
+#ifdef Q_OS_MAC
+    // We don't need to do anything here, so long as addWorkDirectory
+    // has been called -- FSEvents monitors files within directories
+    // as well as the directories themselves (even though it only
+    // notifies with directory granularity)
+#else
+    QMutexLocker locker(&m_mutex);
+
+    QSet<QString> alreadyWatched = 
+	QSet<QString>::fromList(m_watcher.files());
+
+    foreach (QString path, paths) {
+        path = m_workDirPath + QDir::separator() + path;
+        if (!alreadyWatched.contains(path)) {
+            m_watcher.addPath(path);
+        } else {
+            alreadyWatched.remove(path);
+        }
+    }
+
+    // Remove the remaining paths, those that were being watched
+    // before but that are not in the list we were given
+    foreach (QString path, alreadyWatched) {
+        m_watcher.removePath(path);
+    }
+
+    debugPrint();
+#endif
 }
 
 void

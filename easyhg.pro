@@ -4,13 +4,13 @@ CONFIG += release
 TEMPLATE = app
 TARGET = EasyMercurial
 
-# We use the 10.4 SDK and Carbon for all 32-bit OS/X,
+# We use the 10.5 SDK and Carbon for all 32-bit OS/X,
 # and 10.6 with Cocoa for all 64-bit
 macx-g++40 {
     # Note, to use the 10.4 SDK on 10.6+ you need qmake -spec macx-g++40
-    QMAKE_MAC_SDK = /Developer/SDKs/MacOSX10.4u.sdk
-    QMAKE_CFLAGS += -mmacosx-version-min=10.4
-    QMAKE_CXXFLAGS += -mmacosx-version-min=10.4
+    QMAKE_MAC_SDK = /Developer/SDKs/MacOSX10.5.sdk
+    QMAKE_CFLAGS += -mmacosx-version-min=10.5
+    QMAKE_CXXFLAGS += -mmacosx-version-min=10.5
     CONFIG += x86 ppc 
 }
 macx-g++ {
