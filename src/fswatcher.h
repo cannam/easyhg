@@ -92,7 +92,7 @@ signals:
      */
     void changed();
 
-private slots:
+public slots:
     void fsDirectoryChanged(QString);
     void fsFileChanged(QString);
 
