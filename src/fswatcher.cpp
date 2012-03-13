@@ -28,7 +28,7 @@
 
 #include <deque>
 
-//#define DEBUG_FSWATCHER 1
+#define DEBUG_FSWATCHER 1
 
 /*
  * Watching the filesystem is trickier than it seems at first glance.
@@ -142,13 +142,18 @@ FsWatcher::clearWatchedPaths()
 
 #ifdef Q_OS_MAC
 static void
-fsEventsCallback(FSEventStreamRef streamRef,
+fsEventsCallback(ConstFSEventStreamRef streamRef,
                  void *clientCallBackInfo,
-                 int numEvents,
-                 const char *const eventPaths[],
-                 const FSEventStreamEventFlags *eventFlags,
-                 const uint64_t *eventIDs)
+                 size_t numEvents,
+                 void *paths,
+                 const FSEventStreamEventFlags eventFlags[],
+                 const FSEventStreamEventId eventIDs[])
 {
+    FsWatcher *watcher = reinterpret_cast<FsWatcher *>(clientCallBackInfo);
+    const char *const *cpaths = reinterpret_cast<const char *const *>(paths);
+    for (size_t i = 0; i < numEvents; ++i) {
+        watcher->fsDirectoryChanged(QString::fromLocal8Bit(cpaths[i]));
+    }
 }
 #endif
 
@@ -156,10 +161,20 @@ void
 FsWatcher::addWorkDirectory(QString path)
 {
 #ifdef Q_OS_MAC
+
+    CFStringRef cfPath = CFStringCreateWithCharacters
+        (0, reinterpret_cast<const UniChar *>(path.unicode()),
+         path.length());
+
+    CFArrayRef cfPaths = CFArrayCreate(0, (const void **)&cfPath, 1, 0);
+
+    FSEventStreamContext ctx = { 0, 0, 0, 0, 0 };
+    ctx.info = this;
+
     FSEventStreamRef stream =
         FSEventStreamCreate(kCFAllocatorDefault,
-                            (FSEventStreamCallback)&fsEventsCallback,
-                            this,
+                            &fsEventsCallback,
+                            &ctx,
                             cfPaths,
                             kFSEventStreamEventIdSinceNow,
                             1.0, // latency, seconds
@@ -377,8 +392,10 @@ void
 FsWatcher::debugPrint()
 {
 #ifdef DEBUG_FSWATCHER
+#ifndef Q_OS_MAC
     std::cerr << "FsWatcher: Now watching " << m_watcher.directories().size()
               << " directories and " << m_watcher.files().size()
               << " files" << std::endl;
+#endif
 #endif
 }
