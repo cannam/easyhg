@@ -78,8 +78,10 @@
  * whatever the fd ulimit is set to, but that's the default) and it
  * doesn't notify if a file within a directory is modified unless the
  * metadata changes. The main limitation of FSEvents is that it only
- * notifies with directory granularity, but that's OK for us so long
- * as notifications are actually provoked by file changes as well.
+ * notifies with directory granularity, but that might be OK for us so
+ * long as notifications are actually provoked by file changes as
+ * well. (In OS/X 10.7 there appear to be file-level notifications
+ * too, but that doesn't help us.)
  *
  * One other problem with FSEvents is that the API only exists on OS/X
  * 10.5 or newer -- on older versions we would have no option but to
@@ -152,6 +154,7 @@ fsEventsCallback(ConstFSEventStreamRef streamRef,
     FsWatcher *watcher = reinterpret_cast<FsWatcher *>(clientCallBackInfo);
     const char *const *cpaths = reinterpret_cast<const char *const *>(paths);
     for (size_t i = 0; i < numEvents; ++i) {
+        std::cerr << "path " << i << " = " << cpaths[i] << std::endl;
         watcher->fsDirectoryChanged(QString::fromLocal8Bit(cpaths[i]));
     }
 }
@@ -227,11 +230,18 @@ void
 FsWatcher::setTrackedFilePaths(QStringList paths)
 {
 #ifdef Q_OS_MAC
-    // We don't need to do anything here, so long as addWorkDirectory
-    // has been called -- FSEvents monitors files within directories
-    // as well as the directories themselves (even though it only
-    // notifies with directory granularity)
+
+    // FSEvents will notify when any file in the directory changes,
+    // but we need to be able to check whether the file change was
+    // meaningful to us if it didn't result in any files being added
+    // or removed -- and we have to do that by examining timestamps on
+    // the files we care about
+    foreach (QString p, paths) {
+        m_trackedFileUpdates[p] = QDateTime::currentDateTime();
+    }
+
 #else
+
     QMutexLocker locker(&m_mutex);
 
     QSet<QString> alreadyWatched = 
@@ -253,6 +263,7 @@ FsWatcher::setTrackedFilePaths(QStringList paths)
     }
 
     debugPrint();
+
 #endif
 }
 
@@ -298,29 +309,40 @@ FsWatcher::getChangedPaths(int token)
 void
 FsWatcher::fsDirectoryChanged(QString path)
 {
+    bool haveChanges = false;
+
     {
 	QMutexLocker locker(&m_mutex);
 
 	if (shouldIgnore(path)) return;
 
         QSet<QString> files = scanDirectory(path);
+
         if (files == m_dirContents[path]) {
+
 #ifdef DEBUG_FSWATCHER
             std::cerr << "FsWatcher: Directory " << path << " has changed, but not in a way that we are monitoring" << std::endl;
 #endif
-            return;
+
+#ifdef Q_OS_MAC
+            haveChanges = manuallyCheckTrackedFiles();
+#endif
+
         } else {
+
 #ifdef DEBUG_FSWATCHER
             std::cerr << "FsWatcher: Directory " << path << " has changed" << std::endl;
 #endif
             m_dirContents[path] = files;
+            size_t counter = ++m_lastCounter;
+            m_changes[path] = counter;
+            haveChanges = true;
         }
-
-        size_t counter = ++m_lastCounter;
-        m_changes[path] = counter;
     }
 
-    emit changed();
+    if (haveChanges) {
+        emit changed();
+    }
 }
 
 void
@@ -332,7 +354,7 @@ FsWatcher::fsFileChanged(QString path)
         // We don't check whether the file matches an ignore pattern,
         // because we are only notified for file changes if we are
         // watching the file explicitly, i.e. the file is in the
-        // tracked file paths list. So we never want to ignore them
+        // tracked file paths list. So we never want to ignore these
 
 #ifdef DEBUG_FSWATCHER
         std::cerr << "FsWatcher: Tracked file " << path << " has changed" << std::endl;
@@ -344,6 +366,38 @@ FsWatcher::fsFileChanged(QString path)
 
     emit changed();
 }
+
+#ifdef Q_OS_MAC
+bool
+FsWatcher::manuallyCheckTrackedFiles()
+{
+    bool foundChanges = false;
+
+    for (PathTimeMap::iterator i = m_trackedFileUpdates.begin();
+         i != m_trackedFileUpdates.end(); ++i) {
+
+        QString path = i.key();
+        QDateTime prevUpdate = i.value();
+
+        QFileInfo fi(path);
+        QDateTime currUpdate = fi.lastModified();
+
+        if (currUpdate > prevUpdate) {
+
+#ifdef DEBUG_FSWATCHER
+            std::cerr << "FsWatcher: Tracked file " << path << " has been changed since last check" << std::endl;
+#endif
+            i.value() = currUpdate;
+            
+            size_t counter = ++m_lastCounter;
+            m_changes[path] = counter;
+            foundChanges = true;
+        }
+    }
+    
+    return foundChanges;
+}
+#endif
 
 bool
 FsWatcher::shouldIgnore(QString path)
@@ -383,8 +437,6 @@ FsWatcher::scanDirectory(QString path)
             files.insert(entry);
         }
     }
-//    std::cerr << "scanDirectory:" << std::endl;
-//    foreach (QString f, files) std::cerr << f << std::endl;
     return files;
 }
 

@@ -24,6 +24,7 @@
 #include <QSet>
 #include <QHash>
 #include <QMap>
+#include <QDateTime>
 #include <QStringList>
 
 #ifndef Q_OS_MAC
@@ -153,6 +154,9 @@ private:
 
 #ifdef Q_OS_MAC
     void *m_stream;
+    typedef QMap<QString, QDateTime> PathTimeMap;
+    PathTimeMap m_trackedFileUpdates;
+    bool manuallyCheckTrackedFiles();
 #else
     QFileSystemWatcher m_watcher;
 #endif
