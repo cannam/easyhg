@@ -28,7 +28,7 @@
 
 #include <deque>
 
-#define DEBUG_FSWATCHER 1
+//#define DEBUG_FSWATCHER 1
 
 /*
  * Watching the filesystem is trickier than it seems at first glance.

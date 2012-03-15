@@ -521,7 +521,7 @@ FileStatusWidget::updateWidgets()
             item->setSelected(selectedFiles.contains(file));
         }
 
-        setLabelFor(w, s, !highPriority.empty());
+        setLabelFor(w, s, !finding && !highPriority.empty());
 
         if (!foundSomething) {
             w->parentWidget()->hide();
