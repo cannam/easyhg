@@ -25,8 +25,7 @@
 
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder" Name="PFiles">
-        <Directory Id="EasyHg" Name="EasyMercurial">
-          <Directory Id="INSTALLDIR" Name="EasyMercurial 1.2.0">
+        <Directory Id="INSTALLDIR" Name="EasyMercurial">
             
             <Component
                 Id="MainExecutable"
@@ -63,6 +62,12 @@
                   Name="COPYING"
                   DiskId="1"
                   Source="COPYING"/>
+
+              <File
+                  Id="easyhg.ico"
+                  Name="easyhg.ico"
+                  DiskId="1"
+                  Source="easyhg.ico"/>
             </Component>
 
             <Component
@@ -195,7 +200,6 @@
               </Component>
             </Directory>
 
-          </Directory>
         </Directory>
       </Directory>
 
