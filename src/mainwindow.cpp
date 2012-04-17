@@ -3040,7 +3040,7 @@ void MainWindow::createToolBars()
 #endif
 #endif
 
-    m_workFolderToolBar = addToolBar(tr("Work"));
+    m_workFolderToolBar = new QToolBar(tr("Work"));
     addToolBar(Qt::LeftToolBarArea, m_workFolderToolBar);
     m_workFolderToolBar->setIconSize(QSize(sz, sz));
     if (spacingReqd) {
