@@ -28,7 +28,7 @@
 
 #include <deque>
 
-//#define DEBUG_FSWATCHER 1
+#define DEBUG_FSWATCHER 1
 
 /*
  * Watching the filesystem is trickier than it seems at first glance.
@@ -297,10 +297,10 @@ FsWatcher::getChangedPaths(int token)
     size_t lastUpdatedAt = m_tokenMap[token];
     QSet<QString> changed;
     for (QHash<QString, size_t>::const_iterator i = m_changes.begin();
-	 i != m_changes.end(); ++i) {
-	if (i.value() > lastUpdatedAt) {
-	    changed.insert(i.key());
-	}
+         i != m_changes.end(); ++i) {
+        if (i.value() > lastUpdatedAt) {
+             changed.insert(i.key());
+        }
     }
     m_tokenMap[token] = m_lastCounter;
     return changed;
@@ -321,7 +321,7 @@ FsWatcher::fsDirectoryChanged(QString path)
         if (files == m_dirContents[path]) {
 
 #ifdef DEBUG_FSWATCHER
-            std::cerr << "FsWatcher: Directory " << path << " has changed, but not in a way that we are monitoring" << std::endl;
+            std::cerr << "FsWatcher: Directory " << path << " has changed, but not in a way that we are monitoring -- doing manual check" << std::endl;
 #endif
 
 #ifdef Q_OS_MAC
@@ -371,6 +371,7 @@ FsWatcher::fsFileChanged(QString path)
 bool
 FsWatcher::manuallyCheckTrackedFiles()
 {
+    std::cerr << "FsWatcher::manuallyCheckTrackedFiles" << std::endl;
     bool foundChanges = false;
 
     for (PathTimeMap::iterator i = m_trackedFileUpdates.begin();
@@ -379,8 +380,12 @@ FsWatcher::manuallyCheckTrackedFiles()
         QString path = i.key();
         QDateTime prevUpdate = i.value();
 
-        QFileInfo fi(path);
+        QFileInfo fi(m_workDirPath + QDir::separator() + path);
         QDateTime currUpdate = fi.lastModified();
+
+//        std::cerr << "FsWatcher: Tracked file " << path << " previously changed at "
+//                  << prevUpdate.toString().toStdString()
+//                  << ", currently at " << currUpdate.toString().toStdString() << std::endl;
 
         if (currUpdate > prevUpdate) {
 
