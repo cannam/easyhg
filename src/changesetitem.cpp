@@ -36,7 +36,7 @@
 QImage *ChangesetItem::m_star = 0;
 
 ChangesetItem::ChangesetItem(Changeset *cs) :
-    m_changeset(cs), m_detail(0),
+    m_changeset(cs), m_detail(0), m_detailVisible(false),
     m_showBranch(false), m_column(0), m_row(0), m_wide(false),
     m_current(false), m_closing(false), m_new(false), m_searchMatches(false)
 {
@@ -47,6 +47,11 @@ ChangesetItem::ChangesetItem(Changeset *cs) :
     setCursor(Qt::ArrowCursor);
 
     if (!m_star) m_star = new QImage(":images/star.png");
+}
+
+ChangesetItem::~ChangesetItem()
+{
+    if (m_detail && !m_detailVisible) delete m_detail;
 }
 
 QString
@@ -66,28 +71,28 @@ ChangesetItem::boundingRect() const
 void
 ChangesetItem::showDetail()
 {
-    if (m_detail) return;
-    m_detail = new ChangesetDetailItem(m_changeset);
-    m_detail->setZValue(zValue() + 1);
+    if (m_detailVisible) return;
+    if (!m_detail) {
+        m_detail = new ChangesetDetailItem(m_changeset);
+        m_detail->setZValue(zValue() + 1);
+    }
     scene()->addItem(m_detail);
     int w = 100;
     if (m_wide) w = 180;
     if (isMerge() || isClosingCommit()) w = 60;
     int h = 80;
-//    m_detail->moveBy(x() - (m_detail->boundingRect().width() - 50) / 2,
-//                     y() + 60);
-    m_detail->moveBy(x() + (w + 50) / 2 + 10 + 0.5,
+    m_detail->setPos(x() + (w + 50) / 2 + 10 + 0.5,
                      y() - (m_detail->boundingRect().height() - h) / 3 + 0.5);
+    m_detailVisible = true;
     emit detailShown();
 }    
 
 void
 ChangesetItem::hideDetail()
 {
-    if (!m_detail) return;
+    if (!m_detailVisible) return;
     scene()->removeItem(m_detail);
-    delete m_detail;
-    m_detail = 0;
+    m_detailVisible = false;
     emit detailHidden();
 }    
 
@@ -112,7 +117,7 @@ ChangesetItem::mousePressEvent(QGraphicsSceneMouseEvent *e)
 {
     DEBUG << "ChangesetItem::mousePressEvent" << endl;
     if (e->button() == Qt::LeftButton) {
-        if (m_detail) {
+        if (m_detailVisible) {
             hideDetail();
         } else {
             showDetail();
@@ -303,11 +308,6 @@ ChangesetItem::paintNormal(QPainter *paint)
 
     QTransform t = paint->worldTransform();
     float scale = std::min(t.m11(), t.m22());
-    if (scale > 1.0) {
-	int ps = int((f.pixelSize() / scale) + 0.5);
-	if (ps < 8) ps = 8;
-	f.setPixelSize(ps);
-    }
 
     bool showText = (scale >= 0.2);
     bool showProperLines = (scale >= 0.1);
