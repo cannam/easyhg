@@ -24,6 +24,7 @@
 
 #include <QTextDocument>
 #include <QPainter>
+#include <QAbstractTextDocumentLayout>
 
 ChangesetDetailItem::ChangesetDetailItem(Changeset *cs) :
     m_changeset(cs), m_doc(0)
@@ -73,26 +74,15 @@ ChangesetDetailItem::paint(QPainter *paint,
     QColor branchColour = colourSet->getColourFor(m_changeset->branch());
     QColor userColour = colourSet->getColourFor(m_changeset->author());
 
-    QFont f(m_font);
-
     QTransform t = paint->worldTransform();
     float scale = std::min(t.m11(), t.m22());
-    if (scale > 1.0) {
-	int ps = int((f.pixelSize() / scale) + 0.5);
-	if (ps < 8) ps = 8;
-	f.setPixelSize(ps);
-    }
 
     if (scale < 0.1) {
 	paint->setPen(QPen(branchColour, 0));
     } else {
 	paint->setPen(QPen(branchColour, 2));
     }
-
-    paint->setFont(f);
-    QFontMetrics fm(f);
-    int fh = fm.height();
-
+    
     int width = 350;
     m_doc->setTextWidth(width);
     int height = m_doc->size().height();
@@ -135,5 +125,6 @@ ChangesetDetailItem::makeDocument()
     delete m_doc;
     m_doc = new QTextDocument;
     m_doc->setHtml(m_changeset->formatHtml());
+    m_doc->setDefaultFont(m_font);
 }
 

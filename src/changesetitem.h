@@ -33,6 +33,7 @@ class ChangesetItem : public QGraphicsObject
 
 public:
     ChangesetItem(Changeset *cs);
+    ~ChangesetItem();
 
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter *, const QStyleOptionGraphicsItem *, QWidget *);
@@ -105,6 +106,7 @@ private:
     QFont m_font;
     Changeset *m_changeset;
     ChangesetDetailItem *m_detail;
+    bool m_detailVisible;
     bool m_showBranch;
     int m_column;
     int m_row;
