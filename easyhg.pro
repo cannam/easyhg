@@ -117,6 +117,25 @@ macx-* {
 
 linux* {
     LIBS += -lutil
+    binaries.path = /usr/local/bin
+    binaries.files = EasyMercurial easyhg-extdiff.sh easyhg-merge.sh 
+    scripts.path = /usr/local/bin
+    scripts.files = easyhg-extdiff.sh easyhg-merge.sh
+    desktop.path = /usr/local/share/applications
+    desktop.files = deploy/linux/EasyMercurial.desktop
+    icon128.path = /usr/local/share/icons/hicolor/128x128/apps
+    icon128.files = images/icon/128/easyhg-icon.png
+    icon64.path = /usr/local/share/icons/hicolor/64x64/apps
+    icon64.files = images/icon/64/easyhg-icon.png
+    icon48.path = /usr/local/share/icons/hicolor/48x48/apps
+    icon48.files = images/icon/48/easyhg-icon.png
+    icon32.path = /usr/local/share/icons/hicolor/32x32/apps
+    icon32.files = images/icon/32/easyhg-icon.png
+    icon24.path = /usr/local/share/icons/hicolor/24x24/apps
+    icon24.files = images/icon/24/easyhg-icon.png
+    iconsc.path = /usr/local/share/icons/hicolor/scalable/apps
+    iconsc.files = images/icon/scalable/easyhg-icon.svg
+    INSTALLS += binaries desktop icon128 icon64 icon48 icon32 icon24 iconsc
 }
 
 win* {
