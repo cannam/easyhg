@@ -1496,9 +1496,9 @@ void MainWindow::changeRemoteRepo(bool initial)
 
     QString explanation;
     if (initial) {
-        explanation = tr("Provide a URL to use for push and pull actions from the current local repository.<br>This will be the default for subsequent pushes and pulls.<br>You can change it using &ldquo;Set Remote Location&rdquo; on the File menu.");
+        explanation = tr("Provide a remote URL to use when pushing from, or pulling to, the local<br>repository <code>%1</code>.<br>This will be the default for subsequent pushes and pulls.<br>You can change it using &ldquo;Set Remote Location&rdquo; on the File menu.").arg(m_workFolderPath);
     } else {
-        explanation = tr("Provide a new URL to use for push and pull actions from the current local repository.");
+        explanation = tr("Provide a new remote URL to use when pushing from, or pulling to, the local<br>repository <code>%1</code>.").arg(m_workFolderPath);
     }
 
     d->addChoice("remote",
@@ -2902,11 +2902,11 @@ void MainWindow::createActions()
 {
     //File actions
     m_openAct = new QAction(QIcon(":/images/fileopen.png"), tr("&Open..."), this);
-    m_openAct->setStatusTip(tr("Open an existing repository or working folder"));
+    m_openAct->setStatusTip(tr("Open a remote repository or an existing local folder"));
     m_openAct->setShortcut(tr("Ctrl+O"));
 
-    m_changeRemoteRepoAct = new QAction(tr("Set Remote &Location..."), this);
-    m_changeRemoteRepoAct->setStatusTip(tr("Set or change the default remote repository for pull and push actions"));
+    m_changeRemoteRepoAct = new QAction(tr("Set Push and Pull &Location..."), this);
+    m_changeRemoteRepoAct->setStatusTip(tr("Set or change the default URL for pull and push actions from this repository"));
 
     m_settingsAct = new QAction(QIcon(":/images/settings.png"), tr("&Settings..."), this);
     m_settingsAct->setStatusTip(tr("View and change application settings"));
@@ -3026,10 +3026,9 @@ void MainWindow::createMenus()
 
     QMenu *remoteMenu;
     remoteMenu = menuBar()->addMenu(tr("&Remote"));
-    remoteMenu->addAction(m_changeRemoteRepoAct);
-    remoteMenu->addSeparator();
     remoteMenu->addAction(m_hgIncomingAct);
     remoteMenu->addSeparator();
+    remoteMenu->addAction(m_changeRemoteRepoAct);
     remoteMenu->addAction(m_hgPullAct);
     remoteMenu->addAction(m_hgPushAct);
 
