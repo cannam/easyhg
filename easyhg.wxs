@@ -2,13 +2,13 @@
 
   <Product
       Name="EasyMercurial" 
-      Id="CDD72D35-518B-49E2-A389-B3F7C1AE289D" 
+      Id="*"
       Language="1033"
       Codepage="1252" 
-      Version="1.2.0" 
+      Version="1.2.2" 
       UpgradeCode="B82DFDA9-B9DE-49BC-93E5-0B96F9DEB04B"
       Manufacturer="Queen Mary, University of London">
-
+    
     <Package
         Id="*"
         Keywords="Installer"
@@ -19,6 +19,8 @@
         Languages="1033" 
         Compressed="yes" 
         SummaryCodepage="1252"/>
+
+    <MajorUpgrade DowngradeErrorMessage="A later version of EasyMercurial is already installed. Setup will now exit."/>
 
     <Media Id="1" Cabinet="easyhg.cab" EmbedCab="yes" DiskPrompt="CD-ROM #1"/>
     <Property Id="DiskPrompt" Value="EasyMercurial Installation [1]"/>

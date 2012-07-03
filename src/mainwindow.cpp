@@ -766,9 +766,12 @@ void MainWindow::hgIgnoreFiles(QStringList files)
 
     f.open(QFile::ReadOnly);
     bool glob = false;
+    bool cr = false; // whether the last line examined ended with a CR
     while (!f.atEnd()) {
         QByteArray ba = f.readLine();
-        QString s = QString::fromLocal8Bit(ba).trimmed();
+        QString s = QString::fromLocal8Bit(ba);
+        cr = (s.endsWith('\n') || s.endsWith('\r'));
+        s = s.trimmed();
         if (s.startsWith("syntax:")) {
             if (s.endsWith("glob")) {
                 glob = true;
@@ -781,6 +784,10 @@ void MainWindow::hgIgnoreFiles(QStringList files)
 
     f.open(QFile::Append);
     QTextStream out(&f);
+
+    if (!cr) {
+        out << endl;
+    }
 
     if (!glob) {
         out << "syntax: glob" << endl;
@@ -1208,7 +1215,10 @@ void MainWindow::hgCloneFromRemote()
         if (!QDir().mkpath(m_workFolderPath)) {
             DEBUG << "hgCloneFromRemote: Failed to create target path "
                   << m_workFolderPath << endl;
-            //!!! report error
+            QMessageBox::critical
+                (this, tr("Could not create target folder"),
+                 tr("<qt><b>Could not create target folder</b><br><br>The local target folder \"%1\" does not exist<br>and could not be created.</qt>").arg(xmlEncode(m_workFolderPath)));
+            m_workFolderPath = "";
             return;
         }
     }
@@ -1217,6 +1227,7 @@ void MainWindow::hgCloneFromRemote()
     
     updateWorkFolderAndRepoNames();
     m_hgTabs->updateWorkFolderFileList("");
+    m_hgTabs->clearAll();
 
     m_runner->requestAction(HgAction(ACT_CLONEFROMREMOTE, m_workFolderPath, params));
 }
@@ -1485,9 +1496,9 @@ void MainWindow::changeRemoteRepo(bool initial)
 
     QString explanation;
     if (initial) {
-        explanation = tr("Provide a URL to use for push and pull actions from the current local repository.<br>This will be the default for subsequent pushes and pulls.<br>You can change it using &ldquo;Set Remote Location&rdquo; on the File menu.");
+        explanation = tr("Provide a remote URL to use when pushing from, or pulling to, the local<br>repository <code>%1</code>.<br>This will be the default for subsequent pushes and pulls.<br>You can change it using &ldquo;Set Remote Location&rdquo; on the File menu.").arg(m_workFolderPath);
     } else {
-        explanation = tr("Provide a new URL to use for push and pull actions from the current local repository.");
+        explanation = tr("Provide a new remote URL to use when pushing from, or pulling to, the local<br>repository <code>%1</code>.").arg(m_workFolderPath);
     }
 
     d->addChoice("remote",
@@ -2133,6 +2144,7 @@ void MainWindow::commandFailed(HgAction action, QString stdErr, QString stdOut)
              tr("Some files were not merged successfully.<p>You can Merge again to repeat the interactive merge; use Revert to abandon the merge entirely; or edit the files that are in conflict in an editor and, when you are happy with them, choose Mark Resolved in each file's right-button menu."),
              stdErr);
         m_mergeCommitComment = "";
+        hgQueryPaths();
         return;
     case ACT_STAT:
         break; // go on to default report
@@ -2882,7 +2894,7 @@ void MainWindow::updateRecentMenu()
     }
     foreach (QString r, recent) {
         QAction *a = m_recentMenu->addAction(r);
-        connect(a, SIGNAL(activated()), this, SLOT(recentMenuActivated()));
+        connect(a, SIGNAL(triggered()), this, SLOT(recentMenuActivated()));
     }
 }
 
@@ -2890,11 +2902,11 @@ void MainWindow::createActions()
 {
     //File actions
     m_openAct = new QAction(QIcon(":/images/fileopen.png"), tr("&Open..."), this);
-    m_openAct->setStatusTip(tr("Open an existing repository or working folder"));
+    m_openAct->setStatusTip(tr("Open a remote repository or an existing local folder"));
     m_openAct->setShortcut(tr("Ctrl+O"));
 
-    m_changeRemoteRepoAct = new QAction(tr("Set Remote &Location..."), this);
-    m_changeRemoteRepoAct->setStatusTip(tr("Set or change the default remote repository for pull and push actions"));
+    m_changeRemoteRepoAct = new QAction(tr("Set Push and Pull &Location..."), this);
+    m_changeRemoteRepoAct->setStatusTip(tr("Set or change the default URL for pull and push actions from this repository"));
 
     m_settingsAct = new QAction(QIcon(":/images/settings.png"), tr("&Settings..."), this);
     m_settingsAct->setStatusTip(tr("View and change application settings"));
@@ -3014,10 +3026,9 @@ void MainWindow::createMenus()
 
     QMenu *remoteMenu;
     remoteMenu = menuBar()->addMenu(tr("&Remote"));
-    remoteMenu->addAction(m_changeRemoteRepoAct);
-    remoteMenu->addSeparator();
     remoteMenu->addAction(m_hgIncomingAct);
     remoteMenu->addSeparator();
+    remoteMenu->addAction(m_changeRemoteRepoAct);
     remoteMenu->addAction(m_hgPullAct);
     remoteMenu->addAction(m_hgPushAct);
 
