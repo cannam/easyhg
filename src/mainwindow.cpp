@@ -1218,6 +1218,7 @@ void MainWindow::hgCloneFromRemote()
             QMessageBox::critical
                 (this, tr("Could not create target folder"),
                  tr("<qt><b>Could not create target folder</b><br><br>The local target folder \"%1\" does not exist<br>and could not be created.</qt>").arg(xmlEncode(m_workFolderPath)));
+            m_workFolderPath = "";
             return;
         }
     }
@@ -1226,6 +1227,7 @@ void MainWindow::hgCloneFromRemote()
     
     updateWorkFolderAndRepoNames();
     m_hgTabs->updateWorkFolderFileList("");
+    m_hgTabs->clearAll();
 
     m_runner->requestAction(HgAction(ACT_CLONEFROMREMOTE, m_workFolderPath, params));
 }
