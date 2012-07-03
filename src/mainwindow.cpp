@@ -2133,6 +2133,7 @@ void MainWindow::commandFailed(HgAction action, QString stdErr, QString stdOut)
              tr("Some files were not merged successfully.<p>You can Merge again to repeat the interactive merge; use Revert to abandon the merge entirely; or edit the files that are in conflict in an editor and, when you are happy with them, choose Mark Resolved in each file's right-button menu."),
              stdErr);
         m_mergeCommitComment = "";
+        hgQueryPaths();
         return;
     case ACT_STAT:
         break; // go on to default report
