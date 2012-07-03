@@ -1215,7 +1215,9 @@ void MainWindow::hgCloneFromRemote()
         if (!QDir().mkpath(m_workFolderPath)) {
             DEBUG << "hgCloneFromRemote: Failed to create target path "
                   << m_workFolderPath << endl;
-            //!!! report error
+            QMessageBox::critical
+                (this, tr("Could not create target folder"),
+                 tr("<qt><b>Could not create target folder</b><br><br>The local target folder \"%1\" does not exist<br>and could not be created.</qt>").arg(xmlEncode(m_workFolderPath)));
             return;
         }
     }
