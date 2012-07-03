@@ -205,6 +205,13 @@ void HistoryWidget::update()
     }
 }
 
+void HistoryWidget::clear()
+{
+    QGraphicsScene *oldScene = m_panned->scene();
+    m_panned->setScene(0);
+    delete oldScene;
+}
+
 void HistoryWidget::layoutAll()
 {
     m_refreshNeeded = false;

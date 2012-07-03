@@ -268,7 +268,7 @@ SettingsDialog::findHgBinaryName()
     QSettings settings;
     settings.beginGroup("Locations");
     QString hg = settings.value("hgbinary", "").toString();
-    if (hg == "") {
+    if (hg == "" || !QFile(hg).exists()) {
         hg = findInPath("hg", m_installPath, true);
     }
     if (hg != "") {

@@ -144,6 +144,12 @@ void HgTabWidget::setClosedHeadIds(QSet<QString> closed)
     m_historyWidget->setClosedHeadIds(closed);
 }
 
+void HgTabWidget::clearAll()
+{
+    m_fileStatusWidget->clearWidgets();
+    m_historyWidget->clear();
+}
+
 void HgTabWidget::updateFileStates()
 {
     m_fileStatusWidget->updateWidgets();

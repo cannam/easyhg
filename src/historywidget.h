@@ -47,8 +47,6 @@ public:
 
     bool haveNewItems() const { return !m_newIds.empty(); }
 
-    void update();
-
 signals:
     void commit();
     void revert();
@@ -72,7 +70,9 @@ private slots:
 
 public slots:
     void setSearchText(QString);
-    
+    void update();
+    void clear();
+
 private:
     Changesets m_changesets;
     QStringList m_currentIds;

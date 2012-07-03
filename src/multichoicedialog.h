@@ -88,6 +88,7 @@ private:
     QAbstractButton *m_okButton;
 
     QString getDefaultPath() const;
+    bool urlComboNotUrl() const;
 };
 
 #endif // MULTICHOICEDIALOG_H

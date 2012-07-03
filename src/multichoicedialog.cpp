@@ -275,6 +275,17 @@ MultiChoiceDialog::updateOkButton()
     }
 }
 
+bool
+MultiChoiceDialog::urlComboNotUrl() const
+{
+    QString url = m_urlCombo->currentText();
+    if (QRegExp("^\\w+://").indexIn(url) < 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 void
 MultiChoiceDialog::choiceChanged()
 {
@@ -347,14 +358,18 @@ MultiChoiceDialog::choiceChanged()
         m_urlLabel->show();
         m_urlCombo->show();
         m_urlCombo->addItems(rf->getRecent());
-        if (m_defaultEmpty[id]) m_urlCombo->lineEdit()->setText("");
+        if (m_defaultEmpty[id] || urlComboNotUrl()) {
+            m_urlCombo->lineEdit()->setText("");
+        }
         break;
 
     case UrlToDirectoryArg:
         m_urlLabel->show();
         m_urlCombo->show();
         m_urlCombo->addItems(rf->getRecent());
-        if (m_defaultEmpty[id]) m_urlCombo->lineEdit()->setText("");
+        if (m_defaultEmpty[id] || urlComboNotUrl()) {
+            m_urlCombo->lineEdit()->setText("");
+        }
         m_fileLabel->setText(tr("&Folder:"));
         m_fileLabel->show();
         m_fileCombo->show();
