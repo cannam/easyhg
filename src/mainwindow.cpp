@@ -2894,7 +2894,7 @@ void MainWindow::updateRecentMenu()
     }
     foreach (QString r, recent) {
         QAction *a = m_recentMenu->addAction(r);
-        connect(a, SIGNAL(activated()), this, SLOT(recentMenuActivated()));
+        connect(a, SIGNAL(triggered()), this, SLOT(recentMenuActivated()));
     }
 }
 
