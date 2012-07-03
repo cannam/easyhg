@@ -766,9 +766,12 @@ void MainWindow::hgIgnoreFiles(QStringList files)
 
     f.open(QFile::ReadOnly);
     bool glob = false;
+    bool cr = false; // whether the last line examined ended with a CR
     while (!f.atEnd()) {
         QByteArray ba = f.readLine();
-        QString s = QString::fromLocal8Bit(ba).trimmed();
+        QString s = QString::fromLocal8Bit(ba);
+        cr = (s.endsWith('\n') || s.endsWith('\r'));
+        s = s.trimmed();
         if (s.startsWith("syntax:")) {
             if (s.endsWith("glob")) {
                 glob = true;
@@ -781,6 +784,10 @@ void MainWindow::hgIgnoreFiles(QStringList files)
 
     f.open(QFile::Append);
     QTextStream out(&f);
+
+    if (!cr) {
+        out << endl;
+    }
 
     if (!glob) {
         out << "syntax: glob" << endl;
