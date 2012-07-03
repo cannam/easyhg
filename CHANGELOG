@@ -1,3 +1,15 @@
+
+Changes in v1.2.2 since v1.2.1:
+ * Fix failure to provide IV arg to AES CBC constructor in PyCrypto
+ * Update the history after a failed merge to show the merge
+ * Clear the history while cloning a new repo
+ * Show a sensible error when clone target can't be created
+ * Minor improvements to zooming in history widget
+ * Various other minor fixes
+
+Changes in v1.2.1 since v1.2:
+ * Fix a filesystem watcher bug (affecting OS/X only)
+
 Changes in v1.2 since v1.1:
 
  * Add a Find function to both My Work and History tabs
