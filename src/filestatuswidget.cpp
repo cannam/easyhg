@@ -441,6 +441,16 @@ FileStatusWidget::setSearchText(QString text)
 }
 
 void
+FileStatusWidget::clearWidgets()
+{
+    foreach (FileStates::State s, m_stateListMap.keys()) {
+        QListWidget *w = m_stateListMap[s];
+        w->clear();
+        w->parentWidget()->hide();
+    }
+}
+
+void
 FileStatusWidget::updateWidgets()
 {
     QDateTime lastInteractionTime;

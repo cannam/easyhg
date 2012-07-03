@@ -78,6 +78,7 @@ signals:
 public slots:
     void clearSelections();
     void updateWidgets();
+    void clearWidgets(); // e.g. while cloning a new repo slowly
 
     void setSearchText(QString text);
 

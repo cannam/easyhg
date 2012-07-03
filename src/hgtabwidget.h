@@ -52,6 +52,7 @@ public:
 
     void setHaveMerge(bool);
 
+    void clearAll();
     void updateFileStates();
     void updateHistory();
 
