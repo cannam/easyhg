@@ -53,12 +53,18 @@ easyhg_qtapp = None
 # "remember this password") feature without them
 #
 easyhg_authfile_imports_ok = True
+
 try:
     from Crypto.Cipher import AES
+except ImportError:
+    print "EasyHg: Failed to import Crypto.Cipher module required for authfile support (try installing PyCrypto?)"
+    easyhg_authfile_imports_ok = False
+
+try:
     import ConfigParser # Mercurial version won't write files
     import base64
 except ImportError:
-    print "EasyHg: Failed to import required modules for authfile support"
+    print "EasyHg: Failed to import modules (ConfigParser, base64) required for authfile support"
     easyhg_authfile_imports_ok = False
 
 
@@ -83,7 +89,8 @@ class EasyHgAuthStore(object):
         self.remember = False
 
         if self.use_auth_file:
-            self.auth_cipher = AES.new(self.auth_key, AES.MODE_CBC)
+            self.auth_cipher = AES.new(self.auth_key, AES.MODE_CBC,
+                                       os.urandom(16))
             self.auth_file = os.path.expanduser(self.auth_file)
             self.load_auth_data()
 
