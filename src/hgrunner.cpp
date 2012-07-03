@@ -151,8 +151,11 @@ QString HgRunner::unbundleExtension()
 
 void HgRunner::requestAction(HgAction action)
 {
-    DEBUG << "requestAction " << action.action << endl;
+    DEBUG << "requestAction " << action.action << ": " << m_queue.size() << " thing(s) in queue, current action is " << m_currentAction.action << endl;
     bool pushIt = true;
+
+    action = expandEnvironment(action);
+
     if (m_queue.empty()) {
         if (action == m_currentAction) {
             // this request is identical to the thing we're executing
@@ -168,8 +171,48 @@ void HgRunner::requestAction(HgAction action)
             pushIt = false;
         }
     }
-    if (pushIt) m_queue.push_back(action);
+    if (pushIt) {
+        m_queue.push_back(action);
+    }
     checkQueue();
+}
+
+HgAction HgRunner::expandEnvironment(HgAction action)
+{
+    // Adjust the executable and params for action to match our actual
+    // environment. We do this when the action is received, rather
+    // than when we execute it, so that we can compare
+    // (post-expansion) commands to see e.g. whether the one just
+    // received is the same as the one we're currently executing
+
+    QString executable = action.executable;
+    QStringList params = action.params;
+
+    if (executable == "") {
+        // This is a Hg command
+        executable = getHgBinaryName();
+        if (executable == "") executable = "hg";
+
+        QString ssh = getSshBinaryName();
+        if (ssh != "") {
+            params.push_front(QString("ui.ssh=\"%1\"").arg(ssh));
+            params.push_front("--config");
+        }
+
+        if (action.mayBeInteractive()) {
+            params.push_front("ui.interactive=true");
+            params.push_front("--config");
+            QSettings settings;
+            if (settings.value("useextension", true).toBool()) {
+                params = addExtensionOptions(params);
+            }
+        }            
+    }
+
+    action.executable = executable;
+    action.params = params;
+
+    return action;
 }
 
 QString HgRunner::getHgBinaryName()
@@ -349,6 +392,8 @@ void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
 
     HgAction completedAction = m_currentAction;
 
+    DEBUG << "HgRunner::finished: completed " << completedAction.action << endl;
+
     m_isRunning = false;
     m_currentAction = HgAction();
 
@@ -503,38 +548,10 @@ QStringList HgRunner::addExtensionOptions(QStringList params)
 
 void HgRunner::startCommand(HgAction action)
 {
-    QString executable = action.executable;
-    bool interactive = false;
-    QStringList params = action.params;
-
     if (action.workingDir.isEmpty()) {
         // We require a working directory, never just operate in pwd
         emit commandFailed(action, "EasyMercurial: No working directory supplied, will not run Mercurial command without one", "");
         return;
-    }
-
-    if (executable == "") {
-        // This is a Hg command
-        executable = getHgBinaryName();
-        if (executable == "") executable = "hg";
-
-        QString ssh = getSshBinaryName();
-        if (ssh != "") {
-            params.push_front(QString("ui.ssh=\"%1\"").arg(ssh));
-            params.push_front("--config");
-        }
-
-        if (action.mayBeInteractive()) {
-            params.push_front("ui.interactive=true");
-            params.push_front("--config");
-            QSettings settings;
-            if (settings.value("useextension", true).toBool()) {
-                params = addExtensionOptions(params);
-            }
-            interactive = true;
-        }            
-
-        //!!! want an option to use the mercurial_keyring extension as well
     }
 
     m_isRunning = true;
@@ -583,7 +600,7 @@ void HgRunner::startCommand(HgAction action)
 
     m_proc->setWorkingDirectory(action.workingDir);
 
-    if (interactive) {
+    if (action.mayBeInteractive()) {
         openTerminal();
         if (m_ptySlaveFilename != "") {
             DEBUG << "HgRunner: connecting to pseudoterminal" << endl;
@@ -593,22 +610,18 @@ void HgRunner::startCommand(HgAction action)
         }
     }
 
-    QString cmdline = executable;
-    foreach (QString param, params) cmdline += " " + param;
+    QString cmdline = action.executable;
+    foreach (QString param, action.params) cmdline += " " + param;
     DEBUG << "HgRunner: starting: " << cmdline << " with cwd "
           << action.workingDir << endl;
 
     m_currentAction = action;
 
-    // fill these out with what we actually ran
-    m_currentAction.executable = executable;
-    m_currentAction.params = params;
-
     DEBUG << "set current action to " << m_currentAction.action << endl;
     
     emit commandStarting(action);
 
-    m_proc->start(executable, params);
+    m_proc->start(action.executable, action.params);
 }
 
 void HgRunner::closeProcInput()

@@ -70,7 +70,7 @@ struct HgAction
     QString executable; // empty for normal Hg, but gets filled in by hgrunner
     void *extraData;
 
-    HgAction() : action(ACT_NONE) { }
+    HgAction() : action(ACT_NONE), extraData(0) { }
 
     HgAction(HGACTIONS _action, QString _wd, QStringList _params) :
         action(_action), workingDir(_wd), params(_params), extraData(0) { }
@@ -79,9 +79,10 @@ struct HgAction
         action(_action), workingDir(_wd), params(_params), extraData(_d) { }
 
     bool operator==(const HgAction &a) {
-        return (a.action == action && a.workingDir == workingDir &&
-                a.params == params && a.executable == executable &&
-                a.extraData == extraData);
+        bool equal = (a.action == action && a.workingDir == workingDir &&
+                      a.params == params && a.executable == executable &&
+                      a.extraData == extraData);
+        return equal;
     }
 
     bool shouldBeFast() const {

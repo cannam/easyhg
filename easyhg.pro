@@ -1,5 +1,5 @@
 
-CONFIG += release
+CONFIG += debug
 
 TEMPLATE = app
 TARGET = EasyMercurial

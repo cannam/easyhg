@@ -90,6 +90,7 @@ private:
     QProgressBar *m_progress;
     QPushButton *m_cancel;
 
+    HgAction expandEnvironment(HgAction);
     QStringList addExtensionOptions(QStringList);
 
     int m_ptyMasterFd;
