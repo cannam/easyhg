@@ -114,6 +114,7 @@ private slots:
     void hgMarkFilesResolved(QStringList);
     void hgIgnoreFiles(QStringList);
     void hgUnIgnoreFiles(QStringList);
+    void hgShowIn(QStringList);
 
     void updateFsWatcher();
     void checkFilesystem();

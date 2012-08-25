@@ -108,6 +108,7 @@ signals:
     void markFilesResolved(QStringList);
     void ignoreFiles(QStringList);
     void unIgnoreFiles(QStringList);
+    void showIn(QStringList);
 
 public slots:
     void clearSelections();

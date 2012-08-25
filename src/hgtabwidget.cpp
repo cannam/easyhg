@@ -77,6 +77,9 @@ HgTabWidget::HgTabWidget(QWidget *parent,
     connect(m_fileStatusWidget, SIGNAL(unIgnoreFiles(QStringList)),
             this, SIGNAL(unIgnoreFiles(QStringList)));
 
+    connect(m_fileStatusWidget, SIGNAL(showIn(QStringList)),
+            this, SIGNAL(showIn(QStringList)));
+
     addTab(m_fileStatusWidget, tr("My work"));
 
     // History graph tab

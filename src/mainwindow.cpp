@@ -857,6 +857,26 @@ void MainWindow::hgUnIgnoreFiles(QStringList files)
     hgEditIgnore();
 }
 
+void MainWindow::hgShowIn(QStringList files)
+{
+    foreach (QString file, files)
+    {
+        QStringList args;
+    #if defined Q_OS_WIN32
+        // Although the Win32 API is quite happy to have
+        // forward slashes as directory separators, Windows
+        // Explorer is not
+        file = file.replace('/', '\\');
+        args << "/select," << file;
+        // FIXME: This shouldn't be using a hardcoded path.
+        QProcess::execute("c:/windows/explorer.exe", args);
+    #else if defined(Q_OS_MAC)
+        args << file;
+        QProcess::execute("/usr/bin/open", args);
+    #endif
+    }
+}
+
 QString MainWindow::getDiffBinaryName()
 {
     QSettings settings;
@@ -2670,6 +2690,9 @@ void MainWindow::connectTabsSignals()
 
     connect(m_hgTabs, SIGNAL(unIgnoreFiles(QStringList)),
             this, SLOT(hgUnIgnoreFiles(QStringList)));
+
+    connect(m_hgTabs, SIGNAL(showIn(QStringList)),
+            this, SLOT(hgShowIn(QStringList)));
 }    
 
 void MainWindow::enableDisableActions()
