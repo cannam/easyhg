@@ -33,6 +33,7 @@ FindWidget::FindWidget(QWidget *parent) :
     layout->addWidget(button, 0, 0);
     button->setText(tr("Find..."));
     button->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    button->setShortcut(tr("Ctrl+F"));
     connect(button, SIGNAL(clicked()), this, SLOT(buttonPressed()));
 
     m_lineEdit = new QLineEdit();
@@ -59,15 +60,15 @@ FindWidget::buttonPressed()
     QAbstractButton *button = qobject_cast<QAbstractButton *>(sender());
     if (!button) return;
     if (m_lineEdit->isVisible()) {
-	m_lineEdit->hide();
-	button->setText(tr("Find..."));
+        m_lineEdit->hide();
+        button->setText(tr("Find..."));
         if (m_lineEdit->text() != "") {
             emit findTextChanged("");
         }
     } else {
-	m_lineEdit->show();
+        m_lineEdit->show();
         m_lineEdit->setFocus(Qt::OtherFocusReason);
-	button->setText(tr("Find:"));
+        button->setText(tr("Find:"));
         if (m_lineEdit->text() != "") {
             emit findTextChanged(m_lineEdit->text());
         }
