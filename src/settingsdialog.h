@@ -55,6 +55,7 @@ private slots:
     void mergePathBrowse();
     void sshPathBrowse();
     void extensionPathBrowse();
+    void useExtension(int);
 
     void accept();
     void reset();
@@ -84,6 +85,7 @@ private:
     QComboBox *m_workHistoryArrangement;
 #endif
 
+    QPushButton *m_extensionBrowse;
     QPushButton *m_ok;
 
     bool m_presentationChanged;

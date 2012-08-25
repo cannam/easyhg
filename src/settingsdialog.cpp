@@ -157,18 +157,17 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     pathsLayout->addWidget(browse, row++, 1);
     connect(browse, SIGNAL(clicked()), this, SLOT(sshPathBrowse()));
 
-    pathsLayout->addWidget(new QLabel(tr("EasyHg Mercurial extension:")), row, 0);
+    //!!! more info plz
+    m_useExtension = new QCheckBox(tr("Use EasyHg Mercurial extension"));
+    pathsLayout->addWidget(m_useExtension, row, 0);
+    connect(m_useExtension, SIGNAL(stateChanged(int)), this, SLOT(useExtension(int)));
 
     m_extensionPathLabel = new QLineEdit();
     pathsLayout->addWidget(m_extensionPathLabel, row, 2);
 
-    browse = new QPushButton(tr("Browse..."));
-    pathsLayout->addWidget(browse, row++, 1);
-    connect(browse, SIGNAL(clicked()), this, SLOT(extensionPathBrowse()));
-
-    //!!! more info plz
-    m_useExtension = new QCheckBox(tr("Use EasyHg Mercurial extension"));
-    pathsLayout->addWidget(m_useExtension, row++, 2);
+    m_extensionBrowse = new QPushButton(tr("Browse..."));
+    pathsLayout->addWidget(m_extensionBrowse, row++, 1);
+    connect(m_extensionBrowse, SIGNAL(clicked()), this, SLOT(extensionPathBrowse()));
 
     pathsLayout->setRowStretch(row, 20);
 
@@ -222,6 +221,13 @@ void
 SettingsDialog::extensionPathBrowse()
 {
     browseFor(tr("EasyHg Mercurial extension"), m_extensionPathLabel);
+}
+
+void
+SettingsDialog::useExtension(int)
+{
+    m_extensionPathLabel->setEnabled(m_useExtension->isChecked());
+    m_extensionBrowse->setEnabled(m_useExtension->isChecked());
 }
 
 void
@@ -448,6 +454,7 @@ SettingsDialog::reset()
     settings.endGroup();
     settings.beginGroup("");
     m_useExtension->setChecked(settings.value("useextension", true).toBool());
+    useExtension(m_useExtension->isChecked());
     settings.endGroup();
 }
 
