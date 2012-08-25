@@ -181,7 +181,7 @@ FileStates::Activities FileStates::activitiesSupportedBy(State s)
         break;
         
     case Unknown:
-        a << Add << Ignore;
+        a << Add << Ignore << ShowIn;
         break;
 
     case Clean:
