@@ -72,6 +72,15 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     // Unignore is too difficult in fact, so we just offer to edit the hgignore
     m_actionLabels[FileStates::UnIgnore] = tr("Edit .hgignore File");
 
+    // No "show in" under Unix at the moment.
+#if defined Q_OS_MAC
+    m_actionLabels[FileStates::ShowIn] = tr("Show in Finder");
+#elif defined Q_OS_WIN32
+    m_actionLabels[FileStates::ShowIn] = tr("Show in Windows Explorer");
+#endif
+
+    m_shortcuts[FileStates::ShowIn] = tr("Ctrl+Shift+S");
+
     m_descriptions[FileStates::Clean] = tr("You have not changed these files.");
     m_descriptions[FileStates::Modified] = tr("You have changed these files since you last committed them.");
     m_descriptions[FileStates::Added] = tr("These files will be added to version control next time you commit them.");
@@ -127,6 +136,11 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
         FileStates::Activities activities = m_fileStates.activitiesSupportedBy(s);
         int prevGroup = -1;
         foreach (FileStates::Activity a, activities) {
+            QString label = m_actionLabels[a];
+            if (label.length() == 0) {
+                // Skip empty labels.
+                continue;
+            }
             int group = FileStates::activityGroup(a);
             if (group != prevGroup && prevGroup != -1) {
                 QAction *sep = new QAction("", w);
@@ -134,9 +148,13 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
                 w->insertAction(0, sep);
             }
             prevGroup = group;
-            QAction *act = new QAction(m_actionLabels[a], w);
+            QAction *act = new QAction(label, w);
             act->setProperty("state", s);
             act->setProperty("activity", a);
+            if (m_shortcuts.contains(a)) {
+                QString shortcut = m_shortcuts[a];
+                act->setShortcut(shortcut);
+            }
             connect(act, SIGNAL(triggered()), this, SLOT(menuActionActivated()));
             w->insertAction(0, act);
         }
@@ -282,6 +300,7 @@ void FileStatusWidget::menuActionActivated()
     case FileStates::MarkResolved: emit markFilesResolved(files); break;
     case FileStates::Ignore: emit ignoreFiles(files); break;
     case FileStates::UnIgnore: emit unIgnoreFiles(files); break;
+    case FileStates::ShowIn: emit showIn(files); break;
     }
 }
 

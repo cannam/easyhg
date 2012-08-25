@@ -77,6 +77,8 @@ public:
         Ignore,
         UnIgnore,
 
+        ShowIn,
+
         FirstActivity = Diff,
         LastActivity = UnIgnore
     };

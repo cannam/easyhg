@@ -161,11 +161,11 @@ FileStates::Activities FileStates::activitiesSupportedBy(State s)
     switch (s) {
 
     case Modified:
-        a << Annotate << Diff << Commit << Revert << Rename << Copy << Remove;
+        a << Annotate << Diff << Commit << Revert << Rename << Copy << Remove << ShowIn;
         break;
 
     case Added:
-        a << Commit << Revert << Rename << Copy << Remove;
+        a << Commit << Revert << Rename << Copy << Remove << ShowIn;
         break;
         
     case Removed:
@@ -173,7 +173,7 @@ FileStates::Activities FileStates::activitiesSupportedBy(State s)
         break;
 
     case InConflict:
-        a << Annotate << Diff << RedoMerge << MarkResolved << Revert;
+        a << Annotate << Diff << RedoMerge << MarkResolved << Revert << ShowIn;
         break;
 
     case Missing:
@@ -185,11 +185,11 @@ FileStates::Activities FileStates::activitiesSupportedBy(State s)
         break;
 
     case Clean:
-        a << Annotate << Rename << Copy << Remove;
+        a << Annotate << Rename << Copy << Remove << ShowIn;
         break;
 
     case Ignored:
-        a << UnIgnore;
+        a << UnIgnore << ShowIn;
         break;
     }
 

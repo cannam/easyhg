@@ -74,6 +74,7 @@ signals:
     void markFilesResolved(QStringList);
     void ignoreFiles(QStringList);
     void unIgnoreFiles(QStringList);
+    void showIn(QStringList);
 
 public slots:
     void clearSelections();
@@ -99,6 +100,7 @@ private:
     QMap<FileStates::State, QString> m_descriptions;
     QMap<FileStates::State, QListWidget *> m_stateListMap;
     QMap<FileStates::Activity, QString> m_actionLabels;
+    QMap<FileStates::Activity, QString> m_shortcuts;
     QString m_highlightExplanation;
 
     QFileInfo *m_dateReference;
