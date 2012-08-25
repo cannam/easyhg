@@ -145,7 +145,7 @@ linux* {
 }
 
 win* {
-    LIBS += -lSecur32
+    LIBS += -lSecur32 -lAdvapi32
 }
 
 RESOURCES = easyhg.qrc
