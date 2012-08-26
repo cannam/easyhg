@@ -82,6 +82,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
     m_shortcuts[FileStates::ShowIn] = tr("Ctrl+Shift+S");
     m_shortcuts[FileStates::Diff] = tr("Ctrl+Shift+D");
     m_shortcuts[FileStates::Commit] = tr("Ctrl+Shift+C");
+    m_shortcuts[FileStates::Revert] = tr("Ctrl+R");
 
     m_descriptions[FileStates::Clean] = tr("You have not changed these files.");
     m_descriptions[FileStates::Modified] = tr("You have changed these files since you last committed them.");
