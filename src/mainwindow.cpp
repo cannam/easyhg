@@ -866,6 +866,12 @@ void MainWindow::hgShowIn(QStringList files)
         // Although the Win32 API is quite happy to have
         // forward slashes as directory separators, Windows
         // Explorer is not
+        int last = m_workFolderPath.length() - 1;
+        char c = m_workFolderPath[last].toAscii();
+        if (c == '\\' || c == '/') {
+            m_workFolderPath.chop(1);
+        }
+        file = m_workFolderPath + "\\" + file;
         file = file.replace('/', '\\');
         args << "/select," << file;
         // FIXME: This shouldn't be using a hardcoded path.
