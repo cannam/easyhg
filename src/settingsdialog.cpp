@@ -138,7 +138,10 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     browse = new QPushButton(tr("Browse..."));
     pathsLayout->addWidget(browse, row++, 1);
     connect(browse, SIGNAL(clicked()), this, SLOT(diffPathBrowse()));
-    
+
+    m_multipleDiffInstances = new QCheckBox(tr("Multiple instances when multiple files are selected"));
+    pathsLayout->addWidget(m_multipleDiffInstances, row++, 2);
+
     pathsLayout->addWidget(new QLabel(tr("External file-merge program:")), row, 0);
 
     m_mergePathLabel = new QLineEdit();
@@ -170,6 +173,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     connect(m_extensionBrowse, SIGNAL(clicked()), this, SLOT(extensionPathBrowse()));
 
     pathsLayout->setRowStretch(row, 20);
+    pathsLayout->setColumnStretch(2, 20);
 
 
     reset(); // loads current defaults from settings
@@ -424,6 +428,7 @@ SettingsDialog::clear()
     settings.endGroup();
     settings.beginGroup("");
     settings.remove("useextension");
+    settings.remove("multipleDiffInstances");
     settings.endGroup();
 }
 
@@ -455,6 +460,7 @@ SettingsDialog::reset()
     settings.beginGroup("");
     m_useExtension->setChecked(settings.value("useextension", true).toBool());
     useExtension(m_useExtension->isChecked());
+    m_multipleDiffInstances->setChecked(settings.value("multipleDiffInstances", false).toBool());
     settings.endGroup();
 }
 
@@ -507,6 +513,7 @@ SettingsDialog::accept()
     settings.endGroup();
     settings.beginGroup("");
     settings.setValue("useextension", m_useExtension->isChecked());
+    settings.setValue("multipleDiffInstances", m_multipleDiffInstances->isChecked());
     settings.endGroup();
     QDialog::accept();
 }

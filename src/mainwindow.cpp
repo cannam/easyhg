@@ -915,11 +915,20 @@ void MainWindow::hgDiffFiles(QStringList files)
     // Diff parent against working folder (folder diff)
 
     params << "--config" << "extensions.extdiff=" << "extdiff";
-    params << "--program" << diff;
+    params << "--program" << diff << "--";
 
-    params << "--" << files; // may be none: whole dir
-
-    m_runner->requestAction(HgAction(ACT_FOLDERDIFF, m_workFolderPath, params));
+    QSettings settings;
+    if (settings.value("multipleDiffInstances", false).toBool()) {
+        foreach (QString file, files) {
+            QStringList p = params;
+            p << file;
+            m_runner->requestAction(HgAction(ACT_FOLDERDIFF, m_workFolderPath, p));
+        }
+    }
+    else {
+        params << files; // may be none: whole dir
+        m_runner->requestAction(HgAction(ACT_FOLDERDIFF, m_workFolderPath, params));
+    }
 }
 
 void MainWindow::hgDiffToCurrent(QString id)
