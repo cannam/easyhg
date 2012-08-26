@@ -72,11 +72,15 @@ private:
     QLineEdit *m_mergePathLabel;
     QLineEdit *m_sshPathLabel;
 
+    QPushButton *m_extensionBrowse;
+
+    QCheckBox *m_multipleDiffInstances;
     QCheckBox *m_useExtension;
     QLineEdit *m_extensionPathLabel;
 
     QCheckBox *m_showIconLabels;
     QCheckBox *m_showExtraText;
+    QCheckBox *m_showHistoryAutomatically;
     QComboBox *m_dateFormat;
 
     QDateEdit *m_dateFrom;
@@ -85,9 +89,6 @@ private:
     QComboBox *m_workHistoryArrangement;
 #endif
 
-    QCheckBox *m_multipleDiffInstances;
-
-    QPushButton *m_extensionBrowse;
     QPushButton *m_ok;
 
     bool m_presentationChanged;

@@ -87,6 +87,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     m_showExtraText = new QCheckBox(tr("Show long descriptions for file status headings"));
     lookLayout->addWidget(m_showExtraText, row++, 0, 1, 2);
     
+    m_showHistoryAutomatically = new QCheckBox(tr("Switch to history tab  automatically when history changes"));
+    lookLayout->addWidget(m_showHistoryAutomatically, row++, 0, 1, 2);
+
 #ifdef NOT_IMPLEMENTED_YET
     lookLayout->addWidget(new QLabel(tr("Place the work and history views")), row, 0);
     m_workHistoryArrangement = new QComboBox();
@@ -417,6 +420,7 @@ SettingsDialog::clear()
     settings.beginGroup("Presentation");
     settings.remove("showiconlabels");
     settings.remove("showhelpfultext");
+    settings.remove("showHistoryAutomatically");
     settings.remove("dateformat");
     settings.endGroup();
     settings.beginGroup("Locations");
@@ -444,6 +448,7 @@ SettingsDialog::reset()
     settings.beginGroup("Presentation");
     m_showIconLabels->setChecked(settings.value("showiconlabels", true).toBool());
     m_showExtraText->setChecked(settings.value("showhelpfultext", true).toBool());
+    m_showHistoryAutomatically->setChecked(settings.value("showHistoryAutomatically", true).toBool());
 #ifdef NOT_IMPLEMENTED_YET
     m_workHistoryArrangement->setCurrentIndex(settings.value("workhistoryarrangement", 0).toInt());
 #endif
@@ -485,6 +490,7 @@ SettingsDialog::accept()
         settings.setValue("showhelpfultext", b);
         m_presentationChanged = true;
     }
+    settings.setValue("showHistoryAutomatically", m_showHistoryAutomatically->isChecked());
     int i;
 #ifdef NOT_IMPLEMENTED_YET
     i = m_workHistoryArrangement->currentIndex();
