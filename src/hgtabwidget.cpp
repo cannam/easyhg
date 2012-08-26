@@ -23,6 +23,7 @@
 #include <QClipboard>
 #include <QContextMenuEvent>
 #include <QApplication>
+#include <QSettings>
 
 #include <iostream>
 
@@ -281,7 +282,11 @@ void HgTabWidget::addIncrementalLog(QString hgLogList)
 {
     m_historyWidget->parseIncrementalLog(hgLogList);
     if (m_historyWidget->haveNewItems()) {
-        showHistoryTab();
+        QSettings settings;
+        settings.beginGroup("Presentation");
+        if (settings.value("showHistoryAutomatically", true).toBool()) {
+            showHistoryTab();
+        }
     }
 }
 
