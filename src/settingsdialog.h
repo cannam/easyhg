@@ -85,6 +85,8 @@ private:
     QComboBox *m_workHistoryArrangement;
 #endif
 
+    QCheckBox *m_multipleDiffInstances;
+
     QPushButton *m_extensionBrowse;
     QPushButton *m_ok;
 
