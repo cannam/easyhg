@@ -156,6 +156,7 @@ FileStatusWidget::FileStatusWidget(QWidget *parent) :
             if (m_shortcuts.contains(a)) {
                 QString shortcut = m_shortcuts[a];
                 act->setShortcut(shortcut);
+                act->setShortcutContext(Qt::WidgetShortcut);
             }
             connect(act, SIGNAL(triggered()), this, SLOT(menuActionActivated()));
             w->insertAction(0, act);
