@@ -87,7 +87,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     m_showExtraText = new QCheckBox(tr("Show long descriptions for file status headings"));
     lookLayout->addWidget(m_showExtraText, row++, 0, 1, 2);
     
-    m_showHistoryAutomatically = new QCheckBox(tr("Switch to history tab  automatically when history changes"));
+    m_showHistoryAutomatically = new QCheckBox(tr("Switch to history tab automatically when history changes"));
     lookLayout->addWidget(m_showHistoryAutomatically, row++, 0, 1, 2);
 
 #ifdef NOT_IMPLEMENTED_YET
