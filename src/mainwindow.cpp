@@ -877,7 +877,8 @@ void MainWindow::hgShowIn(QStringList files)
         // FIXME: This shouldn't be using a hardcoded path.
         QProcess::execute("c:/windows/explorer.exe", args);
     #else if defined(Q_OS_MAC)
-        args << file;
+        file = m_workFolderPath + "/" + file;
+        args << "--reveal" << file;
         QProcess::execute("/usr/bin/open", args);
     #endif
     }
