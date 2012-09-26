@@ -357,8 +357,13 @@ void MainWindow::hgQueryHeads()
 
 void MainWindow::hgLog()
 {
+    QSettings settings;
+    settings.beginGroup("Presentation");
+
     QStringList params;
     params << "log";
+    params << "--date";
+    params << settings.value("datefrom", QDate(2000, 1, 1)).toDate().toString("yyyy-MM-dd") + " to " + QDate::currentDate().toString("yyyy-MM-dd");
     params << "--template";
     params << Changeset::getLogTemplate();
     
