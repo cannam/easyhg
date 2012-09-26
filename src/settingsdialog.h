@@ -25,6 +25,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QTabWidget>
+#include <QDateEdit>
 
 class SettingsDialog : public QDialog
 {
@@ -76,6 +77,9 @@ private:
     QCheckBox *m_showIconLabels;
     QCheckBox *m_showExtraText;
     QComboBox *m_dateFormat;
+
+    QDateEdit *m_dateFrom;
+
 #ifdef NOT_IMPLEMENTED_YET
     QComboBox *m_workHistoryArrangement;
 #endif

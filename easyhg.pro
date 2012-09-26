@@ -19,6 +19,11 @@ macx-g++ {
     QMAKE_MAC_SDK = /Developer/SDKs/MacOSX10.6.sdk
     CONFIG += x86_64
 }
+macx-llvm {
+    CONFIG += x86_64
+    QMAKE_CFLAGS += -mmacosx-version-min=10.6
+    QMAKE_CXXFLAGS += -mmacosx-version-min=10.6
+}
 
 unix {
     DESTDIR = .
@@ -109,8 +114,9 @@ SOURCES = \
     src/fswatcher.cpp \
     src/findwidget.cpp
 
+
 macx-* {
-    SOURCES += src/common_osx.mm
+    OBJECTIVE_SOURCES += src/common_osx.mm
     LIBS += -framework CoreServices -framework Foundation
     ICON = easyhg-icon.icns
 }

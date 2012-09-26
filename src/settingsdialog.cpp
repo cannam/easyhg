@@ -27,6 +27,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QTabWidget>
+#include <QCalendarWidget>
 
 QString
 SettingsDialog::m_installPath;
@@ -95,13 +96,18 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     lookLayout->setColumnStretch(1, 20);
 #endif
 
+    lookLayout->addWidget(new QLabel(tr("History timeline from")), row, 0);
+    m_dateFrom = new QDateEdit();
+    m_dateFrom->setCalendarPopup(true);
+    lookLayout->addWidget(m_dateFrom, row++, 1, Qt::AlignLeft);
+
     lookLayout->addWidget(new QLabel(tr("Label the history timeline with")), row, 0);
     m_dateFormat = new QComboBox();
     m_dateFormat->addItem(tr("Ages, for example \"5 weeks ago\""));
     m_dateFormat->addItem(tr("Dates, for example \"2010-06-23\""));
     lookLayout->addWidget(m_dateFormat, row++, 1, Qt::AlignLeft);
-    lookLayout->setColumnStretch(1, 20);
 
+    lookLayout->setColumnStretch(1, 10);
     lookLayout->setRowStretch(row, 20);
     
 
@@ -431,6 +437,7 @@ SettingsDialog::reset()
     m_workHistoryArrangement->setCurrentIndex(settings.value("workhistoryarrangement", 0).toInt());
 #endif
     m_dateFormat->setCurrentIndex(settings.value("dateformat", 0).toInt());
+    m_dateFrom->setDate(settings.value("datefrom", QDate(2000, 1, 1)).toDate());
     settings.endGroup();
     settings.beginGroup("Locations");
     m_hgPathLabel->setText(settings.value("hgbinary").toString());
@@ -478,6 +485,11 @@ SettingsDialog::accept()
         settings.setValue("dateformat", i);
         m_presentationChanged = true;
     }
+    if(settings.value("datefrom") != m_dateFrom->date()){
+        settings.setValue("datefrom", m_dateFrom->date());
+        m_presentationChanged = true;
+    }
+
     settings.endGroup();
     settings.beginGroup("Locations");
     settings.setValue("hgbinary", m_hgPathLabel->text());
