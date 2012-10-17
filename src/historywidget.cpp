@@ -71,7 +71,7 @@ HistoryWidget::HistoryWidget() :
     connect(m_showClosedBranches, SIGNAL(toggled(bool)), 
             this, SLOT(showClosedChanged(bool)));
     optLayout->addWidget(m_showClosedBranches, 0, 1, Qt::AlignRight);
-    m_showClosedBranches->hide();
+    //    m_showClosedBranches->hide();
 
     setLayout(layout);
 }
@@ -243,9 +243,22 @@ void HistoryWidget::layoutAll()
         toFocus = g.getUncommittedItem();
         if (!toFocus) {
             if (!m_currentIds.empty()) {
-                toFocus = g.getItemFor(m_currentIds[0]);
+                for (int i = 0; i < m_currentIds.size(); ++i) {
+                    toFocus = g.getItemFor(m_currentIds[i]);
+                    if (toFocus != 0) {
+                        break;
+                    }
+                }
             } else {
                 toFocus = g.getItemFor(m_changesets[0]);
+            }
+        }
+        if (!toFocus) {
+            for (int i = 0; i < m_changesets.size(); ++i) {
+                toFocus = g.getItemFor(m_changesets[i]);
+                if (toFocus != 0) {
+                    break;
+                }
             }
         }
     }
