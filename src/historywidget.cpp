@@ -71,7 +71,7 @@ HistoryWidget::HistoryWidget() :
     connect(m_showClosedBranches, SIGNAL(toggled(bool)), 
             this, SLOT(showClosedChanged(bool)));
     optLayout->addWidget(m_showClosedBranches, 0, 1, Qt::AlignRight);
-    //    m_showClosedBranches->hide();
+    m_showClosedBranches->hide();
 
     setLayout(layout);
 }
