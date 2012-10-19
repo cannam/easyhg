@@ -210,6 +210,7 @@ int FileStates::activityGroup(Activity a)
     case Add: case Remove: return 3;
     case RedoMerge: case MarkResolved: return 4;
     case Ignore: case UnIgnore: return 5;
+    case ShowIn: return 6;
     }
     return 0;
 }
