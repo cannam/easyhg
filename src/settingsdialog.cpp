@@ -115,10 +115,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     
 
     QWidget *pathsBox = new QWidget;
-    m_tabs->addTab(pathsBox, tr("System application locations"));
+    m_tabs->addTab(pathsBox, tr("System applications"));
 
-//    QGroupBox *pathsBox = new QGroupBox(tr("System application locations"));
-//    mainLayout->addWidget(pathsBox, 2, 0);
     QGridLayout *pathsLayout = new QGridLayout;
     pathsBox->setLayout(pathsLayout);
 
@@ -145,7 +143,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     m_multipleDiffInstances = new QCheckBox(tr("Run multiple instances for multiple files"));
     pathsLayout->addWidget(m_multipleDiffInstances, row++, 2);
 
-    pathsLayout->addWidget(new QLabel(tr("External file-merge program:")), row, 0);
+    pathsLayout->addWidget(new QLabel(tr("External merge program:")), row, 0);
 
     m_mergePathLabel = new QLineEdit();
     pathsLayout->addWidget(m_mergePathLabel, row, 2);
@@ -163,20 +161,30 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     pathsLayout->addWidget(browse, row++, 1);
     connect(browse, SIGNAL(clicked()), this, SLOT(sshPathBrowse()));
 
-    //!!! more info plz
+
+    QWidget *extBox = new QWidget;
+    m_tabs->addTab(extBox, tr("Extensions"));
+
+    QGridLayout *extLayout = new QGridLayout;
+    extBox->setLayout(extLayout);
+
+    row = 0;
+
     m_useExtension = new QCheckBox(tr("Use EasyHg Mercurial extension"));
-    pathsLayout->addWidget(m_useExtension, row, 0);
-    connect(m_useExtension, SIGNAL(stateChanged(int)), this, SLOT(useExtension(int)));
+    extLayout->addWidget(m_useExtension, row++, 0, 1, 2);
+    extLayout->addWidget(new QLabel(tr("This extension may be required for password entry when using https\nprotocols. It also provides the \"remember password\" feature.")), row++, 0, 1, 3);
+
+    extLayout->addWidget(new QLabel(tr("Extension file path:")), row, 0);
 
     m_extensionPathLabel = new QLineEdit();
-    pathsLayout->addWidget(m_extensionPathLabel, row, 2);
+    extLayout->addWidget(m_extensionPathLabel, row, 2);
 
-    m_extensionBrowse = new QPushButton(tr("Browse..."));
-    pathsLayout->addWidget(m_extensionBrowse, row++, 1);
-    connect(m_extensionBrowse, SIGNAL(clicked()), this, SLOT(extensionPathBrowse()));
+    browse = new QPushButton(tr("Browse..."));
+    extLayout->addWidget(browse, row++, 1);
+    connect(browse, SIGNAL(clicked()), this, SLOT(extensionPathBrowse()));
 
-    pathsLayout->setRowStretch(row, 20);
-    pathsLayout->setColumnStretch(2, 20);
+    extLayout->setRowStretch(row, 20);
+    extLayout->setColumnStretch(2, 20);
 
 
     reset(); // loads current defaults from settings
@@ -197,6 +205,7 @@ SettingsDialog::setCurrentTab(Tab t)
     case PersonalDetailsTab: m_tabs->setCurrentIndex(0); break;
     case PresentationTab: m_tabs->setCurrentIndex(1); break;
     case PathsTab: m_tabs->setCurrentIndex(2); break;
+    case ExtensionsTab: m_tabs->setCurrentIndex(3); break;
     }
 }
 
@@ -227,14 +236,7 @@ SettingsDialog::sshPathBrowse()
 void
 SettingsDialog::extensionPathBrowse()
 {
-    browseFor(tr("EasyHg Mercurial extension"), m_extensionPathLabel);
-}
-
-void
-SettingsDialog::useExtension(int)
-{
-    m_extensionPathLabel->setEnabled(m_useExtension->isChecked());
-    m_extensionBrowse->setEnabled(m_useExtension->isChecked());
+    browseFor(tr("EasyMercurial extension"), m_extensionPathLabel);
 }
 
 void
@@ -464,7 +466,6 @@ SettingsDialog::reset()
     settings.endGroup();
     settings.beginGroup("");
     m_useExtension->setChecked(settings.value("useextension", true).toBool());
-    useExtension(m_useExtension->isChecked());
     m_multipleDiffInstances->setChecked(settings.value("multipleDiffInstances", false).toBool());
     settings.endGroup();
 }
