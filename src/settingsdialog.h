@@ -35,7 +35,8 @@ public:
     enum Tab {
         PersonalDetailsTab,
         PresentationTab,
-        PathsTab
+        PathsTab,
+        ExtensionsTab
     };
 
     SettingsDialog(QWidget *parent = 0);
@@ -55,7 +56,6 @@ private slots:
     void mergePathBrowse();
     void sshPathBrowse();
     void extensionPathBrowse();
-    void useExtension(int);
 
     void accept();
     void reset();
