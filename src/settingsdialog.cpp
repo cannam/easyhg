@@ -142,7 +142,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     pathsLayout->addWidget(browse, row++, 1);
     connect(browse, SIGNAL(clicked()), this, SLOT(diffPathBrowse()));
 
-    m_multipleDiffInstances = new QCheckBox(tr("Multiple instances when multiple files are selected"));
+    m_multipleDiffInstances = new QCheckBox(tr("Run multiple instances for multiple files"));
     pathsLayout->addWidget(m_multipleDiffInstances, row++, 2);
 
     pathsLayout->addWidget(new QLabel(tr("External file-merge program:")), row, 0);
