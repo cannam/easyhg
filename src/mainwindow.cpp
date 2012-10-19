@@ -862,7 +862,7 @@ void MainWindow::hgShowIn(QStringList files)
     foreach (QString file, files)
     {
         QStringList args;
-    #if defined Q_OS_WIN32
+#if defined Q_OS_WIN32
         // Although the Win32 API is quite happy to have
         // forward slashes as directory separators, Windows
         // Explorer is not
@@ -876,11 +876,11 @@ void MainWindow::hgShowIn(QStringList files)
         args << "/select," << file;
         // FIXME: This shouldn't be using a hardcoded path.
         QProcess::execute("c:/windows/explorer.exe", args);
-    #else if defined(Q_OS_MAC)
+#elif defined(Q_OS_MAC)
         file = m_workFolderPath + "/" + file;
         args << "--reveal" << file;
         QProcess::execute("/usr/bin/open", args);
-    #endif
+#endif
     }
 }
 
