@@ -5,8 +5,8 @@
 
     Based on HgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
-    Copyright (c) 2012 Chris Cannam
-    Copyright (c) 2012 Queen Mary, University of London
+    Copyright (c) 2013 Chris Cannam
+    Copyright (c) 2013 Queen Mary, University of London
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -34,8 +34,8 @@ int main(int argc, char *argv[])
          !strcmp(argv[1], "--version"))) {
         cout << "EasyMercurial v" << EASYHG_VERSION << "\n"
              << "Copyright (c) 2010 Jari Korhonen\n"
-             << "Copyright (c) 2012 Chris Cannam\n"
-             << "Copyright (c) 2012 Queen Mary, University of London\n"
+             << "Copyright (c) 2013 Chris Cannam\n"
+             << "Copyright (c) 2013 Queen Mary, University of London\n"
              << "This program is free software; you can redistribute it and/or\n"
              << "modify it under the terms of the GNU General Public License as\n"
              << "published by the Free Software Foundation; either version 2 of the\n"
