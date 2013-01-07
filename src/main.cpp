@@ -18,13 +18,33 @@
 #include "mainwindow.h"
 #include "common.h"
 #include "debug.h"
+#include "version.h"
 
 #include <QApplication>
 #include <QTranslator>
 #include <QDir>
 
+using std::cout;
+using std::endl;
+
 int main(int argc, char *argv[])
 {
+    if (argc == 2 &&
+        (!strcmp(argv[1], "-v") ||
+         !strcmp(argv[1], "--version"))) {
+        cout << "EasyMercurial v" << EASYHG_VERSION << "\n"
+             << "Copyright (c) 2010 Jari Korhonen\n"
+             << "Copyright (c) 2012 Chris Cannam\n"
+             << "Copyright (c) 2012 Queen Mary, University of London\n"
+             << "This program is free software; you can redistribute it and/or\n"
+             << "modify it under the terms of the GNU General Public License as\n"
+             << "published by the Free Software Foundation; either version 2 of the\n"
+             << "License, or (at your option) any later version.  See the file\n"
+             << "COPYING included with this distribution for more information."
+             << endl;
+        return 0;
+    }
+
     QApplication app(argc, argv);
 
     QApplication::setOrganizationName("easymercurial");
