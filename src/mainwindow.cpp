@@ -121,7 +121,6 @@ MainWindow::MainWindow(QString myDirPath) :
     connect(m_hgTabs, SIGNAL(showAllChanged()),
             this, SLOT(showAllChanged()));
 
-    setUnifiedTitleAndToolBarOnMac(true);
     connectActions();
     clearState();
     enableDisableActions();
@@ -3085,24 +3084,44 @@ void MainWindow::createToolBars()
 {
     int sz = 32;
 
+    QString spacerBefore, spacerAfter;
+
+    spacerBefore = spacerAfter = " ";
+
+#ifdef Q_OS_MAC
+    spacerAfter = "";
+#endif
+
+#ifdef Q_OS_WIN32
+    spacerBefore = spacerAfter = "  "
+#endif
+
     bool spacingReqd = false;
     QString spacer = "";
-#ifndef Q_OS_MAC
-    spacingReqd = true;
-    spacer = " ";
-#ifdef Q_OS_WIN32
-    spacer = "  ";
-#endif
-#endif
+
+    m_repoToolBar = addToolBar(tr("Remote"));
+    m_repoToolBar->setIconSize(QSize(sz, sz));
+    if (spacerBefore != "") {
+        m_repoToolBar->addWidget(new QLabel(spacerBefore));
+    }
+    m_repoToolBar->addAction(m_openAct);
+    if (spacerAfter != "") {
+        m_repoToolBar->addWidget(new QLabel(spacerAfter));
+    }
+    m_repoToolBar->addSeparator();
+    m_repoToolBar->addAction(m_hgIncomingAct);
+    m_repoToolBar->addAction(m_hgPullAct);
+    m_repoToolBar->addAction(m_hgPushAct);
+    m_repoToolBar->setMovable(false);
 
     m_workFolderToolBar = new QToolBar(tr("Work"));
     addToolBar(Qt::LeftToolBarArea, m_workFolderToolBar);
     m_workFolderToolBar->setIconSize(QSize(sz, sz));
-    if (spacingReqd) {
-        QWidget *w = new QWidget;
-        w->setFixedHeight(6);
-        m_workFolderToolBar->addWidget(w);
-    }
+
+    QWidget *w = new QWidget;
+    w->setFixedHeight(6);
+    m_workFolderToolBar->addWidget(w);
+
     m_workFolderToolBar->addAction(m_hgFolderDiffAct);
     m_workFolderToolBar->addSeparator();
     m_workFolderToolBar->addAction(m_hgRevertAct);
@@ -3113,21 +3132,6 @@ void MainWindow::createToolBars()
     m_workFolderToolBar->addAction(m_hgAddAct);
     m_workFolderToolBar->addAction(m_hgRemoveAct);
     m_workFolderToolBar->setMovable(false);
-
-    m_repoToolBar = addToolBar(tr("Remote"));
-    m_repoToolBar->setIconSize(QSize(sz, sz));
-    if (spacingReqd) {
-        m_repoToolBar->addWidget(new QLabel(spacer));
-    }
-    m_repoToolBar->addAction(m_openAct);
-    if (spacingReqd) {
-        m_repoToolBar->addWidget(new QLabel(spacer));
-    }
-    m_repoToolBar->addSeparator();
-    m_repoToolBar->addAction(m_hgIncomingAct);
-    m_repoToolBar->addAction(m_hgPullAct);
-    m_repoToolBar->addAction(m_hgPushAct);
-    m_repoToolBar->setMovable(false);
 
     updateToolBarStyle();
 }
