@@ -5,8 +5,8 @@
 
     Based on hgExplorer by Jari Korhonen
     Copyright (c) 2010 Jari Korhonen
-    Copyright (c) 2012 Chris Cannam
-    Copyright (c) 2012 Queen Mary, University of London
+    Copyright (c) 2013 Chris Cannam
+    Copyright (c) 2013 Queen Mary, University of London
     
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -154,7 +154,9 @@ fsEventsCallback(ConstFSEventStreamRef streamRef,
     FsWatcher *watcher = reinterpret_cast<FsWatcher *>(clientCallBackInfo);
     const char *const *cpaths = reinterpret_cast<const char *const *>(paths);
     for (size_t i = 0; i < numEvents; ++i) {
+#ifdef DEBUG_FSWATCHER
         std::cerr << "path " << i << " = " << cpaths[i] << std::endl;
+#endif
         watcher->fsDirectoryChanged(QString::fromLocal8Bit(cpaths[i]));
     }
 }
@@ -371,7 +373,9 @@ FsWatcher::fsFileChanged(QString path)
 bool
 FsWatcher::manuallyCheckTrackedFiles()
 {
+#ifdef DEBUG_FSWATCHER
     std::cerr << "FsWatcher::manuallyCheckTrackedFiles" << std::endl;
+#endif
     bool foundChanges = false;
 
     for (PathTimeMap::iterator i = m_trackedFileUpdates.begin();
