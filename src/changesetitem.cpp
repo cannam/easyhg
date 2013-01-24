@@ -578,6 +578,21 @@ ChangesetItem::paintSimple(QPainter *paint)
         paint->restore();
     }
 
+    QStringList tags = m_changeset->tags();
+    if (!tags.empty()) {
+        QStringList nonTipTags;
+        foreach (QString t, tags) {
+            if (t != "tip") nonTipTags.push_back(t);
+        }
+        if (!nonTipTags.empty()) {
+            QString tagText = nonTipTags.join(" ").trimmed();
+            int tw = fm.width(tagText);
+            paint->fillRect(QRectF(x0 + size/2 + 2, 0, tw + 4, fh - 1),
+                            QBrush(Qt::yellow));
+            paint->drawText(x0 + size/2 + 4, fm.ascent() - 1, tagText);
+        }
+    }
+
     if (m_current && showProperLines) {
         paint->setRenderHint(QPainter::SmoothPixmapTransform, true);
         int starSize = fh * 1.5;
