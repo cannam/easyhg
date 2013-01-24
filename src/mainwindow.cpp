@@ -3101,7 +3101,7 @@ void MainWindow::createToolBars()
 #endif
 
 #ifdef Q_OS_WIN32
-    spacerBefore = spacerAfter = "  "
+    spacerBefore = spacerAfter = "  ";
 #endif
 
     bool spacingReqd = false;
