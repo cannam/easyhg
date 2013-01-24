@@ -571,12 +571,20 @@ void MainWindow::hgCloseBranch()
 
     QString defaultWarning;
 
+    bool haveSprouts = (m_hgMergeAct->isEnabled());
+
     QString branchText;
     if (m_currentBranch == "" || m_currentBranch == "default") {
         branchText = tr("the default branch");
-        defaultWarning = tr("<p><b>Warning:</b> you are asking to close the default branch. This is not usually a good idea!</p>");
+        if (!haveSprouts) {
+            defaultWarning = tr("<p><b>Warning:</b> you are asking to close the default branch. This is not usually a good idea!</p>");
+        }
     } else {
         branchText = tr("branch \"%1\"").arg(m_currentBranch);
+    }
+
+    if (haveSprouts) {
+        branchText = tr("a sub-branch of %1").arg(branchText);
     }
 
     if (ConfirmCommentDialog::confirmAndGetLongComment
