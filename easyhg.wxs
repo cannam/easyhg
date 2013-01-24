@@ -133,9 +133,9 @@
                   KeyPath="yes"/>
               <File
                   Id="pydll"
-                  Name="python26.dll"
+                  Name="python27.dll"
                   DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\python26.dll"/>
+                  Source="d:\easyhg-bundle-dependencies\python27.dll"/>
               <File
                   Id="hglib"
                   Name="library.zip"
