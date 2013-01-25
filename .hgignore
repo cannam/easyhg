@@ -26,3 +26,4 @@ re:^_UpgradeReport_Files/
 *.dmg
 *.xcodeproj
 *.bak
+*.msi
