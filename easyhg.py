@@ -44,7 +44,7 @@ if not easyhg_import_path.startswith('NO_'):
 #
 easyhg_pyqt_ok = True
 try:
-    from PyQt4 import Qt, QtCore, QtGui
+    from PyQt4 import QtCore, QtGui
 except ImportError:
     easyhg_pyqt_ok = False
 easyhg_qtapp = None
@@ -263,9 +263,7 @@ class EasyHgAuthDialog(object):
         if self.auth_store.passwd: passwd_field.setText(self.auth_store.passwd)
         layout.addWidget(QtGui.QLabel(_('Password:')), 2, 0)
         layout.addWidget(passwd_field, 2, 1)
-
-        user_field.connect(user_field, Qt.SIGNAL("textChanged(QString)"),
-                           passwd_field, Qt.SLOT("clear()"))
+        user_field.textChanged.connect(passwd_field.clear)
 
         remember_field = None
         if self.auth_store.use_auth_file:
@@ -276,8 +274,7 @@ class EasyHgAuthDialog(object):
             warning_field = QtGui.QLabel()
             warning_field.setText(_('<qt><i><small>Do not use this option if anyone else has access to your computer!</small></i><br></qt>'))
             warning_field.hide()
-            remember_field.connect(remember_field, Qt.SIGNAL("clicked()"),
-                                   warning_field, Qt.SLOT("show()"))
+            remember_field.clicked.connect(warning_field.show)
             layout.addWidget(warning_field, 4, 1, QtCore.Qt.AlignRight)
 
         bb = QtGui.QDialogButtonBox()
@@ -286,8 +283,8 @@ class EasyHgAuthDialog(object):
         cancel.setDefault(False)
         cancel.setAutoDefault(False)
         ok.setDefault(True)
-        bb.connect(ok, Qt.SIGNAL("clicked()"), dialog, Qt.SLOT("accept()"))
-        bb.connect(cancel, Qt.SIGNAL("clicked()"), dialog, Qt.SLOT("reject()"))
+        ok.clicked.connect(dialog.accept)
+        cancel.clicked.connect(dialog.reject)
         layout.addWidget(bb, 5, 0, 1, 2)
 
         dialog.setWindowTitle(_('EasyMercurial: Login'))
