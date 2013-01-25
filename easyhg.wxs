@@ -294,6 +294,63 @@
                   KeyPath="yes"/>
             </Component>		  
 
+	    <Directory Id="Crypto" Name="Crypto">
+	      <Directory Id="Cipher" Name="Cipher">
+		<Component
+		    Id="cryptocipher"
+		    Guid="FB7C7C7E-FC62-4024-9E7E-47034B416286">
+		  <File
+		      Id="cipherinit"
+		      Name="__init__.py"
+		      DiskId="1"
+		      Source="d:\easyhg-bundle-dependencies\Crypto\Cipher\__init__.py" />
+		  <File
+		      Id="cipheraesd"
+		      Name="_AES.pyd"
+		      DiskId="1"
+		      Source="d:\easyhg-bundle-dependencies\Crypto\Cipher\_AES.pyd" />
+		  <File
+		      Id="cipheraes"
+		      Name="AES.py"
+		      DiskId="1"
+		      Source="d:\easyhg-bundle-dependencies\Crypto\Cipher\AES.py" />
+		  <File
+		      Id="cipherblockalgo"
+		      Name="blockalgo.py"
+		      DiskId="1"
+		      Source="d:\easyhg-bundle-dependencies\Crypto\Cipher\blockalgo.py" />
+		</Component>
+	      </Directory>
+	      <Directory Id="Util" Name="Util">
+		
+		<Component
+		    Id="cryptoutil"
+		    Guid="9B5FB64F-B5B3-4E36-A4E6-1EC648470557">
+		  <File
+		      Id="utilinit"
+		      Name="__init__.py"
+		      DiskId="1"
+		      Source="d:\easyhg-bundle-dependencies\Crypto\Util\__init__.py" />
+		  <File
+		      Id="utilpy3compat"
+		      Name="py3compat.py"
+		      DiskId="1"
+		      Source="d:\easyhg-bundle-dependencies\Crypto\Util\py3compat.py" />
+		</Component>
+	      </Directory>
+	      
+	      <Component
+		  Id="crypto"
+		  Guid="AB5D6864-6D47-4C51-A132-5E0EC5BE1EF8">
+		<File
+		    Id="cryptoinit"
+		    Name="__init__.py"
+		    DiskId="1"
+		    Source="d:\easyhg-bundle-dependencies\Crypto\__init__.py" />
+	      </Component>
+
+	    </Directory>
+
         </Directory>
       </Directory>
 
@@ -317,6 +374,9 @@
       <ComponentRef Id="Qt4"/>
       <ComponentRef Id="hg"/>
       <ComponentRef Id="sip"/>
+      <ComponentRef Id="crypto"/>
+      <ComponentRef Id="cryptocipher"/>
+      <ComponentRef Id="cryptoutil"/>
       <ComponentRef Id="kdiff3"/>
       <ComponentRef Id="ProgramMenuDir"/>
     </Feature>
