@@ -257,15 +257,20 @@
                   DiskId="1"
                   Source="d:\easyhg-bundle-dependencies\pyexpat.pyd"/>
               <File
-                  Id="sip"
-                  Name="sip.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\sip.pyd"/>
-              <File
                   Id="unicodedata"
                   Name="unicodedata.pyd"
                   DiskId="1"
                   Source="d:\easyhg-bundle-dependencies\unicodedata.pyd"/>
+              <File
+                  Id="QtCorepy"
+                  Name="PyQt4.QtCore.pyd"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\PyQt4.QtCore.pyd" />
+              <File
+                  Id="QtGuipy"
+                  Name="PyQt4.QtGui.pyd"
+                  DiskId="1"
+                  Source="d:\easyhg-bundle-dependencies\PyQt4.QtGui.pyd" />
             </Component>		  
 
             <Component
@@ -288,39 +293,6 @@
                   Source="d:\easyhg-bundle-dependencies\kdiff3.exe"
                   KeyPath="yes"/>
             </Component>		  
-
-            <Directory Id="PyQt4" Name="PyQt4">
-              <Component
-                  Id="PyQt4"
-                  Guid="5EE2BE01-3D91-44C5-869A-5E8167079AA0">
-                <File
-                    Id="init"
-                    Name="__init__.py"
-                    DiskId="1"
-                    Source="d:\easyhg-bundle-dependencies\PyQt4\__init__.py"
-                    KeyPath="yes"/>
-                <File
-                    Id="inito"
-                    Name="__init__.pyo"
-                    DiskId="1"
-                    Source="d:\easyhg-bundle-dependencies\PyQt4\__init__.pyo" />
-                <File
-                    Id="Qtpy"
-                    Name="Qt.pyd"
-                    DiskId="1"
-                    Source="d:\easyhg-bundle-dependencies\PyQt4\Qt.pyd" />
-                <File
-                    Id="QtCorepy"
-                    Name="QtCore.pyd"
-                    DiskId="1"
-                    Source="d:\easyhg-bundle-dependencies\PyQt4\QtCore.pyd" />
-                <File
-                    Id="QtGuipy"
-                    Name="QtGui.pyd"
-                    DiskId="1"
-                    Source="d:\easyhg-bundle-dependencies\PyQt4\QtGui.pyd" />
-              </Component>
-            </Directory>
 
         </Directory>
       </Directory>
@@ -346,7 +318,6 @@
       <ComponentRef Id="hg"/>
       <ComponentRef Id="sip"/>
       <ComponentRef Id="kdiff3"/>
-      <ComponentRef Id="PyQt4"/>
       <ComponentRef Id="ProgramMenuDir"/>
     </Feature>
 
