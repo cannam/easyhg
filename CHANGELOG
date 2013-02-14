@@ -1,4 +1,14 @@
 
+Changes in v1.3.0 since v1.2.2:
+ * Avoid issuing dire warning when closing only one head of default branch
+ * Some new preferences and adjustments to prefs layout (Sam Izzo)
+ * Some new keyboard shortcuts (Sam Izzo)
+ * Add "Show in Explorer" to context menu (platform-dependent) (Sam Izzo)
+ * Avoid reseeking history to bottom on closing a branch (Felipe Pozo)
+ * Add optional limit to number of items in graph (Mikel Fernandez)
+ * Use HKMU registry option for smoother install on Windows multi-user setup
+ * Fix toolbar layout when building with Qt 4.8
+
 Changes in v1.2.2 since v1.2.1:
  * Fix failure to provide IV arg to AES CBC constructor in PyCrypto
  * Update the history after a failed merge to show the merge
