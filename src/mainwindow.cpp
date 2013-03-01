@@ -2116,12 +2116,13 @@ void MainWindow::commandFailed(HgAction action, QString stdErr, QString stdOut)
             // warning messages, because it's the only case where a
             // non-zero code can be returned even though the command
             // has for our purposes succeeded
-            QString replaced = stdErr;
-            while (1) {
-                QString r1 = replaced;
-                r1.replace(QRegExp("warning: [^\\n]*"), "");
-                if (r1 == replaced) break;
-                replaced = r1.trimmed();
+            QStringList lines = stdErr.split(QRegExp("[\\r\\n]+"));
+            QString replaced;
+            foreach (QString line, lines) {
+                line.replace(QRegExp("^.*warning: [^\\n]*"), "");
+                if (line != "") {
+                    replaced += line + "\n";
+                }
             }
             if (replaced == "") {
                 showIncoming("");
