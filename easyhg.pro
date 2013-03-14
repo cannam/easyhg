@@ -4,8 +4,7 @@ CONFIG += release
 TEMPLATE = app
 TARGET = EasyMercurial
 
-#QT += widgets
-#QMAKE_CXXFLAGS += -DQT_DISABLE_DEPRECATED_BEFORE=0x000000
+QT += widgets
 
 # We use the 10.5 SDK and Carbon for all 32-bit OS/X,
 # and 10.6 with Cocoa for all 64-bit. (Since EasyHg 1.2,
