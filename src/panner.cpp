@@ -59,7 +59,7 @@ Panner::fit(QRectF r)
             m = Qt::KeepAspectRatio;
         }
     }
-    DEBUG << "Panner: fit mode " << m << endl;
+    DEBUG << "Panner: fit mode " << int(m) << endl;
     fitInView(r, m);
 }
 
