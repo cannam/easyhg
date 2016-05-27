@@ -411,7 +411,7 @@ void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
             emit commandCompleted(completedAction, m_stdout);
         } else {
             DEBUG << "HgRunner::finished: Command failed, exit code "
-                  << procExitCode << ", exit status " << procExitStatus
+                  << procExitCode << ", exit status " << int(procExitStatus)
                   << ", stderr follows" << endl;
             DEBUG << m_stderr << endl;
             emit commandFailed(completedAction, m_stderr, m_stdout);
