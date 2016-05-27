@@ -49,6 +49,12 @@ perl -p -e "s/EASYHG_VERSION/$bundleVersion/" deploy/osx/Info.plist \
 echo "Done: check $source/Contents/Info.plist for sanity please"
 
 echo
+echo "Copying in helper scripts"
+cp easyhg-extdiff.sh "$source"/Contents/MacOS/
+cp easyhg-merge.sh "$source"/Contents/MacOS/
+chmod +x "$source"/Contents/MacOS/easyhg-extdiff.sh "$source"/Contents/MacOS/easyhg-merge.sh
+
+echo
 echo "Making target tree."
 
 volume="$app"-"$version"
