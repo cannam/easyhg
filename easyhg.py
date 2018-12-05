@@ -35,7 +35,7 @@ if not easyhg_import_path.startswith('NO_'):
     sys.path.append(easyhg_import_path + "/" + version_suffix)
     sys.path.append(easyhg_import_path)
 
-# Try to load the PyQt4 module that we need.  If this fails, we should
+# Try to load the PyQt5 module that we need.  If this fails, we should
 # bail out later (in uisetup), because if we bail out now, Mercurial
 # will just continue without us and report success.  The invoking
 # application needs to be able to discover whether the module load
@@ -44,7 +44,7 @@ if not easyhg_import_path.startswith('NO_'):
 #
 easyhg_pyqt_ok = True
 try:
-    from PyQt4 import QtCore, QtGui
+    from PyQt5 import QtCore, QtGui, QtWidgets
 except ImportError:
     easyhg_pyqt_ok = False
 easyhg_qtapp = None
@@ -82,15 +82,13 @@ class EasyHgAuthStore(object):
         self.auth_file = self.ui.config('easyhg', 'authfile')
 
         self.use_auth_file = (easyhg_authfile_imports_ok and
-                         self.auth_key and self.auth_file)
+                              self.auth_key and self.auth_file)
 
         self.auth_config = None
         self.auth_cipher = None
         self.remember = False
 
         if self.use_auth_file:
-            self.auth_cipher = AES.new(self.auth_key, AES.MODE_CBC,
-                                       os.urandom(16))
             self.auth_file = os.path.expanduser(self.auth_file)
             self.load_auth_data()
 
@@ -98,19 +96,22 @@ class EasyHgAuthStore(object):
         if self.use_auth_file:
             self.save_auth_data()
     
-    def encrypt(self, text):
+    def encrypt(self, utext):
         iv = os.urandom(12)
+        text = utext.encode('utf-8')
         text = '%s.%d.%s.easyhg' % (base64.b64encode(iv), len(text), text)
         text += (16 - (len(text) % 16)) * ' '
-        ctext = base64.b64encode(self.auth_cipher.encrypt(text))
+        cipher = AES.new(self.auth_key, AES.MODE_CBC, os.urandom(16))
+        ctext = base64.b64encode(cipher.encrypt(text))
         return ctext
 
     def decrypt(self, ctext):
         try:
-            text = self.auth_cipher.decrypt(base64.b64decode(ctext))
+            cipher = AES.new(self.auth_key, AES.MODE_CBC, os.urandom(16))
+            text = cipher.decrypt(base64.b64decode(ctext))
             (iv, d, text) = text.partition('.')
             (tlen, d, text) = text.partition('.')
-            return text[0:int(tlen)]
+            return text[0:int(tlen)].decode('utf-8')
         except:
             self.ui.write("failed to decrypt/convert cached data!")
             return ''
@@ -243,41 +244,41 @@ class EasyHgAuthDialog(object):
             if not repeat:
                 return (self.auth_store.user, self.auth_store.passwd)
 
-        dialog = QtGui.QDialog()
-        layout = QtGui.QGridLayout()
+        dialog = QtWidgets.QDialog()
+        layout = QtWidgets.QGridLayout()
         dialog.setLayout(layout)
 
         heading = _('Login required')
         if repeat:
             heading = _('Login failed: please try again')
         label_text = _(('<h3>%s</h3><p>Please provide your login details for the repository at<br><code>%s</code>:') % (heading, self.auth_store.argless_url()))
-        layout.addWidget(QtGui.QLabel(label_text), 0, 0, 1, 2)
+        layout.addWidget(QtWidgets.QLabel(label_text), 0, 0, 1, 2)
 
-        user_field = QtGui.QLineEdit()
+        user_field = QtWidgets.QLineEdit()
         if self.auth_store.user: user_field.setText(self.auth_store.user)
-        layout.addWidget(QtGui.QLabel(_('User:')), 1, 0)
+        layout.addWidget(QtWidgets.QLabel(_('User:')), 1, 0)
         layout.addWidget(user_field, 1, 1)
 
-        passwd_field = QtGui.QLineEdit()
-        passwd_field.setEchoMode(QtGui.QLineEdit.Password)
+        passwd_field = QtWidgets.QLineEdit()
+        passwd_field.setEchoMode(QtWidgets.QLineEdit.Password)
         if self.auth_store.passwd: passwd_field.setText(self.auth_store.passwd)
-        layout.addWidget(QtGui.QLabel(_('Password:')), 2, 0)
+        layout.addWidget(QtWidgets.QLabel(_('Password:')), 2, 0)
         layout.addWidget(passwd_field, 2, 1)
         user_field.textChanged.connect(passwd_field.clear)
 
         remember_field = None
         if self.auth_store.use_auth_file:
-            remember_field = QtGui.QCheckBox()
+            remember_field = QtWidgets.QCheckBox()
             remember_field.setChecked(self.auth_store.remember)
             remember_field.setText(_('Remember these details while EasyMercurial is running'))
             layout.addWidget(remember_field, 3, 1)
-            warning_field = QtGui.QLabel()
+            warning_field = QtWidgets.QLabel()
             warning_field.setText(_('<qt><i><small>Do not use this option if anyone else has access to your computer!</small></i><br></qt>'))
             warning_field.hide()
             remember_field.clicked.connect(warning_field.show)
             layout.addWidget(warning_field, 4, 1, QtCore.Qt.AlignRight)
 
-        bb = QtGui.QDialogButtonBox()
+        bb = QtWidgets.QDialogButtonBox()
         ok = bb.addButton(bb.Ok)
         cancel = bb.addButton(bb.Cancel)
         cancel.setDefault(False)
@@ -300,7 +301,7 @@ class EasyHgAuthDialog(object):
         dialog.raise_()
         ok = dialog.exec_()
         if not ok:
-            raise util.Abort(_('password entry cancelled'))
+            raise error.Abort(_('password entry cancelled'))
 
         self.auth_store.user = user_field.text()
         self.auth_store.passwd = passwd_field.text()
@@ -315,9 +316,9 @@ class EasyHgAuthDialog(object):
 
 def uisetup(ui):
     if not easyhg_pyqt_ok:
-        raise util.Abort(_('Failed to load PyQt4 module required by easyhg.py'))
+        raise error.Abort(_('Failed to load PyQt5 module required by easyhg.py'))
     global easyhg_qtapp
-    easyhg_qtapp = QtGui.QApplication([])
+    easyhg_qtapp = QtWidgets.QApplication([])
 
 def monkeypatch_method(cls):
     def decorator(func):
@@ -338,8 +339,8 @@ def find_user_password(self, realm, authuri):
     if not easyhg_pyqt_ok:
         return orig_find(self, realm, authuri)
 
-    authinfo = urllib2.HTTPPasswordMgrWithDefaultRealm.find_user_password(
-        self, realm, authuri)
+    mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+    authinfo = mgr.find_user_password(realm, authuri)
     user, passwd = authinfo
 
     repeat = False
