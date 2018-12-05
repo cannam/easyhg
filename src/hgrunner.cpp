@@ -484,7 +484,7 @@ QString HgRunner::getAuthFilePath()
 
         QByteArray fileExt = randomKey();
         if (fileExt == QByteArray()) {
-            DEBUG << "HgRunner::addExtensionOptions: Failed to get proper auth file ext" << endl;
+            DEBUG << "HgRunner::getAuthFilePath: Failed to get proper auth file ext" << endl;
             return "";
         }
         QString fileExt16 = QString::fromLocal8Bit(fileExt.toBase64()).left(16)
@@ -493,7 +493,7 @@ QString HgRunner::getAuthFilePath()
             (QStandardPaths::CacheLocation);
         QDir().mkpath(path);
         if (path == "") {
-            DEBUG << "HgRunner::addExtensionOptions: Failed to get cache location" << endl;
+            DEBUG << "HgRunner::getAuthFilePath: Failed to get cache location" << endl;
             return "";
         }
 
@@ -509,7 +509,7 @@ QString HgRunner::getAuthKey()
     if (m_authKey == "") {
         QByteArray key = randomKey();
         if (key == QByteArray()) {
-            DEBUG << "HgRunner::addExtensionOptions: Failed to get proper auth key" << endl;
+            DEBUG << "HgRunner::getAuthKey: Failed to get proper auth key" << endl;
             return "";
         }
         QString key16 = QString::fromLocal8Bit(key.toBase64()).left(16);
