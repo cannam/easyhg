@@ -221,14 +221,14 @@ MultiChoiceDialog::browse()
 }
 
 void
-MultiChoiceDialog::urlChanged(const QString &s)
+MultiChoiceDialog::urlChanged(const QString &)
 {
     updateOkButton();
     updateFileComboFromURL();
 }
 
 void
-MultiChoiceDialog::fileChanged(const QString &s)
+MultiChoiceDialog::fileChanged(const QString &)
 {
     updateOkButton();
 }

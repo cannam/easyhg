@@ -65,14 +65,13 @@ ChangesetDetailItem::itemChange(GraphicsItemChange c, const QVariant &v)
 
 void
 ChangesetDetailItem::paint(QPainter *paint,
-			   const QStyleOptionGraphicsItem *option,
-			   QWidget *w)
+			   const QStyleOptionGraphicsItem *,
+			   QWidget *)
 {
     paint->save();
     
     ColourSet *colourSet = ColourSet::instance();
     QColor branchColour = colourSet->getColourFor(m_changeset->branch());
-    QColor userColour = colourSet->getColourFor(m_changeset->author());
 
     QTransform t = paint->worldTransform();
     float scale = std::min(t.m11(), t.m22());
@@ -105,15 +104,6 @@ ChangesetDetailItem::paint(QPainter *paint,
     pts.push_back(QPointF(0, height/3 - 5));
     paint->drawPolygon(QPolygonF(pts));
 
-/*
-    paint->setBrush(branchColour);
-    QVector<QPointF> pts;
-    pts.push_back(QPointF(width/2 - 5, 0));
-    pts.push_back(QPointF(width/2 + 5, 0));
-    pts.push_back(QPointF(width/2, -10));
-    pts.push_back(QPointF(width/2 - 5, 0));
-    paint->drawPolygon(QPolygonF(pts));
-*/
     m_doc->drawContents(paint, r);
 
     paint->restore();

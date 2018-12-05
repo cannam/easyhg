@@ -88,7 +88,7 @@ Panned::paintEvent(QPaintEvent *e)
 }
 
 void
-Panned::drawForeground(QPainter *paint, const QRectF &)
+Panned::drawForeground(QPainter *, const QRectF &)
 {
     QPointF nearpt = mapToScene(0, 0);
     QPointF farpt = mapToScene(width(), height());
@@ -221,6 +221,10 @@ Panned::updateDragDirection(QPoint pos)
         if (dx > largeThreshold) {
             m_dragDirection = FreeDrag;
         }
+        break;
+
+    case FreeDrag:
+        // stick with it
         break;
     };
 }
