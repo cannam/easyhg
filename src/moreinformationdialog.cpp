@@ -35,24 +35,24 @@ MoreInformationDialog::MoreInformationDialog(QString title,
 {
     setWindowTitle(title);
 
-    QGridLayout *layout = new QGridLayout;
-    layout->setSpacing(10);
-    setLayout(layout);
+    m_layout = new QGridLayout;
+    m_layout->setSpacing(10);
+    setLayout(m_layout);
 
     m_iconLabel = new QLabel;
-    layout->addWidget(m_iconLabel, 0, 0, 2, 1, Qt::AlignTop);
+    m_layout->addWidget(m_iconLabel, 0, 0, 2, 1, Qt::AlignTop);
 
     QLabel *headLabel = new QLabel(QString("<qt><h3>%1</h3></qt>").arg(head));
-    layout->addWidget(headLabel, 0, 1);
+    m_layout->addWidget(headLabel, 0, 1);
 
     QLabel *textLabel = new QLabel(text);
     textLabel->setTextFormat(Qt::RichText);
     textLabel->setWordWrap(true);
-    layout->addWidget(textLabel, 1, 1, Qt::AlignTop);
+    m_layout->addWidget(textLabel, 1, 1, Qt::AlignTop);
 
     QDialogButtonBox *bb = new QDialogButtonBox(QDialogButtonBox::Ok);
     connect(bb, SIGNAL(accepted()), this, SLOT(accept()));
-    layout->addWidget(bb, 2, 0, 1, 2);
+    m_layout->addWidget(bb, 2, 0, 1, 2);
 
     m_moreButton = bb->addButton(tr("More Details..."),
                                  QDialogButtonBox::ActionRole);
@@ -74,13 +74,13 @@ MoreInformationDialog::MoreInformationDialog(QString title,
     font.setStyleHint(QFont::TypeWriter);
     m_moreText->setFont(font);
 
-    layout->addWidget(m_moreText, 3, 0, 1, 2);
+    m_layout->addWidget(m_moreText, 3, 0, 1, 2);
 
     m_moreText->hide();
     if (more == "") m_moreButton->hide();
 
-    layout->setRowStretch(1, 10);
-    layout->setColumnStretch(1, 20);
+    m_layout->setRowStretch(1, 10);
+    m_layout->setColumnStretch(1, 20);
     setMinimumWidth(400);
 }
 
@@ -93,9 +93,11 @@ MoreInformationDialog::moreClicked()
 {
     if (m_moreText->isVisible()) {
         m_moreText->hide();
+        m_layout->setRowStretch(3, 0);
         m_moreButton->setText(tr("Show Details..."));
     } else {
         m_moreText->show();
+        m_layout->setRowStretch(3, 30);
         m_moreButton->setText(tr("Hide Details..."));
     }
     adjustSize();

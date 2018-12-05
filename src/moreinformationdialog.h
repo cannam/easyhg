@@ -24,6 +24,7 @@
 class QLabel;
 class QTextEdit;
 class QPushButton;
+class QGridLayout;
 
 /**
  * Provide methods like the QMessageBox static methods, to call up
@@ -55,6 +56,7 @@ private slots:
     void moreClicked();
 
 private:
+    QGridLayout *m_layout;
     QLabel *m_iconLabel;
     QPushButton *m_moreButton;
     QTextEdit *m_moreText;
