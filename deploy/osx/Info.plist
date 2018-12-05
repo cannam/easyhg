@@ -14,5 +14,11 @@
 	<string>org.easymercurial.EasyMercurial</string>
 	<key>CFBundleShortVersionString</key>
 	<string>EASYHG_VERSION</string>
+
+	<!-- enable HiDPI -->
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>NSHighResolutionCapable</key>
+	<string>True</string>
 </dict>
 </plist>

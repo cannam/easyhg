@@ -513,7 +513,6 @@ ChangesetItem::paintSimple(QPainter *paint)
 	f.setPixelSize(ps);
     }
 
-    bool showText = (scale >= 0.2);
     bool showProperLines = (scale >= 0.1);
 
     if (!showProperLines) {

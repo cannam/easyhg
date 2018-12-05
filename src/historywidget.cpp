@@ -219,8 +219,6 @@ void HistoryWidget::layoutAll()
     setChangesetParents();
 
     ChangesetScene *scene = new ChangesetScene();
-    ChangesetItem *tipItem = 0;
-
     QGraphicsScene *oldScene = m_panned->scene();
 
     m_panned->setScene(0);
