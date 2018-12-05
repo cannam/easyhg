@@ -22,7 +22,7 @@
 
 #include <QSettings>
 #include <QInputDialog>
-#include <QDesktopServices>
+#include <QStandardPaths>
 #include <QTemporaryFile>
 #include <QDir>
 #include <QProgressBar>
@@ -411,7 +411,7 @@ void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
             emit commandCompleted(completedAction, m_stdout);
         } else {
             DEBUG << "HgRunner::finished: Command failed, exit code "
-                  << procExitCode << ", exit status " << procExitStatus
+                  << procExitCode << ", exit status " << int(procExitStatus)
                   << ", stderr follows" << endl;
             DEBUG << m_stderr << endl;
             emit commandFailed(completedAction, m_stderr, m_stdout);
@@ -454,8 +454,8 @@ void HgRunner::checkQueue()
 
 void HgRunner::pruneOldAuthFiles()
 {
-    QString path = QDesktopServices::storageLocation
-        (QDesktopServices::CacheLocation);
+    QString path = QStandardPaths::writableLocation
+        (QStandardPaths::CacheLocation);
     QDir d(path);
     if (!d.exists()) return;
     QStringList filters;
@@ -489,8 +489,8 @@ QString HgRunner::getAuthFilePath()
         }
         QString fileExt16 = QString::fromLocal8Bit(fileExt.toBase64()).left(16)
             .replace('+', '-').replace('/', '_');
-        QString path = QDesktopServices::storageLocation
-            (QDesktopServices::CacheLocation);
+        QString path = QStandardPaths::writableLocation
+            (QStandardPaths::CacheLocation);
         QDir().mkpath(path);
         if (path == "") {
             DEBUG << "HgRunner::addExtensionOptions: Failed to get cache location" << endl;

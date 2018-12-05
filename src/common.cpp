@@ -299,7 +299,7 @@ QString uniDecode(QString s)
         // chars: replace with Unicode character
         if (i+5 < s.length() && s[i] == '\\' && s[i+1] == 'u') {
             QString uni = s.mid(i+2, 4);
-            QByteArray ba = QByteArray::fromHex(uni.toAscii());
+            QByteArray ba = QByteArray::fromHex(uni.toLatin1());
             d += QChar(ba[1], ba[0]);
             i += 5;
             continue;

@@ -858,7 +858,7 @@ void MainWindow::hgIgnoreFiles(QStringList files)
     hgRefresh();
 }
 
-void MainWindow::hgUnIgnoreFiles(QStringList files)
+void MainWindow::hgUnIgnoreFiles(QStringList)
 {
     // Not implemented: edit the .hgignore instead
     hgEditIgnore();
@@ -2048,7 +2048,7 @@ void MainWindow::reportAuthFailed(QString output)
          output);
 }
 
-void MainWindow::commandStarting(HgAction action)
+void MainWindow::commandStarting(HgAction)
 {
     m_commandSequenceInProgress = true;
 }
@@ -2591,7 +2591,7 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     }
 }
 
-void MainWindow::commandCancelled(HgAction cancelledAction)
+void MainWindow::commandCancelled(HgAction)
 {
     // Originally I had this checking whether the cancelled action was
     // a network one and, if so, calling hgQueryPaths to update the
@@ -3114,9 +3114,6 @@ void MainWindow::createToolBars()
 #ifdef Q_OS_WIN32
     spacerBefore = spacerAfter = "  ";
 #endif
-
-    bool spacingReqd = false;
-    QString spacer = "";
 
     m_repoToolBar = addToolBar(tr("Remote"));
     m_repoToolBar->setIconSize(QSize(sz, sz));
