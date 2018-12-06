@@ -19,6 +19,7 @@
 #include "changesetscene.h"
 #include "colourset.h"
 #include "debug.h"
+#include "common.h"
 
 #include <QScrollBar>
 
@@ -76,11 +77,13 @@ ChangesetView::drawBackground(QPainter *paint, const QRectF &rect)
 
 	ChangesetScene::DateRange range = i.value();
 
-        QRectF r = QRectF(x, range.minrow * 90 - 25,
-			  w, range.nrows * 90).normalized();
+        int rowSpace = scalePixelSize(90);
+        
+        QRectF r = QRectF(x, range.minrow * rowSpace - scalePixelSize(25),
+			  w, range.nrows * rowSpace).normalized();
 
 	paint->fillRect(r, range.even ? evenBrush : oddBrush);
-        paint->drawText(px, range.minrow * 90 - 10, range.label);
+        paint->drawText(px, range.minrow * rowSpace - scalePixelSize(10), range.label);
     }
 
     paint->restore();

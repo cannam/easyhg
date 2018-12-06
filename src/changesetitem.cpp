@@ -22,6 +22,7 @@
 #include "textabbrev.h"
 #include "colourset.h"
 #include "debug.h"
+#include "common.h"
 
 #include <QPainter>
 #include <QGraphicsScene>
@@ -41,7 +42,7 @@ ChangesetItem::ChangesetItem(Changeset *cs) :
     m_current(false), m_closing(false), m_new(false), m_searchMatches(false)
 {
     m_font = QFont();
-    m_font.setPixelSize(11);
+    m_font.setPixelSize(scalePixelSize(11));
     m_font.setBold(false);
     m_font.setItalic(false);
     setCursor(Qt::ArrowCursor);
@@ -65,7 +66,10 @@ ChangesetItem::boundingRect() const
 {
     int w = 100;
     if (m_wide) w = 180;
-    return QRectF(-((w-50)/2 - 1), -30, w - 3, 90);
+    return QRectF(-scalePixelSize((w-50)/2 - 1),
+                  -scalePixelSize(30),
+                  scalePixelSize(w - 3),
+                  scalePixelSize(90));
 }
 
 void
@@ -81,8 +85,9 @@ ChangesetItem::showDetail()
     if (m_wide) w = 180;
     if (isMerge() || isClosingCommit()) w = 60;
     int h = 80;
-    m_detail->setPos(x() + (w + 50) / 2 + 10 + 0.5,
-                     y() - (m_detail->boundingRect().height() - h) / 3 + 0.5);
+    m_detail->setPos(x() + scalePixelSize((w + 50) / 2 + 10 + 0.5),
+                     y() - (m_detail->boundingRect().height() -
+                            scalePixelSize(h)) / 3 + 0.5);
     m_detailVisible = true;
     emit detailShown();
 }    
@@ -335,10 +340,10 @@ ChangesetItem::paintNormal(QPainter *paint)
 
     int width = 100;
     if (m_wide) width = 180;
-    int x0 = -((width - 50) / 2 - 1);
+    int x0 = -scalePixelSize((width - 50) / 2 - 1);
 
-    int textwid = width - 7;
-
+    int textwid = scalePixelSize(width - 7);
+    
     QString comment;
     QStringList lines;
     int lineCount = 3;
@@ -354,7 +359,7 @@ ChangesetItem::paintNormal(QPainter *paint)
         comment = TextAbbrev::abbreviate(comment, fm, textwid,
                                          TextAbbrev::ElideEnd, "...", 3);
         // abbreviate() changes this (ouch!), restore it
-        textwid = width - 5;
+        textwid = scalePixelSize(width - 7);
 
         lines = comment.split('\n');
         lineCount = lines.size();
@@ -362,7 +367,8 @@ ChangesetItem::paintNormal(QPainter *paint)
         if (lineCount < 2) lineCount = 2;
     }
 
-    int height = (lineCount + 1) * fh + 2;
+    width = scalePixelSize(width);
+    int height = (lineCount + 1) * fh + scalePixelSize(2);
     QRectF r(x0, 0, width - 3, height);
 
     QColor textColour = Qt::black;

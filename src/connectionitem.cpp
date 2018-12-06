@@ -22,6 +22,7 @@
 #include "changeset.h"
 #include "colourset.h"
 #include "textabbrev.h"
+#include "common.h"
 
 #include <QPainter>
 #include <QFont>
@@ -30,9 +31,9 @@ QRectF
 ConnectionItem::boundingRect() const
 {
     if (!(m_child || m_uncommitted)) return QRectF();
-    float xscale = 100;
-    float yscale = 90;
-    float size = 50;
+    float xscale = scalePixelSize(100);
+    float yscale = scalePixelSize(90);
+    float size = scalePixelSize(50);
 
     int c_col, c_row;
     if (m_child) {
@@ -48,10 +49,10 @@ ConnectionItem::boundingRect() const
         p_col = c_col - 1; p_row = c_row + 1;
     }
 
-    return QRectF(xscale * c_col + size/2 - 2,
-		  yscale * c_row + size - 22,
-		  xscale * p_col - xscale * c_col + 6,
-		  yscale * p_row - yscale * c_row - size + 44)
+    return QRectF(xscale * c_col + size/2 - scalePixelSize(2),
+		  yscale * c_row + size - scalePixelSize(22),
+		  xscale * p_col - xscale * c_col + scalePixelSize(6),
+		  yscale * p_row - yscale * c_row - size + scalePixelSize(44))
 	.normalized();
 }
 
@@ -85,10 +86,9 @@ ConnectionItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget
 	paint->setPen(QPen(branchColour, 2, ls));
     }
 
-    float xscale = 100;
-
-    float yscale = 90;
-    float size = 50;
+    float xscale = scalePixelSize(100);
+    float yscale = scalePixelSize(90);
+    float size = scalePixelSize(50);
     float ygap = yscale - size - 2;
 
     int c_col, c_row;
@@ -111,7 +111,7 @@ ConnectionItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget
     // ensure line reaches the box, even if it's in a small height --
     // doesn't matter if we overshoot as the box is opaque and has a
     // greater Z value
-    p.moveTo(c_x, yscale * c_row + size - 20);
+    p.moveTo(c_x, yscale * c_row + size - scalePixelSize(20));
 
     p.lineTo(c_x, yscale * c_row + size);
 
@@ -148,12 +148,13 @@ ConnectionItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget
 
         // ensure line reaches the node -- again doesn't matter if we
         // overshoot
-        p.lineTo(p_x, yscale * p_row + 20);
+        p.lineTo(p_x, yscale * p_row + scalePixelSize(20));
 
     } else {
 
         // no parent: merge from closed branch: draw only half the line
-        paint->setClipRect(QRectF((c_x + p_x)/2, yscale * c_row + size - 22,
+        paint->setClipRect(QRectF((c_x + p_x)/2,
+                                  yscale * c_row + size - scalePixelSize(22),
                                   xscale, yscale));
     }
     
@@ -166,7 +167,7 @@ ConnectionItem::paint(QPainter *paint, const QStyleOptionGraphicsItem *, QWidget
         paint->setClipping(false);
 
         QFont f;
-        f.setPixelSize(11);
+        f.setPixelSize(scalePixelSize(11));
         f.setBold(true);
         f.setItalic(false);
 	paint->setFont(f);

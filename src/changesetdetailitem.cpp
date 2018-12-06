@@ -30,7 +30,7 @@ ChangesetDetailItem::ChangesetDetailItem(Changeset *cs) :
     m_changeset(cs), m_doc(0)
 {
     m_font = QFont();
-    m_font.setPixelSize(11);
+    m_font.setPixelSize(scalePixelSize(11));
     m_font.setBold(false);
     m_font.setItalic(false);
 
