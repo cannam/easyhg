@@ -120,7 +120,7 @@ ChangesetScene::recalculateSceneRect()
     QRectF existingSr = sceneRect();
 
     QRectF r = itemsBoundingRect();
-    float minwidth = 300; //!!!
+    float minwidth = scalePixelSize(300); //!!!
     DEBUG << "ChangesetScene::recalculateSceneRect: minwidth = " << minwidth
           << ", r = " << r << endl;
     if (r.width() < minwidth) {

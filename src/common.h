@@ -69,7 +69,8 @@ QString uniDecode(QString);
  * Generate a 16-byte random key using urandom or equivalent
  */
 QByteArray randomKey();
-    
+
+int scalePixelSize(int pixels);
 
 #endif 	//COMMON_H
 

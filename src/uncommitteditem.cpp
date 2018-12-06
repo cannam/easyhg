@@ -19,6 +19,7 @@
 #include "colourset.h"
 #include "debug.h"
 #include "textabbrev.h"
+#include "common.h"
 
 #include <QPainter>
 #include <QGraphicsScene>
@@ -33,7 +34,7 @@ UncommittedItem::UncommittedItem() :
     m_column(0), m_row(0), m_wide(false)
 {
     m_font = QFont();
-    m_font.setPixelSize(11);
+    m_font.setPixelSize(scalePixelSize(11));
     m_font.setBold(false);
     m_font.setItalic(false);
     setCursor(Qt::ArrowCursor);
@@ -45,7 +46,10 @@ UncommittedItem::boundingRect() const
     //!!! this stuff is gross, refactor with changesetitem and connectionitem
     int w = 100;
     if (m_wide) w = 180;
-    return QRectF(-((w-50)/2 - 1), -30, w - 3, 79 + 40);
+    return QRectF(-scalePixelSize((w-50)/2 - 1),
+                  -scalePixelSize(30),
+                  scalePixelSize(w - 3),
+                  scalePixelSize(79 + 40));
 }
 
 void
@@ -144,26 +148,29 @@ UncommittedItem::paintNormal(QPainter *paint)
 
     int width = 100;
     if (m_wide) width = 180;
-    int x0 = -((width - 50) / 2 - 1);
+    int x0 = -scalePixelSize((width - 50) / 2 - 1);
 
-    int height = 49;
+    width = scalePixelSize(width);
+    int half = scalePixelSize(50);
+    int height = scalePixelSize(49);
+    
     QRectF r(x0, 0, width - 3, height);
     paint->setBrush(Qt::white);
     paint->drawRoundedRect(r, 7, 7);
 
     if (m_wide) {
         QString label = tr("Uncommitted changes");
-        paint->drawText(-(fm.width(label) - 50)/2,
-                        25 - fm.height()/2 + fm.ascent(),
+        paint->drawText(-(fm.width(label) - half)/2,
+                        height/2 - fm.height()/2 + fm.ascent(),
                         label);
     } else {
         QString label = tr("Uncommitted");
-        paint->drawText(-(fm.width(label) - 50)/2,
-                        25 - fm.height() + fm.ascent(),
+        paint->drawText(-(fm.width(label) - half)/2,
+                        height/2 - fm.height() + fm.ascent(),
                         label);
         label = tr("changes");
-        paint->drawText(-(fm.width(label) - 50)/2,
-                        25 + fm.ascent(),
+        paint->drawText(-(fm.width(label) - half)/2,
+                        height/2 + fm.ascent(),
                         label);
     }        
 
@@ -210,24 +217,24 @@ UncommittedItem::paintMerge(QPainter *paint)
     int fh = fm.height();
 
     int size = fh * 2;
-    int x0 = -size/2 + 25;
+    int x0 = -size/2 + scalePixelSize(25);
 
     paint->setBrush(Qt::white);
     paint->drawEllipse(QRectF(x0, fh, size, size));
     
     if (m_wide) {
         QString label = tr("Uncommitted merge");
-        paint->drawText(size/2 + 28,
-                        25 - fm.height()/2 + fm.ascent(),
+        paint->drawText(size/2 + scalePixelSize(28),
+                        scalePixelSize(25) - fm.height()/2 + fm.ascent(),
                         label);
     } else {
         QString label = tr("Uncommitted");
-        paint->drawText(size/2 + 28,
-                        25 - fm.height() + fm.ascent(),
+        paint->drawText(size/2 + scalePixelSize(28),
+                        scalePixelSize(25) - fm.height() + fm.ascent(),
                         label);
         label = tr("merge");
-        paint->drawText(size/2 + 28,
-                        25 + fm.ascent(),
+        paint->drawText(size/2 + scalePixelSize(28),
+                        scalePixelSize(25) + fm.ascent(),
                         label);
     }        
 
@@ -237,7 +244,7 @@ UncommittedItem::paintMerge(QPainter *paint)
         paint->setFont(f);
 	int wid = size * 3;
 	QString branch = TextAbbrev::abbreviate(m_branch, QFontMetrics(f), wid);
-	paint->drawText(-wid/2 + 25, fm.ascent() - 4, branch);
+	paint->drawText(-wid/2 + scalePixelSize(25), fm.ascent() - 4, branch);
     }
 
     paint->restore();

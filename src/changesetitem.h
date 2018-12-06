@@ -21,6 +21,8 @@
 #include <QGraphicsObject>
 #include <QFont>
 
+#include "common.h"
+
 class Changeset;
 class ChangesetDetailItem;
 
@@ -43,8 +45,8 @@ public:
 
     int column() const { return m_column; }
     int row() const { return m_row; }
-    void setColumn(int c) { m_column = c; setX(c * 100); }
-    void setRow(int r) { m_row = r; setY(r * 90); }
+    void setColumn(int c) { m_column = c; setX(c * scalePixelSize(100)); }
+    void setRow(int r) { m_row = r; setY(r * scalePixelSize(90)); }
 
     bool isWide() const { return m_wide; }
     void setWide(bool w) { m_wide = w; }

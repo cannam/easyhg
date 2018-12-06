@@ -23,6 +23,8 @@
 #include <QStringList>
 #include <QDir>
 #include <QRegExp>
+#include <QFont>
+#include <QFontMetrics>
 
 #include <sys/types.h>
 
@@ -350,5 +352,25 @@ QByteArray randomKey()
 #endif
 
     return ba;
+}
+
+int
+scalePixelSize(int pixels)
+{
+    static double ratio = 0.0;
+    if (ratio == 0.0) {
+        double baseEm;
+#ifdef Q_OS_MAC
+        baseEm = 17.0;
+#else
+        baseEm = 15.0;
+#endif
+        double em = QFontMetrics(QFont()).height();
+        ratio = em / baseEm;
+    }
+
+    int scaled = int(pixels * ratio + 0.5);
+    if (pixels != 0 && scaled == 0) scaled = 1;
+    return scaled;
 }
 
