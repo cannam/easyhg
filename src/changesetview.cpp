@@ -61,6 +61,13 @@ ChangesetView::drawBackground(QPainter *paint, const QRectF &rect)
     QFont f(paint->font());
     f.setPixelSize(11);
     f.setBold(true);
+    QTransform t = paint->worldTransform();
+    float scale = std::min(t.m11(), t.m22());
+    if (scale > 1.0) {
+#ifdef Q_OS_WIN32
+        f.setHintingPreference(QFont::PreferVerticalHinting);
+#endif
+    }
     paint->setFont(f);
 
     float x = mapToScene(0, 0).x();
