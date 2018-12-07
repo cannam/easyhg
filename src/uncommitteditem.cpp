@@ -127,9 +127,6 @@ UncommittedItem::paintNormal(QPainter *paint)
     QTransform t = paint->worldTransform();
     float scale = std::min(t.m11(), t.m22());
     if (scale > 1.0) {
-	int ps = int((f.pixelSize() / scale) + 0.5);
-	if (ps < 8) ps = 8;
-	f.setPixelSize(ps);
 #ifdef Q_OS_WIN32
         f.setHintingPreference(QFont::PreferVerticalHinting);
 #endif
