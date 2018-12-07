@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
         cout << "EasyMercurial v" << EASYHG_VERSION << "\n"
              << "Copyright (c) 2010 Jari Korhonen\n"
              << "Copyright (c) 2013 Chris Cannam\n"
-             << "Copyright (c) 2013 Queen Mary, University of London\n"
+             << "Copyright (c) 2013-2018 Queen Mary, University of London\n"
              << "This program is free software; you can redistribute it and/or\n"
              << "modify it under the terms of the GNU General Public License as\n"
              << "published by the Free Software Foundation; either version 2 of the\n"

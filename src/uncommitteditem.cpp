@@ -130,6 +130,9 @@ UncommittedItem::paintNormal(QPainter *paint)
 	int ps = int((f.pixelSize() / scale) + 0.5);
 	if (ps < 8) ps = 8;
 	f.setPixelSize(ps);
+#ifdef Q_OS_WIN32
+        f.setHintingPreference(QFont::PreferVerticalHinting);
+#endif
     }
 
     if (scale < 0.1) {
@@ -197,6 +200,9 @@ UncommittedItem::paintMerge(QPainter *paint)
 	int ps = int((f.pixelSize() / scale) + 0.5);
 	if (ps < 8) ps = 8;
 	f.setPixelSize(ps);
+#ifdef Q_OS_WIN32
+        f.setHintingPreference(QFont::PreferVerticalHinting);
+#endif
     }
 
     if (scale < 0.1) {
