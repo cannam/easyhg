@@ -311,7 +311,7 @@ ChangesetItem::paintNormal(QPainter *paint)
 
     if (scale > 1.0) {
 #ifdef Q_OS_WIN32
-        f.setHintingPreference(QFont::PreferNoHinting);
+        f.setHintingPreference(QFont::PreferVerticalHinting);
 #endif
     }
 
@@ -517,7 +517,7 @@ ChangesetItem::paintSimple(QPainter *paint)
 	if (ps < 8) ps = 8;
 	f.setPixelSize(ps);
 #ifdef Q_OS_WIN32
-        f.setHintingPreference(QFont::PreferNoHinting);
+        f.setHintingPreference(QFont::PreferVerticalHinting);
 #endif
     }
 
