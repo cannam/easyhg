@@ -61,14 +61,4 @@ copy %QTDIR%\plugins\styles\qwindowsvistastyle.dll .\release
 
 cd %STARTPWD%
 
-if not exist mercurial-4.8.0-x86.msi (
-     C:\ProgramData\chocolatey\bin\wget https://bitbucket.org/tortoisehg/files/downloads/mercurial-4.8.0-x86.msi
-)
-if %errorlevel% neq 0 exit /b %errorlevel%
-
-if not exist mercurial-4.8.0-x86 (
-     msiexec /a mercurial-4.8.0-x86.msi /qn TARGETDIR=%STARTPWD%\mercurial-4.8.0-x86
-)
-if %errorlevel% neq 0 exit /b %errorlevel%
-
 set PATH=%ORIGINALPATH%
