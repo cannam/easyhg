@@ -6,6 +6,7 @@ configuration:
   - Release
 
 install:
+  - cinst wget
   - ps: '"[hostfingerprints]" | Out-File -Encoding "ASCII" -Append $env:USERPROFILE\mercurial.ini'
   - ps: '"code.soundsoftware.ac.uk = 66:ef:e2:0e:e3:55:93:9a:33:aa:2a:e9:fe:be:21:c2:a2:8d:4f:f1" | Out-File -Encoding "ASCII" -Append $env:USERPROFILE\mercurial.ini'
   - ps: '"[hostsecurity]" | Out-File -Encoding "ASCII" -Append $env:USERPROFILE\mercurial.ini'

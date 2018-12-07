@@ -27,3 +27,6 @@ re:^_UpgradeReport_Files/
 *.xcodeproj
 *.bak
 *.msi
+easyhg-kdiff3
+mercurial-*-x86
+build_win32
