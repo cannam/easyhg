@@ -34,6 +34,19 @@ Panned::Panned() :
     connect(m_dragTimer, SIGNAL(timeout()), this, SLOT(dragTimerTimeout()));
     setRenderHints(QPainter::Antialiasing |
                    QPainter::TextAntialiasing);
+
+    double baseEm;
+#ifdef Q_OS_MAC
+    baseEm = 17.0;
+#else
+    baseEm = 15.0;
+#endif
+    double em = QFontMetrics(QFont()).height();
+    double ratio = em / baseEm;
+
+    QMatrix m = matrix();
+    m.scale(ratio, ratio);
+    setMatrix(m);
 }
 
 void
