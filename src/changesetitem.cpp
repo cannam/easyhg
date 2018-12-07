@@ -309,6 +309,12 @@ ChangesetItem::paintNormal(QPainter *paint)
     QTransform t = paint->worldTransform();
     float scale = std::min(t.m11(), t.m22());
 
+    if (scale > 1.0) {
+#ifdef Q_OS_WIN32
+        f.setHintingPreference(QFont::PreferNoHinting);
+#endif
+    }
+
     bool showText = (scale >= 0.2);
     bool showProperLines = (scale >= 0.1);
 
@@ -504,13 +510,15 @@ ChangesetItem::paintSimple(QPainter *paint)
     userColour.setAlpha(alpha);
 
     QFont f(m_font);
-
     QTransform t = paint->worldTransform();
     float scale = std::min(t.m11(), t.m22());
     if (scale > 1.0) {
 	int ps = int((f.pixelSize() / scale) + 0.5);
 	if (ps < 8) ps = 8;
 	f.setPixelSize(ps);
+#ifdef Q_OS_WIN32
+        f.setHintingPreference(QFont::PreferNoHinting);
+#endif
     }
 
     bool showProperLines = (scale >= 0.1);

@@ -69,6 +69,9 @@ ChangesetDetailItem::paint(QPainter *paint,
 			   QWidget *)
 {
     paint->save();
+
+#ifdef Q_OS_WIN32
+#endif
     
     ColourSet *colourSet = ColourSet::instance();
     QColor branchColour = colourSet->getColourFor(m_changeset->branch());
@@ -76,6 +79,14 @@ ChangesetDetailItem::paint(QPainter *paint,
     QTransform t = paint->worldTransform();
     float scale = std::min(t.m11(), t.m22());
 
+#ifdef Q_OS_WIN32
+    QFont f(m_doc->defaultFont());
+    f.setHintingPreference(scale != 1.0 ?
+                           QFont::PreferVerticalHinting :
+                           QFont::PreferDefaultHinting);
+    m_doc->setDefaultFont(f);
+#endif
+    
     if (scale < 0.1) {
 	paint->setPen(QPen(branchColour, 0));
     } else {
