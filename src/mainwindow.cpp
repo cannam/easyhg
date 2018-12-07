@@ -874,14 +874,13 @@ void MainWindow::hgShowIn(QStringList files)
         // forward slashes as directory separators, Windows
         // Explorer is not
         int last = m_workFolderPath.length() - 1;
-        char c = m_workFolderPath[last].toAscii();
+        QChar c = m_workFolderPath[last];
         if (c == '\\' || c == '/') {
             m_workFolderPath.chop(1);
         }
         file = m_workFolderPath + "\\" + file;
         file = file.replace('/', '\\');
         args << "/select," << file;
-        // FIXME: This shouldn't be using a hardcoded path.
         QProcess::execute("c:/windows/explorer.exe", args);
 #elif defined(Q_OS_MAC)
         file = m_workFolderPath + "/" + file;
