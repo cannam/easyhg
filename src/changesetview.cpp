@@ -59,6 +59,7 @@ ChangesetView::drawBackground(QPainter *paint, const QRectF &rect)
 
     paint->save();
     QFont f(paint->font());
+    f.setPixelSize(11);
     f.setBold(true);
     paint->setFont(f);
 
