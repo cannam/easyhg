@@ -89,23 +89,23 @@
                 Guid="2566C8F0-A2AD-40E9-A356-94E887CC1222">
               <File
                   Id="MSVCP140"
-                  Name="MSVCP140.dll"
+                  Name="msvcp140.dll"
                   DiskId="1"
                   Source="MSVCP140.DLL"
                   KeyPath="yes"/>
               <File
                   Id="CONCRT140"
-                  Name="CONCRT140.dll"
+                  Name="concrt140.dll"
                   DiskId="1"
                   Source="CONCRT140.DLL"/>
               <File
                   Id="VCCORLIB140"
-                  Name="VCCORLIB140.dll"
+                  Name="vccorlib140.dll"
                   DiskId="1"
                   Source="VCCORLIB140.DLL"/>
               <File
                   Id="VCRUNTIME140"
-                  Name="VCRUNTIME140.dll"
+                  Name="vcruntime140.dll"
                   DiskId="1"
                   Source="VCRUNTIME140.DLL"/>
             </Component>
@@ -115,18 +115,18 @@
                 Guid="dfa7bdd3-0976-4cde-b2cd-2ae280ad7c65">
               <File
                   Id="MSVCP90"
-                  Name="MSVCP90.dll"
+                  Name="msvcp90.dll"
                   DiskId="1"
                   Source="MSVCP90.DLL"
                   KeyPath="yes"/>
               <File
                   Id="MSVCM90"
-                  Name="MSVCM90.dll"
+                  Name="msvcm90.dll"
                   DiskId="1"
                   Source="MSVCM90.DLL"/>
               <File
                   Id="MSVCR90"
-                  Name="MSVCR90.dll"
+                  Name="msvcr90.dll"
                   DiskId="1"
                   Source="MSVCR90.DLL"/>
             </Component>
