@@ -100,6 +100,13 @@ if "%ARG%" == "sign" (
 @echo Signing components
 signtool sign /v /n "%NAME%" /t http://time.certum.pl /fd sha1 *.dll *.exe lib\*
 signtool verify /pa sonic-visualiser.msi
+rem AND MORE
 )
+
+set PATH=%PATH%;"C:\Program Files (x86)\WiX Toolset v3.11\bin"
+
+del easyhg.msi
+candle -v ..\..\deploy\win32\easyhg.wxs
+light -b . -ext WixUIExtension -ext WixUtilExtension -v easyhg.wixobj
 
 rem Todo: the rest

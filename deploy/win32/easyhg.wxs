@@ -5,7 +5,7 @@
       Id="*"
       Language="1033"
       Codepage="1252" 
-      Version="1.3.0" 
+      Version="1.4.0" 
       UpgradeCode="B82DFDA9-B9DE-49BC-93E5-0B96F9DEB04B"
       Manufacturer="Queen Mary, University of London">
     
@@ -13,7 +13,7 @@
         Id="*"
         Keywords="Installer"
         Description="EasyMercurial Installer" 
-        Comments="Copyright (c) 2012 Queen Mary, University of London and others." 
+        Comments="Copyright (c) 2012-2018 Queen Mary, University of London and others." 
         Manufacturer="Queen Mary, University of London" 
         InstallerVersion="100" 
         Languages="1033" 
@@ -37,7 +37,7 @@
                   Id="EasyHg"
                   Name="EasyMercurial.exe"
                   DiskId="1"
-                  Source="release\EasyMercurial.exe"
+                  Source="EasyMercurial.exe"
                   KeyPath="yes">
 
                 <Shortcut
@@ -63,13 +63,13 @@
                   Id="COPYING"
                   Name="COPYING"
                   DiskId="1"
-                  Source="COPYING"/>
+                  Source="..\..\COPYING"/>
 
               <File
                   Id="easyhg.ico"
                   Name="easyhg.ico"
                   DiskId="1"
-                  Source="easyhg.ico"/>
+                  Source="..\..\easyhg.ico"/>
             </Component>
 
             <Component
@@ -80,198 +80,222 @@
                   Id="mergebat"
                   Name="easyhg-merge.bat"
                   DiskId="1"
-                  Source="easyhg-merge.bat"
+                  Source="..\..\easyhg-merge.bat"
                   KeyPath="yes"/>
             </Component>		  
 
             <Component
-                Id="VCLIBS"
+                Id="VCLIBS140"
                 Guid="2566C8F0-A2AD-40E9-A356-94E887CC1222">
               <File
-                  Id="MSVCP100"
-                  Name="MSVCP100.dll"
+                  Id="MSVCP140"
+                  Name="MSVCP140.dll"
                   DiskId="1"
-                  Source="c:\windows\system32\MSVCP100.DLL"
+                  Source="MSVCP140.DLL"
                   KeyPath="yes"/>
               <File
-                  Id="MSVCR100"
-                  Name="MSVCR100.dll"
+                  Id="CONCRT140"
+                  Name="CONCRT140.dll"
                   DiskId="1"
-                  Source="c:\windows\system32\MSVCR100.DLL"/>
+                  Source="CONCRT140.DLL"/>
+              <File
+                  Id="VCCORLIB140"
+                  Name="VCCORLIB140.dll"
+                  DiskId="1"
+                  Source="VCCORLIB140.DLL"/>
+              <File
+                  Id="VCRUNTIME140"
+                  Name="VCRUNTIME140.dll"
+                  DiskId="1"
+                  Source="VCRUNTIME140.DLL"/>
             </Component>
 
             <Component
-                Id="Qt4"
+                Id="VCLIBS90"
+                Guid="dfa7bdd3-0976-4cde-b2cd-2ae280ad7c65">
+              <File
+                  Id="MSVCP90"
+                  Name="MSVCP90.dll"
+                  DiskId="1"
+                  Source="MSVCP90.DLL"
+                  KeyPath="yes"/>
+              <File
+                  Id="MSVCM90"
+                  Name="MSVCM90.dll"
+                  DiskId="1"
+                  Source="MSVCM90.DLL"/>
+              <File
+                  Id="MSVCR90"
+                  Name="MSVCR90.dll"
+                  DiskId="1"
+                  Source="MSVCR90.DLL"/>
+            </Component>
+              
+            <Component
+                Id="Qt5"
                 Guid="04F730AC-B361-45A2-B1CC-9CEB55256117">
               <File
                   Id="QtCore"
-                  Name="QtCore4.dll"
+                  Name="Qt5Core.dll"
                   DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\QtCore4.dll"
+                  Source="Qt5Core.dll"
 		  KeyPath="yes"/>
               <File
                   Id="QtGui"
-                  Name="QtGui4.dll"
+                  Name="Qt5Gui.dll"
                   DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\QtGui4.dll"/>
+                  Source="Qt5Gui.dll"/>
+              <File
+                  Id="QtWidgets"
+                  Name="Qt5Widgets.dll"
+                  DiskId="1"
+                  Source="Qt5Widgets.dll"/>
               <File
                   Id="QtNetwork"
-                  Name="QtNetwork4.dll"
+                  Name="Qt5Network.dll"
                   DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\QtNetwork4.dll"/>
+                  Source="Qt5Network.dll"/>
+              <File
+                  Id="QtPrintSupport"
+                  Name="Qt5PrintSupport.dll"
+                  DiskId="1"
+                  Source="Qt5PrintSupport.dll"/>
+              <File
+                  Id="qminimal"
+                  Name="qminimal.dll"
+                  DiskId="1"
+                  Source="qminimal.dll"/>
+              <File
+                  Id="qwindows"
+                  Name="qwindows.dll"
+                  DiskId="1"
+                  Source="qwindows.dll"/>
+              <File
+                  Id="qwindowsvistastyle"
+                  Name="qwindowsvistastyle.dll"
+                  DiskId="1"
+                  Source="qwindowsvistastyle.dll"/>
             </Component>
 
             <Component
-                Id="hg"
+                Id="hgexec"
                 Guid="5BBC4080-2EDF-4616-A8CB-F96B9C942C1A">
-
               <File
                   Id="hg"
                   Name="hg.exe"
                   DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\hg.exe"
+                  Source="hg.exe"
                   KeyPath="yes"/>
               <File
                   Id="pydll"
                   Name="python27.dll"
                   DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\python27.dll"/>
-              <File
-                  Id="hglib"
-                  Name="library.zip"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\library.zip"/>
-              <File
-                  Id="plink"
-                  Name="TortoisePlink.exe"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\TortoisePlink.exe"/>
-              <File
-                  Id="ctypes"
-                  Name="_ctypes.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\_ctypes.pyd"/>
-              <File
-                  Id="ctypestest"
-                  Name="_ctypes_test.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\_ctypes_test.pyd"/>
-              <File
-                  Id="elementtree"
-                  Name="_elementtree.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\_elementtree.pyd"/>
-              <File
-                  Id="hashlib"
-                  Name="_hashlib.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\_hashlib.pyd"/>
-              <File
-                  Id="socket"
-                  Name="_socket.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\_socket.pyd"/>
-              <File
-                  Id="ssl"
-                  Name="_ssl.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\_ssl.pyd"/>
-              <File
-                  Id="winsysloader"
-                  Name="_win32sysloader.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\_win32sysloader.pyd"/>
-              <File
-                  Id="bz"
-                  Name="bz2.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\bz2.pyd"/>
-              <File
-                  Id="dulwichobjects"
-                  Name="dulwich._objects.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\dulwich._objects.pyd"/>
-              <File
-                  Id="dulwichpack"
-                  Name="dulwich._pack.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\dulwich._pack.pyd"/>
-              <File
-                  Id="libsvncore"
-                  Name="libsvn._core.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\libsvn._core.pyd"/>
-              <File
-                  Id="libsvnclient"
-                  Name="libsvn._client.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\libsvn._client.pyd"/>
-              <File
-                  Id="libsvndelta"
-                  Name="libsvn._delta.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\libsvn._delta.pyd"/>
-              <File
-                  Id="libsvnra"
-                  Name="libsvn._ra.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\libsvn._ra.pyd"/>
-              <File
-                  Id="libsvnwc"
-                  Name="libsvn._wc.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\libsvn._wc.pyd"/>
-              <File
-                  Id="mercurialbase"
-                  Name="mercurial.base85.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\mercurial.base85.pyd"/>
-              <File
-                  Id="mercurialbdiff"
-                  Name="mercurial.bdiff.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\mercurial.bdiff.pyd"/>
-              <File
-                  Id="mercurialdiffhelpers"
-                  Name="mercurial.diffhelpers.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\mercurial.diffhelpers.pyd"/>
-              <File
-                  Id="mercurialmpatch"
-                  Name="mercurial.mpatch.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\mercurial.mpatch.pyd"/>
-              <File
-                  Id="mercurialosutil"
-                  Name="mercurial.osutil.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\mercurial.osutil.pyd"/>
-              <File
-                  Id="mercurialparsers"
-                  Name="mercurial.parsers.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\mercurial.parsers.pyd"/>
-              <File
-                  Id="pyexpat"
-                  Name="pyexpat.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\pyexpat.pyd"/>
-              <File
-                  Id="unicodedata"
-                  Name="unicodedata.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\unicodedata.pyd"/>
-              <File
-                  Id="QtCorepy"
-                  Name="PyQt4.QtCore.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\PyQt4.QtCore.pyd" />
-              <File
-                  Id="QtGuipy"
-                  Name="PyQt4.QtGui.pyd"
-                  DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\PyQt4.QtGui.pyd" />
-            </Component>		  
+                  Source="python27.dll"/>
+            </Component>
+
+            <Directory Id="HgLibs" Name="lib">
+              <Component
+                  Id="hglibs"
+                  Guid="bb6ab2ba-1358-47d4-9457-eb4094605620">
+                <File
+                    Id="hglib"
+                    Name="library.zip"
+                    DiskId="1"
+                    Source="lib\library.zip"/>
+                <!--
+                <File
+                    Id="plink"
+                    Name="TortoisePlink.exe"
+                    DiskId="1"
+                    Source="lib\TortoisePlink.exe"/>
+                    -->
+                <File
+                    Id="ctypes"
+                    Name="_ctypes.pyd"
+                    DiskId="1"
+                    Source="lib\_ctypes.pyd"/>
+                <File
+                    Id="elementtree"
+                    Name="_elementtree.pyd"
+                    DiskId="1"
+                    Source="lib\_elementtree.pyd"/>
+                <File
+                    Id="hashlib"
+                    Name="_hashlib.pyd"
+                    DiskId="1"
+                    Source="lib\_hashlib.pyd"/>
+                <File
+                    Id="socket"
+                    Name="_socket.pyd"
+                    DiskId="1"
+                    Source="lib\_socket.pyd"/>
+                <File
+                    Id="ssl"
+                    Name="_ssl.pyd"
+                    DiskId="1"
+                    Source="lib\_ssl.pyd"/>
+                <File
+                    Id="testcapi"
+                    Name="_testcapi.pyd"
+                    DiskId="1"
+                    Source="lib\_testcapi.pyd"/>
+                <File
+                    Id="bz"
+                    Name="bz2.pyd"
+                    DiskId="1"
+                    Source="lib\bz2.pyd"/>
+                <File
+                    Id="pywatchman"
+                    Name="hgext.fsmonitor.pywatchman.bser.pyd"
+                    DiskId="1"
+                    Source="lib\hgext.fsmonitor.pywatchman.bser.pyd"/>
+                <File
+                    Id="mercurialbase"
+                    Name="mercurial.cext.base85.pyd"
+                    DiskId="1"
+                    Source="lib\mercurial.cext.base85.pyd"/>
+                <File
+                    Id="mercurialbdiff"
+                    Name="mercurial.cext.bdiff.pyd"
+                    DiskId="1"
+                    Source="lib\mercurial.cext.bdiff.pyd"/>
+                <File
+                    Id="mercurialmpatch"
+                    Name="mercurial.cext.mpatch.pyd"
+                    DiskId="1"
+                    Source="lib\mercurial.cext.mpatch.pyd"/>
+                <File
+                    Id="mercurialosutil"
+                    Name="mercurial.cext.osutil.pyd"
+                    DiskId="1"
+                    Source="lib\mercurial.cext.osutil.pyd"/>
+                <File
+                    Id="mercurialparsers"
+                    Name="mercurial.cext.parsers.pyd"
+                    DiskId="1"
+                    Source="lib\mercurial.cext.parsers.pyd"/>
+                <File
+                    Id="mercurialzstd"
+                    Name="mercurial.zstd.pyd"
+                    DiskId="1"
+                    Source="lib\mercurial.zstd.pyd"/>
+                <File
+                    Id="pyexpat"
+                    Name="pyexpat.pyd"
+                    DiskId="1"
+                    Source="lib\pyexpat.pyd"/>
+                <File
+                    Id="select"
+                    Name="select.pyd"
+                    DiskId="1"
+                    Source="lib\select.pyd"/>
+                <File
+                    Id="unicodedata"
+                    Name="unicodedata.pyd"
+                    DiskId="1"
+                    Source="lib\unicodedata.pyd"/>
+              </Component>
+            </Directory>
 
             <Component
                 Id="sip"
@@ -280,7 +304,7 @@
                   Id="sip"
                   Name="sip.pyd"
                   DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\sip.pyd" />
+                  Source="sip.pyd" />
             </Component>
 
             <Component
@@ -290,7 +314,7 @@
                   Id="kdiff3"
                   Name="kdiff3.exe"
                   DiskId="1"
-                  Source="d:\easyhg-bundle-dependencies\kdiff3.exe"
+                  Source="kdiff3.exe"
                   KeyPath="yes"/>
             </Component>		  
 
@@ -303,26 +327,25 @@
 		      Id="cipherinit"
 		      Name="__init__.py"
 		      DiskId="1"
-		      Source="d:\easyhg-bundle-dependencies\Crypto\Cipher\__init__.py" />
+		      Source="Crypto\Cipher\__init__.py" />
 		  <File
 		      Id="cipheraesd"
 		      Name="_AES.pyd"
 		      DiskId="1"
-		      Source="d:\easyhg-bundle-dependencies\Crypto\Cipher\_AES.pyd" />
+		      Source="Crypto\Cipher\_AES.pyd" />
 		  <File
 		      Id="cipheraes"
 		      Name="AES.py"
 		      DiskId="1"
-		      Source="d:\easyhg-bundle-dependencies\Crypto\Cipher\AES.py" />
+		      Source="Crypto\Cipher\AES.py" />
 		  <File
 		      Id="cipherblockalgo"
 		      Name="blockalgo.py"
 		      DiskId="1"
-		      Source="d:\easyhg-bundle-dependencies\Crypto\Cipher\blockalgo.py" />
+		      Source="Crypto\Cipher\blockalgo.py" />
 		</Component>
 	      </Directory>
 	      <Directory Id="Util" Name="Util">
-		
 		<Component
 		    Id="cryptoutil"
 		    Guid="9B5FB64F-B5B3-4E36-A4E6-1EC648470557">
@@ -330,15 +353,14 @@
 		      Id="utilinit"
 		      Name="__init__.py"
 		      DiskId="1"
-		      Source="d:\easyhg-bundle-dependencies\Crypto\Util\__init__.py" />
+		      Source="Crypto\Util\__init__.py" />
 		  <File
 		      Id="utilpy3compat"
 		      Name="py3compat.py"
 		      DiskId="1"
-		      Source="d:\easyhg-bundle-dependencies\Crypto\Util\py3compat.py" />
+		      Source="Crypto\Util\py3compat.py" />
 		</Component>
 	      </Directory>
-	      
 	      <Component
 		  Id="crypto"
 		  Guid="AB5D6864-6D47-4C51-A132-5E0EC5BE1EF8">
@@ -346,7 +368,7 @@
 		    Id="cryptoinit"
 		    Name="__init__.py"
 		    DiskId="1"
-		    Source="d:\easyhg-bundle-dependencies\Crypto\__init__.py" />
+		    Source="Crypto\__init__.py" />
 	      </Component>
 
 	    </Directory>
@@ -369,10 +391,12 @@
 
     <Feature Id="Complete" Level="1">
       <ComponentRef Id="MainExecutable"/>
-      <ComponentRef Id="VCLIBS"/>
+      <ComponentRef Id="VCLIBS140"/>
+      <ComponentRef Id="VCLIBS90"/>
       <ComponentRef Id="HelperScripts"/>
-      <ComponentRef Id="Qt4"/>
-      <ComponentRef Id="hg"/>
+      <ComponentRef Id="Qt5"/>
+      <ComponentRef Id="hgexec"/>
+      <ComponentRef Id="hglibs"/>
       <ComponentRef Id="sip"/>
       <ComponentRef Id="crypto"/>
       <ComponentRef Id="cryptocipher"/>
@@ -383,7 +407,7 @@
 
     <Icon
         Id="easyhg.ico"
-        SourceFile="easyhg.ico"/>
+        SourceFile="..\..\easyhg.ico"/>
 
   </Product>
 </Wix>
