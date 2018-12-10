@@ -1,5 +1,6 @@
 rem  Run this from within the top-level project dir: deploy\win32\build.bat
 
+rem  NB Sip build command, in sip-4.19.13 directory: c:\Python27\python.exe configure.py --sip-module PyQt5.sip --no-tools
 rem  NB PyQt5 build command, in PyQt5_gpl-5.11.3 directory: c:\Python27\python.exe configure.py --qmake=c:\qt\5.12.0\msvc2017\bin\qmake.exe --sip=c:\Python27\sip.exe --disable=QtNfc
 
 set STARTPWD=%CD%
@@ -76,11 +77,12 @@ copy "%HGDIR%\windows\system32\msvcp90.dll" .
 copy "%HGDIR%\windows\system32\msvcr90.dll" .
 
 mkdir PyQt5
-copy "%PYQTDIR%\..\sip.pyd" .
-copy "%PYQTDIR%\__init__.py" PyQt5\
-copy "%PYQTDIR%\QtCore.pyd" PyQt5\
-copy "%PYQTDIR%\QtGui.pyd" PyQt5\
-copy "%PYQTDIR%\QtWidgets.pyd" PyQt5\
+copy "%PYQTDIR%\__init__.py" PyQt5\__init__.py
+copy "%PYQTDIR%\Qt.pyd" PyQt5\Qt.pyd
+copy "%PYQTDIR%\QtCore.pyd" PyQt5\QtCore.pyd
+copy "%PYQTDIR%\QtGui.pyd" PyQt5\QtGui.pyd
+copy "%PYQTDIR%\QtWidgets.pyd" PyQt5\QtWidgets.pyd
+copy "%PYQTDIR%\sip.pyd" PyQt5\sip.pyd
 
 mkdir Crypto
 mkdir Crypto\Cipher
