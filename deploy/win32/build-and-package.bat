@@ -104,9 +104,7 @@ copy "%PYCRYPTODIR%\__init__.py" Crypto\
 
 if "%ARG%" == "sign" (
 @echo Signing components
-signtool sign /v /n "%NAME%" /t http://time.certum.pl /fd sha1 *.dll *.exe lib\*
-signtool verify /pa sonic-visualiser.msi
-rem AND MORE
+signtool sign /v /n "%NAME%" /t http://time.certum.pl /fd sha1 *.dll *.exe *\*.pyd *\*\*.pyd
 )
 
 set PATH=%PATH%;"C:\Program Files (x86)\WiX Toolset v3.11\bin"
@@ -114,5 +112,10 @@ set PATH=%PATH%;"C:\Program Files (x86)\WiX Toolset v3.11\bin"
 del easyhg.msi
 candle -v ..\..\deploy\win32\easyhg.wxs
 light -b . -ext WixUIExtension -ext WixUtilExtension -v easyhg.wixobj
+if %errorlevel% neq 0 exit /b %errorlevel%
 
-rem Todo: the rest
+if "%ARG%" == "sign" (
+@echo Signing package
+signtool verify /pa easyhg.msi
+)
+
