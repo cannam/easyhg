@@ -28,8 +28,9 @@ if not exist "C:/Python27/Lib/site-packages/Crypto/" (
 set ORIGINALPATH=%PATH%
 set PATH=C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin;%PATH%
 set CRTDIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.15.26706\x64\Microsoft.VC141.CRT
-set PYQTDIR=C:/Python27/Lib/site-packages/PyQt5/
-set PYCRYPTODIR=C:/Python27/Lib/site-packages/Crypto/
+set PYPACKAGEDIR=C:/Python27/Lib/site-packages
+set PYQTDIR=%PYPACKAGEDIR%/PyQt5/
+set PYCRYPTODIR=%PYPACKAGEDIR%/Crypto/
 set NAME=Open Source Developer, Christopher Cannam
 
 set ARG=%1
@@ -83,6 +84,9 @@ copy "%PYQTDIR%\QtCore.pyd" PyQt5\QtCore.pyd
 copy "%PYQTDIR%\QtGui.pyd" PyQt5\QtGui.pyd
 copy "%PYQTDIR%\QtWidgets.pyd" PyQt5\QtWidgets.pyd
 copy "%PYQTDIR%\sip.pyd" PyQt5\sip.pyd
+
+mkdir enum
+copy "%PYPACKAGEDIR%\enum\__init__.py" enum\__init__.py
 
 mkdir Crypto
 mkdir Crypto\Cipher

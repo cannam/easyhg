@@ -330,6 +330,17 @@
               </Component>
             </Directory>
 
+            <Directory Id="enum" Name="enum">
+              <Component
+                  Id="pyenum"
+                  Guid="e8143d4a-69c9-4f18-bdf4-2e187d6f71da">
+                <File
+                    Id="pyenuminit"
+                    Name="__init__.py"
+                    Source="enum\__init__.py" />
+              </Component>
+            </Directory>
+
             <Component
                 Id="kdiff3"
                 Guid="6BA0CB20-F426-42AB-A95A-615A4FF87752">
@@ -419,6 +430,7 @@
       <ComponentRef Id="HelperScripts"/>
       <ComponentRef Id="Qt5"/>
       <ComponentRef Id="pyqtlibs"/>
+      <ComponentRef Id="pyenum"/>
       <ComponentRef Id="hgexec"/>
       <ComponentRef Id="hglibs"/>
       <ComponentRef Id="crypto"/>
