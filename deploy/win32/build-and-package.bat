@@ -42,7 +42,7 @@ if "%ARG%" == "sign" (
 )
 
 cd %STARTPWD%
-rem del /q /s build_win32
+del /q /s build_win32
 call .\deploy\win32\build.bat
 if %errorlevel% neq 0 exit /b %errorlevel%
 
@@ -104,7 +104,7 @@ copy "%PYCRYPTODIR%\__init__.py" Crypto\
 
 if "%ARG%" == "sign" (
 @echo Signing components
-signtool sign /v /n "%NAME%" /t http://time.certum.pl /fd sha1 *.dll *.exe *\*.pyd *\*\*.pyd
+signtool sign /v /n "%NAME%" /t http://time.certum.pl /fd sha1 *.dll *.exe Crypto\Cipher\*.pyd PyQt5\*.pyd lib\*.pyd
 )
 
 set PATH=%PATH%;"C:\Program Files (x86)\WiX Toolset v3.11\bin"
@@ -116,6 +116,7 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 
 if "%ARG%" == "sign" (
 @echo Signing package
+signtool sign /v /n "%NAME%" /t http://time.certum.pl /fd sha1 easyhg.msi
 signtool verify /pa easyhg.msi
 )
 
