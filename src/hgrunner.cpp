@@ -618,7 +618,10 @@ void HgRunner::startCommand(HgAction action)
 
     QString cmdline = action.executable;
     foreach (QString param, action.params) cmdline += " " + param;
-    DEBUG << "HgRunner: starting: " << cmdline << " with cwd "
+
+    QString reportable = cmdline;
+    reportable.replace(QRegExp("authkey=[^ ]*"), "authkey=<elided>");
+    DEBUG << "HgRunner: starting: " << reportable << " with cwd "
           << action.workingDir << endl;
 
     m_currentAction = action;
