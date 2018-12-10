@@ -409,5 +409,18 @@
         Id="easyhg.ico"
         SourceFile="..\..\easyhg.ico"/>
 
+    <UI>
+      <UIRef Id="WixUI_InstallDir" />
+      <UIRef Id="WixUI_ErrorProgressText" />
+    </UI>
+
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+    <Property Id="WIXUI_DONTVALIDATEPATH" Value="1" />
+    <Property Id="ApplicationFolderName" Value="EasyMercurial" />
+    <Property Id="WixAppFolder" Value="WixPerMachineFolder" />
+    <WixVariable Id="WixUILicenseRtf" Value="..\..\deploy\win32\License.rtf" />
+    
+    <Property Id="ARPPRODUCTICON" Value="easyhg.ico" />
+
   </Product>
 </Wix>
