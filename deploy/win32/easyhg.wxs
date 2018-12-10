@@ -160,22 +160,36 @@
                   Name="Qt5PrintSupport.dll"
                   DiskId="1"
                   Source="Qt5PrintSupport.dll"/>
-              <File
-                  Id="qminimal"
-                  Name="qminimal.dll"
-                  DiskId="1"
-                  Source="qminimal.dll"/>
-              <File
-                  Id="qwindows"
-                  Name="qwindows.dll"
-                  DiskId="1"
-                  Source="qwindows.dll"/>
-              <File
-                  Id="qwindowsvistastyle"
-                  Name="qwindowsvistastyle.dll"
-                  DiskId="1"
-                  Source="qwindowsvistastyle.dll"/>
             </Component>
+
+            <Directory Id="qtplatforms" Name="platforms">
+              <Component
+                  Id="qtplatforms"
+                  Guid="1b491383-3164-4af5-9091-0598cd5864fa">
+                <File
+                    Id="qminimal"
+                    Name="qminimal.dll"
+                    DiskId="1"
+                    Source="qminimal.dll"/>
+                <File
+                    Id="qwindows"
+                    Name="qwindows.dll"
+                    DiskId="1"
+                    Source="qwindows.dll"/>
+              </Component>
+            </Directory>
+            
+            <Directory Id="qtstyles" Name="styles">
+              <Component
+                  Id="qtstyles"
+                  Guid="883a14e7-ecb5-4349-a3f0-008392750d91">
+                <File
+                    Id="qwindowsvistastyle"
+                    Name="qwindowsvistastyle.dll"
+                    DiskId="1"
+                    Source="qwindowsvistastyle.dll"/>
+              </Component>
+            </Directory>
 
             <Component
                 Id="hgexec"
@@ -429,6 +443,8 @@
       <ComponentRef Id="VCLIBS90"/>
       <ComponentRef Id="HelperScripts"/>
       <ComponentRef Id="Qt5"/>
+      <ComponentRef Id="qtplatforms"/>
+      <ComponentRef Id="qtstyles"/>
       <ComponentRef Id="pyqtlibs"/>
       <ComponentRef Id="pyenum"/>
       <ComponentRef Id="hgexec"/>
