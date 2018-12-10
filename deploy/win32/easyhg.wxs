@@ -297,15 +297,38 @@
               </Component>
             </Directory>
 
-            <Component
-                Id="sip"
-                Guid="DCCE0979-A0A6-475D-B6CD-3173740593F9">
-              <File
-                  Id="sip"
-                  Name="sip.pyd"
-                  DiskId="1"
-                  Source="sip.pyd" />
-            </Component>
+            <Directory Id="PyQt" Name="PyQt5">
+              <Component
+                  Id="pyqtlibs"
+                  Guid="0fc219f4-1493-402c-b740-50539eeb7762">
+                <File
+                    Id="pyqtinit"
+                    Name="__init__.py"
+                    DiskId="1"
+                    Source="PyQt5\__init__.py"
+                    KeyPath="yes" />
+                <File
+                    Id="pyqtcore"
+                    Name="QtCore.pyd"
+                    DiskId="1"
+                    Source="PyQt5\QtCore.pyd" />
+                <File
+                    Id="pyqtgui"
+                    Name="QtGui.pyd"
+                    DiskId="1"
+                    Source="PyQt5\QtGui.pyd" />
+                <File
+                    Id="pyqtwidgets"
+                    Name="QtWidgets.pyd"
+                    DiskId="1"
+                    Source="PyQt5\QtWidgets.pyd" />
+                <File
+                    Id="sip"
+                    Name="sip.pyd"
+                    DiskId="1"
+                    Source="PyQt5\sip.pyd" />
+              </Component>
+            </Directory>
 
             <Component
                 Id="kdiff3"
@@ -395,9 +418,9 @@
       <ComponentRef Id="VCLIBS90"/>
       <ComponentRef Id="HelperScripts"/>
       <ComponentRef Id="Qt5"/>
+      <ComponentRef Id="pyqtlibs"/>
       <ComponentRef Id="hgexec"/>
       <ComponentRef Id="hglibs"/>
-      <ComponentRef Id="sip"/>
       <ComponentRef Id="crypto"/>
       <ComponentRef Id="cryptocipher"/>
       <ComponentRef Id="cryptoutil"/>
