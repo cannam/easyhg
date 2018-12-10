@@ -52,8 +52,8 @@ public slots:
     void open(QString local);
     void hgRefresh();
     void commandStarting(HgAction);
-    void commandCompleted(HgAction action, QString stdOut);
-    void commandFailed(HgAction action, QString stdErr, QString stdOut);
+    void commandCompleted(HgAction action, QString stdOut, QString stdErr);
+    void commandFailed(HgAction action, QString stdOut, QString stdErr);
     void commandCancelled(HgAction action);
     void enableDisableActions();
 

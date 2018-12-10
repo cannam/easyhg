@@ -24,6 +24,8 @@
 
 #include <iostream>
 
+//#define GRAPHER_VERBOSE_DEBUG 1
+
 Grapher::Grapher(ChangesetScene *scene) :
     m_scene(scene)
 {
@@ -74,7 +76,9 @@ void Grapher::layoutRow(QString id)
     }
     Changeset *cs = m_changesets[id];
     ChangesetItem *item = m_items[id];
+#ifdef GRAPHER_VERBOSE_DEBUG
     DEBUG << "layoutRow: Looking at " << id.toStdString() << endl;
+#endif
 
     int row = 0;
     int nparents = cs->parents().size();
@@ -129,9 +133,11 @@ void Grapher::layoutRow(QString id)
         m_uncommittedParentRow = row;
     }
 
+#ifdef GRAPHER_VERBOSE_DEBUG
     DEBUG << "putting " << cs->id().toStdString() << " at row " << row 
           << endl;
-
+#endif
+    
     item->setRow(row);
     m_handled.insert(id);
 }
@@ -139,7 +145,9 @@ void Grapher::layoutRow(QString id)
 void Grapher::layoutCol(QString id)
 {
     if (m_handled.contains(id)) {
+#ifdef GRAPHER_VERBOSE_DEBUG
         DEBUG << "Already looked at " << id.toStdString() << endl;
+#endif
         return;
     }
     if (!m_changesets.contains(id)) {
@@ -150,7 +158,9 @@ void Grapher::layoutCol(QString id)
     }
 
     Changeset *cs = m_changesets[id];
+#ifdef GRAPHER_VERBOSE_DEBUG
     DEBUG << "layoutCol: Looking at " << id.toStdString() << endl;
+#endif
 
     ChangesetItem *item = m_items[id];
 
@@ -209,8 +219,10 @@ void Grapher::layoutCol(QString id)
         break;
     }
 
+#ifdef GRAPHER_VERBOSE_DEBUG
     DEBUG << "putting " << cs->id().toStdString() << " at col " << col << endl;
-
+#endif
+    
     m_alloc[row].insert(col);
     item->setColumn(col);
     m_handled.insert(id);
@@ -246,7 +258,9 @@ void Grapher::layoutCol(QString id)
     // connection lines
 
     foreach (QString childId, cs->children()) {
+#ifdef GRAPHER_VERBOSE_DEBUG
         DEBUG << "reserving connection line space" << endl;
+#endif
         if (!m_items.contains(childId)) continue;
         Changeset *child = m_changesets[childId];
         int childRow = m_items[childId]->row();
@@ -272,7 +286,9 @@ void Grapher::layoutCol(QString id)
             }
         }
         if (special.size() == 2) {
+#ifdef GRAPHER_VERBOSE_DEBUG
             DEBUG << "handling split-in-two for children " << special[0] << " and " << special[1] << endl;
+#endif
             for (int i = 0; i < 2; ++i) {
                 int off = i * 2 - 1; // 0 -> -1, 1 -> 1
                 ChangesetItem *it = m_items[special[i]];
@@ -352,9 +368,11 @@ void Grapher::allocateBranchHomes(Changesets csets)
         m_branchHomes[branch] = home;
     }
 
+#ifdef GRAPHER_VERBOSE_DEBUG
     foreach (QString branch, m_branchRanges.keys()) {
         DEBUG << branch.toStdString() << ": " << m_branchRanges[branch].first << " - " << m_branchRanges[branch].second << ", home " << m_branchHomes[branch] << endl;
     }
+#endif
 }
 
 static bool
@@ -630,10 +648,12 @@ void Grapher::layout(Changesets csets,
 
     qStableSort(csets.begin(), csets.end(), compareChangesetsByDate);
 
+#ifdef GRAPHER_VERBOSE_DEBUG
     foreach (Changeset *cs, csets) {
         DEBUG << "id " << cs->id().toStdString() << ", ts " << cs->timestamp()
               << ", date " << cs->datetime().toStdString() << endl;
     }
+#endif
 
     m_handled.clear();
     foreach (Changeset *cs, csets) {
@@ -684,7 +704,9 @@ void Grapher::layout(Changesets csets,
 
     if (m_uncommitted) {
         --minrow;
+#ifdef GRAPHER_VERBOSE_DEBUG
         DEBUG << "putting uncommitted item at row " << minrow << endl;
+#endif
         m_uncommitted->setRow(minrow);
     }
 
