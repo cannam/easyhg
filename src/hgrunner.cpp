@@ -44,7 +44,8 @@
 
 HgRunner::HgRunner(QString myDirPath, QWidget *parent) :
     QWidget(parent),
-    m_myDirPath(myDirPath)
+    m_myDirPath(myDirPath),
+    m_ptyFile(0)
 {
     QGridLayout *layout = new QGridLayout(this);
     layout->setMargin(0);
@@ -266,12 +267,12 @@ void HgRunner::getUsername()
         if (m_realm != "") {
             prompt = tr("User name for \"%1\":").arg(m_realm);
         }
-        QString pwd = QInputDialog::getText
+        QString name = QInputDialog::getText
             (qobject_cast<QWidget *>(parent()),
             tr("Enter user name"), prompt,
             QLineEdit::Normal, QString(), &ok);
         if (ok) {
-            m_ptyFile->write(QString("%1\n").arg(pwd).toUtf8());
+            m_ptyFile->write(QString("%1\n").arg(name).toUtf8());
             m_ptyFile->flush();
             return;
         } else {
@@ -279,6 +280,9 @@ void HgRunner::getUsername()
             killCurrentCommand();
             return;
         }
+    } else { // usual on win32
+        DEBUG << "HgRunner::getUsername: can't handle without pty" << endl;
+        emit commandFailed(m_currentAction, "", "Host requires authentication, but we can't handle that without the EasyHg extension loaded");
     }
     // user cancelled or something went wrong
     DEBUG << "HgRunner::getUsername: something went wrong" << endl;
@@ -301,7 +305,7 @@ void HgRunner::getPassword()
         }
         QString pwd = QInputDialog::getText
             (qobject_cast<QWidget *>(parent()),
-            tr("Enter password"), prompt,
+             tr("Enter password"), prompt,
              QLineEdit::Password, QString(), &ok);
         if (ok) {
             m_ptyFile->write(QString("%1\n").arg(pwd).toUtf8());
@@ -312,6 +316,9 @@ void HgRunner::getPassword()
             killCurrentCommand();
             return;
         }
+    } else { // usual on win32
+        DEBUG << "HgRunner::getPassword: can't handle without pty" << endl;
+        emit commandFailed(m_currentAction, "", "Host requires authentication, but we can't handle that without the EasyHg extension loaded");
     }
     // user cancelled or something went wrong
     DEBUG << "HgRunner::getPassword: something went wrong" << endl;
@@ -405,16 +412,15 @@ void HgRunner::finished(int procExitCode, QProcess::ExitStatus procExitStatus)
         DEBUG << "HgRunner::finished: WARNING: completed action is ACT_NONE" << endl;
     } else {
         if (procExitCode == 0 && procExitStatus == QProcess::NormalExit) {
-            DEBUG << "HgRunner::finished: Command completed successfully"
-                  << endl;
+            DEBUG << "HgRunner::finished: Command completed successfully" << endl;
 //            DEBUG << "stdout is " << m_stdout << endl;
-            emit commandCompleted(completedAction, m_stdout);
+            emit commandCompleted(completedAction, m_stdout, m_stderr);
         } else {
             DEBUG << "HgRunner::finished: Command failed, exit code "
                   << procExitCode << ", exit status " << int(procExitStatus)
                   << ", stderr follows" << endl;
             DEBUG << m_stderr << endl;
-            emit commandFailed(completedAction, m_stderr, m_stdout);
+            emit commandFailed(completedAction, m_stdout, m_stderr);
         }
     }
 
@@ -550,7 +556,7 @@ void HgRunner::startCommand(HgAction action)
 {
     if (action.workingDir.isEmpty()) {
         // We require a working directory, never just operate in pwd
-        emit commandFailed(action, "EasyMercurial: No working directory supplied, will not run Mercurial command without one", "");
+        emit commandFailed(action, "", "EasyMercurial: No working directory supplied, will not run Mercurial command without one");
         return;
     }
 

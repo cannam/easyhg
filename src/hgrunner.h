@@ -43,8 +43,8 @@ public slots:
 
 signals:
     void commandStarting(HgAction action);
-    void commandCompleted(HgAction action, QString stdOut);
-    void commandFailed(HgAction action, QString stdErr, QString stdOut);
+    void commandCompleted(HgAction action, QString stdOut, QString stdErr);
+    void commandFailed(HgAction action, QString stdOut, QString stdErr);
 
     /**
      * Emitted when the currently executing command is cancelled. Note

@@ -81,8 +81,8 @@ MainWindow::MainWindow(QString myDirPath) :
     m_runner = new HgRunner(m_myDirPath, this);
     connect(m_runner, SIGNAL(commandStarting(HgAction)),
             this, SLOT(commandStarting(HgAction)));
-    connect(m_runner, SIGNAL(commandCompleted(HgAction, QString)),
-            this, SLOT(commandCompleted(HgAction, QString)));
+    connect(m_runner, SIGNAL(commandCompleted(HgAction, QString, QString)),
+            this, SLOT(commandCompleted(HgAction, QString, QString)));
     connect(m_runner, SIGNAL(commandFailed(HgAction, QString, QString)),
             this, SLOT(commandFailed(HgAction, QString, QString)));
     connect(m_runner, SIGNAL(commandCancelled(HgAction)),
@@ -2054,7 +2054,7 @@ void MainWindow::commandStarting(HgAction)
     m_commandSequenceInProgress = true;
 }
 
-void MainWindow::commandFailed(HgAction action, QString stdErr, QString stdOut)
+void MainWindow::commandFailed(HgAction action, QString stdOut, QString stdErr)
 {
     DEBUG << "MainWindow::commandFailed" << endl;
 
@@ -2141,7 +2141,7 @@ void MainWindow::commandFailed(HgAction action, QString stdErr, QString stdOut)
         } else if (stdErr.contains("no changes found") || stdOut.contains("no changes found")) {
             // success: hg 2.1 starts returning failure code for empty pull/push
             m_commandSequenceInProgress = true; // there may be further commands
-            commandCompleted(action, stdOut);
+            commandCompleted(action, stdOut, stdErr);
             return;
         }
         break; // go on to default report
@@ -2158,7 +2158,7 @@ void MainWindow::commandFailed(HgAction action, QString stdErr, QString stdOut)
         } else if (stdErr.contains("no changes found") || stdOut.contains("no changes found")) {
             // success: hg 2.1 starts returning failure code for empty pull/push
             m_commandSequenceInProgress = true; // there may be further commands
-            commandCompleted(action, stdOut);
+            commandCompleted(action, stdOut, stdErr);
             return;
         }
         break; // go on to default report
@@ -2169,7 +2169,7 @@ void MainWindow::commandFailed(HgAction action, QString stdErr, QString stdOut)
         // succeeded, so that any further actions that are contingent
         // on the success of the heads query get carried out properly.
         m_commandSequenceInProgress = true; // there may be further commands
-        commandCompleted(action, "");
+        commandCompleted(action, "", "");
         return;
     case ACT_FOLDERDIFF:
     case ACT_CHGSETDIFF:
@@ -2218,7 +2218,7 @@ void MainWindow::commandFailed(HgAction action, QString stdErr, QString stdOut)
          stdErr);
 }
 
-void MainWindow::commandCompleted(HgAction completedAction, QString output)
+void MainWindow::commandCompleted(HgAction completedAction, QString output, QString stdErr)
 {
 //    std::cerr << "commandCompleted: " << completedAction.action << std::endl;
 
@@ -2254,6 +2254,10 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
     }
 
     case ACT_TEST_HG_EXT:
+        if (stdErr.contains("Failed to load PyQt")) {
+            commandFailed(completedAction, output, stdErr);
+            return;
+        }
         break;
 
     case ACT_QUERY_PATHS:
@@ -2294,8 +2298,10 @@ void MainWindow::commandCompleted(HgAction completedAction, QString output)
             }
             output = winnowed.join("\n");
         }
+        /*
         DEBUG << "m_lastStatOutput = " << m_lastStatOutput << endl;
         DEBUG << "resolve output = " << output << endl;
+        */
         m_hgTabs->updateWorkFolderFileList(m_lastStatOutput + output);
         break;
 
