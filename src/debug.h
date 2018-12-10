@@ -15,8 +15,8 @@
     COPYING included with this distribution for more information.
 */
 
-#ifndef _DEBUG_H_
-#define _DEBUG_H_
+#ifndef EASYHG_DEBUG_H
+#define EASYHG_DEBUG_H
 
 #include <QDebug>
 #include <QTextStream>
@@ -30,8 +30,6 @@ QDebug &operator<<(QDebug &, const std::string &);
 std::ostream &operator<<(std::ostream &, const QString &);
 std::ostream &operator<<(std::ostream &, const QUrl &);
 
-#ifndef NDEBUG
-
 extern QDebug &getEasyHgDebug();
 
 #define DEBUG getEasyHgDebug()
@@ -44,24 +42,6 @@ inline QDebug &operator<<(QDebug &d, const T &t) {
     d << s;
     return d;
 }
-
-#else
-
-class NoDebug
-{
-public:
-    inline NoDebug() {}
-    inline ~NoDebug(){}
-
-    template <typename T>
-    inline NoDebug &operator<<(const T &) { return *this; }
-
-    inline NoDebug &operator<<(QTextStreamFunction) { return *this; }
-};
-
-#define DEBUG NoDebug()
-
-#endif /* !NDEBUG */
 
 #endif /* !_DEBUG_H_ */
 

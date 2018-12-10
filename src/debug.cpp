@@ -42,7 +42,7 @@ getEasyHgDebug()
         sprintf(prefix, "[%lu]", (unsigned long)QCoreApplication::applicationPid());
         QString logFileName = QDir::homePath() + "/.easyhg.log"; // the fallback
         QString logDir = QStandardPaths::writableLocation
-            (QStandardPaths::DataLocation);
+            (QStandardPaths::AppDataLocation);
         if (logDir != "" &&
             (QDir(logDir).exists() ||
              QDir().mkpath(logDir))) {
