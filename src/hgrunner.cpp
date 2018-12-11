@@ -28,6 +28,7 @@
 #include <QProgressBar>
 #include <QPushButton>
 #include <QGridLayout>
+#include <QCoreApplication>
 
 #include <iostream>
 #include <errno.h>
@@ -44,8 +45,9 @@
 
 HgRunner::HgRunner(QString myDirPath, QWidget *parent) :
     QWidget(parent),
-    m_myDirPath(myDirPath),
-    m_ptyFile(0)
+    m_ptyFile(0),
+    m_proc(0),
+    m_myDirPath(myDirPath)
 {
     QGridLayout *layout = new QGridLayout(this);
     layout->setMargin(0);
@@ -586,6 +588,9 @@ void HgRunner::startCommand(HgAction action)
     if (QSettings().value("python32", false).toBool()) {
         env.insert("VERSIONER_PYTHON_PREFER_32_BIT", "1");
     }
+    QDir pluginDir(QCoreApplication::applicationDirPath());
+    pluginDir.cd("../plugins");
+    env.insert("QT_PLUGIN_PATH", pluginDir.canonicalPath());
 #endif
 
     env.insert("LANG", "en_US.utf8");
