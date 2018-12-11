@@ -144,12 +144,12 @@ FsWatcher::clearWatchedPaths()
 
 #ifdef Q_OS_MAC
 static void
-fsEventsCallback(ConstFSEventStreamRef streamRef,
+fsEventsCallback(ConstFSEventStreamRef /* streamRef */,
                  void *clientCallBackInfo,
                  size_t numEvents,
                  void *paths,
-                 const FSEventStreamEventFlags eventFlags[],
-                 const FSEventStreamEventId eventIDs[])
+                 const FSEventStreamEventFlags /* eventFlags */[],
+                 const FSEventStreamEventId /*eventIDs */[])
 {
     FsWatcher *watcher = reinterpret_cast<FsWatcher *>(clientCallBackInfo);
     const char *const *cpaths = reinterpret_cast<const char *const *>(paths);

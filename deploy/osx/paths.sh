@@ -31,45 +31,48 @@ done
 
 for fwk in $frameworks; do
     find "$app.app" -type f -print | while read x; do
-
-        current=$(otool -L "$x" | 
-	    grep "$fwk" | grep amework | grep -v ':$' | 
-	    awk '{ print $1; }')
+	if [ -x "$x" ]; then
+            current=$(otool -L "$x" | 
+		grep "$fwk" | grep amework | grep -v ':$' | 
+		awk '{ print $1; }')
 	
-        [ -z "$current" ] && continue
+            [ -z "$current" ] && continue
 	
-        echo "$x has $current"
+            echo "$x has $current"
 	
-	case "$x" in
-	    *PyQt4*)
-		# These are "special" Qt4 libraries used by
-		# the PyQt module. They need to refer to their
-		# own local neighbours. Ugh, but let's handle
-		# those manually here.
-		relative="$fwk.so"
-		;;
-	    *)
-		# The normal Qt5 case
-		relative=$(echo "$x" | 
-		    sed -e "s,$app.app/Contents/,," \
-			-e 's,[^/]*/,../,g' \
-			-e 's,/[^/]*$,/Frameworks/'"$fwk"',' )
-		;;
-	esac
+	    case "$x" in
+#		*PyQt*)
+		    # These are "special" Qt libraries used by
+		    # the PyQt module. They need to refer to their
+		    # own local neighbours. Ugh, but let's handle
+		    # those manually here.
+#		    relative="$fwk.so"
+#		    ;;
+		*)
+		    # The normal Qt case
+		    relative=$(echo "$x" | 
+			sed -e "s,$app.app/Contents/,," \
+			    -e 's,[^/]*/,../,g' \
+			    -e 's,/[^/]*$,/Frameworks/'"$fwk"',' )
+		    ;;
+	    esac
 	
-	echo "replacing with relative path $relative"
-	install_name_tool -change \
-	    "$current" "@loader_path/$relative" "$x"
+	    echo "replacing with relative path $relative"
+	    install_name_tool -change \
+		"$current" "@loader_path/$relative" "$x"
+	fi
     done
 done
 
 find "$app.app" -type f -print | while read x; do
-    qtdep=$(otool -L "$x" | grep Qt | grep amework | grep -v ':$' | grep -v '@loader_path' | awk '{ print $1; }')
-    if [ -n "$qtdep" ]; then
-	echo
-	echo "ERROR: File $x depends on Qt framework(s) not apparently present in the bundle:"
-	echo $qtdep
-	exit 1
+    if [ -x "$x" ]; then
+	qtdep=$(otool -L "$x" | grep Qt | grep amework | grep -v ':$' | grep -v '@loader_path' | awk '{ print $1; }')
+	if [ -n "$qtdep" ]; then
+	    echo
+	    echo "ERROR: File $x depends on Qt framework(s) not apparently present in the bundle:"
+	    echo $qtdep
+	    exit 1
+	fi
     fi
 done
 

@@ -16,15 +16,17 @@ if [ -z "$source" ] || [ ! -d "$source" ] || [ -z "$dmg" ]; then
         echo "  but the .app name must include .app"
 	exit 2
 fi
-app=EasyMercurial
+app=`basename "$source" .app`
 
 set -u
 
 version=`perl -p -e 's/^[^"]*"([^"]*)".*$/$1/' src/version.h`
-case "$version" in
-    [0-9].[0-9]) bundleVersion="$version".0 ;;
-    [0-9].[0-9].[0-9]) bundleVersion="$version" ;;
-    *) echo "Error: Version $version is neither two- nor three-part number" ;;
+stem=${version%%-*}
+stem=${stem%%pre*}
+case "$stem" in
+    [0-9].[0-9]) bundleVersion="$stem".0 ;;
+    [0-9].[0-9].[0-9]) bundleVersion="$stem" ;;
+    *) echo "Error: Version stem $stem (of version $version) is neither two- nor three-part number" ;;
 esac
 
 echo
@@ -70,14 +72,27 @@ ln -s /Applications "$volume"/Applications
 cp COPYING "$volume/COPYING.txt"
 cp -rp "$source" "$target"
 
+# update file timestamps so as to make the build date apparent
+find "$volume" -exec touch \{\} \;
+
 echo "Done"
 
+echo
+echo "Code-signing volume..."
+
 deploy/osx/sign.sh "$volume" || exit 1
+
+echo "Done"
 
 echo
 echo "Making dmg..."
 
-hdiutil create -srcfolder "$volume" "$dmg" -volname "$volume" && 
+hdiutil create -srcfolder "$volume" "$dmg" -volname "$volume" -fs HFS+ && 
 	rm -r "$volume"
+
+echo
+echo "Signing dmg..."
+
+codesign -s "Developer ID Application: Chris Cannam" -fv "$dmg"
 
 echo "Done"
