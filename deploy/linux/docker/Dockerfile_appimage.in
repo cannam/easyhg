@@ -25,6 +25,10 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en  
 ENV LC_ALL en_US.UTF-8
 
+# Ensure that everything subsequent is re-run when a new revision is
+# being built (rather than being cached)
+RUN echo [[REVISION]]
+
 WORKDIR /root
 COPY id_dsa_build .ssh/id_dsa_build
 COPY known_hosts .ssh/known_hosts
