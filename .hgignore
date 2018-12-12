@@ -35,3 +35,4 @@ build_win32
 .qmake.stash
 squashfs-root
 *.gen
+*.deb
