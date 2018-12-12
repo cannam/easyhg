@@ -33,7 +33,7 @@ RUN echo '{"accounts": {"bitbucket": "cannam"}}' > .repoint.json
 RUN ( echo '[ui]' ; echo 'ssh = ssh -i /root/.ssh/id_dsa_build' ) > .hgrc
 
 WORKDIR /
-RUN hg clone -r[[REVISION]] ssh://bitbucket.org/cannam/easyhg
+RUN hg clone -r[[REVISION]] ssh://hg@bitbucket.org/cannam/easyhg
 
 WORKDIR /easyhg
 ENV QTDIR /opt/qt510
