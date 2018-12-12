@@ -1,4 +1,4 @@
-Package: EasyMercurial
+Package: easymercurial
 Priority: optional
 Maintainer: Chris Cannam <cannam@all-day-breakfast.com>
 Architecture: ###
