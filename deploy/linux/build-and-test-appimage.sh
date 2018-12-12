@@ -11,6 +11,11 @@ case "$current" in
     *);;
 esac
 
+if [ ! -x ./appimagetool-x86_64.AppImage ]; then
+    echo "Failed to find executable ./appimagetool-x86_64.AppImage, please provide that first"
+    exit 2
+fi
+
 echo
 echo "Building appimage from revision $current..."
 
@@ -28,6 +33,8 @@ grep '^bitbucket.org' ~/.ssh/known_hosts > "$dockerdir"/known_hosts
 cp ~/.ssh/id_dsa_build "$dockerdir"/id_dsa_build
 chmod 600 "$dockerdir"/known_hosts "$dockerdir"/id_dsa_build
 trap "rm $dockerdir/known_hosts $dockerdir/id_dsa_build" 0
+
+cp appimagetool-x86_64.AppImage "$dockerdir/"
 
 dockertag="cannam/easymercurial-appimage-$current"
 

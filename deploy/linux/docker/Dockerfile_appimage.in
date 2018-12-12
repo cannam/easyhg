@@ -36,6 +36,8 @@ WORKDIR /
 RUN hg clone -r[[REVISION]] ssh://hg@bitbucket.org/cannam/easyhg
 
 WORKDIR /easyhg
+COPY appimagetool-x86_64.AppImage appimagetool-x86_64.AppImage
+RUN chmod +x appimagetool-x86_64.AppImage
 ENV QTDIR /opt/qt510
 ENV PATH /opt/qt510/bin:$PATH
 RUN qmake -r
