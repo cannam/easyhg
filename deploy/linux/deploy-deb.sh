@@ -23,9 +23,10 @@ fi
 set -eu
 
 program=EasyMercurial
+package=easymercurial
 depdir=deploy/linux
 
-targetdir="${program}_${version}_${arch}"
+targetdir="${package}_${version}_${arch}"
 
 echo "Target dir is $targetdir"
 
@@ -40,17 +41,23 @@ mkdir "$targetdir/DEBIAN"
 
 cp "$depdir"/control "$targetdir"/DEBIAN/
 
-mkdir -p "$targetdir"/usr/bin "$targetdir"/usr/share/pixmaps "$targetdir"/usr/share/applications "$targetdir"/usr/share/doc/"$program"
+mkdir -p "$targetdir"/usr/bin "$targetdir"/usr/share/pixmaps "$targetdir"/usr/share/applications "$targetdir"/usr/share/doc/"$package"
 
 cp "$program" "$targetdir"/usr/bin/
 
 cp images/icon/scalable/easyhg-icon.svg "$targetdir"/usr/share/pixmaps/
 cp images/icon/128/easyhg-icon.png "$targetdir"/usr/share/pixmaps/
-cp deploy/linux/"$program".desktop "$targetdir"/usr/share/applications/
-cp README.txt "$targetdir"/usr/share/doc/"$program"/
-cp COPYING "$targetdir"/usr/share/doc/"$program"/copyright
-touch "$targetdir"/usr/share/doc/"$program"/changelog.Debian
-gzip "$targetdir"/usr/share/doc/"$program"/changelog.Debian
+cp deploy/linux/"$program".desktop "$targetdir"/usr/share/applications/"$package".desktop
+cp README.txt "$targetdir"/usr/share/doc/"$package"/
+cat > "$targetdir"/usr/share/doc/"$package"/copyright <<EOF
+EasyMercurial is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or (at
+your option) any later version. See the file /usr/share/common-licenses/GPL-2 
+for more information.
+EOF
+touch "$targetdir"/usr/share/doc/"$package"/changelog.Debian
+gzip -9 "$targetdir"/usr/share/doc/"$package"/changelog.Debian
 
 perl -i -p -e "s/Architecture: .*/Architecture: $arch/" "$targetdir"/DEBIAN/control
 

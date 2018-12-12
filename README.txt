@@ -45,7 +45,3 @@ EasyMercurial is
 Copyright 2010 Jari Korhonen
 Copyright 2010-2013 Chris Cannam
 Copyright 2010-2018 Queen Mary, University of London
-
-
-
-
