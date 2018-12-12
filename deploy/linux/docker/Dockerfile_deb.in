@@ -1,0 +1,43 @@
+# This pulls the latest versions of capnp & SV from repos - so you
+# will need to defeat the Docker cache by destroying the container
+# each time you want to update it
+#
+FROM ubuntu:14.04
+MAINTAINER Chris Cannam <cannam@all-day-breakfast.com>
+RUN apt-get update && \
+    apt-get install -y \
+    software-properties-common \
+    build-essential \
+    libbz2-dev \
+    libxml2-utils \
+    libgl1-mesa-dev \
+    qt5-default libqt5svg5-dev \
+    git \
+    mercurial \
+    curl wget \
+    mlton \
+    autoconf automake libtool lintian
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN locale-gen en_US.UTF-8
+ENV LANG en_US.UTF-8  
+ENV LANGUAGE en_US:en  
+ENV LC_ALL en_US.UTF-8
+
+WORKDIR /root
+COPY id_dsa_build .ssh/id_dsa_build
+COPY known_hosts .ssh/known_hosts
+RUN chmod 600 .ssh/id_dsa_build .ssh/known_hosts
+RUN echo '{"accounts": {"bitbucket": "cannam"}}' > .repoint.json
+RUN ( echo '[ui]' ; echo 'ssh = ssh -i /root/.ssh/id_dsa_build' ) > .hgrc
+
+WORKDIR /
+RUN hg clone -r[[REVISION]] ssh://hg@bitbucket.org/cannam/easyhg
+
+WORKDIR /easyhg
+RUN qmake -r
+RUN make
+
+RUN deploy/linux/deploy-deb.sh [[RELEASE]] amd64
+RUN tar cvf output-deb.tar *.deb && cp output-deb.tar ..
