@@ -30,3 +30,7 @@ re:^_UpgradeReport_Files/
 easyhg-kdiff3
 mercurial-*-x86
 build_win32
+*.AppDir
+*.AppImage
+.qmake.stash
+squashfs-root
