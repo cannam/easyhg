@@ -48,6 +48,9 @@ cp images/icon/scalable/easyhg-icon.svg "$targetdir"/usr/share/pixmaps/
 cp images/icon/128/easyhg-icon.png "$targetdir"/usr/share/pixmaps/
 cp deploy/linux/"$program".desktop "$targetdir"/usr/share/applications/
 cp README.txt "$targetdir"/usr/share/doc/"$program"/
+cp COPYING "$targetdir"/usr/share/doc/"$program"/copyright
+touch "$targetdir"/usr/share/doc/"$program"/changelog.Debian
+gzip "$targetdir"/usr/share/doc/"$program"/changelog.Debian
 
 perl -i -p -e "s/Architecture: .*/Architecture: $arch/" "$targetdir"/DEBIAN/control
 

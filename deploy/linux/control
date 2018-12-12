@@ -4,4 +4,10 @@ Maintainer: Chris Cannam <cannam@all-day-breakfast.com>
 Architecture: ###
 Version: ###
 Depends: ###
+Section: contrib/devel
 Description: A simple user interface for the Mercurial version-control system
+ EasyMercurial is a user interface for the Mercurial distributed
+ version-control system. It shows repository state and history using a
+ visual graph representation, and provides actions that are
+ recognisably close to the command-line workflow for Mercurial.
+ EasyMercurial is intended to be simple to teach and to learn.
