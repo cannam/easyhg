@@ -38,7 +38,7 @@ RUN hg clone -r[[REVISION]] ssh://hg@bitbucket.org/cannam/easyhg
 WORKDIR /easyhg
 ENV QTDIR /opt/qt510
 ENV PATH /opt/qt510/bin:$PATH
-RUN ./configure
+RUN qmake -r
 RUN make
 
 RUN deploy/linux/deploy-appimage.sh
