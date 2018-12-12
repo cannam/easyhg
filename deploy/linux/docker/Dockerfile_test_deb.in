@@ -1,5 +1,6 @@
 FROM ubuntu:18.04
 RUN apt-get update
+RUN apt-get -y dist-upgrade
 ADD output/easymercurial_[[RELEASE]]_amd64.deb easymercurial_[[RELEASE]]_amd64.deb
 RUN apt install -y ./easymercurial_[[RELEASE]]_amd64.deb
 RUN /usr/bin/EasyMercurial --version
