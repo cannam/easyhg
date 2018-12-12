@@ -34,3 +34,4 @@ build_win32
 *.AppImage
 .qmake.stash
 squashfs-root
+*.gen
