@@ -1,7 +1,6 @@
 [Desktop Entry]
-Encoding=UTF-8
 Type=Application
-Categories=Development
+Categories=Development;
 Exec=EasyMercurial %f
 MimeType=
 X-KDE-NativeMimeType=

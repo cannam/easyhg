@@ -1,7 +1,7 @@
 Package: easymercurial
 Priority: optional
 Maintainer: Chris Cannam <cannam@all-day-breakfast.com>
-Architecture: amd64
-Version: 0.9.8cc-1
-Depends: mercurial (>= 1.7.0),libqtgui4 (>= 4.6.0),libqt4-network,python-crypto,python-qt4
+Architecture: ###
+Version: ###
+Depends: ###
 Description: A simple user interface for the Mercurial version-control system
