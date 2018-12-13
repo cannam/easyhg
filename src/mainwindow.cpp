@@ -179,42 +179,85 @@ QString MainWindow::getUserInfo() const
 
 void MainWindow::about()
 {
-   QMessageBox::about(this, tr("About EasyMercurial"),
-                      tr("<qt><h2>EasyMercurial v%1</h2>"
+    QString text;
+    text += "<qt>";
+
+    text += tr("<h2>EasyMercurial v%1</h2>").arg(EASYHG_VERSION);
+
 #ifdef Q_OS_MAC
-                         "<font size=-1>"
+    text += "<font size=-1>";
 #endif
-                         "<p>EasyMercurial is a simple user interface for the "
-                         "Mercurial</a> version control system.</p>"
-                         "<h4>Credits and Copyright</h4>"
-                         "<p>Development carried out by Chris Cannam for "
-                         "SoundSoftware.ac.uk at the Centre for Digital Music, "
-                         "Queen Mary, University of London.</p>"
-                         "<p>EasyMercurial is based on HgExplorer by "
-                         "Jari Korhonen, with thanks.</p>"
-                         "<p style=\"margin-left: 2em;\">"
-                         "Copyright &copy; 2013 Queen Mary, University of London.<br>"
-                         "Copyright &copy; 2010 Jari Korhonen.<br>"
-                         "Copyright &copy; 2013 Chris Cannam."
-                         "</p>"
-                         "<p style=\"margin-left: 2em;\">"
-                         "This program requires Mercurial, by Matt Mackall and others.<br>"
-                         "This program uses Qt by Nokia.<br>"
-                         "This program uses Nuvola icons by David Vignoni.<br>"
-                         "This program may use KDiff3 by Joachim Eibl.<br>"
-                         "This program may use PyQt by River Bank Computing.<br>"
-                         "Packaging for Mercurial and other dependencies on Windows is derived from TortoiseHg by Steve Borho and others."
-                         "</p>"
-                         "<h4>License</h4>"
-                         "<p>This program is free software; you can redistribute it and/or "
-                         "modify it under the terms of the GNU General Public License as "
-                         "published by the Free Software Foundation; either version 2 of the "
-                         "License, or (at your option) any later version.  See the file "
-                         "COPYING included with this distribution for more information.</p>"
+    text += tr("<p>EasyMercurial is a simple user interface for the "
+               "Mercurial</a> version control system.</p>");
+    
+    text += tr("<h4>Credits and Copyright</h4>");
+
+    text += tr("<p>Development carried out by Chris Cannam for "
+               "SoundSoftware.ac.uk at the Centre for Digital Music, "
+               "Queen Mary, University of London.</p>");
+
+    text += tr("<p>EasyMercurial is based on HgExplorer by "
+               "Jari Korhonen, with thanks.</p>");
+    
+    text += tr("<p style=\"margin-left: 2em;\">");
+    text += tr("Copyright &copy; 2013-2018 Queen Mary, University of London.<br>");
+    text += tr("Copyright &copy; 2010 Jari Korhonen.<br>");
+    text += tr("Copyright &copy; 2013 Chris Cannam.");
+    text += tr("</p>");
+    
+    text += tr("<p style=\"margin-left: 2em;\">");
+    text += tr("This program requires Mercurial, by Matt Mackall and others.<br>");
+    text += tr("This program uses Qt by The Qt Company.<br>");
+    text += tr("This program uses Nuvola icons by David Vignoni.<br>");
+    text += tr("This program may use KDiff3 by Joachim Eibl.<br>");
+    text += tr("This program may use PyQt by River Bank Computing.<br>");
+    text += tr("Packaging for Mercurial and other dependencies on Windows is derived from TortoiseHg by Steve Borho and others.");
+    text += tr("</p>");
+    
+    text += tr("<h4>License</h4>");
+    text += tr("<p>This program is free software; you can redistribute it and/or "
+               "modify it under the terms of the GNU General Public License as "
+               "published by the Free Software Foundation; either version 2 of the "
+               "License, or (at your option) any later version.  See the file "
+               "COPYING included with this distribution for more information.</p>");
 #ifdef Q_OS_MAC
-                         "</font>"
+    text += "</font>";
 #endif
-                          ).arg(EASYHG_VERSION));
+
+    // use our own dialog so we can influence the size
+
+    QDialog *d = new QDialog(this);
+    d->setWindowTitle(tr("About %1").arg(QApplication::applicationName()));
+        
+    QGridLayout *layout = new QGridLayout;
+    d->setLayout(layout);
+
+    int row = 0;
+    
+    QLabel *iconLabel = new QLabel;
+    iconLabel->setPixmap(QApplication::windowIcon().pixmap(64, 64));
+    layout->addWidget(iconLabel, row, 0, Qt::AlignTop);
+
+    QLabel *mainText = new QLabel();
+    layout->addWidget(mainText, row, 1, 1, 2);
+
+    layout->setRowStretch(row, 10);
+    layout->setColumnStretch(1, 10);
+
+    ++row;
+
+    QDialogButtonBox *bb = new QDialogButtonBox(QDialogButtonBox::Ok);
+    layout->addWidget(bb, row++, 0, 1, 3);
+    connect(bb, SIGNAL(accepted()), d, SLOT(accept()));
+
+    mainText->setWordWrap(true);
+    mainText->setOpenExternalLinks(true);
+    mainText->setText(text);
+
+    d->setMinimumSize(400, 400);
+    d->exec();
+
+    delete d;    
 }
 
 void MainWindow::clearSelections()
@@ -3261,7 +3304,15 @@ void MainWindow::help()
         fwd->setEnabled(false);
         layout->addWidget(bb, 2, 0, 1, 4);
         layout->setColumnStretch(3, 20);
-        m_helpDialog->resize(450, 500);
+        double baseEm;
+#ifdef Q_OS_MAC
+        baseEm = 17.0;
+#else
+        baseEm = 15.0;
+#endif
+        double em = QFontMetrics(QFont()).height();
+        double ratio = em / baseEm;
+        m_helpDialog->setMinimumSize(450 * ratio, 500 * ratio);
     }
     QTextBrowser *tb = m_helpDialog->findChild<QTextBrowser *>();
     if (tb) tb->home();
