@@ -10,7 +10,7 @@ if not exist "C:\Program Files (x86)\WiX Toolset v3.11\bin" (
 @   exit /b 2
 )
 
-if not exist "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.15.26706\x64\Microsoft.VC141.CRT" (
+if not exist "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.15.26706\x86\Microsoft.VC141.CRT" (
 @   echo Could not find Windows CRT directory
 @   exit /b 2
 )
@@ -27,7 +27,7 @@ if not exist "C:/Python27/Lib/site-packages/Crypto/" (
 
 set ORIGINALPATH=%PATH%
 set PATH=C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin;%PATH%
-set CRTDIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.15.26706\x64\Microsoft.VC141.CRT
+set CRTDIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.15.26706\x86\Microsoft.VC141.CRT
 set PYPACKAGEDIR=C:/Python27/Lib/site-packages
 set PYQTDIR=%PYPACKAGEDIR%/PyQt5/
 set PYCRYPTODIR=%PYPACKAGEDIR%/Crypto/
