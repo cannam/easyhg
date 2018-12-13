@@ -58,6 +58,7 @@ ChangesetView::drawBackground(QPainter *paint, const QRectF &rect)
     DEBUG << "clip rect is " << rect << endl;
 
     paint->save();
+    paint->setPen(Qt::black);
     QFont f(paint->font());
     f.setPixelSize(11);
     f.setBold(true);
