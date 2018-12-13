@@ -35,6 +35,11 @@ echo "Copying in frameworks and plugins from Qt installation directory."
 deploy/osx/copy-qt.sh "$app" || exit 2
 
 echo
+echo "Copying in PyQt libraries for use by Hg extension module."
+
+deploy/osx/copy-pyqt.sh "$app" || exit 2
+
+echo
 echo "Fixing up paths."
 
 deploy/osx/paths.sh "$app"
