@@ -28,7 +28,7 @@ if [ ! -f "$ENUM_EGG" ]; then
     exit 2
 fi
 
-pydir="$app.app/Contents/MacOS/Py2.7"
+pydir="$app.app/Contents/MacOS/Py27"
 mkdir -p "$pydir/PyQt5"
 mkdir -p "$pydir/enum"
 

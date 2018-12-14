@@ -15,17 +15,14 @@ fi
 
 for app in "$dir"/*.app; do
     find "$app" -name Qt\* -print | while read fr; do
-	codesign -s "Developer ID Application: Chris Cannam" -fv --deep "$fr"
+	codesign -s "Developer ID Application: Chris Cannam" -fv --deep --options runtime "$fr"
     done
     find "$app" -name \*.dylib -print | while read fr; do
-	codesign -s "Developer ID Application: Chris Cannam" -fv --deep "$fr"
+	codesign -s "Developer ID Application: Chris Cannam" -fv --deep --options runtime "$fr"
     done
     find "$app" -name \*.so -print | while read fr; do
-	codesign -s "Developer ID Application: Chris Cannam" -fv --deep "$fr"
+	codesign -s "Developer ID Application: Chris Cannam" -fv --deep --options runtime "$fr"
     done
-    codesign -s "Developer ID Application: Chris Cannam" -fv --deep "$app"
-#    codesign -s "Developer ID Application: Chris Cannam" -fv \
-#         --requirements '=designated =>  identifier "org.easymercurial.EasyMercurial" and ( (anchor apple generic and    certificate leaf[field.1.2.840.113635.100.6.1.9] ) or (anchor apple generic and    certificate 1[field.1.2.840.113635.100.6.2.6]  and    certificate leaf[field.1.2.840.113635.100.6.1.13] and    certificate leaf[subject.OU] = "M2H8666U82"))' \
-#         "$app"
+    codesign -s "Developer ID Application: Chris Cannam" -fv --deep --options runtime "$app"
 done
 
