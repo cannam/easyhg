@@ -15,7 +15,7 @@ libc.so.6
 libdl.so.2
 libm.so.6
 libmvec.so.1
-libnsl.so.1
+# libnsl.so.1 # Not part of glibc anymore as of Fedora 28. See https://github.com/RPCS3/rpcs3/issues/5224#issuecomment-434930594
 libnss_compat.so.2
 libnss_db.so.2
 libnss_dns.so.2
@@ -36,6 +36,7 @@ libstdc++.so.6
 # usr/lib/libstdc++.so.6: version `GLIBCXX_3.4.21' not found
 
 libGL.so.1
+libEGL.so.1
 # Part of the video driver (OpenGL); present on any regular
 # desktop system, may also be provided by proprietary drivers.
 # Known to cause issues if it's bundled.
@@ -47,10 +48,6 @@ libdrm.so.2
 # libGL error: unable to load driver: swrast_dri.so
 # libGL error: failed to load driver: swrast
 # Unrecognized OpenGL version
-
-# TODO:
-# Consider to blackilst also libEGL.so.1
-# see https://github.com/knapsu/plex-media-player-appimage/issues/11#issuecomment-394203370
 
 libglapi.so.0
 # Part of mesa
@@ -182,3 +179,11 @@ libjack.so.0
 # libssl.so.1.0.0
 # libcrypto.so.1
 # libcrypto.so.1.0.0
+
+# The following may be spefific to a particular GPU and may need to be excluded
+# according to https://github.com/RicardoEPRodrigues/3Engine/issues/4#issuecomment-402532194
+# libGLEW.so.2.0 # to be confirmed
+
+# libglut.so.3 # to be confirmed
+
+libxcb-dri3.so.0 # https://github.com/AppImage/AppImages/issues/348
