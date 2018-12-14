@@ -11,11 +11,9 @@
 	<key>CFBundleIconFile</key>
 	<string>easyhg-icon.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.easymercurial.EasyMercurial</string>
+	<string>org.easyhg.EasyMercurial</string>
 	<key>CFBundleShortVersionString</key>
 	<string>EASYHG_VERSION</string>
-
-	<!-- enable HiDPI -->
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>NSHighResolutionCapable</key>
