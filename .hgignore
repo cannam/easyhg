@@ -36,3 +36,5 @@ build_win32
 squashfs-root
 *.gen
 *.deb
+TortoiseSVN
+.svn

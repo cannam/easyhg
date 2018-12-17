@@ -73,7 +73,7 @@
             </Component>
 
             <Component
-                Id="HelperScripts"
+                Id="Helpers"
                 Guid="971EA788-347E-4CDE-9899-69EEBE117BDD">
 
               <File
@@ -82,6 +82,11 @@
                   DiskId="1"
                   Source="..\..\easyhg-merge.bat"
                   KeyPath="yes"/>
+              <File
+                  Id="plink"
+                  Name="TortoisePlink.exe"
+                  DiskId="1"
+                  Source="TortoisePlink.exe"/>
             </Component>		  
 
             <Component
@@ -216,13 +221,6 @@
                     Name="library.zip"
                     DiskId="1"
                     Source="lib\library.zip"/>
-                <!--
-                <File
-                    Id="plink"
-                    Name="TortoisePlink.exe"
-                    DiskId="1"
-                    Source="lib\TortoisePlink.exe"/>
-                    -->
                 <File
                     Id="ctypes"
                     Name="_ctypes.pyd"
@@ -441,7 +439,7 @@
       <ComponentRef Id="MainExecutable"/>
       <ComponentRef Id="VCLIBS140"/>
       <ComponentRef Id="VCLIBS90"/>
-      <ComponentRef Id="HelperScripts"/>
+      <ComponentRef Id="Helpers"/>
       <ComponentRef Id="Qt5"/>
       <ComponentRef Id="qtplatforms"/>
       <ComponentRef Id="qtstyles"/>
