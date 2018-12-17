@@ -39,7 +39,7 @@ WORKDIR /easyhg
 RUN qmake -r
 RUN make
 
-RUN hg clone https://code.soundsoftware.ac.uk/hg/easyhg-kdiff3-src
+RUN hg clone https://code.soundsoftware.ac.uk/hg/easyhg-kdiff3 easyhg-kdiff3-src
 WORKDIR easyhg-kdiff3-src/kdiff3/src-QT4
 RUN qmake -r kdiff3.pro
 RUN make
