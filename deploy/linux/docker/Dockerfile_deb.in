@@ -39,5 +39,12 @@ WORKDIR /easyhg
 RUN qmake -r
 RUN make
 
+RUN hg clone https://code.soundsoftware.ac.uk/hg/easyhg-kdiff3
+WORKDIR easyhg-kdiff3/kdiff3/src-QT4
+RUN qmake -r kdiff3.pro
+RUN make
+RUN cp kdiff3 ../../../easyhg-kdiff3
+
+WORKDIR /easyhg
 RUN deploy/linux/deploy-deb.sh [[RELEASE]] amd64
 RUN tar cvf output-deb.tar *.deb && cp output-deb.tar ..

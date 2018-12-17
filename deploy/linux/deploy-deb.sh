@@ -23,6 +23,12 @@ fi
 set -eu
 
 program=EasyMercurial
+kdiff=easyhg-kdiff3
+merge=easyhg-merge.sh
+extdiff=easyhg-extdiff.sh
+
+programs="$program $kdiff $merge $extdiff"
+
 package=easymercurial
 depdir=deploy/linux
 
@@ -35,6 +41,13 @@ if [ -d "$targetdir" ]; then
     exit
 fi
 
+for p in $programs; do
+    if [ ! -x "$p" ]; then
+        echo "Failed to find executable ./$p, please build and check"
+        exit 2
+    fi
+done
+
 mkdir "$targetdir"
 
 mkdir "$targetdir/DEBIAN"
@@ -43,7 +56,7 @@ cp "$depdir"/control "$targetdir"/DEBIAN/
 
 mkdir -p "$targetdir"/usr/bin "$targetdir"/usr/share/pixmaps "$targetdir"/usr/share/applications "$targetdir"/usr/share/doc/"$package"
 
-cp "$program" "$targetdir"/usr/bin/
+cp $programs "$targetdir"/usr/bin/
 
 cp images/icon/scalable/easyhg-icon.svg "$targetdir"/usr/share/pixmaps/
 cp images/icon/128/easyhg-icon.png "$targetdir"/usr/share/pixmaps/
