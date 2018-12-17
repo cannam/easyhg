@@ -91,6 +91,8 @@
  * drop 10.4 support for EasyMercurial.
  */
 
+static bool abandoning = false; // emergency flag for use by non-member callback
+
 FsWatcher::FsWatcher() :
     m_lastToken(0),
     m_lastCounter(0)
@@ -107,6 +109,8 @@ FsWatcher::FsWatcher() :
 
 FsWatcher::~FsWatcher()
 {
+    QMutexLocker locker(&m_mutex);
+    abandoning = true;
 }
 
 void
@@ -151,6 +155,7 @@ fsEventsCallback(ConstFSEventStreamRef /* streamRef */,
                  const FSEventStreamEventFlags /* eventFlags */[],
                  const FSEventStreamEventId /*eventIDs */[])
 {
+    if (abandoning) return;
     FsWatcher *watcher = reinterpret_cast<FsWatcher *>(clientCallBackInfo);
     const char *const *cpaths = reinterpret_cast<const char *const *>(paths);
     for (size_t i = 0; i < numEvents; ++i) {
