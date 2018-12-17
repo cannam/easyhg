@@ -27,6 +27,10 @@ if not exist easyhg-kdiff3 (
 set KDIFFDIR=%STARTPWD%\easyhg-kdiff3\kdiff3\src-QT4
 
 if not exist TortoiseSVN (
+rem  NB the "svn" command is actually installed as part of TortoiseSVN, but
+rem  only if you specifically check the "command-line programs" option when
+rem  installing it. We rebuild TortoisePlink rather than using the one already
+rem  installed, because that is probably 64-bit and we want a 32-bit one
      svn co http://svn.osdn.net/svnroot/tortoisesvn/trunk TortoiseSVN
 )
 if %errorlevel% neq 0 exit /b %errorlevel%
