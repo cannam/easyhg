@@ -1,11 +1,18 @@
 #!/bin/bash
 
-target=$1
+targets="$@"
 
-if [ ! -f "$target" ]; then 
+if [ t"$targets" = "" ]; then
     echo "Usage: $0 target-executable"
-    exit 1
+    exit 2
 fi
+
+for target in $targets ; do
+    if [ ! -f "$target" ]; then
+        echo "Error: target executable ./$target not found"
+        exit 1
+    fi
+done
 
 set -eu
 
@@ -15,7 +22,7 @@ rfile=/tmp/redundant_$$
 trap "rm -f $pfile $rfile" 0
 echo 1>&2
 
-ldd "$target" | awk '{ print $3; }' | grep '^/' | while read lib; do
+ldd $targets | awk '{ print $3; }' | grep '^/' | while read lib; do
     if test -n "$lib" ; then
 	dpkg-query -S "$lib"
     fi
