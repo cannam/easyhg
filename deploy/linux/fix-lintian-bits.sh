@@ -6,7 +6,12 @@ dir=$1
 
 set -eu
 
-strip "$dir"/usr/bin/*
+for x in "$dir"/usr/bin/* ; do
+    case "$x" in
+        *.sh) ;;
+        *) strip "$x" ;;
+    esac
+done
 
 sz=`du -sx --exclude DEBIAN "$dir" | awk '{ print $1; }'`
 perl -i -p -e "s/Installed-Size: .*/Installed-Size: $sz/" "$dir"/DEBIAN/control
