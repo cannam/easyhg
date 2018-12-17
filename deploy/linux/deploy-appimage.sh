@@ -3,6 +3,11 @@
 set -eu
 
 program=EasyMercurial
+kdiff=easyhg-kdiff3
+merge=easyhg-merge.sh
+extdiff=easyhg-extdiff.sh
+
+programs="$program $kdiff $merge $extdiff"
 
 get_id() {
     if [ -d .hg ]; then
@@ -22,6 +27,13 @@ if [ ! -x ./appimagetool-x86_64.AppImage ]; then
     exit 2
 fi
 
+for p in $programs; do
+    if [ ! -x "$p" ]; then
+        echo "Failed to find executable ./$p, please build and check"
+        exit 2
+    fi
+done
+
 targetdir="${program}.AppDir"
 
 echo "Target dir is $targetdir"
@@ -36,7 +48,7 @@ mkdir "$targetdir"
 mkdir -p "$targetdir"/usr/bin
 mkdir -p "$targetdir"/usr/lib
 
-cp "$program" "$targetdir"/usr/bin/
+cp $programs "$targetdir"/usr/bin/
 
 add_dependencies() {
 
@@ -71,6 +83,7 @@ add_dependencies() {
 }
 
 add_dependencies "$program"
+add_dependencies "$kdiff"
 
 qtplugins="gif icns ico jpeg tga tiff wbmp webp cocoa minimal offscreen xcb"
 qtlibdirs="/usr/lib/x86_64-linux-gnu/qt5 /usr/lib/x86_64-linux-gnu/qt /usr/lib/qt5 /usr/lib/qt"
