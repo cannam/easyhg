@@ -1,13 +1,13 @@
 #!/bin/bash
 
-set -eu
-
 app="$1"
 if [ -z "$app" ]; then
 	echo "Usage: $0 <appname>"
 	echo "Provide appname without the .app extension, please"
 	exit 2
 fi
+
+set -eu
 
 PYQT_DIR=/Library/Python/2.7/site-packages/PyQt5
 

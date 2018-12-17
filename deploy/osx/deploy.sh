@@ -30,6 +30,11 @@ case "$stem" in
 esac
 
 echo
+echo "Copying in kdiff3 program."
+
+deploy/osx/copy-kdiff3.sh "$app" || exit 2
+
+echo
 echo "Copying in frameworks and plugins from Qt installation directory."
 
 deploy/osx/copy-qt.sh "$app" || exit 2
