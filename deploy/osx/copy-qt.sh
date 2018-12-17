@@ -1,7 +1,4 @@
-
 #!/bin/bash
-
-set -eu
 
 app="$1"
 if [ -z "$app" ]; then
@@ -9,6 +6,8 @@ if [ -z "$app" ]; then
 	echo "Provide appname without the .app extension, please"
 	exit 2
 fi
+
+set -eu
 
 frameworks="QtCore QtNetwork QtGui QtWidgets QtPrintSupport QtDBus"
 
