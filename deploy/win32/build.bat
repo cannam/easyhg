@@ -26,6 +26,13 @@ if not exist easyhg-kdiff3 (
 )
 set KDIFFDIR=%STARTPWD%\easyhg-kdiff3\kdiff3\src-QT4
 
+if not exist TortoiseSVN (
+     svn co http://svn.osdn.net/svnroot/tortoisesvn/trunk TortoiseSVN
+)
+if %errorlevel% neq 0 exit /b %errorlevel%
+set TSVNDIR=%STARTPWD%\TortoiseSVN
+set TPLINKDIR=%TSVNDIR%\ext\TortoisePlink
+
 mkdir build_win32
 cd build_win32
 
@@ -46,9 +53,15 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 msbuild kdiff3.vcxproj /t:Build /p:Configuration=Release
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+cd %TPLINKDIR%\windows\TPlink
+
+msbuild TortoisePlink.vcxproj /t:Build /p:Configuration=Release
+if %errorlevel% neq 0 exit /b %errorlevel%
+
 cd %STARTPWD%\build_win32
 
 copy %KDIFFDIR%\build_win32\release\kdiff3.exe .\release
+copy %TSVNDIR%\bin\release\bin\TortoisePlink.exe .\release
 
 copy %QTDIR%\bin\Qt5Core.dll .\release
 copy %QTDIR%\bin\Qt5Gui.dll .\release
