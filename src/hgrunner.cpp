@@ -356,7 +356,7 @@ bool HgRunner::checkPrompts(QString chunk)
 
 void HgRunner::dataReadyStdout()
 {
-    DEBUG << "dataReadyStdout" << endl;
+//    DEBUG << "dataReadyStdout" << endl;
     if (!m_proc) return;
     QString chunk = QString::fromUtf8(m_proc->readAllStandardOutput());
     if (!checkPrompts(chunk)) {
@@ -366,10 +366,10 @@ void HgRunner::dataReadyStdout()
 
 void HgRunner::dataReadyStderr()
 {
-    DEBUG << "dataReadyStderr" << endl;
+//    DEBUG << "dataReadyStderr" << endl;
     if (!m_proc) return;
     QString chunk = QString::fromUtf8(m_proc->readAllStandardError());
-    DEBUG << chunk;
+//    DEBUG << chunk;
     if (!checkPrompts(chunk)) {
         m_stderr += chunk;
     }
@@ -377,9 +377,9 @@ void HgRunner::dataReadyStderr()
 
 void HgRunner::dataReadyPty()
 {
-    DEBUG << "dataReadyPty" << endl;
+//    DEBUG << "dataReadyPty" << endl;
     QString chunk = QString::fromUtf8(m_ptyFile->readAll());
-    DEBUG << "chunk of " << chunk.length() << " chars" << endl;
+//    DEBUG << "chunk of " << chunk.length() << " chars" << endl;
     if (!checkPrompts(chunk)) {
         m_stdout += chunk;
     }
